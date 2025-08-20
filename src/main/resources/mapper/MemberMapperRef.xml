@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="bunny.boardhole.mapper.MemberMapperRef">
+
+    <!-- Result Map 정의 -->
+    <resultMap id="MemberResultMap" type="Member">
+        <id property="id" column="id"/>
+        <result property="memberName" column="member_name"/>
+        <result property="password" column="password"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <!-- 회원 저장 (객체 방식) -->
+    <insert id="insertMember" parameterType="Member" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO members (member_name, password)
+        VALUES (#{memberName}, #{password})
+    </insert>
+
+    <!-- 회원 저장 (플랫 파라미터 방식) -->
+    <insert id="insertMemberFlat">
+        INSERT INTO members (member_name, password)
+        VALUES (#{memberName}, #{password})
+    </insert>
+
+    <!-- 모든 회원 조회 -->
+    <select id="selectAllMembers" resultMap="MemberResultMap">
+        SELECT id, member_name, password, created_at, updated_at
+        FROM members
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- ID로 회원 조회 -->
+    <select id="selectMemberById" resultMap="MemberResultMap">
+        SELECT id, member_name, password, created_at, updated_at
+        FROM members
+        WHERE id = #{id}
+    </select>
+
+    <!-- 회원명으로 회원 조회 -->
+    <select id="selectMemberByName" resultMap="MemberResultMap">
+        SELECT id, member_name, password, created_at, updated_at
+        FROM members
+        WHERE member_name = #{memberName}
+    </select>
+
+    <!-- 회원 정보 수정 -->
+    <update id="updateMember" parameterType="Member">
+        UPDATE members
+        SET member_name = #{memberName},
+            password = #{password}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 회원 삭제 -->
+    <delete id="deleteMemberById">
+        DELETE FROM members
+        WHERE id = #{id}
+    </delete>
+
+    <!-- 회원 수 조회 -->
+    <select id="countMembers" resultType="int">
+        SELECT COUNT(*)
+        FROM members
+    </select>
+
+</mapper>
