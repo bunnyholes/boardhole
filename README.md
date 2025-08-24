@@ -2,16 +2,15 @@
 
 Spring Boot MVC 패턴 학습을 위한 기초 프로젝트
 
-이 프로젝트는 **Spring Boot의 MVC 패턴**과 **Controller-Service-Repository 레이어드 아키텍처**를 학습하기 위한 교육용 프로젝트입니다.
+이 프로젝트는 **Spring Boot의 MVC 패턴**과 **Controller-Service 레이어드 아키텍처**를 학습하기 위한 교육용 프로젝트입니다.
 
 ## 현재 상태
 
-**학습 단계**: MVC 패턴 기초 구현
-- ✅ Controller-Service 레이어 구조
-- ✅ REST API 기본 엔드포인트
-- ✅ 의존성 주입(DI) 구현
-- 🔄 Repository 레이어 (구현 예정)
-- ⏳ 데이터베이스 연동 (구현 예정)
+**현재 단계**: 초기 백엔드 CRUD 구축 (보안 제외)
+- ✅ Users/Boards CRUD
+- ✅ 간단 로그인 API (세션/토큰 없음)
+- ✅ Swagger UI 노출 (/swagger-ui.html)
+- ✅ H2 기반 DB 초기화 (schema.sql)
 
 ## 학습 목표
 
@@ -37,13 +36,17 @@ Spring Boot MVC 패턴 학습을 위한 기초 프로젝트
 
 ```
 src/main/java/bunny/boardhole/
-├── BoardHoleApplication.java    # Spring Boot 메인 클래스
-├── controller/                  # Controller 레이어
-│   ├── HelloController.java     #   - Hello API 컨트롤러
-│   └── MemberController.java    #   - Member API 컨트롤러
-└── service/                     # Service 레이어
-    ├── HelloService.java        #   - Hello 비즈니스 로직
-    └── MemberService.java       #   - Member 비즈니스 로직
+├── BoardHoleApplication.java           # Spring Boot 메인 클래스
+├── controller/                         # Controller 레이어
+│   ├── UserController.java             #   - 사용자 CRUD API
+│   ├── BoardController.java            #   - 게시판 CRUD API
+│   └── AuthController.java             #   - 로그인 API
+├── service/                            # Service 레이어
+│   ├── UserService.java
+│   └── BoardService.java
+└── mapper/                             # MyBatis 매퍼 (애너테이션 기반)
+    ├── UserMapper.java
+    └── BoardMapper.java
 ```
 
 ### 레이어드 아키텍처
@@ -95,38 +98,17 @@ src/main/java/bunny/boardhole/
 
 ## 학습 포인트
 
-### 1. Controller 레이어
+### 예시: Users 생성 API
 ```java
-@RestController  // ← REST API 컨트롤러 선언
-public class HelloController {
-    
-    private final HelloService helloService;  // ← 의존성 주입
-    
-    @GetMapping("/hello")  // ← HTTP GET 매핑
-    public String sayHello() {
-        return helloService.sayHello();  // ← Service 계층 호출
-    }
-}
-```
-
-### 2. Service 레이어
-```java
-@Service  // ← Service 컴포넌트 선언
-public class HelloService {
-    
-    public String sayHello() {  // ← 비즈니스 로직 구현
-        return "Hello, World!";
-    }
-}
-```
-
-### 3. 의존성 주입 (DI)
-```java
-// 생성자 주입 방식 (권장)
-private final HelloService helloService;
-
-HelloController(HelloService helloService) {
-    this.helloService = helloService;
+@RestController
+@RequestMapping("/api/users")
+class UserController {
+  private final UserService userService;
+  UserController(UserService userService) { this.userService = userService; }
+  @PostMapping public ResponseEntity<User> create(@RequestBody @Valid UserCreateRequest req) {
+    User u = userService.create(req);
+    return ResponseEntity.created(URI.create("/api/users/"+u.getId())).body(u);
+  }
 }
 ```
 
