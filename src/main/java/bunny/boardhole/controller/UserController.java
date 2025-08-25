@@ -1,10 +1,12 @@
 package bunny.boardhole.controller;
 
 import bunny.boardhole.domain.User;
+import bunny.boardhole.dto.auth.CurrentUserResponse;
 import bunny.boardhole.dto.user.UserResponse;
 import bunny.boardhole.dto.user.UserUpdateRequest;
 import bunny.boardhole.exception.ResourceNotFoundException;
 import bunny.boardhole.service.UserService;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -57,7 +59,19 @@ public class UserController {
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id) {
+        User user = userService.get(id);
+        if (user == null) {
+            throw new ResourceNotFoundException("User not found with id: " + id);
+        }
         userService.delete(id);
     }
-}
 
+    @GetMapping("/me")
+    public CurrentUserResponse me(HttpSession session) {
+        User user = (User) session.getAttribute("user");
+        if (user == null) {
+            throw new bunny.boardhole.exception.UnauthorizedException("not logged in");
+        }
+        return CurrentUserResponse.from(user);
+    }
+}

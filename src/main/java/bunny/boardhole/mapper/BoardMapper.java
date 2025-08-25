@@ -1,6 +1,7 @@
 package bunny.boardhole.mapper;
 
 import bunny.boardhole.domain.Board;
+import bunny.boardhole.dto.common.PageRequest;
 import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
@@ -10,14 +11,15 @@ import org.apache.ibatis.annotations.ResultMap;
 import org.apache.ibatis.annotations.Results;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
 @Mapper
 public interface BoardMapper {
 
-    @Insert("INSERT INTO boards (title, content, author_id) " +
-            "VALUES (#{title}, #{content}, #{authorId})")
+    @Insert("INSERT INTO boards (title, content, author_id, view_count, created_at, updated_at) " +
+            "VALUES (#{title}, #{content}, #{authorId}, #{viewCount}, #{createdAt}, #{updatedAt})")
     @Options(useGeneratedKeys = true, keyProperty = "id")
     void insert(Board board);
 
@@ -53,4 +55,37 @@ public interface BoardMapper {
 
     @Delete("DELETE FROM boards WHERE id = #{id}")
     void deleteById(Long id);
+    
+    @Select({
+        "<script>",
+        "SELECT b.*, u.username AS author_name FROM boards b LEFT JOIN users u ON b.author_id = u.id",
+        "<where>",
+        "  <if test='pageRequest.search != null and pageRequest.search != \"\"'>",
+        "    AND (b.title LIKE CONCAT('%', #{pageRequest.search}, '%') OR b.content LIKE CONCAT('%', #{pageRequest.search}, '%'))",
+        "  </if>",
+        "</where>",
+        "ORDER BY",
+        "<if test='pageRequest.sortBy == \"title\"'>b.title</if>",
+        "<if test='pageRequest.sortBy == \"createdAt\"'>b.created_at</if>",
+        "<if test='pageRequest.sortBy == \"viewCount\"'>b.view_count</if>",
+        "<if test='pageRequest.sortBy == null or pageRequest.sortBy == \"id\"'>b.id</if>",
+        "<if test='pageRequest.sortDirection == \"asc\"'>ASC</if>",
+        "<if test='pageRequest.sortDirection == null or pageRequest.sortDirection == \"desc\"'>DESC</if>",
+        "LIMIT #{pageRequest.size} OFFSET #{pageRequest.offset}",
+        "</script>"
+    })
+    @ResultMap("boardResult")
+    List<Board> findWithPaging(@Param("pageRequest") PageRequest pageRequest);
+    
+    @Select({
+        "<script>",
+        "SELECT COUNT(*) FROM boards",
+        "<where>",
+        "  <if test='search != null and search != \"\"'>",
+        "    AND (title LIKE CONCAT('%', #{search}, '%') OR content LIKE CONCAT('%', #{search}, '%'))",
+        "  </if>",
+        "</where>",
+        "</script>"
+    })
+    long countWithSearch(@Param("search") String search);
 }

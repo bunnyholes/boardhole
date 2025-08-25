@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Board Hole</title>
+
+  <!-- Pretendard 폰트 -->
+  <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable.css" rel="stylesheet">
+  
+  <!-- Common CSS -->
+  <link rel="stylesheet" href="css/common.css">
+  
+  <!-- Page Script -->
+  <script src="js/board-form.js" defer></script>
+</head>
+<body>
+  <div class="card card-wide">
+    <div class="header-section">
+      <h1 id="page-title">게시글</h1>
+      <div class="header-actions">
+        <a href="board.html" class="btn btn-secondary">목록으로</a>
+        <a href="welcome.html" class="btn btn-secondary">대시보드</a>
+        <a href="#" class="btn btn-secondary" onclick="logout()">로그아웃</a>
+      </div>
+    </div>
+    
+    <!-- 로딩 상태 -->
+    <div id="loading" class="text-center">
+      <p>로딩 중...</p>
+    </div>
+    
+    <!-- 에러 메시지 -->
+    <div id="error-message" class="text-center" style="display: none;">
+      <h3>❌ 오류가 발생했습니다</h3>
+      <p id="error-text">요청을 처리할 수 없습니다.</p>
+      <a href="board.html" class="btn btn-primary">목록으로 돌아가기</a>
+    </div>
+    
+    <!-- 게시글 폼 -->
+    <div id="board-form-container" style="display: none;">
+      <!-- 게시글 메타 정보 (보기 모드에서만 표시) -->
+      <div id="post-meta" class="post-meta" style="display: none;">
+        <span id="post-author" class="author"></span>
+        <span class="separator">•</span>
+        <span id="post-date" class="date"></span>
+        <span class="separator">•</span>
+        <span>조회 <span id="post-views">0</span></span>
+      </div>
+      
+      <!-- 폼 -->
+      <form id="board-form" onsubmit="submitForm(event)" novalidate>
+        <label class="field">
+          제목 <span class="required" id="title-required">*</span>
+          <input name="title" type="text" placeholder="제목을 입력하세요" required maxlength="200" class="input" />
+          <div class="field-error" id="title-error"></div>
+        </label>
+
+        <label class="field">
+          내용 <span class="required" id="content-required">*</span>
+          <textarea name="content" placeholder="내용을 입력하세요" required rows="15" class="textarea"></textarea>
+          <div class="field-error" id="content-error"></div>
+        </label>
+
+        <!-- 액션 버튼들 -->
+        <div class="form-actions" id="form-actions">
+          <!-- 생성 모드 버튼 -->
+          <div id="create-actions" style="display: none;">
+            <button type="submit" class="btn btn-primary">
+              <span id="create-text">게시글 작성</span>
+              <span id="create-loading" style="display: none;">저장 중...</span>
+            </button>
+            <button type="button" onclick="cancelAction()" class="btn btn-secondary">취소</button>
+          </div>
+          
+          <!-- 수정 모드 버튼 -->
+          <div id="edit-actions" style="display: none;">
+            <button type="submit" class="btn btn-primary">
+              <span id="update-text">수정 완료</span>
+              <span id="update-loading" style="display: none;">저장 중...</span>
+            </button>
+            <button type="button" onclick="deletePost()" class="btn btn-danger">삭제</button>
+            <button type="button" onclick="cancelAction()" class="btn btn-secondary">취소</button>
+          </div>
+          
+          <!-- 보기 모드 버튼 -->
+          <div id="view-actions" style="display: none;">
+            <button type="button" onclick="enableEditMode()" class="btn btn-primary" id="edit-btn">수정</button>
+            <a href="board-form.html?mode=create" class="btn btn-primary">새글 쓰기</a>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 삭제 확인 모달 -->
+  <div id="delete-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <h3>게시글 삭제</h3>
+      <p>정말로 이 게시글을 삭제하시겠습니까?<br>삭제된 게시글은 복구할 수 없습니다.</p>
+      <div class="modal-actions">
+        <button onclick="confirmDelete()" class="btn btn-danger">삭제</button>
+        <button onclick="closeDeleteModal()" class="btn btn-secondary">취소</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

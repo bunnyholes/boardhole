@@ -1,0 +1,31 @@
+/* Login page specific styles */
+
+.field {
+  display: block;
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 14px;
+}
+
+.field input {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 15px;
+  outline: none;
+  transition: box-shadow .2s ease, border-color .2s ease;
+  background: #fff;
+  color: var(--text);
+}
+
+.field input:focus {
+  border-color: #c9c9c9;
+  box-shadow: 0 0 0 4px rgba(0,0,0,0.04);
+}
+
+
+/* Login button uses primary button style from common.css */
+

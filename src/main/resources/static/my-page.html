@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Board Hole - 내 정보</title>
+
+  <!-- Pretendard 폰트 -->
+  <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable.css" rel="stylesheet">
+  
+  <!-- Common CSS -->
+  <link rel="stylesheet" href="css/common.css">
+  
+  <!-- Page Script -->
+  <script src="js/my-page.js" defer></script>
+</head>
+<body>
+  <div class="card card-wide">
+    <h1>내 정보</h1>
+    
+    <!-- 로딩 상태 -->
+    <div id="loading" class="text-center">
+      <p>사용자 정보를 불러오는 중...</p>
+    </div>
+    
+    <!-- 사용자 정보 (초기에는 숨김) -->
+    <div id="user-info" style="display: none;">
+      <label class="field">
+        이름
+        <input type="text" id="name" readonly>
+      </label>
+      
+      <label class="field">
+        이메일
+        <input type="email" id="email" readonly>
+      </label>
+      
+      <label class="field">
+        사용자 ID
+        <input type="text" id="userId" readonly>
+      </label>
+      
+      <label class="field">
+        가입일
+        <input type="text" id="joinDate" readonly>
+      </label>
+      
+      <label class="field">
+        마지막 로그인
+        <input type="text" id="lastLoginDate" readonly>
+      </label>
+      
+      <div class="mt-3">
+        <a href="welcome.html" class="btn btn-primary mb-2">대시보드로 돌아가기</a>
+        <a href="#" class="btn btn-secondary" onclick="logout()">로그아웃</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

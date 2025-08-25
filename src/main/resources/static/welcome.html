@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Board Hole - 대시보드</title>
+
+  <!-- Pretendard 폰트 -->
+  <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable.css" rel="stylesheet">
+  
+  <!-- Common CSS -->
+  <link rel="stylesheet" href="css/common.css">
+  
+  <!-- Page Script -->
+  <script src="js/welcome.js" defer></script>
+</head>
+<body>
+  <div class="card card-wide">
+    <h1>대시보드</h1>
+    
+    <!-- 로딩 상태 -->
+    <div id="loading" class="text-center">
+      <p>사용자 정보를 불러오는 중...</p>
+    </div>
+    
+    <!-- 메인 콘텐츠 (초기에는 숨김) -->
+    <div id="main-content" class="text-center" style="display: none;">
+      <h2 class="mb-2">환영합니다, <span id="username"></span>님!</h2>
+      <p class="mb-4">로그인이 성공적으로 완료되었습니다.</p>
+      
+      <div class="mb-3">
+        <a href="board.html" class="btn btn-primary mb-2">게시판 보기</a>
+        <a href="board-form.html?mode=create" class="btn btn-secondary mb-2">새글 쓰기</a>
+      </div>
+      
+      <hr class="divider">
+      
+      <div>
+        <a href="my-page.html" class="btn btn-secondary mb-2">내 정보</a>
+        <a href="#" class="btn btn-secondary" onclick="logout()">로그아웃</a>
+      </div>
+      
+      <p class="mt-4 mb-0">
+        <small id="last-login">마지막 로그인: </small>
+      </p>
+    </div>
+  </div>
+</body>
+</html>

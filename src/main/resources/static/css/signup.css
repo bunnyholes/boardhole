@@ -1,0 +1,100 @@
+/* 회원가입 페이지 전용 스타일 */
+
+/* 기본 필드 스타일 (login.css에서 복사) */
+.field {
+  display: block;
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 14px;
+}
+
+.field input {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 15px;
+  outline: none;
+  transition: box-shadow .2s ease, border-color .2s ease;
+  background: #fff;
+  color: var(--text);
+}
+
+.field input:focus {
+  border-color: #c9c9c9;
+  box-shadow: 0 0 0 4px rgba(0,0,0,0.04);
+}
+
+/* 입력 필드 유효성 상태 표시 */
+.field input:invalid:not(:placeholder-shown) {
+  border-color: #ff6b6b;
+  box-shadow: 0 0 0 4px rgba(255, 107, 107, 0.1);
+}
+
+.field input:valid:not(:placeholder-shown) {
+  border-color: #51cf66;
+  box-shadow: 0 0 0 4px rgba(81, 207, 102, 0.1);
+}
+
+/* 비밀번호 확인 필드 특별 처리 */
+.field input[name="passwordConfirm"]:invalid:not(:placeholder-shown) {
+  border-color: #ff6b6b;
+  box-shadow: 0 0 0 4px rgba(255, 107, 107, 0.1);
+}
+
+/* 포커스 상태에서는 기본 스타일 유지 */
+.field input:focus {
+  border-color: #c9c9c9 !important;
+  box-shadow: 0 0 0 4px rgba(0,0,0,0.04) !important;
+}
+
+/* 회원가입 폼 레이아웃 조정 */
+.card form {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* 회원가입 버튼 스타일 강화 */
+.btn.btn-primary[type="submit"] {
+  margin-top: 8px;
+  font-weight: 700;
+}
+
+/* 이미 계정이 있는 경우 링크 스타일 */
+.btn.btn-secondary {
+  font-size: 14px;
+  padding: 8px 16px;
+  margin: 0;
+}
+
+/* 도움말 텍스트 스타일 */
+.field-help {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 4px;
+  display: none;
+}
+
+.field input:focus + .field-help {
+  display: block;
+}
+
+/* 반응형 조정 */
+@media (max-width: 480px) {
+  .card {
+    padding: 20px;
+    width: 100%;
+  }
+  
+  .field {
+    font-size: 14px;
+  }
+  
+  .field input {
+    padding: 10px;
+    font-size: 16px; /* iOS에서 줌 방지 */
+  }
+}
