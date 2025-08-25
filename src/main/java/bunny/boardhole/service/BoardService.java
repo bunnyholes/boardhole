@@ -1,8 +1,11 @@
 package bunny.boardhole.service;
 
 import bunny.boardhole.domain.Board;
-import bunny.boardhole.dto.board.BoardCreateRequest;
-import bunny.boardhole.dto.board.BoardUpdateRequest;
+import bunny.boardhole.dto.board.BoardRequest;
+import bunny.boardhole.dto.common.PageRequest;
+import bunny.boardhole.dto.common.PageResponse;
+import bunny.boardhole.exception.ResourceNotFoundException;
+import bunny.boardhole.exception.UnauthorizedException;
 import bunny.boardhole.mapper.BoardMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,32 +17,54 @@ import java.util.List;
 
 @Slf4j
 @Service
-@Transactional
 @RequiredArgsConstructor
 public class BoardService {
     private final BoardMapper boardMapper;
 
-    public Board create(BoardCreateRequest req) {
+    @Transactional
+    public Board create(BoardRequest req, Long authorId) {
         Board board = Board.builder()
                 .title(req.getTitle())
                 .content(req.getContent())
-                .authorId(req.getAuthorId())
+                .authorId(authorId)
+                .viewCount(0)
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
                 .build();
         boardMapper.insert(board);
         return boardMapper.findById(board.getId());
     }
 
+    @Transactional(readOnly = true)
     public Board get(Long id) {
-        return boardMapper.findById(id);
+        Board board = boardMapper.findById(id);
+        if (board == null) {
+            throw new ResourceNotFoundException("Board not found with id: " + id);
+        }
+        return board;
     }
 
+    @Transactional(readOnly = true)
     public List<Board> list() {
         return boardMapper.findAll();
     }
+    
+    @Transactional(readOnly = true)
+    public PageResponse<Board> listWithPaging(PageRequest pageRequest) {
+        List<Board> boards = boardMapper.findWithPaging(pageRequest);
+        long totalElements = boardMapper.countWithSearch(pageRequest.getSearch());
+        return PageResponse.of(boards, pageRequest.getPage(), pageRequest.getSize(), totalElements);
+    }
 
-    public Board update(Long id, BoardUpdateRequest req) {
-        Board existing = boardMapper.findById(id);
-        if (existing == null) return null;
+    @Transactional
+    public Board update(Long id, BoardRequest req, Long currentUserId) {
+        Board existing = get(id); // Uses get() which throws if not found
+        
+        // 권한 검증: 작성자만 수정 가능
+        if (!existing.getAuthorId().equals(currentUserId)) {
+            throw new UnauthorizedException("Only the author can update this board");
+        }
+        
         if (req.getTitle() != null) existing.setTitle(req.getTitle());
         if (req.getContent() != null) existing.setContent(req.getContent());
         existing.setUpdatedAt(LocalDateTime.now());
@@ -47,7 +72,15 @@ public class BoardService {
         return boardMapper.findById(id);
     }
 
-    public void delete(Long id) {
+    @Transactional
+    public void delete(Long id, Long currentUserId) {
+        Board existing = get(id); // Uses get() which throws if not found
+        
+        // 권한 검증: 작성자만 삭제 가능
+        if (!existing.getAuthorId().equals(currentUserId)) {
+            throw new UnauthorizedException("Only the author can delete this board");
+        }
+        
         boardMapper.deleteById(id);
     }
 }

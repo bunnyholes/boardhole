@@ -1,0 +1,28 @@
+services:
+  mysql:
+    image: mysql:9.1
+    container_name: boardhole-mysql
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: boardhole
+      MYSQL_USER: boardhole
+      MYSQL_PASSWORD: boardhole123
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./init-db:/docker-entrypoint-initdb.d
+    networks:
+      - boardhole-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+volumes:
+  mysql-data:
+    driver: local
+
+networks:
+  boardhole-network:
+    driver: bridge

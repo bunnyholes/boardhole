@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Board Hole - 회원가입</title>
+
+  <!-- Pretendard 폰트 -->
+  <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable.css" rel="stylesheet">
+  
+  <!-- Common CSS -->
+  <link rel="stylesheet" href="css/common.css">
+  <!-- Signup specific CSS -->
+  <link rel="stylesheet" href="css/signup.css">
+
+  <!-- Page Script -->
+  <script src="js/signup.js" defer></script>
+</head>
+<body>
+  <div class="card" role="dialog" aria-labelledby="signup-title">
+    <h1 id="signup-title">회원가입</h1>
+
+    <form onsubmit="signupCheck(event)" autocomplete="off" novalidate>
+      <label class="field">
+        아이디
+        <input name="username" type="text" placeholder="아이디를 입력하세요" required minlength="4" maxlength="20" />
+      </label>
+
+      <label class="field">
+        비밀번호
+        <input name="password" type="password" placeholder="비밀번호를 입력하세요" required minlength="6" />
+      </label>
+
+      <label class="field">
+        비밀번호 확인
+        <input name="passwordConfirm" type="password" placeholder="비밀번호를 다시 입력하세요" required />
+      </label>
+
+      <label class="field">
+        이름
+        <input name="name" type="text" placeholder="이름을 입력하세요" required maxlength="50" />
+      </label>
+
+      <label class="field">
+        이메일
+        <input name="email" type="email" placeholder="이메일을 입력하세요" required />
+      </label>
+
+      <button class="btn btn-primary" type="submit">가입하기</button>
+      
+      <div class="text-center mt-3">
+        <a href="login.html" class="btn btn-secondary">이미 계정이 있으신가요?</a>
+      </div>
+    </form>
+  </div>
+</body>
+</html>
