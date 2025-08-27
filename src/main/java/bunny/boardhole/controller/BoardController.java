@@ -38,9 +38,9 @@ public class BoardController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public BoardResponse create(@Validated(BoardRequest.Create.class) @RequestBody BoardRequest req, HttpSession session) {
-        User currentUser = getCurrentUser(session);
-        Board board = boardService.create(req, currentUser.getId());
+    public BoardResponse create(@RequestBody BoardRequest req) {
+        // 검증 없이 단순 생성
+        Board board = boardService.create(req);
         return BoardResponse.from(board);
     }
 
@@ -81,25 +81,26 @@ public class BoardController {
     }
 
     @PutMapping("/{id}")
-    public BoardResponse update(@PathVariable Long id, @Validated(BoardRequest.Update.class) @RequestBody BoardRequest req, HttpSession session) {
-        User currentUser = getCurrentUser(session);
-        Board updated = boardService.update(id, req, currentUser.getId());
+    public BoardResponse update(@PathVariable Long id, @RequestBody BoardRequest req) {
+        // 검증 없이 단순 수정
+        Board updated = boardService.update(id, req);
         return BoardResponse.from(updated);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable Long id, HttpSession session) {
-        User currentUser = getCurrentUser(session);
-        boardService.delete(id, currentUser.getId());
+    public void delete(@PathVariable Long id) {
+        // 검증 없이 단순 삭제
+        boardService.delete(id);
     }
 
-    private User getCurrentUser(HttpSession session) {
-        User user = (User) session.getAttribute("user");
-        if (user == null) {
-            throw new UnauthorizedException("not logged in");
-        }
-        return user;
-    }
+    // Security 제거로 인해 getCurrentUser 메소드 주석 처리
+    // private User getCurrentUser(HttpSession session) {
+    //     User user = (User) session.getAttribute("user");
+    //     if (user == null) {
+    //         throw new UnauthorizedException("not logged in");
+    //     }
+    //     return user;
+    // }
 }
 
