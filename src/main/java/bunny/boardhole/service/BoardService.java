@@ -22,11 +22,11 @@ public class BoardService {
     private final BoardMapper boardMapper;
 
     @Transactional
-    public Board create(BoardRequest req, Long authorId) {
+    public Board create(BoardRequest req) {
         Board board = Board.builder()
                 .title(req.getTitle())
                 .content(req.getContent())
-                .authorId(authorId)
+                .authorId(req.getUserId() != null ? req.getUserId() : 1L) // userId가 없으면 기본값 1
                 .viewCount(0)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
@@ -57,14 +57,10 @@ public class BoardService {
     }
 
     @Transactional
-    public Board update(Long id, BoardRequest req, Long currentUserId) {
+    public Board update(Long id, BoardRequest req) {
         Board existing = get(id); // Uses get() which throws if not found
         
-        // 권한 검증: 작성자만 수정 가능
-        if (!existing.getAuthorId().equals(currentUserId)) {
-            throw new UnauthorizedException("Only the author can update this board");
-        }
-        
+        // 검증 없이 누구나 수정 가능
         if (req.getTitle() != null) existing.setTitle(req.getTitle());
         if (req.getContent() != null) existing.setContent(req.getContent());
         existing.setUpdatedAt(LocalDateTime.now());
@@ -73,14 +69,9 @@ public class BoardService {
     }
 
     @Transactional
-    public void delete(Long id, Long currentUserId) {
-        Board existing = get(id); // Uses get() which throws if not found
-        
-        // 권한 검증: 작성자만 삭제 가능
-        if (!existing.getAuthorId().equals(currentUserId)) {
-            throw new UnauthorizedException("Only the author can delete this board");
-        }
-        
+    public void delete(Long id) {
+        // 검증 없이 누구나 삭제 가능
+        Board existing = get(id); // 존재 여부만 확인
         boardMapper.deleteById(id);
     }
 }

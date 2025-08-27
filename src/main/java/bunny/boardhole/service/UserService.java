@@ -6,7 +6,6 @@ import bunny.boardhole.dto.user.UserUpdateRequest;
 import bunny.boardhole.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,7 +17,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserService {
     private final UserMapper userMapper;
-    private final PasswordEncoder passwordEncoder;
 
     @Transactional
     public User create(UserCreateRequest req) {
@@ -30,7 +28,7 @@ public class UserService {
         }
         User user = User.builder()
                 .username(req.getUsername())
-                .password(passwordEncoder.encode(req.getPassword()))
+                .password(req.getPassword())
                 .name(req.getName())
                 .email(req.getEmail())
                 .createdAt(LocalDateTime.now())
@@ -56,7 +54,7 @@ public class UserService {
         if (existing == null) return null;
         if (req.getName() != null) existing.setName(req.getName());
         if (req.getEmail() != null) existing.setEmail(req.getEmail());
-        if (req.getPassword() != null) existing.setPassword(passwordEncoder.encode(req.getPassword()));
+        if (req.getPassword() != null) existing.setPassword(req.getPassword());
         existing.setUpdatedAt(LocalDateTime.now());
         userMapper.update(existing);
         return userMapper.findById(id);
@@ -70,7 +68,7 @@ public class UserService {
     @Transactional
     public User login(String username, String password) {
         User user = userMapper.findByUsername(username);
-        if (user == null || !passwordEncoder.matches(password, user.getPassword())) {
+        if (user == null || !password.equals(user.getPassword())) {
             return null;
         }
         userMapper.updateLastLogin(user.getId(), LocalDateTime.now());
