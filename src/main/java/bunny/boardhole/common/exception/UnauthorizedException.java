@@ -1,4 +1,4 @@
-package bunny.boardhole.exception;
+package bunny.boardhole.common.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;

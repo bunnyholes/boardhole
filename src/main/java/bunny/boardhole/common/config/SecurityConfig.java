@@ -1,5 +1,7 @@
-package bunny.boardhole.config;
+package bunny.boardhole.common.config;
 
+import bunny.boardhole.common.security.ProblemDetailsAccessDeniedHandler;
+import bunny.boardhole.common.security.ProblemDetailsAuthenticationEntryPoint;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,25 +13,47 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.access.PermissionEvaluator;
+import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
+import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
 
+/**
+ * Spring Security 설정
+ * 인증, 인가, 세션 관리 및 CORS 설정을 담당합니다.
+ */
 @Configuration
 @EnableMethodSecurity(prePostEnabled = true, securedEnabled = true, jsr250Enabled = true)
 public class SecurityConfig {
+    /**
+     * 비밀번호 인코더 빈 설정
+     * @return BCrypt 를 사용하는 비밀번호 인코더
+     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
+    /**
+     * 인증 매니저 빈 설정
+     * @param configuration Spring Security 인증 설정
+     * @return 인증 매니저
+     */
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();
     }
 
+    /**
+     * 보안 필터 체인 설정
+     * @param http HTTP 보안 설정 객체
+     * @param securityContextRepository 보안 컨텍스트 리포지토리
+     * @return 설정된 보안 필터 체인
+     */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, SecurityContextRepository securityContextRepository) throws Exception {
         http
@@ -38,7 +62,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Static resources and common locations
                         .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
-                        .requestMatchers("/", "/index.html").permitAll()
+                        // Explicitly allow common static paths
+                        .requestMatchers("/public/**", "/css/**", "/js/**", "/images/**", "/webjars/**", "/favicon.ico").permitAll()
+                        .requestMatchers("/", "/index.html", "/login.html", "/signup.html").permitAll()
                         // Swagger UI - explicitly permit
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**").permitAll()
                         // Error page
@@ -60,6 +86,7 @@ public class SecurityConfig {
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                        .sessionFixation().newSession()
                         .maximumSessions(1)
                         .maxSessionsPreventsLogin(false))
                 .securityContext((securityContext) -> securityContext
@@ -68,17 +95,24 @@ public class SecurityConfig {
     }
 
     @Bean
+    public MethodSecurityExpressionHandler methodSecurityExpressionHandler(PermissionEvaluator permissionEvaluator) {
+        DefaultMethodSecurityExpressionHandler handler = new DefaultMethodSecurityExpressionHandler();
+        handler.setPermissionEvaluator(permissionEvaluator);
+        return handler;
+    }
+
+    @Bean
     public SecurityContextRepository securityContextRepository() {
         return new HttpSessionSecurityContextRepository();
     }
 
     @Bean
-    public bunny.boardhole.security.ProblemDetailsAuthenticationEntryPoint problemDetailsAuthenticationEntryPoint() {
-        return new bunny.boardhole.security.ProblemDetailsAuthenticationEntryPoint();
+    public ProblemDetailsAuthenticationEntryPoint problemDetailsAuthenticationEntryPoint() {
+        return new ProblemDetailsAuthenticationEntryPoint();
     }
 
     @Bean
-    public bunny.boardhole.security.ProblemDetailsAccessDeniedHandler problemDetailsAccessDeniedHandler() {
-        return new bunny.boardhole.security.ProblemDetailsAccessDeniedHandler();
+    public ProblemDetailsAccessDeniedHandler problemDetailsAccessDeniedHandler() {
+        return new ProblemDetailsAccessDeniedHandler();
     }
 }
