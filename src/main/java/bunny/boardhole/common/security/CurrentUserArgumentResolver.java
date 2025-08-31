@@ -16,7 +16,7 @@ import org.springframework.web.method.support.ModelAndViewContainer;
 @Component
 @RequiredArgsConstructor
 public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolver {
-    
+
     private final MessageUtils messageUtils;
 
     @Override

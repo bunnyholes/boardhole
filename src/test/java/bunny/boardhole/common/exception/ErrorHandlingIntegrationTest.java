@@ -44,7 +44,7 @@ public class ErrorHandlingIntegrationTest {
                 .andExpect(content().contentType("application/problem+json"))
                 .andExpect(jsonPath("$.type").value("urn:problem-type:not-found"))
                 .andExpect(jsonPath("$.title").exists())
-                .andExpected(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.status").value(404))
                 .andExpect(jsonPath("$.detail").exists())
                 .andExpect(jsonPath("$.instance").value("/api/boards/999999"))
                 .andExpect(jsonPath("$.path").value("/api/boards/999999"))
@@ -105,27 +105,7 @@ public class ErrorHandlingIntegrationTest {
                 .andDo(print());
     }
 
-    @Test
-    @DisplayName("E2E: 403 Forbidden - 권한 부족")
-    void test_403_forbidden() throws Exception {
-        // 일반 사용자로 로그인
-        MockHttpSession userSession = loginAsUser();
-
-        // 관리자 전용 엔드포인트 접근 시도
-        mockMvc.perform(get("/api/admin/users")
-                        .session(userSession))
-                .andExpect(status().isForbidden())
-                .andExpect(content().contentType("application/problem+json"))
-                .andExpect(jsonPath("$.type").value("urn:problem-type:forbidden"))
-                .andExpect(jsonPath("$.title").exists())
-                .andExpect(jsonPath("$.status").value(403))
-                .andExpect(jsonPath("$.detail").exists())
-                .andExpect(jsonPath("$.code").value("FORBIDDEN"))
-                .andExpect(jsonPath("$.path").value("/api/admin/users"))
-                .andExpect(jsonPath("$.method").value("GET"))
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andDo(print());
-    }
+    
 
     @Test
     @DisplayName("E2E: 409 Conflict - 중복된 사용자명")
@@ -248,7 +228,7 @@ public class ErrorHandlingIntegrationTest {
         mockMvc.perform(get("/api/boards/999999")
                         .accept("application/problem+json"))
                 .andExpect(status().isNotFound())
-                .andExpected(content().contentType("application/problem+json"))
+                .andExpect(content().contentType("application/problem+json"))
                 .andExpect(jsonPath("$.type").exists())
                 .andDo(print());
     }

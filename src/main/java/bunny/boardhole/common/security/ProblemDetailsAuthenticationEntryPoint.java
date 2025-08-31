@@ -1,9 +1,11 @@
 package bunny.boardhole.common.security;
 
+import bunny.boardhole.common.config.log.RequestLoggingFilter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -13,6 +15,7 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 
 import java.io.IOException;
 import java.net.URI;
+import java.time.Instant;
 
 /**
  * 인증 실패 진입점 핸들러
@@ -35,6 +38,15 @@ public class ProblemDetailsAuthenticationEntryPoint implements AuthenticationEnt
             pd.setInstance(URI.create(request.getRequestURI()));
         } catch (IllegalArgumentException ignored) {
         }
+
+        // common extensions
+        String traceId = MDC.get(RequestLoggingFilter.TRACE_ID);
+        if (traceId != null && !traceId.isBlank()) {
+            pd.setProperty("traceId", traceId);
+        }
+        pd.setProperty("path", request.getRequestURI());
+        pd.setProperty("method", request.getMethod());
+        pd.setProperty("timestamp", Instant.now().toString());
 
         response.setStatus(HttpStatus.UNAUTHORIZED.value());
         response.setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);

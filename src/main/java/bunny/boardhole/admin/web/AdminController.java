@@ -50,4 +50,5 @@ public class AdminController {
         long totalViews = boardRepository.sumViewCount();
         return new AdminStatsResponse(users, boards, totalViews);
     }
+
 }
