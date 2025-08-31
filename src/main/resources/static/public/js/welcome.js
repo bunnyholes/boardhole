@@ -1,11 +1,32 @@
-// Welcome 페이지: 서버 세션 기반 로그인 확인
+// Welcome 페이지 사용자 인증 및 데이터 로딩
 window.addEventListener('load', async () => {
   try {
-    const res = await fetch('/api/users/me');
-    if (!res.ok) throw new Error('not logged in');
-    const me = await res.json();
-    renderUserInfo({ name: me.name, lastLogin: me.lastLogin });
-  } catch (e) {
+    // API 호출로 사용자 정보 가져오기
+    const response = await fetch('/api/users/me', {
+      method: 'GET',
+      credentials: 'include', // 쿠키/세션 포함
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    // 인증 실패 시 로그인 페이지로 리다이렉트
+    if (!response.ok) {
+      console.log('Authentication failed, redirecting to login');
+      window.location.href = 'login.html';
+      return;
+    }
+
+    // 사용자 정보 파싱
+    const userData = await response.json();
+    console.log('User data loaded:', userData);
+
+    // 화면에 사용자 정보 렌더링
+    renderUserInfo(userData);
+
+  } catch (error) {
+    console.error('API call failed:', error);
+    // 네트워크 오류 등으로 API 호출 실패 시에도 로그인 페이지로
     window.location.href = 'login.html';
   }
 });
@@ -62,10 +83,4 @@ function renderUserInfo(userData) {
   if (mainContent) {
     mainContent.style.display = 'block';
   }
-}
-
-// 로그아웃 (서버 세션 종료)
-async function logout() {
-  await fetch('/api/auth/logout', { method: 'POST' }).catch(() => {});
-  window.location.href = 'index.html';
 }

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ko" data-bs-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Board Hole - 새글 쓰기</title>
+
+  <!-- Pretendard 폰트 -->
+  <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable.css" rel="stylesheet">
+  
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+  
+  
+</head>
+<body>
+  <div class="container">
+    <div class="card card">
+      <div class="card-body">
+        <h1 class="card-title text-center mb-4">새글 쓰기</h1>
+        
+        <div id="flash-error" class="alert alert-danger text-center" role="alert" style="display:none;" aria-live="polite"></div>
+        
+        <form id="board-form" method="post" action="/api/boards" autocomplete="off" novalidate>
+          <div class="row g-3">
+            <div class="col-12">
+              <label for="title" class="form-label">제목</label>
+              <input 
+                type="text" 
+                class="form-control" 
+                id="title" 
+                name="title" 
+                placeholder="제목을 입력하세요" 
+                required 
+                maxlength="255"
+                aria-describedby="title-help"
+              />
+              <div id="title-help" class="form-text">게시글의 제목을 입력해주세요 (최대 255자)</div>
+            </div>
+
+            <div class="col-12">
+              <label for="content" class="form-label">내용</label>
+              <textarea 
+                class="form-control" 
+                id="content" 
+                name="content" 
+                rows="12"
+                placeholder="내용을 입력하세요" 
+                required
+                style="min-height: 300px; resize: vertical;"
+                aria-describedby="content-help"
+              ></textarea>
+              <div id="content-help" class="form-text">게시글의 내용을 자유롭게 작성해주세요</div>
+            </div>
+          </div>
+
+          <div class="d-flex flex-column flex-md-row gap-2 justify-content-center mt-4">
+            <button type="submit" class="btn btn-primary" aria-describedby="submit-help">
+              <i class="bi bi-pencil-square"></i> 게시하기
+            </button>
+            <a href="board.html" class="btn btn-outline-secondary" aria-describedby="cancel-help">
+              <i class="bi bi-x-circle"></i> 취소
+            </a>
+            <div id="submit-help" class="visually-hidden">게시글을 작성하여 게시판에 등록합니다</div>
+            <div id="cancel-help" class="visually-hidden">작성을 취소하고 게시판 목록으로 돌아갑니다</div>
+          </div>
+        </form>
+        
+        <!-- 로딩 상태 -->
+        <div id="loading" class="text-center" style="display: none;">
+          <div class="spinner-border text-secondary" role="status" aria-label="게시글 작성 중">
+            <span class="visually-hidden">게시글을 작성하는 중...</span>
+          </div>
+          <p class="mt-2 text-muted">게시글을 작성하는 중...</p>
+        </div>
+        
+        <!-- 하단 네비게이션 -->
+        <nav class="d-flex flex-column flex-md-row gap-2 justify-content-center mt-4">
+          <a href="board.html" class="btn btn-outline-secondary" aria-describedby="board-help">
+            <i class="bi bi-list-ul"></i> 게시판으로 이동
+          </a>
+          <a href="welcome.html" class="btn btn-outline-secondary" aria-describedby="dashboard-help">
+            <i class="bi bi-house"></i> 대시보드로 돌아가기
+          </a>
+          <button type="button" onclick="logout()" class="btn btn-outline-secondary" aria-describedby="logout-help">
+            <i class="bi bi-box-arrow-right"></i> 로그아웃
+          </button>
+          <div id="board-help" class="visually-hidden">게시판 목록 페이지로 이동합니다</div>
+          <div id="dashboard-help" class="visually-hidden">메인 대시보드로 이동합니다</div>
+          <div id="logout-help" class="visually-hidden">현재 세션에서 로그아웃합니다</div>
+        </nav>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+  
+  <!-- Custom JavaScript -->
+  <script src="public/js/flash.js" defer></script>
+  <script src="public/js/logout.js" defer></script>
+  <script src="public/js/board-write.js" defer></script>
+</body>
+</html>

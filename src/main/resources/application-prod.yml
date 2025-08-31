@@ -1,32 +1,31 @@
 # 프로덕션 환경 설정
-
 # Database (프로덕션 환경 - 환경 변수 사용)
 spring.datasource.url=${DATABASE_URL:jdbc:mysql://localhost:3306/boardhole}
 spring.datasource.username=${DATABASE_USERNAME:boardhole}
 spring.datasource.password=${DATABASE_PASSWORD:boardhole123}
 spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
-
 # JPA/Hibernate Properties (프로덕션 환경)
 spring.jpa.hibernate.ddl-auto=validate
 spring.jpa.show-sql=false
 spring.jpa.properties.hibernate.format_sql=false
-
 # Docker Compose 비활성화 (프로덕션에서는 외부 DB 사용)
 spring.docker.compose.enabled=false
-
 # Logging (프로덕션 환경)
+spring.output.ansi.enabled=NEVER
 logging.pattern.level=%5p [trace:%X{traceId}]
 logging.level.bunny.boardhole=WARN
 logging.level.org.springframework.security=WARN
 logging.level.org.springframework.web=WARN
-
 # Board Hole 기본 사용자 설정 (프로덕션 환경)
 boardhole.default-users.admin.password=${BOARDHOLE_ADMIN_PASSWORD:ChangeMe!123}
 boardhole.default-users.regular.password=${BOARDHOLE_USER_PASSWORD:ChangeMe!456}
-
-
 # 세션 보안 설정 (프로덕션)
 server.servlet.session.timeout=30m
 server.servlet.session.cookie.secure=true
 server.servlet.session.cookie.http-only=true
 server.servlet.session.cookie.same-site=strict
+
+# Redirect security (same behavior as other profiles):
+# - Leave unset/empty to allow redirect to any origin
+# - Restrict by injecting at runtime, e.g. env var:
+#     BOARDHOLE_REDIRECT_ALLOWED_ORIGIN=https://app.example.com

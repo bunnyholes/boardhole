@@ -8,23 +8,37 @@
   <!-- Pretendard 폰트 -->
   <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable.css" rel="stylesheet">
   
-  <!-- Common CSS -->
-  <link rel="stylesheet" href="css/common.css">
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+  
+  
 </head>
 <body>
-  <div class="card card-wide">
-    <h1>Board Hole</h1>
-    <div class="text-center">
-      <h2 class="mb-2">환영합니다!</h2>
-      <p class="mb-4">간단하고 직관적인 보드 관리 시스템입니다.</p>
-      
-      <a href="login.html" class="btn btn-primary mb-2">로그인하기</a>
-      <a href="signup.html" class="btn btn-secondary">회원가입</a>
-      
-      <p class="mt-4 mb-0">
-        <small>© 2024 Board Hole. All rights reserved.</small>
-      </p>
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-md-8 col-lg-6">
+        <div class="card">
+          <div class="card-header text-center">
+            <h1 class="h2 mb-0">Board Hole</h1>
+          </div>
+          <div class="card-body text-center">
+            <h2 class="h4 mb-3">환영합니다!</h2>
+            <p class="mb-4 text-muted">간단하고 직관적인 보드 관리 시스템입니다.</p>
+            
+            <div class="d-grid gap-2">
+              <a href="login.html" class="btn btn-primary btn-lg">로그인하기</a>
+              <a href="signup.html" class="btn btn-outline-secondary">회원가입</a>
+            </div>
+          </div>
+          <div class="card-footer text-center">
+            <small class="text-muted">© 2024 Board Hole. All rights reserved.</small>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
+  
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
 </body>
 </html>

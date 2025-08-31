@@ -10,16 +10,16 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Value("${boardhole.cors.allowed-origins}")
     private String[] allowedOrigins;
-    
+
     @Value("${boardhole.cors.allowed-methods}")
     private String[] allowedMethods;
-    
+
     @Value("${boardhole.cors.allowed-headers}")
     private String allowedHeaders;
-    
+
     @Value("${boardhole.cors.allow-credentials}")
     private boolean allowCredentials;
-    
+
     @Value("${boardhole.cors.max-age}")
     private long maxAge;
 

@@ -14,29 +14,38 @@ async function signupCheck(event) {
     return;
   }
 
-  const signupData = {
-    username: username,
-    password: password,
-    name: name,
-    email: email
-  };
+  const body = new URLSearchParams({ username, password, name, email });
 
   try {
-    const res = await fetch('/api/auth/signup', {
+    const response = await fetch('/api/auth/signup', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(signupData)
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body
     });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      const msg = err.message || (res.status === 409 ? '이미 사용 중인 아이디 또는 이메일입니다.' : '회원가입에 실패했습니다.');
-      throw new Error(msg);
+
+    if (response.ok) {
+      // 회원가입 성공
+      alert('회원가입이 완료되었습니다. 로그인해주세요.');
+      window.location.href = 'login.html';
+    } else {
+      // 회원가입 실패
+      const errorData = await response.json().catch(() => null);
+      let errorMessage = '회원가입에 실패했습니다.';
+      
+      if (errorData && errorData.message) {
+        errorMessage = errorData.message;
+      } else if (response.status === 409) {
+        errorMessage = '이미 사용 중인 아이디 또는 이메일입니다.';
+      } else if (response.status === 400) {
+        errorMessage = '입력 정보를 다시 확인해주세요.';
+      }
+      
+      alert(errorMessage);
     }
-    // 회원가입 성공
-    alert('회원가입이 완료되었습니다. 로그인해주세요.');
-    window.location.href = 'login.html';
   } catch (error) {
-    alert(error.message || '회원가입에 실패했습니다.');
+    console.error('Signup request failed:', error);
+    alert('서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.');
   }
 }
 
@@ -81,13 +90,13 @@ function validateSignupForm(username, password, passwordConfirm, name, email) {
   return true;
 }
 
-// 실시간 비밀번호 확인 검사 (선택사항)
-window.addEventListener('load', () => {
+// Real-time password confirmation validation
+document.addEventListener('DOMContentLoaded', () => {
   const passwordInput = document.querySelector('input[name="password"]');
   const passwordConfirmInput = document.querySelector('input[name="passwordConfirm"]');
 
-  if (passwordConfirmInput) {
-    passwordConfirmInput.addEventListener('input', () => {
+  if (passwordConfirmInput && passwordInput) {
+    const validatePasswordMatch = () => {
       const password = passwordInput.value;
       const passwordConfirm = passwordConfirmInput.value;
 
@@ -96,6 +105,9 @@ window.addEventListener('load', () => {
       } else {
         passwordConfirmInput.setCustomValidity('');
       }
-    });
+    };
+
+    passwordInput.addEventListener('input', validatePasswordMatch);
+    passwordConfirmInput.addEventListener('input', validatePasswordMatch);
   }
 });

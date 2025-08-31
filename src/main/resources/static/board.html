@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" data-bs-theme="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -8,62 +8,104 @@
   <!-- Pretendard 폰트 -->
   <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable.css" rel="stylesheet">
   
-  <!-- Common CSS -->
-  <link rel="stylesheet" href="css/common.css">
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
   
-  <!-- Page Script -->
-  <script src="js/board.js" defer></script>
+  
 </head>
 <body>
-  <div class="card card-wide">
-    <div class="header-section">
-      <h1>게시판</h1>
-      <div class="header-actions">
-        <a href="board-form.html?mode=create" class="btn btn-primary">새글 쓰기</a>
-        <a href="welcome.html" class="btn btn-secondary">대시보드</a>
-        <a href="#" class="btn btn-secondary" onclick="logout()">로그아웃</a>
+  <div class="container">
+    <div class="card">
+      <div class="card-header">
+        <h1 class="text-center mb-0 fw-bold">📋 게시판</h1>
+      </div>
+      <div class="card-body">
+        
+        <!-- Simple Search & Actions -->
+        <div class="row mb-4">
+          <div class="col-md-8">
+            <div class="input-group">
+              <input type="text" id="search-input" class="form-control" placeholder="제목으로 검색..." aria-label="게시글 검색">
+              <button onclick="searchBoards()" class="btn btn-primary" type="button">검색</button>
+              <button onclick="loadBoards(1)" class="btn btn-outline-secondary" type="button">전체</button>
+            </div>
+          </div>
+          <div class="col-md-4 d-flex justify-content-end">
+            <a href="board-write.html" class="btn btn-primary">새글 쓰기</a>
+          </div>
+        </div>
+
+        <!-- Simple Loading State -->
+        <div id="loading" class="text-center">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">게시글을 불러오는 중...</span>
+          </div>
+          <p class="mt-2 text-muted">게시글을 불러오는 중...</p>
+        </div>
+        
+        <!-- Simple Board List -->
+        <div id="board-list" style="display: none;">
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead class="table-light">
+                <tr>
+                  <th scope="col">제목</th>
+                  <th scope="col" class="d-none d-md-table-cell">작성자</th>
+                  <th scope="col" class="text-center d-none d-sm-table-cell">조회수</th>
+                  <th scope="col" class="text-center d-none d-md-table-cell">작성일</th>
+                </tr>
+              </thead>
+              <tbody id="board-table-body">
+              </tbody>
+            </table>
+          </div>
+          
+          <!-- Simple Empty State -->
+          <div id="empty-message" class="text-center py-5" style="display: none;">
+            <div class="text-muted">
+              <p class="mt-2">게시글이 없습니다.</p>
+              <a href="board-write.html" class="btn btn-primary mt-2">첫 게시글 쓰기</a>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Fixed Prev/Next (no layout shift). Page numbers are injected between. -->
+        <nav id="pagination" class="mt-4" aria-label="게시글 페이지네이션">
+          <ul class="pagination justify-content-center mb-0" id="pg-list">
+            <li class="page-item disabled" id="pg-first">
+              <a class="page-link" href="#" id="pg-first-link" aria-label="첫 페이지" tabindex="-1" aria-disabled="true">«</a>
+            </li>
+            <li class="page-item disabled" id="pg-prev">
+              <a class="page-link" href="#" id="pg-prev-link" aria-label="이전 페이지" tabindex="-1" aria-disabled="true">‹</a>
+            </li>
+            <!-- page items will be injected here -->
+            <li class="page-item disabled" id="pg-next">
+              <a class="page-link" href="#" id="pg-next-link" aria-label="다음 페이지" tabindex="-1" aria-disabled="true">›</a>
+            </li>
+            <li class="page-item disabled" id="pg-last">
+              <a class="page-link" href="#" id="pg-last-link" aria-label="마지막 페이지" tabindex="-1" aria-disabled="true">»</a>
+            </li>
+          </ul>
+        </nav>
+        
+        <!-- Simple Footer Actions -->
+        <div class="d-flex justify-content-center gap-2 mt-4">
+          <a href="welcome.html" class="btn btn-outline-secondary">대시보드로 돌아가기</a>
+          <button onclick="logout()" class="btn btn-outline-secondary">로그아웃</button>
+        </div>
       </div>
     </div>
-    
-    <!-- 검색 섹션 (클라이언트 필터) -->
-    <div class="search-section mb-4">
-      <input type="text" id="searchInput" placeholder="제목으로 검색..." class="input" style="display: inline-block; width: 300px; margin-right: 10px;">
-      <button onclick="searchBoards()" class="btn btn-secondary">검색</button>
-      <button onclick="clearSearchAndReload()" class="btn btn-secondary">전체보기</button>
-    </div>
-    
-    <!-- 로딩 상태 -->
-    <div id="loading" class="text-center">
-      <p>게시글을 불러오는 중...</p>
-    </div>
-    
-    <!-- 게시글 목록 -->
-    <div id="board-list" style="display: none;">
-      <table class="board-table">
-        <thead>
-          <tr>
-            <th width="10%">번호</th>
-            <th width="50%">제목</th>
-            <th width="15%">작성자</th>
-            <th width="15%">작성일</th>
-            <th width="10%">조회</th>
-          </tr>
-        </thead>
-        <tbody id="board-tbody">
-          <!-- 게시글 목록이 여기에 동적으로 추가됩니다 -->
-        </tbody>
-      </table>
-      
-      <!-- 페이지네이션 삭제: 단순 리스트 -->
-      <div id="pagination" class="pagination"></div>
-    </div>
-    
-    <!-- 빈 목록 메시지 -->
-    <div id="empty-message" class="text-center" style="display: none;">
-      <h3>📝 게시글이 없습니다</h3>
-      <p>첫 번째 게시글을 작성해보세요!</p>
-      <a href="board-form.html?mode=create" class="btn btn-primary">새글 쓰기</a>
+  </div>
+      </div>
     </div>
   </div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+  
+  <!-- Custom JavaScript -->
+  <script src="public/js/flash.js" defer></script>
+  <script src="public/js/logout.js" defer></script>
+  <script src="public/js/board.js" defer></script>
 </body>
 </html>
