@@ -35,14 +35,13 @@ public class BoardDto {
     }
     
     public Board toEntity() {
-        return Board.builder()
-                .id(this.id)
+        Board board = Board.builder()
                 .title(this.title)
                 .content(this.content)
                 .author(this.author != null ? this.author.toEntity() : null)
-                .viewCount(this.viewCount)
-                .createdAt(this.createdAt)
-                .updatedAt(this.updatedAt)
                 .build();
+        board.setId(this.id);
+        board.setViewCount(this.viewCount);
+        return board;
     }
 }

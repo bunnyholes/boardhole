@@ -1,5 +1,6 @@
 package bunny.boardhole.dto.user;
 
+import bunny.boardhole.domain.Role;
 import bunny.boardhole.domain.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -8,7 +9,6 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.Set;
-import bunny.boardhole.domain.Role;
 
 @Data
 @NoArgsConstructor
@@ -32,6 +32,18 @@ public class UserResponse {
                 .createdAt(user.getCreatedAt())
                 .lastLogin(user.getLastLogin())
                 .roles(user.getRoles())
+                .build();
+    }
+
+    public static UserResponse from(UserDto dto) {
+        return UserResponse.builder()
+                .id(dto.getId())
+                .username(dto.getUsername())
+                .name(dto.getName())
+                .email(dto.getEmail())
+                .createdAt(dto.getCreatedAt())
+                .lastLogin(dto.getLastLogin())
+                .roles(dto.getRoles())
                 .build();
     }
 }

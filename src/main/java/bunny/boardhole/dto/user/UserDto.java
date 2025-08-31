@@ -40,16 +40,15 @@ public class UserDto {
     }
     
     public User toEntity() {
-        return User.builder()
-                .id(this.id)
+        User user = User.builder()
                 .username(this.username)
                 .password(this.password)
                 .name(this.name)
                 .email(this.email)
                 .roles(this.roles)
-                .lastLogin(this.lastLogin)
-                .createdAt(this.createdAt)
-                .updatedAt(this.updatedAt)
                 .build();
+        user.setId(this.id);
+        user.setLastLogin(this.lastLogin);
+        return user;
     }
 }

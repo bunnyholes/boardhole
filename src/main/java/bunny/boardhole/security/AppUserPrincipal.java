@@ -2,6 +2,8 @@ package bunny.boardhole.security;
 
 import bunny.boardhole.domain.Role;
 import bunny.boardhole.domain.User;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -11,14 +13,10 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Getter
+@RequiredArgsConstructor
 public class AppUserPrincipal implements UserDetails {
     private final User user;
-
-    public AppUserPrincipal(User user) {
-        this.user = user;
-    }
-
-    public User getUser() { return user; }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
