@@ -69,9 +69,9 @@ public class LoggingAspect {
 
             // 성능 경고는 임계값 초과 시에만 (불필요한 로깅 감소)
             if (logFormatter.shouldWarnPerformance(tookMs)) {
-                log.warn(messageSource.getMessage("log.performance.warning", 
-                    new Object[]{signature, tookMs}, 
-                    org.springframework.context.i18n.LocaleContextHolder.getLocale()));
+                log.warn(messageSource.getMessage("log.performance.warning",
+                        new Object[]{signature, tookMs},
+                        org.springframework.context.i18n.LocaleContextHolder.getLocale()));
             }
 
             // 메서드 종료 로깅은 DEBUG 레벨에서만

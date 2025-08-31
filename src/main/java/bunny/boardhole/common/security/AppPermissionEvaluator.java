@@ -75,7 +75,7 @@ public class AppPermissionEvaluator implements PermissionEvaluator {
         }
         return null;
     }
-    
+
     private boolean hasRole(Authentication auth, String role) {
         if (auth == null || !auth.isAuthenticated()) {
             return false;

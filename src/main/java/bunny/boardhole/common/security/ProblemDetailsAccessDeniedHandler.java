@@ -1,9 +1,11 @@
 package bunny.boardhole.common.security;
 
+import bunny.boardhole.common.config.log.RequestLoggingFilter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -13,6 +15,7 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 
 import java.io.IOException;
 import java.net.URI;
+import java.time.Instant;
 
 /**
  * 접근 거부 처리 핸들러
@@ -35,6 +38,13 @@ public class ProblemDetailsAccessDeniedHandler implements AccessDeniedHandler {
             pd.setInstance(URI.create(request.getRequestURI()));
         } catch (IllegalArgumentException ignored) {
         }
+        String traceId = MDC.get(RequestLoggingFilter.TRACE_ID);
+        if (traceId != null && !traceId.isBlank()) {
+            pd.setProperty("traceId", traceId);
+        }
+        pd.setProperty("path", request.getRequestURI());
+        pd.setProperty("method", request.getMethod());
+        pd.setProperty("timestamp", Instant.now().toString());
 
         response.setStatus(HttpStatus.FORBIDDEN.value());
         response.setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);

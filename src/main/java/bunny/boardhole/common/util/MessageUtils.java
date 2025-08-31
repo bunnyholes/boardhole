@@ -26,18 +26,4 @@ public class MessageUtils {
     public String getMessage(String key) {
         return messageSource.getMessage(key, null, LocaleContextHolder.getLocale());
     }
-
-    public static String getMessageStatic(String key, Object... args) {
-        if (staticMessageSource == null) {
-            return key; // Fallback when not initialized
-        }
-        return staticMessageSource.getMessage(key, args, LocaleContextHolder.getLocale());
-    }
-
-    public static String getMessageStatic(String key) {
-        if (staticMessageSource == null) {
-            return key; // Fallback when not initialized
-        }
-        return staticMessageSource.getMessage(key, null, LocaleContextHolder.getLocale());
-    }
 }

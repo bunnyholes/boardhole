@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.validation.BindException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -29,6 +30,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestControllerAdvice
+@org.springframework.core.annotation.Order(org.springframework.core.Ordered.HIGHEST_PRECEDENCE)
 @RequiredArgsConstructor
 @Tag(name = "예외 처리", description = "전역 예외 처리 및 에러 응답 관리")
 public class GlobalExceptionHandler {
@@ -115,6 +117,24 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler({MethodArgumentNotValidException.class})
     public ProblemDetail handleInvalid(MethodArgumentNotValidException ex, HttpServletRequest request) {
+        ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
+        pd.setTitle(messageSource.getMessage("exception.title.validation-failed", null, LocaleContextHolder.getLocale()));
+        List<Map<String, Object>> errors = ex.getBindingResult().getFieldErrors().stream()
+                .map(fe -> Map.of(
+                        "field", fe.getField(),
+                        "message", fe.getDefaultMessage(),
+                        "rejectedValue", fe.getRejectedValue()
+                ))
+                .collect(Collectors.toList());
+        pd.setProperty("errors", errors);
+        pd.setProperty("code", "VALIDATION_ERROR");
+        pd.setType(buildType("validation-error"));
+        addCommon(pd, request);
+        return pd;
+    }
+
+    @ExceptionHandler(BindException.class)
+    public ProblemDetail handleBindException(BindException ex, HttpServletRequest request) {
         ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
         pd.setTitle(messageSource.getMessage("exception.title.validation-failed", null, LocaleContextHolder.getLocale()));
         List<Map<String, Object>> errors = ex.getBindingResult().getFieldErrors().stream()
