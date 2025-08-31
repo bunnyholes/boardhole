@@ -1,15 +1,11 @@
 package bunny.boardhole.board.web;
 
-import bunny.boardhole.common.bootstrap.DataInitializer;
+import bunny.boardhole.common.web.ControllerTestBase;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
-import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import java.util.UUID;
@@ -19,29 +15,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureMockMvc
 @TestInstance(TestInstance.Lifecycle.PER_METHOD)
 @DisplayName("게시판 컨트롤러 통합 테스트")
-class BoardControllerTest {
-
-    @Autowired
-    private MockMvc mockMvc;
+class BoardControllerTest extends ControllerTestBase {
 
     // ========== CREATE: 게시글 생성 테스트 ==========
 
     @Test
     @DisplayName("01. 게시글 생성 성공")
     void test_01_create_board_success() throws Exception {
-        // 먼저 로그인
-        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("username", DataInitializer.TEST_USERNAME)
-                        .param("password", DataInitializer.TEST_PASSWORD))
-                .andExpect(status().isNoContent())
-                .andReturn();
-
-        MockHttpSession session = (MockHttpSession) loginResult.getRequest().getSession();
+        MockHttpSession session = loginAsUser();
 
         // 게시글 생성
         String uniqueId = UUID.randomUUID().toString().substring(0, 8);
@@ -53,7 +36,7 @@ class BoardControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.title").value("Board_" + uniqueId))
                 .andExpect(jsonPath("$.content").value("Content_" + uniqueId))
-                .andExpect(jsonPath("$.authorName").value(DataInitializer.TEST_USERNAME))
+                .andExpect(jsonPath("$.authorName").value(testUserProperties.regularUsername()))
                 .andDo(print());
     }
 
@@ -65,6 +48,30 @@ class BoardControllerTest {
                         .param("title", "Test Board Title")
                         .param("content", "Test Board Content"))
                 .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.type").value("urn:problem-type:unauthorized"))
+                .andExpect(jsonPath("$.title").exists())
+                .andExpect(jsonPath("$.status").value(401))
+                .andExpect(jsonPath("$.detail").exists())
+                .andExpect(jsonPath("$.instance").value("/api/boards"))
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("02-1. 게시글 생성 실패 - 유효성 검증 실패 (제목 누락)")
+    void test_02_1_create_board_validation_error() throws Exception {
+        MockHttpSession session = loginAsUser();
+
+        mockMvc.perform(post("/api/boards")
+                        .session(session)
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .param("content", "Content without title"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.type").value("urn:problem-type:validation-error"))
+                .andExpect(jsonPath("$.title").exists())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
+                .andExpect(jsonPath("$.errors").isArray())
+                .andExpect(jsonPath("$.errors[?(@.field == 'title')]").exists())
                 .andDo(print());
     }
 
@@ -96,8 +103,8 @@ class BoardControllerTest {
         // 먼저 게시글 생성
         MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("username", DataInitializer.TEST_USERNAME)
-                        .param("password", DataInitializer.TEST_PASSWORD))
+                        .param("username", testUserProperties.regularUsername())
+                        .param("password", testUserProperties.regularPassword()))
                 .andExpect(status().isNoContent())
                 .andReturn();
 
@@ -124,13 +131,26 @@ class BoardControllerTest {
     }
 
     @Test
+    @DisplayName("05-1. 게시글 단일 조회 실패 - 존재하지 않는 게시글")
+    void test_05_1_get_board_not_found() throws Exception {
+        mockMvc.perform(get("/api/boards/999999"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.type").value("urn:problem-type:not-found"))
+                .andExpect(jsonPath("$.title").exists())
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.detail").exists())
+                .andExpect(jsonPath("$.instance").value("/api/boards/999999"))
+                .andDo(print());
+    }
+
+    @Test
     @DisplayName("11. 조회 시 조회수 비동기 증가")
     void test_11_view_increments_async() throws Exception {
         // 로그인
         MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("username", DataInitializer.TEST_USERNAME)
-                        .param("password", DataInitializer.TEST_PASSWORD))
+                        .param("username", testUserProperties.regularUsername())
+                        .param("password", testUserProperties.regularPassword()))
                 .andExpect(status().isNoContent())
                 .andReturn();
 
@@ -176,8 +196,8 @@ class BoardControllerTest {
         // 로그인
         MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("username", DataInitializer.TEST_USERNAME)
-                        .param("password", DataInitializer.TEST_PASSWORD))
+                        .param("username", testUserProperties.regularUsername())
+                        .param("password", testUserProperties.regularPassword()))
                 .andExpect(status().isNoContent())
                 .andReturn();
 
@@ -214,8 +234,8 @@ class BoardControllerTest {
         // 일반 사용자로 로그인하여 게시글 생성
         MvcResult userLoginResult = mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("username", DataInitializer.TEST_USERNAME)
-                        .param("password", DataInitializer.TEST_PASSWORD))
+                        .param("username", testUserProperties.regularUsername())
+                        .param("password", testUserProperties.regularPassword()))
                 .andExpect(status().isNoContent())
                 .andReturn();
 
@@ -236,8 +256,8 @@ class BoardControllerTest {
         // 관리자로 로그인
         MvcResult adminLoginResult = mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("username", DataInitializer.ADMIN_USERNAME)
-                        .param("password", DataInitializer.ADMIN_PASSWORD))
+                        .param("username", testUserProperties.adminUsername())
+                        .param("password", testUserProperties.adminPassword()))
                 .andExpect(status().isNoContent())
                 .andReturn();
 
@@ -260,8 +280,8 @@ class BoardControllerTest {
         // 첫 번째 사용자로 게시글 생성
         MvcResult user1LoginResult = mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("username", DataInitializer.TEST_USERNAME)
-                        .param("password", DataInitializer.TEST_PASSWORD))
+                        .param("username", testUserProperties.regularUsername())
+                        .param("password", testUserProperties.regularPassword()))
                 .andExpect(status().isNoContent())
                 .andReturn();
 
@@ -304,6 +324,43 @@ class BoardControllerTest {
                         .param("title", "Hacked_" + user2Id)
                         .param("content", "Hacked_" + user2Id))
                 .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.type").value("urn:problem-type:forbidden"))
+                .andExpect(jsonPath("$.title").exists())
+                .andExpect(jsonPath("$.status").value(403))
+                .andExpect(jsonPath("$.detail").exists())
+                .andExpect(jsonPath("$.code").value("FORBIDDEN"))
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("08-1. 게시글 수정 실패 - 유효성 검증 실패")
+    void test_08_1_update_board_validation_error() throws Exception {
+        MockHttpSession session = loginAsUser();
+
+        // 먼저 게시글 생성
+        String uniqueId = UUID.randomUUID().toString().substring(0, 8);
+        MvcResult createResult = mockMvc.perform(post("/api/boards")
+                        .session(session)
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .param("title", "Original_" + uniqueId)
+                        .param("content", "Original content"))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        String responseContent = createResult.getResponse().getContentAsString();
+        Long boardId = Long.parseLong(responseContent.replaceAll(".*\"id\":(\\d+).*", "$1"));
+
+        // 제목 없이 수정 시도
+        mockMvc.perform(put("/api/boards/" + boardId)
+                        .session(session)
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .param("content", "Updated content only"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.type").value("urn:problem-type:validation-error"))
+                .andExpect(jsonPath("$.title").exists())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
+                .andExpect(jsonPath("$.errors").isArray())
                 .andDo(print());
     }
 
@@ -315,8 +372,8 @@ class BoardControllerTest {
         // 로그인
         MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("username", DataInitializer.TEST_USERNAME)
-                        .param("password", DataInitializer.TEST_PASSWORD))
+                        .param("username", testUserProperties.regularUsername())
+                        .param("password", testUserProperties.regularPassword()))
                 .andExpect(status().isNoContent())
                 .andReturn();
 
@@ -343,6 +400,58 @@ class BoardControllerTest {
         // 삭제된 게시글 조회 시도 (404 예상)
         mockMvc.perform(get("/api/boards/" + boardId))
                 .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.type").value("urn:problem-type:not-found"))
+                .andExpect(jsonPath("$.title").exists())
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.detail").exists())
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("09-1. 게시글 삭제 실패 - 권한 없음")
+    void test_09_1_delete_board_forbidden() throws Exception {
+        // 첫 번째 사용자로 게시글 생성
+        MockHttpSession user1Session = loginAsUser();
+
+        MvcResult createResult = mockMvc.perform(post("/api/boards")
+                        .session(user1Session)
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .param("title", "User1's Board")
+                        .param("content", "User1's Content"))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        String responseContent = createResult.getResponse().getContentAsString();
+        Long boardId = Long.parseLong(responseContent.replaceAll(".*\"id\":(\\d+).*", "$1"));
+
+        // 두 번째 사용자 생성 및 로그인
+        String user2Id = UUID.randomUUID().toString().substring(0, 8);
+        mockMvc.perform(post("/api/auth/signup")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .param("username", "del_" + user2Id)
+                        .param("password", "password123")
+                        .param("name", "Delete User")
+                        .param("email", "del_" + user2Id + "@example.com"))
+                .andExpect(status().isNoContent());
+
+        MvcResult user2LoginResult = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .param("username", "del_" + user2Id)
+                        .param("password", "password123"))
+                .andExpect(status().isNoContent())
+                .andReturn();
+
+        MockHttpSession user2Session = (MockHttpSession) user2LoginResult.getRequest().getSession();
+
+        // 다른 사용자가 삭제 시도
+        mockMvc.perform(delete("/api/boards/" + boardId)
+                        .session(user2Session))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.type").value("urn:problem-type:forbidden"))
+                .andExpect(jsonPath("$.title").exists())
+                .andExpect(jsonPath("$.status").value(403))
+                .andExpect(jsonPath("$.detail").exists())
+                .andExpect(jsonPath("$.code").value("FORBIDDEN"))
                 .andDo(print());
     }
 
@@ -352,8 +461,8 @@ class BoardControllerTest {
         // 첫 번째 사용자로 게시글 생성
         MvcResult user1LoginResult = mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("username", DataInitializer.TEST_USERNAME)
-                        .param("password", DataInitializer.TEST_PASSWORD))
+                        .param("username", testUserProperties.regularUsername())
+                        .param("password", testUserProperties.regularPassword()))
                 .andExpect(status().isNoContent())
                 .andReturn();
 
@@ -402,8 +511,8 @@ class BoardControllerTest {
         // 로그인
         MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("username", DataInitializer.TEST_USERNAME)
-                        .param("password", DataInitializer.TEST_PASSWORD))
+                        .param("username", testUserProperties.regularUsername())
+                        .param("password", testUserProperties.regularPassword()))
                 .andExpect(status().isNoContent())
                 .andReturn();
 
@@ -425,8 +534,8 @@ class BoardControllerTest {
         // 로그인
         MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("username", DataInitializer.TEST_USERNAME)
-                        .param("password", DataInitializer.TEST_PASSWORD))
+                        .param("username", testUserProperties.regularUsername())
+                        .param("password", testUserProperties.regularPassword()))
                 .andExpect(status().isNoContent())
                 .andReturn();
 
@@ -445,8 +554,8 @@ class BoardControllerTest {
         // 로그인
         MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("username", DataInitializer.TEST_USERNAME)
-                        .param("password", DataInitializer.TEST_PASSWORD))
+                        .param("username", testUserProperties.regularUsername())
+                        .param("password", testUserProperties.regularPassword()))
                 .andExpect(status().isNoContent())
                 .andReturn();
 
@@ -479,11 +588,138 @@ class BoardControllerTest {
     @DisplayName("16. 게시글 검색 - 빈 결과")
     void test_16_search_boards_empty_result() throws Exception {
         String uniqueId = UUID.randomUUID().toString().substring(0, 8);
-        
+
         mockMvc.perform(get("/api/boards")
                         .param("search", "nonexistent_search_" + uniqueId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").isEmpty())
                 .andDo(print());
     }
+
+    // ========== ADDITIONAL ROLE-BASED ACCESS CONTROL TESTS ==========
+
+    @Test
+    @DisplayName("17. 게시글 목록 조회 - 모든 사용자 접근 가능 (공개)")
+    void test_17_list_boards_public_access() throws Exception {
+        // 익명 사용자
+        mockMvc.perform(get("/api/boards"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").exists())
+                .andDo(print());
+
+        // 일반 사용자
+        MockHttpSession userSession = loginAsUser();
+        mockMvc.perform(get("/api/boards").session(userSession))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").exists())
+                .andDo(print());
+
+        // 관리자
+        MockHttpSession adminSession = loginAsAdmin();
+        mockMvc.perform(get("/api/boards").session(adminSession))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").exists())
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("18. 게시글 단일 조회 - 모든 사용자 접근 가능 (공개)")
+    void test_18_get_board_public_access() throws Exception {
+        // 테스트용 게시글 생성
+        MockHttpSession userSession = loginAsUser();
+        MvcResult createResult = mockMvc.perform(post("/api/boards")
+                        .session(userSession)
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .param("title", "Public Test Board")
+                        .param("content", "Public Test Content"))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        String responseBody = createResult.getResponse().getContentAsString();
+        Long boardId = Long.parseLong(responseBody.replaceAll(".*\"id\":(\\d+).*", "$1"));
+
+        // 익명 사용자
+        mockMvc.perform(get("/api/boards/" + boardId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(boardId))
+                .andDo(print());
+
+        // 일반 사용자
+        mockMvc.perform(get("/api/boards/" + boardId).session(userSession))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(boardId))
+                .andDo(print());
+
+        // 관리자
+        MockHttpSession adminSession = loginAsAdmin();
+        mockMvc.perform(get("/api/boards/" + boardId).session(adminSession))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(boardId))
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("19. 게시글 생성 - 권한 매트릭스 테스트")
+    void test_19_create_board_permission_matrix() throws Exception {
+        String uniqueId = UUID.randomUUID().toString().substring(0, 8);
+
+        // 익명 사용자 - 실패 (401)
+        mockMvc.perform(post("/api/boards")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .param("title", "Anon_" + uniqueId)
+                        .param("content", "Anonymous Content"))
+                .andExpect(status().isUnauthorized())
+                .andDo(print());
+
+        // 일반 사용자 - 성공
+        MockHttpSession userSession = loginAsUser();
+        mockMvc.perform(post("/api/boards")
+                        .session(userSession)
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .param("title", "User_" + uniqueId)
+                        .param("content", "User Content"))
+                .andExpect(status().isCreated())
+                .andDo(print());
+
+        // 관리자 - 성공
+        MockHttpSession adminSession = loginAsAdmin();
+        mockMvc.perform(post("/api/boards")
+                        .session(adminSession)
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .param("title", "Admin_" + uniqueId)
+                        .param("content", "Admin Content"))
+                .andExpect(status().isCreated())
+                .andDo(print());
+    }
+
+    // ========== BAD REQUEST TESTS ==========
+
+    @Test
+    @DisplayName("20. 게시글 생성 실패 - 빈 제목")
+    void test_20_create_board_empty_title() throws Exception {
+        MockHttpSession session = loginAsUser();
+
+        mockMvc.perform(post("/api/boards")
+                        .session(session)
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .param("title", "")
+                        .param("content", "Valid content"))
+                .andExpect(status().isBadRequest())
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("21. 게시글 생성 실패 - 빈 내용")
+    void test_21_create_board_empty_content() throws Exception {
+        MockHttpSession session = loginAsUser();
+
+        mockMvc.perform(post("/api/boards")
+                        .session(session)
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .param("title", "Valid title")
+                        .param("content", ""))
+                .andExpect(status().isBadRequest())
+                .andDo(print());
+    }
+
 }

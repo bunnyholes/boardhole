@@ -1,31 +1,82 @@
+# ========================================
+# Board-Hole 애플리케이션 공통 설정
+# 모든 환경에서 공유되는 기본 설정
+# ========================================
+
 spring:
+  # 애플리케이션 기본 정보
   application:
     name: board-hole
+  
+  # 메시지 소스 설정
   messages:
     basename: messages,ValidationMessages
-    
+    encoding: UTF-8
+
+  # MVC 설정
   mvc:
-    hiddenmethod:
-      filter:
-        enabled: true
+    problemdetails:
+      enabled: true  # Enable RFC 7807 Problem Details for HTTP APIs
+  
+  # JPA 공통 설정
+  jpa:
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+  
+  # 기본 프로필 (로컬 개발시 dev 사용)
   profiles:
     active: dev
+  
+  # ANSI 컬러 출력 설정
+  output:
+    ansi:
+      enabled: DETECT  # 터미널 지원시 자동 활성화 (ALWAYS, DETECT, NEVER)
 
+# ========================================
+# 애플리케이션 도메인 설정
+# ========================================
 boardhole:
+  # CORS 기본 설정 (환경별 오버라이드 가능)
+  cors:
+    allowed-methods: "GET,POST,PUT,DELETE,OPTIONS"
+    # 보안을 위해 구체적인 헤더만 허용
+    allowed-headers: "Origin,Content-Type,Accept,Authorization,X-Requested-With"
+    max-age: 3600
+  
+  # Problem Details API 설정
+  problem:
+    # 문제 유형(type) 링크의 베이스 URI
+    # 비워두면 urn:problem-type:{slug} 형식으로 자동 생성
+    base-uri: # null (의도적으로 비움)
+  
+  # 기본 사용자 템플릿 (비밀번호는 환경별 프로필에서 설정)
   default-users:
     admin:
       username: admin
       name: 관리자
       email: admin@boardhole.com
-      password: admin123
     regular:
       username: user
       name: 일반 사용자
       email: user@boardhole.com
-      password: user123
-  cors:
-    allowed-origins: "http://localhost:8080,http://127.0.0.1:8080,http://localhost:3000"
-    allowed-methods: "GET,POST,PUT,DELETE,OPTIONS"
-    allowed-headers: "*"
-    allow-credentials: true
-    max-age: 3600
+
+# ========================================
+# 로깅 공통 설정
+# ========================================
+logging:
+  pattern:
+    # 컬러풀한 콘솔 출력 패턴
+    console: "%clr(%d{HH:mm:ss.SSS}){cyan} %clr(%-5level) %clr([%15.15t]){magenta} %clr(%-40.40logger{39}){yellow} %clr(:){faint} %m%n%wEx"
+    # 파일용 패턴 (컬러 없음)
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %-40.40logger{39} : %m%n%wEx"
+
+# ========================================
+# 서버 공통 설정
+# ========================================
+# 서버 관련 공통 설정은 환경별로 다르게 적용됨
+# 필요시 여기에 공통 설정 추가 

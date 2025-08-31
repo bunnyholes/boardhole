@@ -8,24 +8,24 @@ import org.springframework.stereotype.Component;
 @Component
 @ConfigurationProperties(prefix = "boardhole.logging")
 public class LoggingProperties {
-    
+
     private Performance performance = new Performance();
-    
+
+    public boolean isFast(long ms) {
+        return ms < performance.fastThreshold;
+    }
+
+    public boolean isNormal(long ms) {
+        return ms < performance.normalThreshold;
+    }
+
+    public boolean isSlow(long ms) {
+        return ms >= performance.normalThreshold;
+    }
+
     @Data
     public static class Performance {
         private long fastThreshold = 100;
         private long normalThreshold = 500;
-    }
-    
-    public boolean isFast(long ms) {
-        return ms < performance.fastThreshold;
-    }
-    
-    public boolean isNormal(long ms) {
-        return ms < performance.normalThreshold;
-    }
-    
-    public boolean isSlow(long ms) {
-        return ms >= performance.normalThreshold;
     }
 }

@@ -2,10 +2,16 @@ package bunny.boardhole.common.config;
 
 import bunny.boardhole.common.security.ProblemDetailsAccessDeniedHandler;
 import bunny.boardhole.common.security.ProblemDetailsAuthenticationEntryPoint;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.access.PermissionEvaluator;
+import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
+import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -13,9 +19,6 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.access.PermissionEvaluator;
-import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
-import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -29,8 +32,13 @@ import org.springframework.security.web.context.SecurityContextRepository;
 @Configuration
 @EnableMethodSecurity(prePostEnabled = true, securedEnabled = true, jsr250Enabled = true)
 public class SecurityConfig {
+
+    @Autowired
+    private Environment environment;
+
     /**
      * 비밀번호 인코더 빈 설정
+     *
      * @return BCrypt 를 사용하는 비밀번호 인코더
      */
     @Bean
@@ -40,6 +48,7 @@ public class SecurityConfig {
 
     /**
      * 인증 매니저 빈 설정
+     *
      * @param configuration Spring Security 인증 설정
      * @return 인증 매니저
      */
@@ -50,7 +59,8 @@ public class SecurityConfig {
 
     /**
      * 보안 필터 체인 설정
-     * @param http HTTP 보안 설정 객체
+     *
+     * @param http                      HTTP 보안 설정 객체
      * @param securityContextRepository 보안 컨텍스트 리포지토리
      * @return 설정된 보안 필터 체인
      */
@@ -62,19 +72,22 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Static resources and common locations
                         .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
-                        // Explicitly allow common static paths
-                        .requestMatchers("/public/**", "/css/**", "/js/**", "/images/**", "/webjars/**", "/favicon.ico").permitAll()
-                        .requestMatchers("/", "/index.html", "/login.html", "/signup.html").permitAll()
+                        // Assets - allow all
+                        .requestMatchers("/assets/**").permitAll()
+                        // Other static resources
+                        .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**", "/favicon.ico").permitAll()
+                        // Root and specific HTML files
+                        .requestMatchers("/").permitAll()
+                        .requestMatchers("/*.html").permitAll()
+                        .requestMatchers("/admin*.html", "/board*.html", "/user*.html").permitAll()
+                        .requestMatchers("/login.html", "/signup.html", "/welcome.html", "/my-page.html").permitAll()
                         // Swagger UI - explicitly permit
-                        .requestMatchers("/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**").permitAll()
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**").permitAll()
                         // Error page
                         .requestMatchers("/error").permitAll()
-                        // Public auth endpoints (backup for @PermitAll)
+                        // Public API endpoints - explicit permit only
                         .requestMatchers("/api/auth/signup", "/api/auth/login", "/api/auth/public-access").permitAll()
-                        // Public board endpoints (backup for @PermitAll)
                         .requestMatchers(HttpMethod.GET, "/api/boards", "/api/boards/**").permitAll()
-                        // Public user endpoints (backup for @PermitAll)
-                        .requestMatchers(HttpMethod.GET, "/api/users", "/api/users/{id:[0-9]+}").permitAll()
                         // All other requests require authentication by default
                         .anyRequest().authenticated()
                 )
@@ -82,9 +95,16 @@ public class SecurityConfig {
                         .authenticationEntryPoint(problemDetailsAuthenticationEntryPoint())
                         .accessDeniedHandler(problemDetailsAccessDeniedHandler())
                 )
-                .formLogin(AbstractHttpConfigurer::disable)
-                .httpBasic(AbstractHttpConfigurer::disable)
-                .sessionManagement(session -> session
+                .formLogin(AbstractHttpConfigurer::disable);
+
+        // dev 프로파일일 때만 HTTP Basic 인증 활성화
+        if (environment.acceptsProfiles(Profiles.of("dev"))) {
+            http.httpBasic(Customizer.withDefaults());
+        } else {
+            http.httpBasic(AbstractHttpConfigurer::disable);
+        }
+
+        http.sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                         .sessionFixation().newSession()
                         .maximumSessions(1)

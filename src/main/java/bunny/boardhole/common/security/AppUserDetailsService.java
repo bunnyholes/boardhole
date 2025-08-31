@@ -1,16 +1,15 @@
 package bunny.boardhole.common.security;
 
+import bunny.boardhole.common.util.MessageUtils;
 import bunny.boardhole.user.domain.User;
 import bunny.boardhole.user.infrastructure.UserRepository;
-import jakarta.validation.constraints.NotNull;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
-import bunny.boardhole.common.util.MessageUtils;
-import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * 사용자 인증 세부 정보 서비스
@@ -22,11 +21,13 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @Schema(name = "AppUserDetailsService", description = "Spring Security 사용자 세부정보 서비스 - 사용자명 기반 인증 담당")
 public class AppUserDetailsService implements UserDetailsService {
     private final UserRepository userRepository;
+    private final MessageUtils messageUtils;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userRepository.findByUsername(username);
-        if (user == null) throw new UsernameNotFoundException(MessageUtils.getMessageStatic("error.user.not-found.username", username));
+        if (user == null)
+            throw new UsernameNotFoundException(messageUtils.getMessage("error.user.not-found.username", username));
         return new AppUserPrincipal(user);
     }
 }

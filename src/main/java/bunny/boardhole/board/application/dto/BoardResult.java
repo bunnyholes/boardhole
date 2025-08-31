@@ -1,6 +1,7 @@
 package bunny.boardhole.board.application.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+
 import java.time.LocalDateTime;
 
 @Schema(name = "BoardResult", description = "게시글 서비스 결과 객체 - 애플리케이션 레이어에서 사용되는 게시글 정보")

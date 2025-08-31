@@ -9,11 +9,11 @@ import jakarta.validation.constraints.NotBlank;
  */
 @Schema(name = "LoginCommand", description = "로그인 명령 - CQRS 패턴의 Command 객체")
 public record LoginCommand(
-        @Schema(description = "사용자명 또는 이메일", example = "john_doe")
+        @Schema(description = "사용자명 또는 이메일", example = "admin")
         @NotBlank(message = "사용자명은 필수입니다.")
         String username,
-        
-        @Schema(description = "비밀번호", example = "password123")
+
+        @Schema(description = "비밀번호", example = "admin123")
         @NotBlank(message = "비밀번호는 필수입니다.")
         String password
 ) {

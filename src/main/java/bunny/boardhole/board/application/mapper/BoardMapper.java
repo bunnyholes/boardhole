@@ -2,9 +2,9 @@ package bunny.boardhole.board.application.mapper;
 
 import bunny.boardhole.board.application.dto.BoardResult;
 import bunny.boardhole.board.domain.Board;
+import bunny.boardhole.common.mapstruct.MapstructConfig;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import bunny.boardhole.common.mapstruct.MapstructConfig;
 
 @Mapper(config = MapstructConfig.class)
 public interface BoardMapper {

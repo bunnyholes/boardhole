@@ -20,6 +20,7 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<User, Long> {
     /**
      * 사용자명 중복 확인
+     *
      * @param username 확인할 사용자명
      * @return 사용자명 존재 여부
      */
@@ -27,6 +28,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     /**
      * 이메일 중복 확인
+     *
      * @param email 확인할 이메일 주소
      * @return 이메일 존재 여부
      */
@@ -34,6 +36,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     /**
      * 사용자명으로 사용자 조회 (권한 정보 포함)
+     *
      * @param username 조회할 사용자명
      * @return 사용자 엔티티 (권한 정보 포함)
      */
@@ -45,9 +48,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     /**
      * 사용자명, 이름, 이메일로 대소문자 구분 없이 검색
+     *
      * @param username 검색할 사용자명 키워드
-     * @param name 검색할 이름 키워드
-     * @param email 검색할 이메일 키워드
+     * @param name     검색할 이름 키워드
+     * @param email    검색할 이메일 키워드
      * @param pageable 페이지네이션 정보
      * @return 검색된 사용자 페이지
      */

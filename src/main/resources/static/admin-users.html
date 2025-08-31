@@ -1,134 +1,139 @@
 <!DOCTYPE html>
-<html lang="ko" data-bs-theme="light">
+<html data-bs-theme="light" lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Board Hole - 사용자 관리</title>
-  
-  <!-- Pretendard 폰트 -->
-  <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable.css" rel="stylesheet">
-  
-  <!-- Bootstrap CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-  
-  <!-- Bootstrap Icons -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
-  
-  
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>Board Hole - 사용자 관리</title>
+
+    <!-- Pretendard 폰트 -->
+    <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable.css"
+          rel="stylesheet">
+
+    <!-- Bootstrap CSS -->
+    <link crossorigin="anonymous" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+          integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+
 </head>
 <body>
-  <div class="container">
+<div class="container">
     <div class="card card">
-      <div class="card-body">
-        <h1 class="card-title text-center mb-4">
-          <i class="bi bi-people-fill text-primary"></i> 사용자 관리
-        </h1>
-        
-        <!-- 검색 및 필터 -->
-        <div class="row mb-4">
-          <div class="col-md-8">
-            <div class="input-group">
-              <input type="text" id="search-input" class="form-control" placeholder="사용자명 또는 이메일로 검색..." aria-label="사용자 검색">
-              <button onclick="searchUsers()" class="btn btn-outline-secondary" type="button">
-                <i class="bi bi-search"></i> 검색
-              </button>
-              <button onclick="loadUsers(1)" class="btn btn-outline-secondary" type="button">
-                <i class="bi bi-arrow-clockwise"></i> 전체
-              </button>
-            </div>
-          </div>
-          <div class="col-md-4 d-flex justify-content-end">
-            <button onclick="loadUsers(1)" class="btn btn-primary">
-              <i class="bi bi-arrow-clockwise"></i> 새로고침
-            </button>
-          </div>
-        </div>
-        
-        <!-- 로딩 상태 -->
-        <div id="loading" class="text-center">
-          <div class="spinner-border text-secondary" role="status">
-            <span class="visually-hidden">사용자 목록을 불러오는 중...</span>
-          </div>
-          <p class="mt-2 text-muted">사용자 목록을 불러오는 중...</p>
-        </div>
-        
-        <!-- 사용자 목록 -->
-        <div id="user-list" style="display: none;">
-          <div class="table-responsive">
-            <table class="table table-hover table-modern">
-              <thead>
-                <tr>
-                  <th scope="col">사용자명</th>
-                  <th scope="col" class="d-none d-md-table-cell">이름</th>
-                  <th scope="col" class="d-none d-lg-table-cell">이메일</th>
-                  <th scope="col" class="text-center d-none d-sm-table-cell">권한</th>
-                  <th scope="col" class="text-center d-none d-md-table-cell">가입일</th>
-                  <th scope="col" class="text-center">관리</th>
-                </tr>
-              </thead>
-              <tbody id="user-table-body">
-              </tbody>
-            </table>
-          </div>
-          
-          <!-- 빈 목록 메시지 -->
-          <div id="empty-message" class="text-center py-5" style="display: none;">
-            <div class="text-muted">
-              <i class="bi bi-people" style="font-size: 3rem;"></i>
-              <p class="mt-2">등록된 사용자가 없습니다.</p>
-            </div>
-          </div>
-        </div>
-        
-        <!-- 페이지네이션 -->
-        <nav id="pagination" class="mt-4" style="display: none;" aria-label="사용자 페이지네이션">
-        </nav>
-        
-        <!-- 하단 액션 -->
-        <div class="d-flex justify-content-center gap-2 mt-4">
-          <a href="admin.html" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left"></i> 관리자 대시보드로
-          </a>
-          <a href="welcome.html" class="btn btn-outline-secondary">
-            <i class="bi bi-house"></i> 대시보드로
-          </a>
-        </div>
-      </div>
-    </div>
-  </div>
+        <div class="card-body">
+            <h1 class="card-title text-center mb-4">
+                <i class="bi bi-people-fill text-primary"></i> 사용자 관리
+            </h1>
 
-  <!-- User Delete Confirmation Modal -->
-  <div class="modal fade" id="deleteUserModal" tabindex="-1" aria-labelledby="deleteUserModalLabel" aria-hidden="true">
+            <!-- 검색 및 필터 -->
+            <div class="row mb-4">
+                <div class="col-md-8">
+                    <div class="input-group">
+                        <input aria-label="사용자 검색" class="form-control" id="search-input" placeholder="사용자명 또는 이메일로 검색..."
+                               type="text">
+                        <button class="btn btn-outline-secondary" onclick="searchUsers()" type="button">
+                            <i class="bi bi-search"></i> 검색
+                        </button>
+                        <button class="btn btn-outline-secondary" onclick="loadUsers(1)" type="button">
+                            <i class="bi bi-arrow-clockwise"></i> 전체
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-4 d-flex justify-content-end">
+                    <button class="btn btn-primary" onclick="loadUsers(1)">
+                        <i class="bi bi-arrow-clockwise"></i> 새로고침
+                    </button>
+                </div>
+            </div>
+
+            <!-- 로딩 상태 -->
+            <div class="text-center" id="loading">
+                <div class="spinner-border text-secondary" role="status">
+                    <span class="visually-hidden">사용자 목록을 불러오는 중...</span>
+                </div>
+                <p class="mt-2 text-muted">사용자 목록을 불러오는 중...</p>
+            </div>
+
+            <!-- 사용자 목록 -->
+            <div id="user-list" style="display: none;">
+                <div class="table-responsive">
+                    <table class="table table-hover table-modern">
+                        <thead>
+                        <tr>
+                            <th scope="col">사용자명</th>
+                            <th class="d-none d-md-table-cell" scope="col">이름</th>
+                            <th class="d-none d-lg-table-cell" scope="col">이메일</th>
+                            <th class="text-center d-none d-sm-table-cell" scope="col">권한</th>
+                            <th class="text-center d-none d-md-table-cell" scope="col">가입일</th>
+                            <th class="text-center" scope="col">관리</th>
+                        </tr>
+                        </thead>
+                        <tbody id="user-table-body">
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 빈 목록 메시지 -->
+                <div class="text-center py-5" id="empty-message" style="display: none;">
+                    <div class="text-muted">
+                        <i class="bi bi-people" style="font-size: 3rem;"></i>
+                        <p class="mt-2">등록된 사용자가 없습니다.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 페이지네이션 -->
+            <nav aria-label="사용자 페이지네이션" class="mt-4" id="pagination" style="display: none;">
+            </nav>
+
+            <!-- 하단 액션 -->
+            <div class="d-flex justify-content-center gap-2 mt-4">
+                <a class="btn btn-outline-secondary" href="admin.html">
+                    <i class="bi bi-arrow-left"></i> 관리자 대시보드로
+                </a>
+                <a class="btn btn-outline-secondary" href="welcome.html">
+                    <i class="bi bi-house"></i> 대시보드로
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- User Delete Confirmation Modal -->
+<div aria-hidden="true" aria-labelledby="deleteUserModalLabel" class="modal fade" id="deleteUserModal" tabindex="-1">
     <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="deleteUserModalLabel">
-            <i class="bi bi-exclamation-triangle-fill text-danger"></i> 사용자 삭제 확인
-          </h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteUserModalLabel">
+                    <i class="bi bi-exclamation-triangle-fill text-danger"></i> 사용자 삭제 확인
+                </h5>
+                <button aria-label="Close" class="btn-close" data-bs-dismiss="modal" type="button"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong id="delete-username"></strong> 사용자를 정말로 삭제하시겠습니까?</p>
+                <div class="alert alert-warning" role="alert">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <strong>주의:</strong> 이 작업은 되돌릴 수 없으며, 해당 사용자의 모든 게시글도 함께 삭제됩니다.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline-secondary" data-bs-dismiss="modal" type="button">취소</button>
+                <button class="btn btn-danger" onclick="executeUserDelete()" type="button">
+                    <i class="bi bi-trash"></i> 삭제
+                </button>
+            </div>
         </div>
-        <div class="modal-body">
-          <p><strong id="delete-username"></strong> 사용자를 정말로 삭제하시겠습니까?</p>
-          <div class="alert alert-warning" role="alert">
-            <i class="bi bi-exclamation-triangle"></i>
-            <strong>주의:</strong> 이 작업은 되돌릴 수 없으며, 해당 사용자의 모든 게시글도 함께 삭제됩니다.
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">취소</button>
-          <button type="button" class="btn btn-danger" onclick="executeUserDelete()">
-            <i class="bi bi-trash"></i> 삭제
-          </button>
-        </div>
-      </div>
     </div>
-  </div>
+</div>
 
-  <!-- Bootstrap JS -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
-  
-  <!-- Custom JavaScript -->
-  <script src="public/js/flash.js" defer></script>
-  <script src="public/js/admin-users.js" defer></script>
+<!-- Bootstrap JS -->
+<script crossorigin="anonymous"
+        integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Custom JavaScript -->
+<script defer src="assets/js/flash.js"></script>
+<script defer src="assets/js/admin-users.js"></script>
 </body>
 </html>

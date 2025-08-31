@@ -10,19 +10,19 @@ import io.swagger.v3.oas.annotations.media.Schema;
 public record AuthResult(
         @Schema(description = "사용자 ID", example = "1")
         Long userId,
-        
-        @Schema(description = "사용자명", example = "john_doe")
+
+        @Schema(description = "사용자명", example = "admin")
         String username,
-        
-        @Schema(description = "이메일", example = "john@example.com")
+
+        @Schema(description = "이메일", example = "admin@boardhole.com")
         String email,
-        
-        @Schema(description = "이름", example = "홍길동")
+
+        @Schema(description = "이름", example = "관리자")
         String name,
-        
-        @Schema(description = "역할", example = "USER")
+
+        @Schema(description = "역할", example = "ADMIN")
         String role,
-        
+
         @Schema(description = "인증 성공 여부", example = "true")
         boolean authenticated
 ) {

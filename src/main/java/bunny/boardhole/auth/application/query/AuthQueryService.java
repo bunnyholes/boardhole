@@ -2,9 +2,9 @@ package bunny.boardhole.auth.application.query;
 
 import bunny.boardhole.auth.application.dto.AuthResult;
 import bunny.boardhole.common.exception.ResourceNotFoundException;
+import bunny.boardhole.common.util.MessageUtils;
 import bunny.boardhole.user.domain.User;
 import bunny.boardhole.user.infrastructure.UserRepository;
-import bunny.boardhole.common.util.MessageUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,10 +23,11 @@ import org.springframework.validation.annotation.Validated;
 public class AuthQueryService {
 
     private final UserRepository userRepository;
+    private final MessageUtils messageUtils;
 
     /**
      * 현재 인증된 사용자 정보 조회
-     * 
+     *
      * @param query 현재 사용자 조회 쿼리
      * @return 사용자 인증 정보
      * @throws ResourceNotFoundException 사용자를 찾을 수 없는 경우
@@ -34,14 +35,14 @@ public class AuthQueryService {
     @Transactional(readOnly = true)
     public AuthResult getCurrentUser(@Valid GetCurrentUserQuery query) {
         Long userId = query.userId();
-        
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                    MessageUtils.getMessageStatic("error.user.not-found.id", userId)
+                        messageUtils.getMessage("error.user.not-found.id", userId)
                 ));
-        
+
         log.debug("Retrieved current user info for userId: {}", userId);
-        
+
         return new AuthResult(
                 user.getId(),
                 user.getUsername(),

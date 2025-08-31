@@ -1,16 +1,16 @@
 package bunny.boardhole.board.application.query;
 
 import bunny.boardhole.board.application.dto.BoardResult;
+import bunny.boardhole.board.application.mapper.BoardMapper;
 import bunny.boardhole.board.domain.Board;
 import bunny.boardhole.board.infrastructure.BoardRepository;
 import bunny.boardhole.common.exception.ResourceNotFoundException;
-import bunny.boardhole.board.application.mapper.BoardMapper;
+import bunny.boardhole.common.util.MessageUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import bunny.boardhole.common.util.MessageUtils;
 
 /**
  * 게시글 조회 서비스
@@ -22,9 +22,11 @@ public class BoardQueryService {
 
     private final BoardRepository boardRepository;
     private final BoardMapper boardMapper;
+    private final MessageUtils messageUtils;
 
     /**
      * 게시글 단일 조회 쿼리 처리
+     *
      * @param query 게시글 조회 쿼리
      * @return 게시글 조회 결과
      * @throws ResourceNotFoundException 게시글을 찾을 수 없는 경우
@@ -32,12 +34,13 @@ public class BoardQueryService {
     @Transactional(readOnly = true)
     public BoardResult handle(GetBoardQuery query) {
         Board board = boardRepository.findById(query.id())
-                .orElseThrow(() -> new ResourceNotFoundException(MessageUtils.getMessageStatic("error.board.not-found.id", query.id())));
+                .orElseThrow(() -> new ResourceNotFoundException(messageUtils.getMessage("error.board.not-found.id", query.id())));
         return boardMapper.toResult(board);
     }
 
     /**
      * 게시글 목록 페이지네이션 조회
+     *
      * @param pageable 페이지네이션 정보
      * @return 게시글 목록 페이지
      */
@@ -48,12 +51,13 @@ public class BoardQueryService {
 
     /**
      * 검색어로 게시글 목록 페이지네이션 조회
+     *
      * @param pageable 페이지네이션 정보
-     * @param search 검색어 (제목, 내용에서 검색)
+     * @param search   검색어 (제목, 내용에서 검색)
      * @return 검색된 게시글 목록 페이지
      */
     @Transactional(readOnly = true)
     public Page<BoardResult> listWithPaging(Pageable pageable, String search) {
         return boardRepository.searchByKeyword(search, pageable).map(boardMapper::toResult);
-}
+    }
 }
