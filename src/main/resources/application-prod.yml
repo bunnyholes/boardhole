@@ -1,32 +1,119 @@
+# ========================================
+# 운영 환경 전용 설정
+# 보안 강화 및 환경변수 기반 설정
+# ========================================
+
 spring:
+  # 운영 데이터베이스 설정 (환경변수 필수)
   datasource:
-    url: ${DATABASE_URL:jdbc:mysql://localhost:3306/boardhole?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Seoul}
-    username: ${DATABASE_USERNAME:boardhole}
-    password: ${DATABASE_PASSWORD:boardhole123}
+    url: ${DATABASE_URL}  # 필수 환경변수
+    username: ${DATABASE_USERNAME}  # 필수 환경변수
+    password: ${DATABASE_PASSWORD}  # 필수 환경변수
     driver-class-name: com.mysql.cj.jdbc.Driver
+    # HikariCP 연결 풀 설정
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      
+      # TODO: 성능 최적화 - 실제 트래픽 증가 시 아래 설정 활성화
+      # 프로덕션 환경에서 DB 연결 부족 시:
+      # maximum-pool-size: 20          # 최대 연결 수 증가
+      # minimum-idle: 8                 # 최소 유휴 연결 수 증가
+      # leak-detection-threshold: 60000 # 연결 누수 감지 활성화
+      # connection-test-query: SELECT 1 # 연결 검증 쿼리
+  
+  # JPA 운영 설정
   jpa:
     hibernate:
-      ddl-auto: validate
-    show-sql: false
+      ddl-auto: validate  # 운영에서는 스키마 검증만
+    show-sql: false       # SQL 출력 비활성화
     properties:
       hibernate:
         format_sql: false
+        # 운영 성능 최적화
+        jdbc:
+          batch_size: 25
+          batch_versioned_data: true
+        order_inserts: true
+        order_updates: true
+        
+        # TODO: 성능 최적화 - 대량 처리 부하 발생 시 아래 설정 활성화
+        # 대량 INSERT/UPDATE 성능 문제 시:
+        # jdbc:
+        #   batch_size: 50                # 배치 크기 증가 (25 → 50)
+        #   fetch_size: 100                # 페치 크기 설정
+        # cache:
+        #   use_second_level_cache: true  # 2차 캐시 활성화
+        #   use_query_cache: true          # 쿼리 캐시 활성화
+  
+  # Docker Compose 비활성화
   docker:
     compose:
       enabled: false
+  
+  # 운영 환경에서는 컬러 비활성화 (로그 파일 오염 방지)
+  output:
+    ansi:
+      enabled: NEVER
 
+# 운영 서버 보안 설정
+server:
+  # 세션 보안 설정
+  session:
+    timeout: 30m
+    cookie:
+      secure: true      # HTTPS 전용
+      http-only: true   # JavaScript 접근 차단
+      same-site: strict # CSRF 공격 방지
+  
+  # 에러 페이지 설정
+  error:
+    include-message: never
+    include-binding-errors: never
+    include-stacktrace: never
+    include-exception: false
+
+# 운영 로깅 설정 (구조화 & 파일 로깅)
+logging:
+  pattern:
+    # 콘솔: 구조화된 포맷 (컬러 없음)
+    console: "%d{ISO8601} %-5level [%thread] %logger{36} - %msg%n"
+    # 파일: 상세 정보 포함
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} [%X{userId}] - %msg%n"
+  
+  level:
+    root: INFO
+    bunny.boardhole: INFO
+    org.springframework.web: WARN
+    org.springframework.security: WARN
+    org.hibernate: WARN
+  
+  # 파일 로깅 설정
+  file:
+    name: ${LOG_PATH:/var/log/boardhole}/application.log
+  
+  # 로그 파일 롤링 설정 (통합)
+  logback:
+    rollingpolicy:
+      max-file-size: 10MB
+      max-history: 30
+      total-size-cap: 1GB
+
+# 운영 환경 애플리케이션 설정
 boardhole:
+  # 운영 CORS 설정 (환경변수로 도메인 지정)
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS}  # 필수 환경변수 (예: https://boardhole.com)
+    allow-credentials: false  # 운영에서는 자격증명 비활성화
+  
+  # 운영 사용자 비밀번호 (환경변수 필수)
   default-users:
     admin:
-      password: ${BOARDHOLE_ADMIN_PASSWORD:ChangeMe!123}
+      password: ${ADMIN_PASSWORD}  # 필수 환경변수
+      email: ${ADMIN_EMAIL:admin@boardhole.com}
     regular:
-      password: ${BOARDHOLE_USER_PASSWORD:ChangeMe!456}
-
-server:
-  servlet:
-    session:
-      timeout: 30m
-      cookie:
-        secure: true
-        http-only: true
-        same-site: strict
+      password: ${USER_PASSWORD}   # 필수 환경변수
+      email: ${USER_EMAIL:user@boardhole.com}

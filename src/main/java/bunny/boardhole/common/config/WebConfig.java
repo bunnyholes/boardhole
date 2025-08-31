@@ -4,7 +4,6 @@ import bunny.boardhole.common.security.CurrentUserArgumentResolver;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Bean;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -38,6 +37,7 @@ public class WebConfig implements WebMvcConfigurer {
 
     /**
      * 커스텀 인자 해결자 등록
+     *
      * @param resolvers 인자 해결자 목록
      */
     @Override
@@ -47,6 +47,7 @@ public class WebConfig implements WebMvcConfigurer {
 
     /**
      * CORS 매핑 설정
+     *
      * @param registry CORS 레지스트리
      */
     @Override
@@ -61,6 +62,4 @@ public class WebConfig implements WebMvcConfigurer {
 
 
     // No custom message converters or resource handlers.
-
-    // HiddenHttpMethodFilter는 spring.mvc.hiddenmethod.filter.enabled 설정으로 활성화
 }

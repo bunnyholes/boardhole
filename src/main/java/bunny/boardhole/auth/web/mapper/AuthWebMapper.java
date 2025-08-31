@@ -18,6 +18,7 @@ public interface AuthWebMapper {
 
     /**
      * 로그인 요청 DTO를 로그인 명령으로 변환
+     *
      * @param request 로그인 요청 DTO
      * @return 로그인 명령
      */
@@ -26,6 +27,7 @@ public interface AuthWebMapper {
 
     /**
      * 사용자 도메인 객체를 현재 사용자 응답으로 변환 (기존 호환성 유지)
+     *
      * @param user 사용자 도메인 엔티티
      * @return 현재 사용자 응답 DTO
      */

@@ -1,5 +1,6 @@
 package bunny.boardhole.user.web.mapper;
 
+import bunny.boardhole.common.mapstruct.MapstructConfig;
 import bunny.boardhole.user.application.command.CreateUserCommand;
 import bunny.boardhole.user.application.command.UpdateUserCommand;
 import bunny.boardhole.user.application.dto.UserResult;
@@ -8,7 +9,6 @@ import bunny.boardhole.user.web.dto.UserResponse;
 import bunny.boardhole.user.web.dto.UserUpdateRequest;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import bunny.boardhole.common.mapstruct.MapstructConfig;
 
 /**
  * 사용자 웹 계층 매퍼
@@ -19,6 +19,7 @@ public interface UserWebMapper {
 
     /**
      * 사용자 결과를 웹 응답으로 변환
+     *
      * @param result 사용자 조회 결과
      * @return 웹 응답 DTO
      */
@@ -26,6 +27,7 @@ public interface UserWebMapper {
 
     /**
      * 사용자 생성 요청을 명령으로 변환
+     *
      * @param req 사용자 생성 요청 DTO
      * @return 사용자 생성 명령
      */
@@ -37,7 +39,8 @@ public interface UserWebMapper {
 
     /**
      * 사용자 수정 요청을 명령으로 변환
-     * @param id 수정할 사용자 ID
+     *
+     * @param id  수정할 사용자 ID
      * @param req 사용자 수정 요청 DTO
      * @return 사용자 수정 명령
      */

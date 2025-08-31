@@ -1,12 +1,13 @@
 package bunny.boardhole.admin.web;
 
-import bunny.boardhole.common.bootstrap.DataInitializer;
+import bunny.boardhole.common.config.TestUserConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
@@ -22,10 +23,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @TestInstance(TestInstance.Lifecycle.PER_METHOD)
 @DisplayName("관리자 컨트롤러 통합 테스트")
+@Import(TestUserConfig.class)
 class AdminControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private TestUserConfig.TestUserProperties testUserProperties;
 
     // ========== READ: 관리자 통계 조회 테스트 ==========
 
@@ -35,8 +40,8 @@ class AdminControllerTest {
         // 관리자로 로그인
         MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("username", DataInitializer.ADMIN_USERNAME)
-                        .param("password", DataInitializer.ADMIN_PASSWORD))
+                        .param("username", testUserProperties.adminUsername())
+                        .param("password", testUserProperties.adminPassword()))
                 .andExpect(status().isNoContent())
                 .andReturn();
 
@@ -69,8 +74,8 @@ class AdminControllerTest {
         // 일반 사용자로 로그인
         MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("username", DataInitializer.TEST_USERNAME)
-                        .param("password", DataInitializer.TEST_PASSWORD))
+                        .param("username", testUserProperties.regularUsername())
+                        .param("password", testUserProperties.regularPassword()))
                 .andExpect(status().isNoContent())
                 .andReturn();
 

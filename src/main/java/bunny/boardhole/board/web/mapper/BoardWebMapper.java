@@ -6,9 +6,9 @@ import bunny.boardhole.board.application.dto.BoardResult;
 import bunny.boardhole.board.web.dto.BoardCreateRequest;
 import bunny.boardhole.board.web.dto.BoardResponse;
 import bunny.boardhole.board.web.dto.BoardUpdateRequest;
+import bunny.boardhole.common.mapstruct.MapstructConfig;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import bunny.boardhole.common.mapstruct.MapstructConfig;
 
 /**
  * 게시글 웹 계층 매퍼
@@ -19,6 +19,7 @@ public interface BoardWebMapper {
 
     /**
      * 게시글 결과를 웹 응답으로 변환
+     *
      * @param result 게시글 조회 결과
      * @return 웹 응답 DTO
      */
@@ -26,7 +27,8 @@ public interface BoardWebMapper {
 
     /**
      * 게시글 생성 요청을 명령으로 변환
-     * @param req 게시글 생성 요청 DTO
+     *
+     * @param req      게시글 생성 요청 DTO
      * @param authorId 작성자 ID
      * @return 게시글 생성 명령
      */
@@ -37,9 +39,10 @@ public interface BoardWebMapper {
 
     /**
      * 게시글 수정 요청을 명령으로 변환
-     * @param id 수정할 게시글 ID
+     *
+     * @param id       수정할 게시글 ID
      * @param authorId 작성자 ID
-     * @param req 게시글 수정 요청 DTO
+     * @param req      게시글 수정 요청 DTO
      * @return 게시글 수정 명령
      */
     @Mapping(target = "boardId", source = "id")

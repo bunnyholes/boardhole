@@ -1,118 +1,130 @@
 <!DOCTYPE html>
-<html lang="ko" data-bs-theme="light">
+<html data-bs-theme="light" lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Board Hole - 내 정보</title>
+    <meta charset="UTF-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Board Hole - 내 정보</title>
 
-  <!-- Pretendard 폰트 -->
-  <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable.css" rel="stylesheet">
-  
-  <!-- Bootstrap CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-  
-  
+    <!-- Pretendard 폰트 -->
+    <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable.css"
+          rel="stylesheet">
+
+    <!-- Bootstrap CSS -->
+    <link crossorigin="anonymous" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+          integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" rel="stylesheet">
+
+
 </head>
 <body>
-  <div class="container">
+<div class="container">
     <div class="card card">
-      <div class="card-body">
-        <h1 class="card-title text-center mb-4">내 정보</h1>
-        
-        <!-- 로딩 상태 -->
-        <div id="loading" class="text-center">
-          <div class="spinner-border text-secondary" role="status" aria-label="사용자 정보 로딩">
-            <span class="visually-hidden">사용자 정보를 불러오는 중...</span>
-          </div>
-          <p class="mt-2 text-muted">사용자 정보를 불러오는 중...</p>
-        </div>
-        
-        <!-- 사용자 정보 (초기에는 숨김) -->
-        <div id="user-info" style="display: none;">
-          <div id="flash-error" class="alert alert-danger text-center" role="alert" style="display:none;" aria-live="polite"></div>
-          
-          <form id="user-form" method="post">
-            <input type="hidden" name="_method" value="PUT" />
-            
-            <div class="row g-3">
-              <div class="col-md-6">
-                <label for="name" class="form-label">이름</label>
-                <input type="text" class="form-control" id="name" name="name" readonly aria-describedby="name-help">
-                <div id="name-help" class="form-text">사용자의 실제 이름입니다.</div>
-              </div>
-              
-              <div class="col-md-6">
-                <label for="email" class="form-label">이메일</label>
-                <input type="email" class="form-control" id="email" name="email" readonly aria-describedby="email-help">
-                <div id="email-help" class="form-text">계정에 연결된 이메일 주소입니다.</div>
-              </div>
-              
-              <div class="col-md-6">
-                <label for="userId" class="form-label">사용자 ID</label>
-                <input type="text" class="form-control" id="userId" readonly aria-describedby="userId-help">
-                <div id="userId-help" class="form-text">시스템에서 사용하는 고유 ID입니다.</div>
-              </div>
-              
-              <div class="col-md-6">
-                <label for="joinDate" class="form-label">가입일</label>
-                <input type="text" class="form-control" id="joinDate" readonly aria-describedby="joinDate-help">
-                <div id="joinDate-help" class="form-text">계정 생성일입니다.</div>
-              </div>
-              
-              <div class="col-12">
-                <label for="lastLoginDate" class="form-label">마지막 로그인</label>
-                <input type="text" class="form-control" id="lastLoginDate" readonly aria-describedby="lastLoginDate-help">
-                <div id="lastLoginDate-help" class="form-text">마지막으로 로그인한 날짜와 시간입니다.</div>
-              </div>
-            </div>
-            
-            <!-- 수정 모드에서만 표시 -->
-            <div id="edit-actions" class="d-flex gap-2 justify-content-center mt-4" style="display: none !important;">
-              <button type="submit" class="btn btn-primary" aria-describedby="save-help">
-                <i class="bi bi-check-lg"></i> 저장
-              </button>
-              <button type="button" onclick="cancelEdit()" class="btn btn-outline-secondary" aria-describedby="cancel-help">
-                <i class="bi bi-x-lg"></i> 취소
-              </button>
-              <div id="save-help" class="visually-hidden">변경사항을 저장합니다</div>
-              <div id="cancel-help" class="visually-hidden">변경사항을 취소하고 원래 상태로 돌아갑니다</div>
-            </div>
-          </form>
-          
-          <!-- 기본 액션 -->
-          <div id="default-actions" class="d-flex flex-column flex-md-row gap-2 justify-content-center mt-4">
-            <button onclick="enableEdit()" class="btn btn-primary" aria-describedby="edit-help">
-              <i class="bi bi-pencil"></i> 정보 수정
-            </button>
-            <a href="welcome.html" class="btn btn-outline-secondary" aria-describedby="dashboard-help">
-              <i class="bi bi-house"></i> 대시보드로 돌아가기
-            </a>
-            <button type="button" onclick="logout()" class="btn btn-outline-secondary" aria-describedby="logout-help">
-              <i class="bi bi-box-arrow-right"></i> 로그아웃
-            </button>
-            <div id="edit-help" class="visually-hidden">사용자 정보를 수정할 수 있는 모드로 전환합니다</div>
-            <div id="dashboard-help" class="visually-hidden">메인 대시보드로 이동합니다</div>
-            <div id="logout-help" class="visually-hidden">현재 세션에서 로그아웃합니다</div>
-          </div>
-        </div>
-        
-        <!-- 업데이트 중 로딩 -->
-        <div id="updating" class="text-center" style="display: none;">
-          <div class="spinner-border text-secondary" role="status" aria-label="정보 업데이트 중">
-            <span class="visually-hidden">정보를 업데이트하는 중...</span>
-          </div>
-          <p class="mt-2 text-muted">정보를 업데이트하는 중...</p>
-        </div>
-      </div>
-    </div>
-  </div>
+        <div class="card-body">
+            <h1 class="card-title text-center mb-4">내 정보</h1>
 
-  <!-- Bootstrap JS -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
-  
-  <!-- Custom JavaScript -->
-  <script src="public/js/flash.js" defer></script>
-  <script src="public/js/logout.js" defer></script>
-  <script src="public/js/my-page.js" defer></script>
+            <!-- 로딩 상태 -->
+            <div class="text-center" id="loading">
+                <div aria-label="사용자 정보 로딩" class="spinner-border text-secondary" role="status">
+                    <span class="visually-hidden">사용자 정보를 불러오는 중...</span>
+                </div>
+                <p class="mt-2 text-muted">사용자 정보를 불러오는 중...</p>
+            </div>
+
+            <!-- 사용자 정보 (초기에는 숨김) -->
+            <div id="user-info" style="display: none;">
+                <div aria-live="polite" class="alert alert-danger text-center" id="flash-error" role="alert"
+                     style="display:none;"></div>
+
+                <form id="user-form" method="post">
+                    <input name="_method" type="hidden" value="PUT"/>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label" for="name">이름</label>
+                            <input aria-describedby="name-help" class="form-control" id="name" name="name" readonly
+                                   type="text">
+                            <div class="form-text" id="name-help">사용자의 실제 이름입니다.</div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label" for="email">이메일</label>
+                            <input aria-describedby="email-help" class="form-control" id="email" name="email" readonly
+                                   type="email">
+                            <div class="form-text" id="email-help">계정에 연결된 이메일 주소입니다.</div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label" for="userId">사용자 ID</label>
+                            <input aria-describedby="userId-help" class="form-control" id="userId" readonly type="text">
+                            <div class="form-text" id="userId-help">시스템에서 사용하는 고유 ID입니다.</div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label" for="joinDate">가입일</label>
+                            <input aria-describedby="joinDate-help" class="form-control" id="joinDate" readonly
+                                   type="text">
+                            <div class="form-text" id="joinDate-help">계정 생성일입니다.</div>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label" for="lastLoginDate">마지막 로그인</label>
+                            <input aria-describedby="lastLoginDate-help" class="form-control" id="lastLoginDate" readonly
+                                   type="text">
+                            <div class="form-text" id="lastLoginDate-help">마지막으로 로그인한 날짜와 시간입니다.</div>
+                        </div>
+                    </div>
+
+                    <!-- 수정 모드에서만 표시 -->
+                    <div class="d-flex gap-2 justify-content-center mt-4" id="edit-actions"
+                         style="display: none !important;">
+                        <button aria-describedby="save-help" class="btn btn-primary" type="submit">
+                            <i class="bi bi-check-lg"></i> 저장
+                        </button>
+                        <button aria-describedby="cancel-help" class="btn btn-outline-secondary" onclick="cancelEdit()"
+                                type="button">
+                            <i class="bi bi-x-lg"></i> 취소
+                        </button>
+                        <div class="visually-hidden" id="save-help">변경사항을 저장합니다</div>
+                        <div class="visually-hidden" id="cancel-help">변경사항을 취소하고 원래 상태로 돌아갑니다</div>
+                    </div>
+                </form>
+
+                <!-- 기본 액션 -->
+                <div class="d-flex flex-column flex-md-row gap-2 justify-content-center mt-4" id="default-actions">
+                    <button aria-describedby="edit-help" class="btn btn-primary" onclick="enableEdit()">
+                        <i class="bi bi-pencil"></i> 정보 수정
+                    </button>
+                    <a aria-describedby="dashboard-help" class="btn btn-outline-secondary" href="welcome.html">
+                        <i class="bi bi-house"></i> 대시보드로 돌아가기
+                    </a>
+                    <button aria-describedby="logout-help" class="btn btn-outline-secondary" onclick="logout()"
+                            type="button">
+                        <i class="bi bi-box-arrow-right"></i> 로그아웃
+                    </button>
+                    <div class="visually-hidden" id="edit-help">사용자 정보를 수정할 수 있는 모드로 전환합니다</div>
+                    <div class="visually-hidden" id="dashboard-help">메인 대시보드로 이동합니다</div>
+                    <div class="visually-hidden" id="logout-help">현재 세션에서 로그아웃합니다</div>
+                </div>
+            </div>
+
+            <!-- 업데이트 중 로딩 -->
+            <div class="text-center" id="updating" style="display: none;">
+                <div aria-label="정보 업데이트 중" class="spinner-border text-secondary" role="status">
+                    <span class="visually-hidden">정보를 업데이트하는 중...</span>
+                </div>
+                <p class="mt-2 text-muted">정보를 업데이트하는 중...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script crossorigin="anonymous"
+        integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Custom JavaScript -->
+<script defer src="assets/js/flash.js"></script>
+<script defer src="assets/js/logout.js"></script>
+<script defer src="assets/js/my-page.js"></script>
 </body>
 </html>

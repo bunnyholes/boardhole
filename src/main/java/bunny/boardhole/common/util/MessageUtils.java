@@ -3,35 +3,41 @@ package bunny.boardhole.common.util;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Component;
-import lombok.RequiredArgsConstructor;
-import jakarta.annotation.PostConstruct;
 
+/**
+ * 메시지 유틸리티 클래스
+ * Spring MessageSource를 래핑하여 편리한 메시지 접근 제공
+ */
 @Component
-@RequiredArgsConstructor
 public class MessageUtils {
-    
+
+    private static MessageSource staticMessageSource;
     private final MessageSource messageSource;
-    
+
+    public MessageUtils(MessageSource messageSource) {
+        this.messageSource = messageSource;
+        MessageUtils.staticMessageSource = messageSource;
+    }
+
     public String getMessage(String key, Object... args) {
         return messageSource.getMessage(key, args, LocaleContextHolder.getLocale());
     }
-    
+
     public String getMessage(String key) {
         return messageSource.getMessage(key, null, LocaleContextHolder.getLocale());
     }
-    
-    // Static access를 위한 singleton 패턴
-    private static MessageUtils instance;
-    
-    @PostConstruct
-    public void init() {
-        instance = this;
-    }
-    
+
     public static String getMessageStatic(String key, Object... args) {
-        if (instance == null) {
-            return key; // fallback to key if not initialized
+        if (staticMessageSource == null) {
+            return key; // Fallback when not initialized
         }
-        return instance.getMessage(key, args);
+        return staticMessageSource.getMessage(key, args, LocaleContextHolder.getLocale());
+    }
+
+    public static String getMessageStatic(String key) {
+        if (staticMessageSource == null) {
+            return key; // Fallback when not initialized
+        }
+        return staticMessageSource.getMessage(key, null, LocaleContextHolder.getLocale());
     }
 }

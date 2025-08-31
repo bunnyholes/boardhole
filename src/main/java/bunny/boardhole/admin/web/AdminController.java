@@ -3,10 +3,6 @@ package bunny.boardhole.admin.web;
 import bunny.boardhole.admin.web.dto.AdminStatsResponse;
 import bunny.boardhole.board.infrastructure.BoardRepository;
 import bunny.boardhole.user.infrastructure.UserRepository;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -14,6 +10,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -29,10 +29,10 @@ public class AdminController {
     }
 
     @GetMapping("/stats")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("isAuthenticated() and hasRole('ADMIN')")
     @Operation(
             summary = "시스템 통계 조회",
-            description = "전체 사용자 수, 게시글 수, 전체 조회수 등 시스템 통계를 조회합니다. 관리자만 사용할 수 있습니다.",
+            description = "[ADMIN] 전체 사용자 수, 게시글 수, 전체 조회수 등 시스템 통계를 조회합니다. 관리자만 사용할 수 있습니다.",
             security = @SecurityRequirement(name = "session")
     )
     @ApiResponses({

@@ -39,3 +39,9 @@ out/
 ### OS Files ###
 .DS_Store
 Thumbs.db
+
+### Application Configuration ###
+# Local developer configuration (personal overrides)
+application-local.yml
+application-local.yaml
+application-local.properties

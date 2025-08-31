@@ -1,5 +1,6 @@
 package bunny.boardhole.common.config;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,7 +12,6 @@ import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 import org.springframework.web.servlet.i18n.SessionLocaleResolver;
 
 import java.util.Locale;
-import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * 국제화(i18n) 설정
@@ -23,14 +23,15 @@ public class InternationalizationConfig implements WebMvcConfigurer {
 
     /**
      * 메시지 소스 빈 설정
+     *
      * @return 다국어 메시지 소스
      */
     @Bean
     public MessageSource messageSource() {
         ReloadableResourceBundleMessageSource messageSource = new ReloadableResourceBundleMessageSource();
         messageSource.setBasenames(
-            "classpath:messages",
-            "classpath:ValidationMessages"
+                "classpath:messages",
+                "classpath:ValidationMessages"
         );
         messageSource.setDefaultEncoding("UTF-8");
         messageSource.setDefaultLocale(Locale.KOREAN);
@@ -41,6 +42,7 @@ public class InternationalizationConfig implements WebMvcConfigurer {
 
     /**
      * 로케일 해결자 빈 설정
+     *
      * @return 세션 기반 로케일 해결자
      */
     @Bean
@@ -52,6 +54,7 @@ public class InternationalizationConfig implements WebMvcConfigurer {
 
     /**
      * 로케일 변경 인터셉터 빈 설정
+     *
      * @return 언어 변경 인터셉터
      */
     @Bean
@@ -63,11 +66,12 @@ public class InternationalizationConfig implements WebMvcConfigurer {
 
     /**
      * 인터셉터 등록
+     *
      * @param registry 인터셉터 레지스트리
      */
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(localeChangeInterceptor());
     }
-    
+
 }

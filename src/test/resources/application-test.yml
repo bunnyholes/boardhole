@@ -1,0 +1,57 @@
+# ========================================
+# 테스트 환경 전용 설정
+# H2 인메모리 DB 및 최소 로깅
+# ========================================
+
+spring:
+  # H2 인메모리 데이터베이스 설정
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  
+  # JPA 테스트 설정
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create  # 테스트시 스키마 새로 생성
+    show-sql: false     # 테스트시 SQL 출력 비활성화
+    properties:
+      hibernate:
+        format_sql: false
+  
+  # 테스트 환경에서는 IDE 지원시만 컬러 활성화
+  output:
+    ansi:
+      enabled: DETECT  # IDE/터미널이 지원하면 활성화
+
+# 테스트 로깅 설정 (최소화)
+logging:
+  pattern:
+    # 테스트용 심플한 패턴 (컬러 최소화)
+    console: "%d{HH:mm:ss} %-5level %logger{36} - %msg%n"
+  
+  level:
+    root: WARN                    # 기본 로그 레벨 경고 이상
+    bunny.boardhole: INFO        # 애플리케이션 로그는 정보 수준
+    org.springframework.test: INFO
+    org.hibernate: WARN          # 테스트시 SQL 로그 비활성화
+
+# 테스트 환경 애플리케이션 설정
+boardhole:
+  # 테스트용 CORS 설정 (로컬호스트만)
+  cors:
+    allowed-origins: "http://localhost:8080"
+    allow-credentials: false
+  
+  # 테스트용 기본 사용자 설정
+  default-users:
+    admin:
+      password: test123
+      email: admin@test.com
+      name: Test Administrator
+    regular:
+      password: test123
+      email: user@test.com
+      name: Test User

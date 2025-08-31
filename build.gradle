@@ -10,6 +10,7 @@ group = 'bunny'
 version = '0.0.1-SNAPSHOT'
 description = 'board-hole'
 
+
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(21)
@@ -27,46 +28,43 @@ repositories {
 }
 
 dependencies {
-    // Spring Boot Starters
+    // -- Core Spring Boot Starters --
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
-    // 추가: AOP
     implementation 'org.springframework.boot:spring-boot-starter-aop'
-
-    // Docker Compose Support
-    developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
-    
-    // Security
     implementation 'org.springframework.boot:spring-boot-starter-security'
-    
-    // OpenAPI (Swagger)
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.11'
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.11'
-    
-    // Database
-    runtimeOnly 'com.mysql:mysql-connector-j:9.4.0'
-    
-    // Lombok
-    compileOnly 'org.projectlombok:lombok:1.18.38'
-    annotationProcessor 'org.projectlombok:lombok:1.18.38'
-    // Lombok + MapStruct binding (for builders)
-    annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
-    // MapStruct
-    implementation 'org.mapstruct:mapstruct:1.6.3'
-    annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
 
-    // Logging - JSON encoder for prod
-    implementation 'net.logstash.logback:logstash-logback-encoder:8.1'
+    // -- API Documentation (SpringDoc) --
+    implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.11"
+    implementation "org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.11"
 
-    // OpenRewrite recipes (for automated refactoring)
-    rewrite 'org.openrewrite.recipe:rewrite-spring:6.13.0'
-    rewrite 'org.openrewrite.recipe:rewrite-static-analysis:2.16.0'
+    // -- Mapping (MapStruct) --
+    implementation "org.mapstruct:mapstruct:1.6.3"
+    annotationProcessor "org.mapstruct:mapstruct-processor:1.6.3"
+    annotationProcessor "org.projectlombok:lombok-mapstruct-binding:0.2.0"
 
-    // Test
+    // -- Lombok --
+    compileOnly "org.projectlombok:lombok:1.18.38"
+    annotationProcessor "org.projectlombok:lombok:1.18.38"
+
+    // -- Database Drivers --
+    runtimeOnly "com.mysql:mysql-connector-j:9.4.0"
+
+    // -- Logging (JSON encoder, opt-in in prod) --
+    implementation "net.logstash.logback:logstash-logback-encoder:8.1"
+
+    // -- Dev only --
+    developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
+
+    // -- Testing --
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'com.h2database:h2'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    // -- OpenRewrite recipes (static analysis/refactoring) --
+    rewrite 'org.openrewrite.recipe:rewrite-spring:6.13.0'
+    rewrite 'org.openrewrite.recipe:rewrite-static-analysis:2.16.0'
 }
 
 tasks.named('test') {

@@ -1,117 +1,121 @@
 <!DOCTYPE html>
-<html lang="ko" data-bs-theme="light">
+<html data-bs-theme="light" lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Board Hole - 게시글 수정</title>
+    <meta charset="UTF-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Board Hole - 게시글 수정</title>
 
-  <!-- Pretendard 폰트 -->
-  <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable.css" rel="stylesheet">
-  
-  <!-- Bootstrap CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-  
-  
+    <!-- Pretendard 폰트 -->
+    <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable.css"
+          rel="stylesheet">
+
+    <!-- Bootstrap CSS -->
+    <link crossorigin="anonymous" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+          integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" rel="stylesheet">
+
+
 </head>
 <body>
-  <div class="container">
+<div class="container">
     <div class="card card">
-      <div class="card-body">
-        <h1 class="card-title text-center mb-4">게시글 수정</h1>
-        
-        <!-- 로딩 상태 -->
-        <div id="loading" class="text-center">
-          <div class="spinner-border text-secondary" role="status" aria-label="게시글을 불러오는 중">
-            <span class="visually-hidden">게시글을 불러오는 중...</span>
-          </div>
-          <p class="mt-2 text-muted">게시글을 불러오는 중...</p>
-        </div>
-        
-        <!-- 에러 메시지 -->
-        <div id="flash-error" class="alert alert-danger" role="alert" style="display:none;"></div>
-        
-        <!-- 수정 폼 -->
-        <form id="board-form" method="post" autocomplete="off" novalidate style="display: none;">
-          <input type="hidden" name="_method" value="PUT" />
-          
-          <div class="mb-3">
-            <label for="title" class="form-label">제목</label>
-            <input name="title" id="title" type="text" class="form-control form-control-lg" 
-                   placeholder="제목을 입력하세요" required maxlength="255" 
-                   aria-describedby="titleHelp" />
-            <div id="titleHelp" class="form-text">최대 255자까지 입력 가능합니다.</div>
-          </div>
+        <div class="card-body">
+            <h1 class="card-title text-center mb-4">게시글 수정</h1>
 
-          <div class="mb-4">
-            <label for="content" class="form-label">내용</label>
-            <textarea name="content" id="content" class="form-control" 
-                      placeholder="내용을 입력하세요" required 
-                      rows="12" style="resize: vertical;"
-                      aria-describedby="contentHelp"></textarea>
-            <div id="contentHelp" class="form-text">마크다운 형식을 지원합니다.</div>
-          </div>
+            <!-- 로딩 상태 -->
+            <div class="text-center" id="loading">
+                <div aria-label="게시글을 불러오는 중" class="spinner-border text-secondary" role="status">
+                    <span class="visually-hidden">게시글을 불러오는 중...</span>
+                </div>
+                <p class="mt-2 text-muted">게시글을 불러오는 중...</p>
+            </div>
 
-          <div class="d-grid gap-2 d-md-flex justify-content-md-center">
-            <button type="submit" class="btn btn-primary btn-lg px-4 me-md-2">
-              <i class="bi bi-check-circle" aria-hidden="true"></i> 수정하기
-            </button>
-            <button type="button" onclick="cancelEdit()" class="btn btn-outline-secondary btn-lg px-4">
-              <i class="bi bi-x-circle" aria-hidden="true"></i> 취소
-            </button>
-          </div>
-        </form>
-        
-        <!-- 수정 중 로딩 -->
-        <div id="updating" class="text-center" style="display: none;">
-          <div class="spinner-border text-primary" role="status" aria-label="게시글을 수정하는 중">
-            <span class="visually-hidden">게시글을 수정하는 중...</span>
-          </div>
-          <p class="mt-2 text-muted">게시글을 수정하는 중...</p>
+            <!-- 에러 메시지 -->
+            <div class="alert alert-danger" id="flash-error" role="alert" style="display:none;"></div>
+
+            <!-- 수정 폼 -->
+            <form autocomplete="off" id="board-form" method="post" novalidate style="display: none;">
+                <input name="_method" type="hidden" value="PUT"/>
+
+                <div class="mb-3">
+                    <label class="form-label" for="title">제목</label>
+                    <input aria-describedby="titleHelp" class="form-control form-control-lg" id="title" maxlength="255"
+                           name="title" placeholder="제목을 입력하세요" required
+                           type="text"/>
+                    <div class="form-text" id="titleHelp">최대 255자까지 입력 가능합니다.</div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label" for="content">내용</label>
+                    <textarea aria-describedby="contentHelp" class="form-control" id="content"
+                              name="content" placeholder="내용을 입력하세요"
+                              required rows="12"
+                              style="resize: vertical;"></textarea>
+                    <div class="form-text" id="contentHelp">마크다운 형식을 지원합니다.</div>
+                </div>
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                    <button class="btn btn-primary btn-lg px-4 me-md-2" type="submit">
+                        <i aria-hidden="true" class="bi bi-check-circle"></i> 수정하기
+                    </button>
+                    <button class="btn btn-outline-secondary btn-lg px-4" onclick="cancelEdit()" type="button">
+                        <i aria-hidden="true" class="bi bi-x-circle"></i> 취소
+                    </button>
+                </div>
+            </form>
+
+            <!-- 수정 중 로딩 -->
+            <div class="text-center" id="updating" style="display: none;">
+                <div aria-label="게시글을 수정하는 중" class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">게시글을 수정하는 중...</span>
+                </div>
+                <p class="mt-2 text-muted">게시글을 수정하는 중...</p>
+            </div>
+
+            <!-- 에러 메시지 -->
+            <div class="text-center" id="error-message" style="display: none;">
+                <div class="alert alert-danger" role="alert">
+                    <h4 class="alert-heading">오류가 발생했습니다</h4>
+                    <p class="mb-0"></p>
+                </div>
+                <div class="mt-3">
+                    <a class="btn btn-secondary" href="board.html">
+                        <i aria-hidden="true" class="bi bi-list-ul"></i> 게시판으로 돌아가기
+                    </a>
+                </div>
+            </div>
+
+            <!-- 하단 네비게이션 -->
+            <nav aria-label="페이지 네비게이션" class="mt-4">
+                <div class="row g-2">
+                    <div class="col-md-4">
+                        <a class="btn btn-outline-secondary w-100" href="board.html">
+                            <i aria-hidden="true" class="bi bi-list-ul"></i> 게시판 목록
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <a class="btn btn-outline-secondary w-100" href="welcome.html">
+                            <i aria-hidden="true" class="bi bi-house"></i> 대시보드
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <button class="btn btn-outline-secondary w-100" onclick="logout()" type="button">
+                            <i aria-hidden="true" class="bi bi-box-arrow-right"></i> 로그아웃
+                        </button>
+                    </div>
+                </div>
+            </nav>
         </div>
-        
-        <!-- 에러 메시지 -->
-        <div id="error-message" class="text-center" style="display: none;">
-          <div class="alert alert-danger" role="alert">
-            <h4 class="alert-heading">오류가 발생했습니다</h4>
-            <p class="mb-0"></p>
-          </div>
-          <div class="mt-3">
-            <a href="board.html" class="btn btn-secondary">
-              <i class="bi bi-list-ul" aria-hidden="true"></i> 게시판으로 돌아가기
-            </a>
-          </div>
-        </div>
-        
-        <!-- 하단 네비게이션 -->
-        <nav class="mt-4" aria-label="페이지 네비게이션">
-          <div class="row g-2">
-            <div class="col-md-4">
-              <a href="board.html" class="btn btn-outline-secondary w-100">
-                <i class="bi bi-list-ul" aria-hidden="true"></i> 게시판 목록
-              </a>
-            </div>
-            <div class="col-md-4">
-              <a href="welcome.html" class="btn btn-outline-secondary w-100">
-                <i class="bi bi-house" aria-hidden="true"></i> 대시보드
-              </a>
-            </div>
-            <div class="col-md-4">
-              <button type="button" onclick="logout()" class="btn btn-outline-secondary w-100">
-                <i class="bi bi-box-arrow-right" aria-hidden="true"></i> 로그아웃
-              </button>
-            </div>
-          </div>
-        </nav>
-      </div>
     </div>
-  </div>
+</div>
 
-  <!-- Bootstrap JS -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
-  
-  <!-- Custom JavaScript -->
-  <script src="public/js/flash.js" defer></script>
-  <script src="public/js/logout.js" defer></script>
-  <script src="public/js/board-edit.js" defer></script>
+<!-- Bootstrap JS -->
+<script crossorigin="anonymous"
+        integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Custom JavaScript -->
+<script defer src="assets/js/flash.js"></script>
+<script defer src="assets/js/logout.js"></script>
+<script defer src="assets/js/board-edit.js"></script>
 </body>
 </html>

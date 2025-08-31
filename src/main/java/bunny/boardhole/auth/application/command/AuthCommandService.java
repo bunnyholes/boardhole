@@ -3,9 +3,9 @@ package bunny.boardhole.auth.application.command;
 import bunny.boardhole.auth.application.dto.AuthResult;
 import bunny.boardhole.common.exception.UnauthorizedException;
 import bunny.boardhole.common.security.AppUserPrincipal;
+import bunny.boardhole.common.util.MessageUtils;
 import bunny.boardhole.user.domain.User;
 import bunny.boardhole.user.infrastructure.UserRepository;
-import bunny.boardhole.common.util.MessageUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -35,12 +35,13 @@ public class AuthCommandService {
     private final AuthenticationManager authenticationManager;
     private final SecurityContextRepository securityContextRepository;
     private final UserRepository userRepository;
+    private final MessageUtils messageUtils;
 
     /**
      * 사용자 로그인 처리
-     * 
-     * @param cmd 로그인 명령
-     * @param request HTTP 요청
+     *
+     * @param cmd      로그인 명령
+     * @param request  HTTP 요청
      * @param response HTTP 응답
      * @return 인증 결과
      * @throws UnauthorizedException 인증 실패 시
@@ -50,26 +51,26 @@ public class AuthCommandService {
         try {
             // Spring Security를 통한 인증 처리
             Authentication authRequest = new UsernamePasswordAuthenticationToken(
-                    cmd.username(), 
+                    cmd.username(),
                     cmd.password()
             );
-            
+
             Authentication authResult = authenticationManager.authenticate(authRequest);
-            
+
             // SecurityContext에 인증 정보 저장
             SecurityContext context = SecurityContextHolder.createEmptyContext();
             context.setAuthentication(authResult);
             SecurityContextHolder.setContext(context);
-            
+
             // 세션에 SecurityContext 저장
             securityContextRepository.saveContext(context, request, response);
-            
+
             // 사용자 정보 조회
             AppUserPrincipal principal = (AppUserPrincipal) authResult.getPrincipal();
             User user = principal.user();
-            
-            log.info(MessageUtils.getMessageStatic("log.auth.login-success", user.getUsername(), user.getId()));
-            
+
+            log.info(messageUtils.getMessage("log.auth.login-success", user.getUsername(), user.getId()));
+
             return new AuthResult(
                     user.getId(),
                     user.getUsername(),
@@ -78,32 +79,32 @@ public class AuthCommandService {
                     user.getRoles().iterator().next().name(), // 첫 번째 Role 사용
                     true
             );
-            
+
         } catch (BadCredentialsException e) {
-            log.warn(MessageUtils.getMessageStatic("log.auth.login-failed", cmd.username()));
-            throw new UnauthorizedException(MessageUtils.getMessageStatic("error.auth.invalid-credentials"));
+            log.warn(messageUtils.getMessage("log.auth.login-failed", cmd.username()));
+            throw new UnauthorizedException(messageUtils.getMessage("error.auth.invalid-credentials"));
         }
     }
 
     /**
      * 사용자 로그아웃 처리
-     * 
-     * @param cmd 로그아웃 명령
-     * @param request HTTP 요청
+     *
+     * @param cmd      로그아웃 명령
+     * @param request  HTTP 요청
      * @param response HTTP 응답
      */
     public void logout(@Valid LogoutCommand cmd, HttpServletRequest request, HttpServletResponse response) {
         // SecurityContext 정리
         SecurityContextHolder.clearContext();
-        
+
         // 세션 무효화
         if (request.getSession(false) != null) {
             request.getSession().invalidate();
         }
-        
+
         // SecurityContext 저장소에서도 제거
         securityContextRepository.saveContext(SecurityContextHolder.createEmptyContext(), request, response);
-        
-        log.info(MessageUtils.getMessageStatic("log.auth.logout-success", cmd.userId()));
+
+        log.info(messageUtils.getMessage("log.auth.logout-success", cmd.userId()));
     }
 }

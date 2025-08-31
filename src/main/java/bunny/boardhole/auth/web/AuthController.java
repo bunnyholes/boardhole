@@ -26,7 +26,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.context.SecurityContextRepository;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import bunny.boardhole.common.util.MessageUtils;
@@ -59,7 +58,7 @@ public class AuthController {
     @PermitAll
     @Operation(
             summary = "회원가입",
-            description = "새로운 사용자 계정을 생성합니다.",
+            description = "[PUBLIC] 새로운 사용자 계정을 생성합니다.",
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     required = true,
                     content = @Content(
@@ -83,7 +82,7 @@ public class AuthController {
     @PermitAll
     @Operation(
             summary = "로그인",
-            description = "사용자의 인증 정보를 확인하고 세션을 생성합니다.",
+            description = "[PUBLIC] 사용자의 인증 정보를 확인하고 세션을 생성합니다.",
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     required = true,
                     content = @Content(
@@ -113,7 +112,7 @@ public class AuthController {
     @PreAuthorize("isAuthenticated()")
     @Operation(
             summary = "로그아웃",
-            description = "현재 사용자의 세션을 종료하고 로그아웃합니다.",
+            description = "[AUTH] 현재 사용자의 세션을 종료하고 로그아웃합니다.",
             security = @SecurityRequirement(name = "session")
     )
     @ApiResponses({
@@ -139,11 +138,11 @@ public class AuthController {
 
     @GetMapping("/admin-only")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("isAuthenticated() and hasRole('ADMIN')")
     @Operation(
             summary = "관리자 전용 엔드포인트",
-            description = "관리자 권한을 가진 사용자만 접근할 수 있는 테스트 엔드포인트입니다.",
-            security = @SecurityRequirement(name = "session")
+            description = "[ROLE:ADMIN] 관리자 권한을 가진 사용자만 접근할 수 있는 테스트 엔드포인트입니다.",
+            security = @SecurityRequirement(name = "admin-role")
     )
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "관리자 접근 성공"),
@@ -156,12 +155,11 @@ public class AuthController {
 
     @GetMapping("/user-access")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    @Transactional(readOnly = true)
+    @PreAuthorize("isAuthenticated() and hasAnyRole('USER', 'ADMIN')")
     @Operation(
             summary = "일반 사용자 접근 엔드포인트",
-            description = "USER 또는 ADMIN 권한을 가진 사용자가 접근할 수 있는 테스트 엔드포인트입니다.",
-            security = @SecurityRequirement(name = "session")
+            description = "[MULTI-ROLE:USER,ADMIN] USER 또는 ADMIN 권한을 가진 사용자가 접근할 수 있는 테스트 엔드포인트입니다.",
+            security = @SecurityRequirement(name = "user-role")
     )
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "사용자 접근 성공"),
@@ -177,7 +175,7 @@ public class AuthController {
     @PermitAll
     @Operation(
             summary = "공개 엔드포인트",
-            description = "인증 없이 모든 사용자가 접근할 수 있는 공개 테스트 엔드포인트입니다."
+            description = "[PUBLIC] 인증 없이 모든 사용자가 접근할 수 있는 공개 테스트 엔드포인트입니다."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "공개 엔드포인트 접근 성공")

@@ -10,5 +10,6 @@ public record AdminStatsResponse(
         long totalBoards,
         @Schema(description = "전체 조회수", example = "25000")
         long totalViews
-) {}
+) {
+}
 

@@ -1,8 +1,11 @@
 package bunny.boardhole.user.web.dto;
 
 import bunny.boardhole.user.domain.Role;
-import lombok.*;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.Set;
@@ -15,11 +18,11 @@ import java.util.Set;
 public class UserResponse {
     @Schema(description = "사용자 ID", example = "1")
     private Long id;
-    @Schema(description = "사용자명", example = "johndoe")
+    @Schema(description = "사용자명", example = "admin")
     private String username;
     @Schema(description = "이름", example = "홍길동")
     private String name;
-    @Schema(description = "이메일 주소", example = "john@example.com")
+    @Schema(description = "이메일 주소", example = "admin@boardhole.com")
     private String email;
     @Schema(description = "계정 생성 일시", example = "2024-01-15T10:30:00")
     private LocalDateTime createdAt;
