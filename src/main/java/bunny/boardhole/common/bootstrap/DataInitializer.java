@@ -13,7 +13,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Slf4j
@@ -21,45 +20,35 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DataInitializer implements CommandLineRunner {
 
-    // 기본 사용자 설정
-    @Value("${boardhole.default-users.admin.username}")
-    private String adminUsername;
-    
-    @Value("${boardhole.default-users.admin.password}")
-    private String adminPassword;
-    
-    @Value("${boardhole.default-users.admin.name}")
-    private String adminName;
-    
-    @Value("${boardhole.default-users.admin.email}")
-    private String adminEmail;
-    
-    @Value("${boardhole.default-users.regular.username}")
-    private String regularUsername;
-    
-    @Value("${boardhole.default-users.regular.password}")
-    private String regularPassword;
-    
-    @Value("${boardhole.default-users.regular.name}")
-    private String regularName;
-    
-    @Value("${boardhole.default-users.regular.email}")
-    private String regularEmail;
-    
     // 기본 게시글 상수
     public static final String WELCOME_BOARD_TITLE = "Board Hole에 오신 것을 환영합니다!";
     public static final String WELCOME_BOARD_CONTENT = "첫 번째 게시글입니다. 자유롭게 둘러보고 게시물을 작성해 보세요!";
-    
     // 테스트에서 사용할 수 있도록 상수 유지 (하위 호환성)
     public static final String ADMIN_USERNAME = "admin";
     public static final String ADMIN_PASSWORD = "admin123";
     public static final String TEST_USERNAME = "user";
     public static final String TEST_PASSWORD = "user123";
-
     private final UserRepository userRepository;
     private final BoardRepository boardRepository;
     private final PasswordEncoder passwordEncoder;
     private final Environment environment;
+    // 기본 사용자 설정
+    @Value("${boardhole.default-users.admin.username}")
+    private String adminUsername;
+    @Value("${boardhole.default-users.admin.password}")
+    private String adminPassword;
+    @Value("${boardhole.default-users.admin.name}")
+    private String adminName;
+    @Value("${boardhole.default-users.admin.email}")
+    private String adminEmail;
+    @Value("${boardhole.default-users.regular.username}")
+    private String regularUsername;
+    @Value("${boardhole.default-users.regular.password}")
+    private String regularPassword;
+    @Value("${boardhole.default-users.regular.name}")
+    private String regularName;
+    @Value("${boardhole.default-users.regular.email}")
+    private String regularEmail;
 
     @Override
     public void run(String... args) {
