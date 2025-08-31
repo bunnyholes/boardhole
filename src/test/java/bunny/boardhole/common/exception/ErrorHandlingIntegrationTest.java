@@ -105,7 +105,6 @@ public class ErrorHandlingIntegrationTest {
                 .andDo(print());
     }
 
-    
 
     @Test
     @DisplayName("E2E: 409 Conflict - 중복된 사용자명")
