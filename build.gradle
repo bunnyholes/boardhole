@@ -53,6 +53,9 @@ dependencies {
     testImplementation 'org.testcontainers:mysql'
     testImplementation 'org.testcontainers:junit-jupiter'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    
+    // H2 for fast testing
+    testImplementation 'com.h2database:h2'
 }
 
 tasks.named('test') {

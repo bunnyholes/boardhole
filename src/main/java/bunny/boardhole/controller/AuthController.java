@@ -19,6 +19,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import bunny.boardhole.security.AppUserPrincipal;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.AuthenticationException;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -38,17 +40,21 @@ public class AuthController {
     @PostMapping("/login")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void login(@Valid @RequestBody LoginRequest req) {
-        // Authenticate through Spring Security pipeline
-        Authentication authentication = authenticationManager.authenticate(
-            new UsernamePasswordAuthenticationToken(req.getUsername(), req.getPassword())
-        );
-        
-        // Store in SecurityContext
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        
-        // Update domain logic
-        AppUserPrincipal principal = (AppUserPrincipal) authentication.getPrincipal();
-        userService.updateLastLogin(principal.getUser().getId());
+        try {
+            // Authenticate through Spring Security pipeline
+            Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(req.getUsername(), req.getPassword())
+            );
+            
+            // Store in SecurityContext
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            
+            // Update domain logic
+            AppUserPrincipal principal = (AppUserPrincipal) authentication.getPrincipal();
+            userService.updateLastLogin(principal.getUser().getId());
+        } catch (BadCredentialsException e) {
+            throw new bunny.boardhole.exception.UnauthorizedException("Invalid username or password");
+        }
     }
 
     @PostMapping("/logout")
