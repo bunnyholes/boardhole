@@ -1,78 +1,92 @@
 package bunny.boardhole.service;
 
 import bunny.boardhole.domain.Board;
+import bunny.boardhole.domain.User;
 import bunny.boardhole.dto.board.BoardRequest;
-import bunny.boardhole.dto.common.PageRequest;
-import bunny.boardhole.dto.common.PageResponse;
+import bunny.boardhole.dto.board.BoardDto;
 import bunny.boardhole.exception.ResourceNotFoundException;
-import bunny.boardhole.exception.UnauthorizedException;
-import bunny.boardhole.mapper.BoardMapper;
+import bunny.boardhole.repository.BoardRepository;
+import bunny.boardhole.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class BoardService {
-    private final BoardMapper boardMapper;
+    private final BoardRepository boardRepository;
+    private final UserRepository userRepository;
 
     @Transactional
-    public Board create(BoardRequest req) {
+    public BoardDto create(BoardRequest req) {
+        Long authorId = req.getUserId() != null ? req.getUserId() : 1L;
+        User author = userRepository.findById(authorId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + authorId));
+
         Board board = Board.builder()
                 .title(req.getTitle())
                 .content(req.getContent())
-                .authorId(req.getUserId() != null ? req.getUserId() : 1L) // userId가 없으면 기본값 1
+                .author(author)
                 .viewCount(0)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
-        boardMapper.insert(board);
-        return boardMapper.findById(board.getId());
+        Board saved = boardRepository.save(board);
+        return BoardDto.from(saved);
     }
 
     @Transactional(readOnly = true)
-    public Board get(Long id) {
-        Board board = boardMapper.findById(id);
-        if (board == null) {
-            throw new ResourceNotFoundException("Board not found with id: " + id);
+    public BoardDto get(Long id) {
+        Board board = boardRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Board not found with id: " + id));
+        return BoardDto.from(board);
+    }
+
+    @Transactional(readOnly = true)
+    public List<BoardDto> list() {
+        return boardRepository.findAllByOrderByCreatedAtDesc()
+                .stream()
+                .map(BoardDto::from)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public Page<BoardDto> listWithPaging(Pageable pageable, String search) {
+        Page<Board> page;
+        if (search == null || search.isBlank()) {
+            page = boardRepository.findAll(pageable);
+        } else {
+            page = boardRepository.findByTitleContainingIgnoreCaseOrContentContainingIgnoreCase(search, search, pageable);
         }
-        return board;
-    }
-
-    @Transactional(readOnly = true)
-    public List<Board> list() {
-        return boardMapper.findAll();
-    }
-    
-    @Transactional(readOnly = true)
-    public PageResponse<Board> listWithPaging(PageRequest pageRequest) {
-        List<Board> boards = boardMapper.findWithPaging(pageRequest);
-        long totalElements = boardMapper.countWithSearch(pageRequest.getSearch());
-        return PageResponse.of(boards, pageRequest.getPage(), pageRequest.getSize(), totalElements);
+        return page.map(BoardDto::from);
     }
 
     @Transactional
-    public Board update(Long id, BoardRequest req) {
-        Board existing = get(id); // Uses get() which throws if not found
-        
-        // 검증 없이 누구나 수정 가능
+    public BoardDto update(Long id, BoardRequest req) {
+        Board existing = boardRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Board not found with id: " + id));
         if (req.getTitle() != null) existing.setTitle(req.getTitle());
         if (req.getContent() != null) existing.setContent(req.getContent());
         existing.setUpdatedAt(LocalDateTime.now());
-        boardMapper.update(existing);
-        return boardMapper.findById(id);
+        Board saved = boardRepository.save(existing);
+        return BoardDto.from(saved);
     }
 
     @Transactional
     public void delete(Long id) {
-        // 검증 없이 누구나 삭제 가능
-        Board existing = get(id); // 존재 여부만 확인
-        boardMapper.deleteById(id);
+        // 존재 여부 확인
+        if (!boardRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Board not found with id: " + id);
+        }
+        boardRepository.deleteById(id);
     }
 }
-
