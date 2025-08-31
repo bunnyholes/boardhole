@@ -2,6 +2,8 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.5.5'
     id 'io.spring.dependency-management' version '1.1.7'
+    id 'org.openrewrite.rewrite' version '7.15.0'
+    id 'com.github.ben-manes.versions' version '0.52.0'
 }
 
 group = 'bunny'
@@ -43,16 +45,24 @@ dependencies {
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.11'
     
     // Database
-    runtimeOnly 'com.mysql:mysql-connector-j:9.1.0'
+    runtimeOnly 'com.mysql:mysql-connector-j:9.4.0'
     
     // Lombok
-    compileOnly 'org.projectlombok:lombok:1.18.36'
-    annotationProcessor 'org.projectlombok:lombok:1.18.36'
-    
+    compileOnly 'org.projectlombok:lombok:1.18.38'
+    annotationProcessor 'org.projectlombok:lombok:1.18.38'
+    // Lombok + MapStruct binding (for builders)
+    annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
     // MapStruct
-    implementation 'org.mapstruct:mapstruct:1.5.5.Final'
-    annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
-    
+    implementation 'org.mapstruct:mapstruct:1.6.3'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
+
+    // Logging - JSON encoder for prod
+    implementation 'net.logstash.logback:logstash-logback-encoder:8.1'
+
+    // OpenRewrite recipes (for automated refactoring)
+    rewrite 'org.openrewrite.recipe:rewrite-spring:6.13.0'
+    rewrite 'org.openrewrite.recipe:rewrite-static-analysis:2.16.0'
+
     // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'com.h2database:h2'
@@ -64,6 +74,12 @@ tasks.named('test') {
     
     testLogging {
         events "passed", "skipped", "failed"
-        exceptionFormat "short"
+        exceptionFormat = "short"
     }
 }
+
+rewrite {
+    activeRecipe('bunny.boardhole.refactor.dto-packages')
+}
+
+// 인코딩 강제 설정 제거 — Spring Boot 기본값 사용

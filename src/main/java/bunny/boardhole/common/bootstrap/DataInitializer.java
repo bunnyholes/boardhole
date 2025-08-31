@@ -1,10 +1,10 @@
-package bunny.boardhole.config;
+package bunny.boardhole.common.bootstrap;
 
-import bunny.boardhole.domain.Board;
-import bunny.boardhole.domain.Role;
-import bunny.boardhole.domain.User;
-import bunny.boardhole.repository.BoardRepository;
-import bunny.boardhole.repository.UserRepository;
+import bunny.boardhole.board.domain.Board;
+import bunny.boardhole.board.infrastructure.BoardRepository;
+import bunny.boardhole.user.domain.Role;
+import bunny.boardhole.user.domain.User;
+import bunny.boardhole.user.infrastructure.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,6 +12,8 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.env.Environment;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 
 import java.util.List;
 
@@ -31,7 +33,7 @@ public class DataInitializer implements CommandLineRunner {
     private final UserRepository userRepository;
     private final BoardRepository boardRepository;
     private final PasswordEncoder passwordEncoder;
-    private final Environment environment;
+    private final MessageSource messageSource;
     // 기본 사용자 설정
     @Value("${boardhole.default-users.admin.username}")
     private String adminUsername;
@@ -52,7 +54,7 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        log.info("기본 사용자 계정 확인 시작...");
+        log.info(messageSource.getMessage("log.user.init.start", null, LocaleContextHolder.getLocale()));
 
         // 관리자 계정 확인 및 생성
         if (!userRepository.existsByUsername(adminUsername)) {
@@ -64,9 +66,11 @@ public class DataInitializer implements CommandLineRunner {
                     .roles(new java.util.HashSet<>(List.of(Role.ADMIN)))
                     .build();
             userRepository.save(admin);
-            log.info("기본 관리자 계정 생성 완료: {}", adminUsername);
+            log.info(messageSource.getMessage("log.user.admin.created", 
+                new Object[]{adminUsername}, LocaleContextHolder.getLocale()));
         } else {
-            log.info("관리자 계정이 이미 존재합니다: {}", adminUsername);
+            log.info(messageSource.getMessage("log.user.admin.exists", 
+                new Object[]{adminUsername}, LocaleContextHolder.getLocale()));
         }
 
         // 일반 사용자 계정 확인 및 생성
@@ -79,15 +83,17 @@ public class DataInitializer implements CommandLineRunner {
                     .roles(new java.util.HashSet<>(List.of(Role.USER)))
                     .build();
             userRepository.save(regularUser);
-            log.info("기본 사용자 계정 생성 완료: {}", regularUsername);
+            log.info(messageSource.getMessage("log.user.regular.created", 
+                new Object[]{regularUsername}, LocaleContextHolder.getLocale()));
         } else {
-            log.info("사용자 계정이 이미 존재합니다: {}", regularUsername);
+            log.info(messageSource.getMessage("log.user.regular.exists", 
+                new Object[]{regularUsername}, LocaleContextHolder.getLocale()));
         }
 
         // 기본 환영 게시글 생성
         if (boardRepository.count() == 0) {
             createWelcomeBoard();
-            log.info("기본 환영 게시글 생성 완료");
+            log.info(messageSource.getMessage("log.board.welcome.created", null, LocaleContextHolder.getLocale()));
         }
     }
 
@@ -101,4 +107,5 @@ public class DataInitializer implements CommandLineRunner {
                 .build();
         boardRepository.save(welcomeBoard);
     }
+
 }

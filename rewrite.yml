@@ -1,0 +1,20 @@
+type: specs.openrewrite.org/v1beta/recipe
+name: bunny.boardhole.refactor.dto-packages
+displayName: Move application Result records to dto package
+description: Change package from *.application.result to *.application.dto and move source files accordingly.
+recipeList:
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: bunny.boardhole.board.application.result
+      newPackageName: bunny.boardhole.board.application.dto
+      recursive: true
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: bunny.boardhole.user.application.result
+      newPackageName: bunny.boardhole.user.application.dto
+      recursive: true
+  - org.openrewrite.java.MoveSourceFiles:
+      sourceFiles: src/main/java/bunny/boardhole/board/application/result/**/*.java
+      target: src/main/java/bunny/boardhole/board/application/dto
+  - org.openrewrite.java.MoveSourceFiles:
+      sourceFiles: src/main/java/bunny/boardhole/user/application/result/**/*.java
+      target: src/main/java/bunny/boardhole/user/application/dto
+

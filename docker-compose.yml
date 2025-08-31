@@ -9,3 +9,4 @@ services:
       MYSQL_DATABASE: boardhole
       MYSQL_USER: boardhole
       MYSQL_PASSWORD: boardhole123
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
