@@ -1,6 +1,7 @@
 package bunny.boardhole.dto.auth;
 
 import bunny.boardhole.domain.User;
+import bunny.boardhole.domain.Role;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,6 +16,7 @@ public class CurrentUserResponse {
     private String username;
     private String name;
     private String email;
+    private java.util.Set<Role> roles;
 
     public static CurrentUserResponse from(User user) {
         return CurrentUserResponse.builder()
@@ -22,6 +24,7 @@ public class CurrentUserResponse {
                 .username(user.getUsername())
                 .name(user.getName())
                 .email(user.getEmail())
+                .roles(user.getRoles())
                 .build();
     }
 }

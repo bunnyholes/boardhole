@@ -7,6 +7,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.Set;
+import bunny.boardhole.domain.Role;
 
 @Data
 @NoArgsConstructor
@@ -19,6 +21,7 @@ public class UserResponse {
     private String email;
     private LocalDateTime createdAt;
     private LocalDateTime lastLogin;
+    private Set<Role> roles;
 
     public static UserResponse from(User user) {
         return UserResponse.builder()
@@ -28,6 +31,7 @@ public class UserResponse {
                 .email(user.getEmail())
                 .createdAt(user.getCreatedAt())
                 .lastLogin(user.getLastLogin())
+                .roles(user.getRoles())
                 .build();
     }
 }
