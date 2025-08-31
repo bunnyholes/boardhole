@@ -29,7 +29,9 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
-    
+    // 추가: AOP
+    implementation 'org.springframework.boot:spring-boot-starter-aop'
+
     // Docker Compose Support
     developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
     
@@ -47,17 +49,21 @@ dependencies {
     compileOnly 'org.projectlombok:lombok:1.18.36'
     annotationProcessor 'org.projectlombok:lombok:1.18.36'
     
+    // MapStruct
+    implementation 'org.mapstruct:mapstruct:1.5.5.Final'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
+    
     // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
-    testImplementation 'org.testcontainers:mysql'
-    testImplementation 'org.testcontainers:junit-jupiter'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    
-    // H2 for fast testing
     testImplementation 'com.h2database:h2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 tasks.named('test') {
     useJUnitPlatform()
+    
+    testLogging {
+        events "passed", "skipped", "failed"
+        exceptionFormat "short"
+    }
 }

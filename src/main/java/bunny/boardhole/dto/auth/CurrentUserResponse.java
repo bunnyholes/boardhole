@@ -1,7 +1,7 @@
 package bunny.boardhole.dto.auth;
 
-import bunny.boardhole.domain.User;
 import bunny.boardhole.domain.Role;
+import bunny.boardhole.domain.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

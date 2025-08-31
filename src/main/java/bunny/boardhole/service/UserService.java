@@ -2,17 +2,22 @@ package bunny.boardhole.service;
 
 import bunny.boardhole.domain.User;
 import bunny.boardhole.dto.user.UserCreateRequest;
-import bunny.boardhole.dto.user.UserUpdateRequest;
 import bunny.boardhole.dto.user.UserDto;
+import bunny.boardhole.dto.user.UserUpdateRequest;
 import bunny.boardhole.repository.UserRepository;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -20,6 +25,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@Validated
 @RequiredArgsConstructor
 public class UserService {
 
@@ -27,7 +33,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
-    public UserDto create(UserCreateRequest req) {
+    public UserDto create(@Valid UserCreateRequest req) {
         if (userRepository.existsByUsername(req.getUsername())) {
             throw new IllegalArgumentException("username already exists");
         }
@@ -39,15 +45,13 @@ public class UserService {
                 .password(passwordEncoder.encode(req.getPassword()))
                 .name(req.getName())
                 .email(req.getEmail())
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
                 .build();
         User saved = userRepository.save(user);
         return UserDto.from(saved);
     }
 
     @Transactional(readOnly = true)
-    public UserDto get(Long id) {
+    public UserDto get(@NotNull @Positive Long id) {
         User user = userRepository.findById(id).orElse(null);
         return user != null ? UserDto.from(user) : null;
     }
@@ -61,31 +65,29 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public Page<UserDto> listWithPaging(Pageable pageable, String search) {
-        Page<User> page;
-        if (search == null || search.isBlank()) {
-            page = userRepository.findAll(pageable);
-        } else {
-            page = userRepository.findByUsernameContainingIgnoreCaseOrNameContainingIgnoreCaseOrEmailContainingIgnoreCase(
-                    search, search, search, pageable);
-        }
-        return page.map(UserDto::from);
+    public Page<UserDto> listWithPaging(@NotNull Pageable pageable) {
+        return userRepository.findAll(pageable).map(UserDto::from);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<UserDto> listWithPaging(@NotNull Pageable pageable, @NotBlank String search) {
+        return userRepository.findByUsernameContainingIgnoreCaseOrNameContainingIgnoreCaseOrEmailContainingIgnoreCase(
+                search, search, search, pageable).map(UserDto::from);
     }
 
     @Transactional
-    public UserDto update(Long id, UserUpdateRequest req) {
+    public UserDto update(@NotNull @Positive Long id, @Valid UserUpdateRequest req) {
         User existing = userRepository.findById(id).orElse(null);
         if (existing == null) return null;
         if (req.getName() != null) existing.setName(req.getName());
         if (req.getEmail() != null) existing.setEmail(req.getEmail());
         if (req.getPassword() != null) existing.setPassword(passwordEncoder.encode(req.getPassword()));
-        existing.setUpdatedAt(LocalDateTime.now());
         User saved = userRepository.save(existing);
         return UserDto.from(saved);
     }
 
     @Transactional
-    public void delete(Long id) {
+    public void delete(@NotNull @Positive Long id) {
         userRepository.deleteById(id);
     }
 
@@ -97,7 +99,7 @@ public class UserService {
     }
     
     @Transactional
-    public void updateLastLogin(Long userId) {
+    public void updateLastLogin(@NotNull @Positive Long userId) {
         User user = userRepository.findById(userId).orElse(null);
         if (user != null) {
             user.setLastLogin(LocalDateTime.now());

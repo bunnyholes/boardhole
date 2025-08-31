@@ -34,4 +34,17 @@ public class BoardResponse {
                 .updatedAt(board.getUpdatedAt())
                 .build();
     }
+
+    public static BoardResponse from(BoardDto dto) {
+        return BoardResponse.builder()
+                .id(dto.getId())
+                .title(dto.getTitle())
+                .content(dto.getContent())
+                .authorId(dto.getAuthor() != null ? dto.getAuthor().getId() : null)
+                .authorName(dto.getAuthor() != null ? dto.getAuthor().getUsername() : null)
+                .viewCount(dto.getViewCount())
+                .createdAt(dto.getCreatedAt())
+                .updatedAt(dto.getUpdatedAt())
+                .build();
+    }
 }

@@ -1,30 +1,16 @@
 package bunny.boardhole.domain;
 
-import jakarta.persistence.CollectionTable;
-import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import jakarta.persistence.*;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 @Entity
+@Table(name = "users")
 public class User {
 
     @Id
@@ -65,8 +51,42 @@ public class User {
         if (updatedAt == null) updatedAt = now;
     }
 
+    // 필요한 필드만 받는 생성자에 @Builder 적용
+    @Builder
+    public User(String username, String password, String name, String email, java.util.Set<Role> roles) {
+        this.username = username;
+        this.password = password;
+        this.name = name;
+        this.email = email;
+        this.roles = roles;
+    }
+
     @PreUpdate
     public void preUpdate() {
         updatedAt = LocalDateTime.now();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof User)) return false;
+        User user = (User) o;
+        return id != null && id.equals(user.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", username='" + username + '\'' +
+                ", name='" + name + '\'' +
+                ", email='" + email + '\'' +
+                ", createdAt=" + createdAt +
+                '}';
     }
 }
