@@ -13,7 +13,7 @@ import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
+import java.util.Set;
 
 @Slf4j
 @Component
@@ -56,7 +56,7 @@ public class DataInitializer implements CommandLineRunner {
                     .password(passwordEncoder.encode(adminPassword))
                     .name(adminName)
                     .email(adminEmail)
-                    .roles(new java.util.HashSet<>(List.of(Role.ADMIN)))
+                    .roles(Set.of(Role.ADMIN))
                     .build();
             userRepository.save(admin);
             log.info(messageSource.getMessage("log.user.admin.created",
@@ -73,7 +73,7 @@ public class DataInitializer implements CommandLineRunner {
                     .password(passwordEncoder.encode(regularPassword))
                     .name(regularName)
                     .email(regularEmail)
-                    .roles(new java.util.HashSet<>(List.of(Role.USER)))
+                    .roles(Set.of(Role.USER))
                     .build();
             userRepository.save(regularUser);
             log.info(messageSource.getMessage("log.user.regular.created",

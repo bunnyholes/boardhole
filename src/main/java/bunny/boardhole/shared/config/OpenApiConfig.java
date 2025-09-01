@@ -6,7 +6,7 @@ import io.swagger.v3.oas.models.media.*;
 import io.swagger.v3.oas.models.responses.*;
 import io.swagger.v3.oas.models.security.*;
 import org.springdoc.core.customizers.OpenApiCustomizer;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.*;
 import org.springframework.core.env.Environment;
 import org.springframework.http.ProblemDetail;
@@ -14,10 +14,10 @@ import org.springframework.http.ProblemDetail;
 import java.util.*;
 
 @Configuration
+@RequiredArgsConstructor
 public class OpenApiConfig {
 
-    @Autowired
-    private Environment environment;
+    private final Environment environment;
 
     @Bean
     public OpenAPI boardHoleOpenAPI() {

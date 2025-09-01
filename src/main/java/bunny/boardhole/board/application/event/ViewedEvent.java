@@ -9,5 +9,8 @@ public record ViewedEvent(
         @Schema(description = "조회자 ID (null 가능 - 익명 사용자)", example = "1")
         Long viewerId
 ) {
+    public static ViewedEvent of(Long boardId, Long viewerId) {
+        return new ViewedEvent(boardId, viewerId);
+    }
 }
 

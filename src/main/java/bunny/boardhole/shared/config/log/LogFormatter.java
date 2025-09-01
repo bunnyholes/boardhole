@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 @Component
 public class LogFormatter {
 
-    private static final Set<String> SENSITIVE_FIELD_NAMES = new HashSet<>(Arrays.asList(LogConstants.SENSITIVE_FIELDS));
+    private static final Set<String> SENSITIVE_FIELD_NAMES = Set.of(LogConstants.SENSITIVE_FIELDS);
     private final MessageSource messageSource;
     private final LoggingProperties loggingProperties;
 

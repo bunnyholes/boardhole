@@ -7,5 +7,8 @@ public record GetBoardQuery(
         @Schema(description = "조회할 게시글 ID", example = "1")
         Long id
 ) {
+    public static GetBoardQuery of(Long id) {
+        return new GetBoardQuery(id);
+    }
 }
 

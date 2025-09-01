@@ -13,4 +13,7 @@ public record LogoutCommand(
         @NotNull
         Long userId
 ) {
+    public static LogoutCommand of(Long userId) {
+        return new LogoutCommand(userId);
+    }
 }

@@ -1,7 +1,8 @@
 package bunny.boardhole.shared.config;
 
 import bunny.boardhole.shared.security.*;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.*;
 import org.springframework.core.env.*;
@@ -26,10 +27,10 @@ import org.springframework.security.web.context.*;
  */
 @Configuration
 @EnableMethodSecurity(prePostEnabled = true, securedEnabled = true, jsr250Enabled = true)
+@RequiredArgsConstructor
 public class SecurityConfig {
 
-    @Autowired
-    private Environment environment;
+    private final Environment environment;
 
     /**
      * 비밀번호 인코더 빈 설정
@@ -60,7 +61,9 @@ public class SecurityConfig {
      * @return 설정된 보안 필터 체인
      */
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http, SecurityContextRepository securityContextRepository) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, SecurityContextRepository securityContextRepository,
+                                           ProblemDetailsAuthenticationEntryPoint authenticationEntryPoint,
+                                           ProblemDetailsAccessDeniedHandler accessDeniedHandler) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
@@ -87,8 +90,8 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex
-                        .authenticationEntryPoint(problemDetailsAuthenticationEntryPoint())
-                        .accessDeniedHandler(problemDetailsAccessDeniedHandler())
+                        .authenticationEntryPoint(authenticationEntryPoint)
+                        .accessDeniedHandler(accessDeniedHandler)
                 )
                 .formLogin(AbstractHttpConfigurer::disable);
 
@@ -119,13 +122,25 @@ public class SecurityConfig {
         return new HttpSessionSecurityContextRepository();
     }
 
+    /**
+     * ProblemDetail 형식의 인증 실패 응답 처리기
+     *
+     * @param objectMapper JSON 직렬화를 위한 ObjectMapper
+     * @return 인증 실패 진입점 핸들러
+     */
     @Bean
-    public ProblemDetailsAuthenticationEntryPoint problemDetailsAuthenticationEntryPoint() {
-        return new ProblemDetailsAuthenticationEntryPoint();
+    public ProblemDetailsAuthenticationEntryPoint problemDetailsAuthenticationEntryPoint(ObjectMapper objectMapper) {
+        return new ProblemDetailsAuthenticationEntryPoint(objectMapper);
     }
 
+    /**
+     * ProblemDetail 형식의 접근 거부 응답 처리기
+     *
+     * @param objectMapper JSON 직렬화를 위한 ObjectMapper
+     * @return 접근 거부 핸들러
+     */
     @Bean
-    public ProblemDetailsAccessDeniedHandler problemDetailsAccessDeniedHandler() {
-        return new ProblemDetailsAccessDeniedHandler();
+    public ProblemDetailsAccessDeniedHandler problemDetailsAccessDeniedHandler(ObjectMapper objectMapper) {
+        return new ProblemDetailsAccessDeniedHandler(objectMapper);
     }
 }

@@ -118,11 +118,11 @@ public class BoardController {
             @PathVariable Long id,
             @AuthenticationPrincipal AppUserPrincipal principal) {
         // 1) 순수 조회 (Query)
-        BoardResult result = boardQueryService.handle(new GetBoardQuery(id));
+        BoardResult result = boardQueryService.handle(GetBoardQuery.of(id));
 
         // 2) 뷰 증가 이벤트 발행 (Command는 비동기 처리)
         Long viewerId = principal != null && principal.user() != null ? principal.user().getId() : null;
-        eventPublisher.publishEvent(new ViewedEvent(id, viewerId));
+        eventPublisher.publishEvent(ViewedEvent.of(id, viewerId));
 
         // 3) 결과를 Response로 매핑
         return boardWebMapper.toResponse(result);
