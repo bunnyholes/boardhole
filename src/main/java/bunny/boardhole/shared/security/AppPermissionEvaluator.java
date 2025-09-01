@@ -4,8 +4,7 @@ import bunny.boardhole.board.infrastructure.BoardRepository;
 import bunny.boardhole.user.infrastructure.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.PermissionEvaluator;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.*;
 import org.springframework.stereotype.Component;
 
 import java.io.Serializable;

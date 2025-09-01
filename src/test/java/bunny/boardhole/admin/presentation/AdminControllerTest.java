@@ -1,23 +1,18 @@
 package bunny.boardhole.admin.presentation;
 
 import bunny.boardhole.shared.config.TestUserConfig;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.mock.web.MockHttpSession;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.mock.web.MockCookie;
+import org.springframework.test.web.servlet.*;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
@@ -45,11 +40,12 @@ class AdminControllerTest {
                 .andExpect(status().isNoContent())
                 .andReturn();
 
-        MockHttpSession session = (MockHttpSession) loginResult.getRequest().getSession();
+        // 세션 ID를 쿠키에서 가져오기
+        String sessionId = loginResult.getResponse().getCookie("JSESSIONID").getValue();
 
-        // 관리자 통계 조회
+        // 관리자 통계 조회 - 쿠키로 세션 전달
         mockMvc.perform(get("/api/admin/stats")
-                        .session(session))
+                        .cookie(new MockCookie("JSESSIONID", sessionId)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalUsers").exists())
                 .andExpect(jsonPath("$.totalBoards").exists())
@@ -79,11 +75,12 @@ class AdminControllerTest {
                 .andExpect(status().isNoContent())
                 .andReturn();
 
-        MockHttpSession session = (MockHttpSession) loginResult.getRequest().getSession();
+        // 세션 ID를 쿠키에서 가져오기
+        String sessionId = loginResult.getResponse().getCookie("JSESSIONID").getValue();
 
         // 일반 사용자가 관리자 통계에 접근 시도
         mockMvc.perform(get("/api/admin/stats")
-                        .session(session))
+                        .cookie(new MockCookie("JSESSIONID", sessionId)))
                 .andExpect(status().isForbidden())
                 .andDo(print());
     }

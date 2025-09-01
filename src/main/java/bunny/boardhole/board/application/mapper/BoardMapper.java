@@ -3,8 +3,7 @@ package bunny.boardhole.board.application.mapper;
 import bunny.boardhole.board.application.result.BoardResult;
 import bunny.boardhole.board.domain.Board;
 import bunny.boardhole.shared.mapstruct.MapstructConfig;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import org.mapstruct.*;
 
 @Mapper(config = MapstructConfig.class)
 public interface BoardMapper {

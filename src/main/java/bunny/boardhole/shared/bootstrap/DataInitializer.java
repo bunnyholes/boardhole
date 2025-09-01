@@ -2,8 +2,7 @@ package bunny.boardhole.shared.bootstrap;
 
 import bunny.boardhole.board.domain.Board;
 import bunny.boardhole.board.infrastructure.BoardRepository;
-import bunny.boardhole.user.domain.Role;
-import bunny.boardhole.user.domain.User;
+import bunny.boardhole.user.domain.*;
 import bunny.boardhole.user.infrastructure.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
