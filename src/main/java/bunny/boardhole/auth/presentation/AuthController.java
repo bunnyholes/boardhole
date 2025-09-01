@@ -108,7 +108,7 @@ public class AuthController {
         // CQRS 패턴을 통한 로그아웃 처리
         Long userId = principal != null ? principal.user().getId() : null;
         if (userId != null) {
-            var logoutCommand = new LogoutCommand(userId);
+            var logoutCommand = LogoutCommand.of(userId);
             authCommandService.logout(logoutCommand, request, response);
         } else {
             // 인증 정보가 없는 경우 기본 로그아웃 처리

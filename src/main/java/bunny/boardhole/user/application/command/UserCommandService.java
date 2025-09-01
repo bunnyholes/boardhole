@@ -54,7 +54,7 @@ public class UserCommandService {
                 .password(passwordEncoder.encode(cmd.password()))
                 .name(cmd.name())
                 .email(cmd.email())
-                .roles(new java.util.HashSet<>(java.util.List.of(Role.USER)))
+                .roles(java.util.Set.of(Role.USER))
                 .build();
         User saved = userRepository.save(user);
 

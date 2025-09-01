@@ -1,7 +1,6 @@
 package bunny.boardhole.shared.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.*;
 import org.springframework.data.redis.connection.*;
@@ -56,10 +55,11 @@ public class RedisSessionConfig {
      * Redis 데이터 직렬화 및 역직렬화를 위한 템플릿입니다.
      *
      * @param connectionFactory Redis 연결 팩토리
+     * @param objectMapper      주입받은 ObjectMapper
      * @return Redis 템플릿
      */
     @Bean
-    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
+    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory, ObjectMapper objectMapper) {
         RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(connectionFactory);
 
@@ -67,10 +67,7 @@ public class RedisSessionConfig {
         template.setKeySerializer(new StringRedisSerializer());
         template.setHashKeySerializer(new StringRedisSerializer());
 
-        // Value 직렬화: JSON
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
-
+        // Value 직렬화: JSON (주입받은 ObjectMapper 사용)
         GenericJackson2JsonRedisSerializer jsonSerializer =
                 new GenericJackson2JsonRedisSerializer(objectMapper);
 

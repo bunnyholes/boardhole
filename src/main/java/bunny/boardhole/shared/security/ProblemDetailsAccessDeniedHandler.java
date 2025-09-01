@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.servlet.http.*;
 import org.slf4j.MDC;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.security.access.AccessDeniedException;
@@ -19,9 +20,10 @@ import java.time.Instant;
  * Spring Security에서 접근 거부 시 ProblemDetail 형식으로 응답합니다.
  */
 @Schema(name = "ProblemDetailsAccessDeniedHandler", description = "Spring Security 접근 거부 핸들러 - ProblemDetail 형식 에러 응답")
+@RequiredArgsConstructor
 public class ProblemDetailsAccessDeniedHandler implements AccessDeniedHandler {
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
     @Value("${boardhole.problem.base-uri:}")
     private String problemBaseUri;
 
