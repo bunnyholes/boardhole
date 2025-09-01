@@ -90,16 +90,56 @@ public class OpenApiConfig {
      */
     @Bean
     public OpenApiCustomizer globalProblemDetailResponses() {
-        return openApi -> openApi.getPaths().forEach((path, pathItem) -> {
-            pathItem.readOperations().forEach(operation -> {
-                ApiResponses responses = operation.getResponses();
-                addProblemResponse(responses, "400", "Bad Request");
-                addProblemResponse(responses, "401", "Unauthorized");
-                addProblemResponse(responses, "403", "Forbidden");
-                addProblemResponse(responses, "404", "Not Found");
-                addProblemResponse(responses, "500", "Internal Server Error");
+        return openApi -> {
+            // Ensure schemas are present in the customizer phase
+            if (openApi.getComponents() == null) {
+                openApi.setComponents(new Components());
+            }
+            
+            // Add ErrorField schema if not present
+            if (openApi.getComponents().getSchemas() == null || !openApi.getComponents().getSchemas().containsKey("ErrorField")) {
+                Schema<?> errorField = new Schema<>()
+                        .type("object")
+                        .description("유효성 검증 오류 필드")
+                        .addProperty("field", new Schema<>().type("string").description("오류가 발생한 필드명").example("title"))
+                        .addProperty("message", new Schema<>().type("string").description("오류 메시지").example("제목을 입력해주세요"))
+                        .addProperty("rejectedValue", new Schema<>().type("object").description("거부된 값").example(""));
+                openApi.getComponents().addSchemas("ErrorField", errorField);
+            }
+            
+            // Add ProblemDetailExtended schema if not present
+            if (openApi.getComponents().getSchemas() == null || !openApi.getComponents().getSchemas().containsKey("ProblemDetailExtended")) {
+                Schema<?> problemDetailExt = new Schema<>()
+                        .type("object")
+                        .description("RFC 7807 Problem Details with Extensions")
+                        .addProperty("type", new Schema<>().type("string").description("문제 유형 URI").example("urn:problem-type:validation-error"))
+                        .addProperty("title", new Schema<>().type("string").description("문제 제목").example("유효성 검증 실패"))
+                        .addProperty("status", new Schema<>().type("integer").description("HTTP 상태 코드").example(400))
+                        .addProperty("detail", new Schema<>().type("string").description("상세 오류 메시지").example("입력된 데이터가 올바르지 않습니다."))
+                        .addProperty("instance", new Schema<>().type("string").description("문제가 발생한 URI").example("/api/boards"))
+                        .addProperty("properties", new Schema<>()
+                                .type("object")
+                                .description("추가 속성")
+                                .addProperty("traceId", new Schema<>().type("string").description("추적 ID").example("trace-123-456-789"))
+                                .addProperty("path", new Schema<>().type("string").description("요청 경로").example("/api/boards"))
+                                .addProperty("method", new Schema<>().type("string").description("HTTP 메서드").example("POST"))
+                                .addProperty("timestamp", new Schema<>().type("string").format("date-time").description("발생 시간").example("2025-09-01T01:23:45Z"))
+                                .addProperty("errors", new Schema<>().type("array").description("유효성 검증 오류 목록").items(new Schema<>().$ref("#/components/schemas/ErrorField"))));
+                openApi.getComponents().addSchemas("ProblemDetailExtended", problemDetailExt);
+            }
+            
+            // Add error responses to all operations
+            openApi.getPaths().forEach((path, pathItem) -> {
+                pathItem.readOperations().forEach(operation -> {
+                    ApiResponses responses = operation.getResponses();
+                    addProblemResponse(responses, "400", "Bad Request");
+                    addProblemResponse(responses, "401", "Unauthorized");
+                    addProblemResponse(responses, "403", "Forbidden");
+                    addProblemResponse(responses, "404", "Not Found");
+                    addProblemResponse(responses, "500", "Internal Server Error");
+                });
             });
-        });
+        };
     }
 
     /**
