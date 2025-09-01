@@ -1,11 +1,12 @@
 package bunny.boardhole.user.application.query;
 
-import bunny.boardhole.common.exception.ResourceNotFoundException;
-import bunny.boardhole.common.util.MessageUtils;
-import bunny.boardhole.user.application.dto.UserResult;
+import bunny.boardhole.shared.exception.ResourceNotFoundException;
+import bunny.boardhole.shared.util.MessageUtils;
 import bunny.boardhole.user.application.mapper.UserMapper;
+import bunny.boardhole.user.application.result.UserResult;
 import bunny.boardhole.user.infrastructure.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
  * 사용자 조회 서비스
  * CQRS 패턴의 Query 측면으로 사용자 조회 전용 비지니스 로직을 담당합니다.
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserQueryService {

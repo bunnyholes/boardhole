@@ -35,12 +35,19 @@ Production: https://your-domain.com/api
 
 ## 🔐 Authentication
 
-### JWT Token Authentication
+### Session-based Authentication
 
-대부분의 API는 JWT 토큰 인증이 필요합니다.
+대부분의 API는 세션 기반 인증이 필요합니다. 로그인 성공 시 `JSESSIONID` 쿠키가 발급되며, 이후 요청에 쿠키를 포함해야 합니다.
 
-```http
-Authorization: Bearer <JWT_TOKEN>
+```bash
+# 로그인(세션 생성) — 쿠키 저장
+curl -X POST http://localhost:8080/api/auth/login \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -c cookies.txt \
+  -d 'username=admin&password=admin123'
+
+# 세션 쿠키로 인증된 요청 보내기
+curl -b cookies.txt http://localhost:8080/api/auth/me
 ```
 
 ### Authentication Required Endpoints
@@ -49,7 +56,7 @@ Authorization: Bearer <JWT_TOKEN>
 |--------|----------|-------------|---------------|
 | 🟢 `GET` | `/api/boards` | 게시글 목록 | ❌ |
 | 🟢 `GET` | `/api/boards/{id}` | 게시글 조회 | ❌ |
-| 🟡 `POST` | `/api/boards` | 게시글 작성 | ✅ |
+| 🟡 `POST` | `/api/boards` | 게시글 작성 | ✅ (세션) |
 | 🟡 `PUT` | `/api/boards/{id}` | 게시글 수정 | ✅ (작성자/관리자) |
 | 🔴 `DELETE` | `/api/boards/{id}` | 게시글 삭제 | ✅ (작성자/관리자) |
 
@@ -194,8 +201,8 @@ curl "http://localhost:8080/api/boards/1?lang=en"
 
 ```http
 POST /api/boards
-Authorization: Bearer <JWT_TOKEN>
 Content-Type: application/x-www-form-urlencoded
+Cookie: JSESSIONID=...
 ```
 
 **Request Body** (Form Data):
@@ -204,10 +211,10 @@ title=Hello World
 content=This is my first post!
 ```
 
-**Example Request**:
+**Example Request** (세션 쿠키):
 ```bash
 curl -X POST "http://localhost:8080/api/boards" \
-  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9..." \
+  -b cookies.txt \
   -H "Content-Type: application/x-www-form-urlencoded" \
   -d "title=Hello World&content=This is my first post!"
 ```
@@ -232,8 +239,8 @@ curl -X POST "http://localhost:8080/api/boards" \
 
 ```http
 PUT /api/boards/{id}
-Authorization: Bearer <JWT_TOKEN>
 Content-Type: application/x-www-form-urlencoded
+Cookie: JSESSIONID=...
 ```
 
 **Path Parameters**:
@@ -248,7 +255,7 @@ content=Updated content here!
 **Example Request**:
 ```bash
 curl -X PUT "http://localhost:8080/api/boards/1" \
-  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9..." \
+  -b cookies.txt \
   -H "Content-Type: application/x-www-form-urlencoded" \
   -d "title=Updated Title&content=Updated content here!"
 ```
@@ -273,13 +280,12 @@ curl -X PUT "http://localhost:8080/api/boards/1" \
 
 ```http
 DELETE /api/boards/{id}
-Authorization: Bearer <JWT_TOKEN>
+Cookie: JSESSIONID=...
 ```
 
 **Example Request**:
 ```bash
-curl -X DELETE "http://localhost:8080/api/boards/1" \
-  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9..."
+curl -X DELETE "http://localhost:8080/api/boards/1" -b cookies.txt
 ```
 
 **Example Response** (204 No Content):
@@ -329,7 +335,7 @@ Content-Type: application/json
 
 ```http
 GET /api/users
-Authorization: Bearer <JWT_TOKEN>
+Cookie: JSESSIONID=...
 ```
 
 **Example Response** (200 OK):
@@ -364,8 +370,8 @@ GET /api/users/{id}
 
 ```http
 PUT /api/users/{id}
-Authorization: Bearer <JWT_TOKEN>
 Content-Type: application/json
+Cookie: JSESSIONID=...
 ```
 
 **Request Body**:
@@ -380,47 +386,23 @@ Content-Type: application/json
 
 인증 관련 API 엔드포인트
 
-### Login
+### Login / Logout
 
-사용자 로그인을 수행하고 JWT 토큰을 발급합니다.
+로그인은 Form URL Encoded 요청으로 수행되며, 성공 시 세션 쿠키가 발급됩니다.
 
 ```http
 POST /api/auth/login
-Content-Type: application/json
+Content-Type: application/x-www-form-urlencoded
 ```
 
-**Request Body**:
-```json
-{
-  "username": "admin",
-  "password": "admin123"
-}
-```
+```bash
+curl -X POST http://localhost:8080/api/auth/login \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -c cookies.txt \
+  -d 'username=admin&password=admin123'
 
-**Example Response** (200 OK):
-```json
-{
-  "token": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsInJvbGVzIjpbIkFETUlOIl0sImlhdCI6MTcwMzI0NzYwMCwiZXhwIjoxNzAzMjUxMjAwfQ...",
-  "type": "Bearer",
-  "expiresIn": 3600,
-  "user": {
-    "id": 1,
-    "username": "admin",
-    "name": "관리자",
-    "roles": ["ADMIN"]
-  }
-}
-```
-
-**Error Response** (401 Unauthorized):
-```json
-{
-  "type": "about:blank",
-  "title": "Unauthorized",
-  "status": 401,
-  "detail": "Invalid username or password",
-  "instance": "/api/auth/login"
-}
+# 로그아웃 (세션 종료)
+curl -X POST http://localhost:8080/api/auth/logout -b cookies.txt
 ```
 
 ### Get Current User
@@ -429,7 +411,7 @@ Content-Type: application/json
 
 ```http
 GET /api/auth/me
-Authorization: Bearer <JWT_TOKEN>
+Cookie: JSESSIONID=...
 ```
 
 **Example Response** (200 OK):
@@ -454,7 +436,7 @@ Authorization: Bearer <JWT_TOKEN>
 
 ```http
 GET /api/admin/dashboard
-Authorization: Bearer <JWT_TOKEN>
+Cookie: JSESSIONID=...
 ```
 
 **Response** (200 OK):
@@ -577,17 +559,15 @@ curl -X POST http://localhost:8080/api/users \
 2. **로그인**:
 ```bash
 curl -X POST http://localhost:8080/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{
-    "username": "testuser",
-    "password": "test123"
-  }'
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -c cookies.txt \
+  -d 'username=testuser&password=test123'
 ```
 
 3. **게시글 작성**:
 ```bash
 curl -X POST http://localhost:8080/api/boards \
-  -H "Authorization: Bearer <JWT_TOKEN>" \
+  -b cookies.txt \
   -H "Content-Type: application/x-www-form-urlencoded" \
   -d "title=My First Post&content=Hello everyone!"
 ```
@@ -637,4 +617,4 @@ API 테스트를 위한 Postman Collection은 [여기](./postman/Board-Hole.post
 
 ---
 
-**💡 Tip**: 더 자세한 API 탐색은 [Swagger UI](http://localhost:8080/swagger-ui.html)를 사용하세요!
+**💡 Tip**: 더 자세한 API 탐색은 [Swagger UI](http://localhost:8080/swagger-ui/index.html)를 사용하세요!

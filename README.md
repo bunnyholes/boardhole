@@ -1,7 +1,7 @@
 # Board-Hole
 
 [![Java](https://img.shields.io/badge/Java-21-blue.svg)](https://openjdk.org/projects/jdk/21/)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.4-green.svg)](https://spring.io/projects/spring-boot)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.5-green.svg)](https://spring.io/projects/spring-boot)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 [![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen.svg)](#)
 
@@ -22,7 +22,7 @@
 
 ## ✨ Features
 
-- 🔐 **JWT 기반 인증 시스템** - Spring Security + JWT 토큰
+ - 🔐 **세션 기반 인증 시스템** - Spring Security + Redis 세션(선택)
 - 🏗️ **CQRS 패턴 적용** - Command/Query 책임 분리
 - 🌍 **다국어 지원** - 한국어/영어 메시지 (i18n)
 - ⚡ **비동기 이벤트 처리** - 조회수 증가 등 비동기 작업
@@ -37,7 +37,7 @@
 
 - **Spring Boot MVC** 패턴과 레이어드 아키텍처
 - **CQRS** 패턴을 통한 읽기/쓰기 분리
-- **Spring Security**를 활용한 인증/인가
+- **Spring Security**를 활용한 세션 기반 인증/인가
 - **이벤트 기반 아키텍처**와 비동기 처리
 - **MapStruct**를 이용한 객체 매핑
 - **다국어 지원(i18n)** 구현
@@ -50,7 +50,7 @@
 | **Java** | 21 | 기본 언어 |
 | **Spring Boot** | 3.5.4 | 프레임워크 |
 | **Spring Web** | - | MVC 패턴 |
-| **MySQL** | 9.4 | 운영/로컬 DB (Compose)
+| **MySQL** | 8.4 | 운영/로컬 DB (Compose)
 | **Testcontainers** | 1.20+ | 테스트용 컨테이너 DB |
 | **Lombok** | - | 코드 간소화 |
 | **SpringDoc OpenAPI** | 2.3.0 | API 문서화 |
@@ -125,8 +125,8 @@ src/main/java/bunny/boardhole/
 
 2. **Start infrastructure services**
    ```bash
-   # Start MySQL database
-   docker-compose up -d
+   # Start MySQL & Redis
+   docker compose up -d
    ```
 
 3. **Run the application**
@@ -144,8 +144,47 @@ src/main/java/bunny/boardhole/
    curl http://localhost:8080/actuator/health
    
    # Access Swagger UI
-   open http://localhost:8080/swagger-ui.html
+   # SpringDoc 2.x 기본 경로
+   open http://localhost:8080/swagger-ui/index.html
+   # (호환 리다이렉트) http://localhost:8080/swagger-ui.html
    ```
+
+### Quick Commands (필수/유용 명령어)
+
+- 시작: `docker compose up -d`
+- 중지: `docker compose down` (컨테이너/네트워크 정리)
+- 초기화(프로젝트 관련 볼륨 포함 삭제): `docker compose down -v --remove-orphans`
+- 로컬 애플리케이션 실행: `./gradlew bootRun`
+- 헬스체크: `curl http://localhost:8080/actuator/health`
+
+### Docker 정리(클린업)
+
+- 프로젝트 관련 리소스만 정리(권장):
+  ```bash
+  # 컨테이너/네트워크/볼륨(컴포즈에 선언된 named volume 포함) 제거
+  docker compose down -v --remove-orphans
+  ```
+
+- 사용하지 않는 도커 리소스 정리(안전한 범위):
+  ```bash
+  # 사용하지 않는 네트워크/이미지/빌드캐시 정리(실행 중 컨테이너 제외)
+  docker system prune -f
+  ```
+
+- 전체 도커 데이터 싹 지우기(매우 파괴적, 신중):
+  ```bash
+  # 모든 컨테이너 중지 후, 이미지/네트워크/볼륨 포함 전체 정리
+  docker stop $(docker ps -q) 2>/dev/null || true
+  docker system prune -a --volumes -f
+  ```
+  위 명령은 로컬의 모든 도커 이미지/컨테이너/볼륨을 삭제합니다. 다른 프로젝트에 영향이 있으니 꼭 필요할 때만 사용하세요.
+
+### 트러블슈팅
+
+- 8080 포트가 이미 점유된 경우:
+  - macOS/Linux: `lsof -ti :8080 | xargs -r kill -9`
+  - Linux(대안): `fuser -k 8080/tcp`
+  - Windows(PowerShell): `for /f "tokens=5" %a in ('netstat -aon ^| findstr :8080 ^| findstr LISTENING') do taskkill /F /PID %a`
 
 ### Default Accounts
 
@@ -164,15 +203,16 @@ Add `lang` parameter to any request for language support:
 
 ### Interactive API Explorer
 ```
-Swagger UI: http://localhost:8080/swagger-ui.html
+Swagger UI: http://localhost:8080/swagger-ui/index.html
 OpenAPI Spec: http://localhost:8080/v3/api-docs
 ```
 
 ### Core Endpoints
 
-#### Authentication
-- `POST /api/auth/login` - 로그인
-- `GET /api/auth/me` - 현재 사용자 정보
+#### Authentication (세션 기반)
+- `POST /api/auth/login` - 로그인(Form URL Encoded, 세션 생성)
+- `POST /api/auth/logout` - 로그아웃(세션 종료)
+- `GET /api/auth/me` - 현재 사용자 정보(세션 필요)
 
 #### Boards
 - `GET /api/boards` - 게시글 목록 (페이징, 검색)
@@ -189,17 +229,18 @@ OpenAPI Spec: http://localhost:8080/v3/api-docs
 
 🔒 = Authentication required
 
-### Example Usage
+### Example Usage (세션 기반)
 
 ```bash
-# Login
+# Login (세션 생성, 쿠키 저장)
 curl -X POST http://localhost:8080/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"username":"admin","password":"admin123"}'
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -c cookies.txt \
+  -d 'username=admin&password=admin123'
 
-# Create board (with JWT token)
+# Create board (세션 쿠키 사용)
 curl -X POST http://localhost:8080/api/boards \
-  -H "Authorization: Bearer <JWT_TOKEN>" \
+  -b cookies.txt \
   -H "Content-Type: application/json" \
   -d '{"title":"Hello World","content":"First post!"}'
 
@@ -246,10 +287,10 @@ curl "http://localhost:8080/api/boards?lang=en"
 ### Development with Docker
 ```bash
 # Start MySQL database
-docker-compose up -d mysql
+docker compose up -d mysql
 
 # Stop all services
-docker-compose down
+docker compose down
 ```
 
 For detailed development setup, see [docs/DEVELOPMENT.md](./docs/DEVELOPMENT.md).
@@ -269,7 +310,7 @@ For detailed development setup, see [docs/DEVELOPMENT.md](./docs/DEVELOPMENT.md)
 ## 📚 Documentation
 
 - [🏗️ Architecture Guide](./ARCHITECTURE.md) - 시스템 아키텍처 및 CQRS 패턴
-- [🔐 Security Guide](./SECURITY.md) - JWT 인증 및 보안 정책
+- [🔐 Security Guide](./SECURITY.md) - 세션 기반 인증 및 보안 정책
 - [🛠️ Development Guide](./docs/DEVELOPMENT.md) - 개발 환경 설정
 - [📖 API Reference](./docs/API.md) - REST API 명세서
 - [🌍 Internationalization](./docs/I18N.md) - 다국어 지원 가이드

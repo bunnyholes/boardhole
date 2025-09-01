@@ -34,6 +34,10 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-aop'
     implementation 'org.springframework.boot:spring-boot-starter-security'
+    
+    // -- Session Management (Redis) --
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    implementation 'org.springframework.session:spring-session-data-redis'
 
     // -- API Documentation (SpringDoc) --
     implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.11"
@@ -77,7 +81,6 @@ tasks.named('test') {
 }
 
 rewrite {
-    activeRecipe('bunny.boardhole.refactor.dto-packages')
+    activeRecipe('bunny.boardhole.refactor.main')
+    exportDatatables = true
 }
-
-// 인코딩 강제 설정 제거 — Spring Boot 기본값 사용

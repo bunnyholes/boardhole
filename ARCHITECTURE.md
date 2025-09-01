@@ -136,9 +136,9 @@ public record BoardResult(
 ```
 1. Client → POST /api/auth/login
 2. AuthController → UserDetailsService
-3. Authentication Success → JWT Token 생성
-4. Client receives JWT Token
-5. Subsequent requests include Authorization: Bearer <token>
+3. Authentication Success → HttpSession 생성
+4. Client receives JSESSIONID cookie
+5. Subsequent requests include Cookie: JSESSIONID=...
 ```
 
 ### Authorization Strategy
@@ -297,15 +297,15 @@ HTTP Response
 - 장애 격리
 - 확장성 (알림, 로그 등 추가 기능)
 
-### Why Spring Security + JWT?
+### Why Spring Security + Session?
 
-**문제**: 세션 기반 인증의 확장성 한계
-**해결**: 무상태 JWT 토큰 기반 인증
+**문제**: 학습·개발 단계에서 구현 복잡도와 유지보수 비용
+**해결**: Spring Security의 표준 HttpSession 기반 인증 (+ Redis 세션으로 확장)
 
 **장점**:
-- 확장성 (여러 서버 인스턴스)
-- 모바일 친화적
-- 마이크로서비스 아키텍처 대응
+- Spring Security와 자연스러운 통합(@PreAuthorize, SecurityContext)
+- 서버 측 세션 무효화로 즉시 로그아웃/권한 변경 반영
+- Spring Session (Redis)로 확장 시 수평 확장 가능
 
 ## 📦 Package Structure
 
@@ -313,30 +313,19 @@ HTTP Response
 src/main/java/bunny/boardhole/
 ├── BoardHoleApplication.java              # 애플리케이션 진입점
 │
-├── common/                                 # 공통 모듈
-│   ├── config/                            # 설정 클래스들
-│   │   ├── SecurityConfig.java            # Spring Security 설정
-│   │   ├── InternationalizationConfig.java # 다국어 설정
-│   │   ├── AsyncConfig.java               # 비동기 설정
-│   │   └── log/                           # 로깅 설정
-│   ├── security/                          # 보안 관련 클래스
-│   ├── exception/                         # 예외 처리
-│   ├── util/                              # 유틸리티 클래스
-│   └── bootstrap/                         # 애플리케이션 초기화
-│
-├── board/                                 # 게시글 도메인
-│   ├── web/                              # Web Layer
-│   │   ├── BoardController.java          # REST Controller
-│   │   ├── dto/                          # Request/Response DTOs
-│   │   └── mapper/                       # Web ↔ Application 매핑
+├── board/                                 # 게시글 도메인 (도메인 우선 구조)
+│   ├── domain/                           # Domain Layer (핵심 비즈니스 로직)
+│   │   └── Board.java                    # 게시글 엔티티
 │   ├── application/                      # Application Layer
 │   │   ├── command/                      # 쓰기 작업 (Commands)
 │   │   ├── query/                        # 읽기 작업 (Queries)
-│   │   ├── result/                       # 결과 객체 (Results)
+│   │   ├── result/                       # 결과 객체 (Results) - CQRS 패턴
 │   │   ├── event/                        # 도메인 이벤트
 │   │   └── mapper/                       # Application ↔ Domain 매핑
-│   ├── domain/                           # Domain Layer
-│   │   └── Board.java                    # 게시글 엔티티
+│   ├── presentation/                     # Presentation Layer (이전 web)
+│   │   ├── BoardController.java          # REST Controller
+│   │   ├── dto/                          # Request/Response DTOs
+│   │   └── mapper/                       # Presentation ↔ Application 매핑
 │   └── infrastructure/                   # Infrastructure Layer
 │       └── BoardRepository.java          # 데이터 접근
 │
@@ -346,17 +335,29 @@ src/main/java/bunny/boardhole/
 ├── auth/                                 # 인증 도메인
 │   └── [동일한 패키지 구조]
 │
-└── admin/                                # 관리 도메인
-    └── [동일한 패키지 구조]
+├── admin/                                # 관리 도메인
+│   └── [동일한 패키지 구조]
+│
+└── shared/                               # 공유 모듈 (이전 common)
+    ├── config/                           # 설정 클래스들
+    │   ├── SecurityConfig.java           # Spring Security 설정
+    │   ├── InternationalizationConfig.java # 다국어 설정
+    │   ├── AsyncConfig.java              # 비동기 설정
+    │   └── log/                          # 로깅 설정
+    ├── security/                         # 보안 관련 클래스
+    ├── exception/                        # 예외 처리
+    ├── util/                             # 유틸리티 클래스
+    └── bootstrap/                        # 애플리케이션 초기화
 ```
 
 ### Naming Conventions
 
 #### Package Naming
-- `web` - HTTP/REST 관련 클래스 (Controller, DTO, Mapper)
+- `domain` - 도메인 엔티티 및 비즈니스 규칙 (최우선 배치)
 - `application` - 애플리케이션 서비스 및 비즈니스 로직
-- `domain` - 도메인 엔티티 및 비즈니스 규칙
+- `presentation` - HTTP/REST 관련 클래스 (Controller, DTO, Mapper) - 이전 web
 - `infrastructure` - 데이터 접근 및 외부 연동
+- `shared` - 공유 모듈 및 공통 기능 (이전 common)
 
 #### Class Naming
 - **Controllers**: `{Domain}Controller` (e.g., `BoardController`)
@@ -410,29 +411,24 @@ Infrastructure Layer
 ### Authentication & Authorization
 
 ```
-┌──────────────────┐    JWT Token    ┌──────────────────┐
-│      Client      │ ←──────────────→ │   API Gateway    │
-└──────────────────┘                 └──────────────────┘
-                                              │
-                                              ↓
-                                    ┌──────────────────┐
-                                    │ Spring Security  │
-                                    │   Filter Chain   │
-                                    └──────────────────┘
-                                              │
-                                              ↓
-                                    ┌──────────────────┐
-                                    │   Controllers    │
-                                    │  (@PreAuthorize) │
-                                    └──────────────────┘
+┌──────────────────┐  Session Cookie  ┌──────────────────┐
+│      Client      │ ←──────────────→ │ Spring Security  │
+└──────────────────┘                  │  Filter Chain    │
+                                      └──────────────────┘
+                                               │
+                                               ↓
+                                      ┌──────────────────┐
+                                      │   Controllers    │
+                                      │  (@PreAuthorize) │
+                                      └──────────────────┘
 ```
 
 ### Security Components
 
-1. **JwtAuthenticationFilter** - JWT 토큰 검증
+1. **SecurityFilterChain** - 인증/인가 필터 구성
 2. **AppUserDetailsService** - 사용자 정보 로드
 3. **AppUserPrincipal** - 인증된 사용자 정보
-4. **CurrentUserArgumentResolver** - Controller에서 현재 사용자 주입
+4. **HttpSessionSecurityContextRepository** - 세션 기반 SecurityContext 저장소
 
 ### Authorization Strategies
 
@@ -579,7 +575,7 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
 ### Key Configurations
 
 - **Database**: MySQL (prod), H2 (dev), Testcontainers (test)
-- **Security**: JWT 설정, CORS 정책
+- **Security**: 세션 기반 인증(HTTP Session/Redis), CORS 정책
 - **Logging**: 구조화된 로깅, 민감정보 마스킹
 - **Async**: 스레드 풀 설정
 - **i18n**: 다국어 메시지 설정

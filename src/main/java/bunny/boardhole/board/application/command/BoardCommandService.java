@@ -1,11 +1,11 @@
 package bunny.boardhole.board.application.command;
 
-import bunny.boardhole.board.application.dto.BoardResult;
 import bunny.boardhole.board.application.mapper.BoardMapper;
+import bunny.boardhole.board.application.result.BoardResult;
 import bunny.boardhole.board.domain.Board;
 import bunny.boardhole.board.infrastructure.BoardRepository;
-import bunny.boardhole.common.exception.ResourceNotFoundException;
-import bunny.boardhole.common.util.MessageUtils;
+import bunny.boardhole.shared.exception.ResourceNotFoundException;
+import bunny.boardhole.shared.util.MessageUtils;
 import bunny.boardhole.user.domain.User;
 import bunny.boardhole.user.infrastructure.UserRepository;
 import jakarta.validation.Valid;

@@ -1,11 +1,11 @@
 package bunny.boardhole.user.application.command;
 
-import bunny.boardhole.common.exception.DuplicateEmailException;
-import bunny.boardhole.common.exception.DuplicateUsernameException;
-import bunny.boardhole.common.exception.ResourceNotFoundException;
-import bunny.boardhole.common.util.MessageUtils;
-import bunny.boardhole.user.application.dto.UserResult;
+import bunny.boardhole.shared.exception.DuplicateEmailException;
+import bunny.boardhole.shared.exception.DuplicateUsernameException;
+import bunny.boardhole.shared.exception.ResourceNotFoundException;
+import bunny.boardhole.shared.util.MessageUtils;
 import bunny.boardhole.user.application.mapper.UserMapper;
+import bunny.boardhole.user.application.result.UserResult;
 import bunny.boardhole.user.domain.Role;
 import bunny.boardhole.user.domain.User;
 import bunny.boardhole.user.infrastructure.UserRepository;
@@ -48,10 +48,10 @@ public class UserCommandService {
     @Transactional
     public UserResult create(@Valid CreateUserCommand cmd) {
         if (userRepository.existsByUsername(cmd.username())) {
-            throw new bunny.boardhole.common.exception.DuplicateUsernameException(messageUtils.getMessage("error.user.username.already-exists"));
+            throw new bunny.boardhole.shared.exception.DuplicateUsernameException(messageUtils.getMessage("error.user.username.already-exists"));
         }
         if (userRepository.existsByEmail(cmd.email())) {
-            throw new bunny.boardhole.common.exception.DuplicateEmailException(messageUtils.getMessage("error.user.email.already-exists"));
+            throw new bunny.boardhole.shared.exception.DuplicateEmailException(messageUtils.getMessage("error.user.email.already-exists"));
         }
         User user = User.builder()
                 .username(cmd.username())
