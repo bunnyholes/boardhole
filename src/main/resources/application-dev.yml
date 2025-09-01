@@ -39,6 +39,20 @@ spring:
           events:
             log:
               LOG_QUERIES_SLOWER_THAN_MS: 300  # 느린 쿼리 감지
+  
+  # Redis 개발 설정
+  data:
+    redis:
+      host: localhost
+      port: 16379
+      timeout: 2000ms
+      connect-timeout: 5000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: -1ms
 
 # 개발 환경 로깅 설정 (컬러풀 & 상세)
 logging:

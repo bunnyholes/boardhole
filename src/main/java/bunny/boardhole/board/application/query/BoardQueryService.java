@@ -1,12 +1,13 @@
 package bunny.boardhole.board.application.query;
 
-import bunny.boardhole.board.application.dto.BoardResult;
 import bunny.boardhole.board.application.mapper.BoardMapper;
+import bunny.boardhole.board.application.result.BoardResult;
 import bunny.boardhole.board.domain.Board;
 import bunny.boardhole.board.infrastructure.BoardRepository;
-import bunny.boardhole.common.exception.ResourceNotFoundException;
-import bunny.boardhole.common.util.MessageUtils;
+import bunny.boardhole.shared.exception.ResourceNotFoundException;
+import bunny.boardhole.shared.util.MessageUtils;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -16,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
  * 게시글 조회 서비스
  * CQRS 패턴의 Query 측면으로 게시글 조회 전용 비지니스 로직을 담당합니다.
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class BoardQueryService {

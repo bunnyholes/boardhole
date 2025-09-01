@@ -27,7 +27,7 @@ Board-Hole은 교육용 프로젝트이지만, 실제 환경에서 사용할 수
 
 ### Core Security Components
 
-- **🔐 JWT Authentication**: Stateless token-based authentication
+- **🔐 Session-based Authentication**: Stateful HTTP session authentication with Spring Security
 - **👤 Spring Security Integration**: Comprehensive security framework
 - **🛡️ Role-based Access Control (RBAC)**: USER/ADMIN 역할 구분
 - **🌐 Internationalized Error Messages**: 다국어 보안 에러 메시지
@@ -44,20 +44,20 @@ sequenceDiagram
     participant Client
     participant Controller
     participant AuthService
-    participant UserDetailsService
-    participant JwtUtil
+    participant AuthManager
+    participant SessionRepo
     participant Database
 
     Client->>Controller: POST /api/auth/login
-    Controller->>AuthService: authenticate(username, password)
-    AuthService->>UserDetailsService: loadUserByUsername()
-    UserDetailsService->>Database: findByUsername()
-    Database-->>UserDetailsService: User entity
-    UserDetailsService-->>AuthService: UserDetails
-    AuthService->>JwtUtil: generateToken(userDetails)
-    JwtUtil-->>AuthService: JWT Token
-    AuthService-->>Controller: AuthResponse with token
-    Controller-->>Client: 200 OK with JWT
+    Controller->>AuthService: login(username, password)
+    AuthService->>AuthManager: authenticate(credentials)
+    AuthManager->>Database: loadUserByUsername()
+    Database-->>AuthManager: User entity
+    AuthManager-->>AuthService: Authentication
+    AuthService->>SessionRepo: saveContext(SecurityContext)
+    SessionRepo-->>AuthService: Session created
+    AuthService-->>Controller: AuthResult
+    Controller-->>Client: 200 OK with JSESSIONID cookie
 ```
 
 ### Security Configuration
@@ -71,14 +71,18 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
-            .csrf(AbstractHttpConfigurer::disable)  // JWT 사용으로 CSRF 비활성화
+            .csrf(AbstractHttpConfigurer::disable)  // SPA 환경을 위해 CSRF 비활성화 (필요시 활성화 가능)
             .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))  // 무상태
+                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)  // 필요시 세션 생성
+                .sessionFixation().newSession()  // 세션 고정 공격 방어
+                .maximumSessions(1)  // 동시 세션 제한
+                .maxSessionsPreventsLogin(false))  // 기존 세션 만료 허용
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll()  // 인증 엔드포인트 공개
                 .requestMatchers(HttpMethod.GET, "/api/boards/**").permitAll()  // 조회 공개
                 .anyRequest().authenticated())  // 나머지는 인증 필요
-            .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
+            .securityContext(securityContext -> securityContext
+                .securityContextRepository(httpSessionSecurityContextRepository()))
             .exceptionHandling(ex -> ex
                 .authenticationEntryPoint(problemDetailsAuthenticationEntryPoint())
                 .accessDeniedHandler(problemDetailsAccessDeniedHandler()))
@@ -315,17 +319,37 @@ spring.datasource.password=${DB_PASSWORD}
 
 ## 🔧 Security Configuration Details
 
-### JWT Configuration
+### Session Configuration
 
 ```java
-@Component
-@ConfigurationProperties(prefix = "jwt")
-public class JwtProperties {
-    private String secret;          // 서명 키
-    private Duration expiration;    // 토큰 만료 시간
-    private String issuer;          // 발급자
-    // ...
+@Configuration
+public class SecurityConfig {
+    
+    @Bean
+    public SecurityContextRepository securityContextRepository() {
+        return new HttpSessionSecurityContextRepository();
+    }
+    
+    // 세션 설정
+    .sessionManagement(session -> session
+        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)  // 필요시 세션 생성
+        .sessionFixation().newSession()  // 세션 고정 공격 방어
+        .maximumSessions(1)  // 동시 세션 제한
+        .maxSessionsPreventsLogin(false)  // 기존 세션 만료 허용
+        .sessionAuthenticationErrorUrl("/login?error")  // 세션 인증 실패 시
+        .invalidSessionUrl("/login?expired"))  // 세션 만료 시
 }
+
+# application.yml
+server:
+  servlet:
+    session:
+      timeout: 30m  # 세션 타임아웃 30분
+      cookie:
+        name: JSESSIONID
+        http-only: true  # XSS 공격 방어
+        secure: true  # HTTPS에서만 전송 (production)
+        same-site: strict  # CSRF 공격 방어
 ```
 
 ### Password Security
@@ -344,10 +368,66 @@ public class SecurityConfig {
 ### Session Security
 
 ```java
-// JWT 사용으로 세션 비활성화
+// 세션 기반 인증 활성화
 .sessionManagement(session -> session
-    .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+    .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)  // 필요시 세션 생성
+    .sessionFixation().newSession()  // 로그인 시 새 세션 ID 발급
+    .maximumSessions(1)  // 사용자당 최대 1개 세션
+    .maxSessionsPreventsLogin(false))  // 기존 세션 만료 후 새 로그인 허용
+
+// SecurityContext를 HttpSession에 저장
+.securityContext(securityContext -> securityContext
+    .securityContextRepository(httpSessionSecurityContextRepository()))
 ```
+
+#### 세션 보안 기능
+
+1. **세션 고정 공격 방어**: 로그인 성공 시 새로운 세션 ID 발급
+2. **동시 세션 제한**: 한 사용자가 여러 디바이스에서 동시 로그인 방지
+3. **세션 타임아웃**: 비활성 상태 30분 후 자동 만료
+4. **HttpOnly 쿠키**: JavaScript로 세션 쿠키 접근 불가
+
+### Redis 기반 분산 세션 관리
+
+#### Redis 세션 저장소 아키텍처
+
+```mermaid
+graph LR
+    A[Client 1] --> B[Server Instance 1]
+    C[Client 2] --> D[Server Instance 2]
+    E[Client 3] --> F[Server Instance 3]
+    
+    B --> G[Redis Session Store]
+    D --> G
+    F --> G
+    
+    G --> H[(Redis Cluster)]
+    
+    style G fill:#ff6b6b
+    style H fill:#ff6b6b
+```
+
+#### Redis 세션 구성
+
+```java
+@EnableRedisHttpSession(
+    maxInactiveIntervalInSeconds = 1800,  // 30분
+    redisNamespace = "board-hole"
+)
+public class RedisSessionConfig {
+    // Redis 연결 설정
+    // Lettuce 클라이언트 사용
+    // JSON 직렬화로 세션 데이터 저장
+}
+```
+
+#### 분산 세션 관리 이점
+
+1. **수평 확장성**: 여러 서버 인스턴스 간 세션 공유
+2. **장애 복구**: 서버 재시작 시에도 세션 유지
+3. **성능 향상**: 인메모리 저장소로 빠른 세션 접근
+4. **세션 모니터링**: Redis CLI로 실시간 세션 모니터링
+5. **유연한 만료 정책**: TTL 기반 자동 세션 정리
 
 ## 🔍 Known Security Considerations
 
@@ -357,12 +437,16 @@ public class SecurityConfig {
 2. **Account Lockout**: 로그인 실패 시 계정 잠금 미구현
 3. **Password Complexity**: 비밀번호 복잡성 정책 미적용
 4. **Audit Logging**: 상세한 감사 로그 미구현
+5. ~~**분산 세션 관리**: Redis를 통한 분산 환경 세션 공유~~ ✅ 구현 완료
+6. **Remember-Me**: 장기 로그인 유지 기능 미구현
 
 ### Planned Security Enhancements
 
 - **🚀 Rate Limiting**: Spring Security Rate Limiting
 - **🔒 Account Security**: 계정 잠금 및 비밀번호 정책
 - **📊 Audit Trail**: 사용자 행동 로깅
+- ~~**🌐 Distributed Session**: Redis 기반 세션 클러스터링~~ ✅ 구현 완료
+- **🍪 Remember-Me**: 장기 로그인 유지 기능
 - **🔐 2FA Support**: 이중 인증 지원
 - **🛡️ WAF Integration**: Web Application Firewall
 
@@ -404,13 +488,18 @@ management:
 이 프로젝트는 학습 목적이므로 다음 보안 개념들을 학습할 수 있습니다:
 
 ### 1. Authentication vs Authorization
-- **Authentication (인증)**: "누구인가?" - JWT 토큰으로 신원 확인
+- **Authentication (인증)**: "누구인가?" - 세션과 쿠키로 신원 확인
 - **Authorization (인가)**: "무엇을 할 수 있는가?" - 역할과 권한 기반 접근 제어
 
-### 2. Stateless Security
-- **세션 없음**: JWT 토큰으로 상태 정보 포함
-- **확장성**: 여러 서버 인스턴스에서 동일한 토큰 사용 가능
-- **마이크로서비스 친화적**: 서비스 간 토큰 전달 용이
+### 2. Stateful Security (세션 기반 보안)
+- **세션 관리**: 서버에서 사용자 상태 중앙 관리
+- **보안성**: 서버에서 즉시 세션 무효화 가능
+- **사용자 추적**: 현재 활성 세션 모니터링 및 관리 용이
+- **세션 기반 장점**:
+  - 즉각적인 접근 권한 취소 가능
+  - 사용자 상태 추적 및 감사 용이
+  - 비밀번호 변경 시 즉시 적용
+  - 동시 로그인 제한 가능
 
 ### 3. Defense in Depth
 - **다층 방어**: 여러 보안 계층 적용
@@ -419,6 +508,12 @@ management:
 ### 4. Principle of Least Privilege
 - **최소 권한**: 사용자에게 필요한 최소한의 권한만 부여
 - **역할 기반**: USER/ADMIN 역할로 권한 분리
+
+### 5. 세션 보안 모범 사례
+- **세션 고정 공격 방어**: 로그인 성공 후 세션 ID 재생성
+- **안전한 쿠키 설정**: HttpOnly, Secure, SameSite 속성 설정
+- **적절한 타임아웃**: 비활성 시간 기반 자동 로그아웃
+- **동시 세션 관리**: 사용자당 세션 수 제한
 
 ## 🔄 Security Update Process
 

@@ -36,6 +36,14 @@ spring:
   output:
     ansi:
       enabled: DETECT  # 터미널 지원시 자동 활성화 (ALWAYS, DETECT, NEVER)
+  
+  # 세션 관리 설정 (Redis)
+  session:
+    store-type: redis
+    redis:
+      namespace: board-hole:session
+      flush-mode: on-save  # 저장 시점에만 Redis에 플러시
+    timeout: 30m  # 세션 타임아웃
 
 # ========================================
 # 애플리케이션 도메인 설정

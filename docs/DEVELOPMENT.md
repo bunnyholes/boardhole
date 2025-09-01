@@ -62,9 +62,7 @@ DB_NAME=boardhole
 DB_USERNAME=boardhole
 DB_PASSWORD=boardhole123
 
-# JWT
-JWT_SECRET=your-secret-key-here-should-be-very-long-and-secure
-JWT_EXPIRATION=3600000
+# (세션 기반 인증 사용 — JWT 불필요)
 
 # Application
 SPRING_PROFILES_ACTIVE=dev
@@ -75,14 +73,14 @@ EOF
 ### 3. Docker Infrastructure
 
 ```bash
-# 백그라운드에서 데이터베이스 시작
-docker-compose up -d
+# 백그라운드에서 인프라 시작(MySQL:13306, Redis:16379)
+docker compose up -d
 
 # 서비스 상태 확인
-docker-compose ps
+docker compose ps
 
 # 로그 확인
-docker-compose logs mysql
+docker compose logs mysql
 ```
 
 ### 4. Gradle Build
@@ -137,8 +135,7 @@ Continuation indent: 8
 Name: BoardHoleApplication
 Main class: bunny.boardhole.BoardHoleApplication
 VM options: -Dspring.profiles.active=dev
-Environment variables: 
-  - JWT_SECRET=dev-secret-key
+Environment variables:
   - DB_PASSWORD=boardhole123
 ```
 
@@ -186,29 +183,14 @@ VM options: -Dspring.profiles.active=test
 
 기본적으로 Docker Compose를 사용하여 MySQL을 실행합니다:
 
-```yaml
-# docker-compose.yml
-version: '3.8'
-services:
-  mysql:
-    image: mysql:8.0
-    environment:
-      MYSQL_DATABASE: boardhole
-      MYSQL_USER: boardhole
-      MYSQL_PASSWORD: boardhole123
-      MYSQL_ROOT_PASSWORD: root123
-    ports:
-      - "3306:3306"
-    volumes:
-      - mysql_data:/var/lib/mysql
-```
+> 참고: 루트의 `docker-compose.yml`은 `mysql:8.4` 이미지를 사용하며, 호스트 포트 `13306`으로 매핑됩니다. 아래 접속 정보 예시는 실제 구성과 일치합니다.
 
 ### Database Access
 
 **MySQL Workbench 연결**:
 ```
 Host: localhost
-Port: 3306
+Port: 13306
 Username: boardhole
 Password: boardhole123
 Database: boardhole
@@ -217,10 +199,10 @@ Database: boardhole
 **Command Line 접속**:
 ```bash
 # Docker 컨테이너에 직접 접속
-docker-compose exec mysql mysql -u boardhole -p boardhole
+docker compose exec mysql mysql -u boardhole -pboardhole123 boardhole
 
-# 또는 로컬 MySQL 클라이언트 사용
-mysql -h localhost -P 3306 -u boardhole -p boardhole
+# 또는 로컬 MySQL 클라이언트 사용 (호스트 포트 13306)
+mysql -h localhost -P 13306 -u boardhole -pboardhole123 boardhole
 ```
 
 ### Schema Management
@@ -246,7 +228,7 @@ public class DataInitializer {
 
 ```bash
 # 1. 데이터베이스 시작
-docker-compose up -d mysql
+docker compose up -d mysql
 
 # 2. 애플리케이션 실행 (dev 프로파일)
 ./gradlew bootRun
@@ -511,9 +493,6 @@ public class BoardHoleProperties {
 ```bash
 # 외부 설정 파일 사용
 ./gradlew bootRun --args='--spring.config.location=classpath:/,file:./config/'
-
-# 환경 변수 우선순위 테스트
-JWT_SECRET=override-secret ./gradlew bootRun
 ```
 
 ## 📊 Monitoring and Observability
@@ -637,13 +616,13 @@ kill -9 $(lsof -ti:8080)
 #### Database Connection Issues
 ```bash
 # Docker 컨테이너 상태 확인
-docker-compose ps
+docker compose ps
 
 # MySQL 컨테이너 재시작
-docker-compose restart mysql
+docker compose restart mysql
 
 # 데이터베이스 로그 확인
-docker-compose logs mysql
+docker compose logs mysql
 ```
 
 #### Lombok Issues
@@ -713,8 +692,8 @@ logging.level.org.hibernate.SQL=DEBUG
 #### Database Quick Reset
 ```bash
 # 개발 데이터베이스 초기화
-docker-compose down -v  # 볼륨까지 삭제
-docker-compose up -d
+docker compose down -v  # 볼륨까지 삭제
+docker compose up -d
 ./gradlew bootRun  # 자동으로 스키마 재생성
 ```
 

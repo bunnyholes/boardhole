@@ -1,9 +1,9 @@
 package bunny.boardhole.auth.application.command;
 
-import bunny.boardhole.auth.application.dto.AuthResult;
-import bunny.boardhole.common.exception.UnauthorizedException;
-import bunny.boardhole.common.security.AppUserPrincipal;
-import bunny.boardhole.common.util.MessageUtils;
+import bunny.boardhole.auth.application.result.AuthResult;
+import bunny.boardhole.shared.exception.UnauthorizedException;
+import bunny.boardhole.shared.security.AppUserPrincipal;
+import bunny.boardhole.shared.util.MessageUtils;
 import bunny.boardhole.user.domain.User;
 import bunny.boardhole.user.infrastructure.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
