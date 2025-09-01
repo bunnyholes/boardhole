@@ -6,18 +6,13 @@ import io.swagger.v3.oas.models.media.*;
 import io.swagger.v3.oas.models.responses.*;
 import io.swagger.v3.oas.models.security.*;
 import org.springdoc.core.customizers.OpenApiCustomizer;
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.*;
-import org.springframework.core.env.Environment;
 import org.springframework.http.ProblemDetail;
 
 import java.util.*;
 
 @Configuration
-@RequiredArgsConstructor
 public class OpenApiConfig {
-
-    private final Environment environment;
 
     @Bean
     public OpenAPI boardHoleOpenAPI() {
@@ -37,11 +32,7 @@ public class OpenApiConfig {
                                 .type(SecurityScheme.Type.APIKEY)
                                 .in(SecurityScheme.In.COOKIE)
                                 .name("JSESSIONID")
-                                .description("세션 기반 인증 - 로그인 후 자동으로 설정되는 세션 쿠키"))
-                        .addSecuritySchemes("basic-auth", new SecurityScheme()
-                                .type(SecurityScheme.Type.HTTP)
-                                .scheme("basic")
-                                .description("개발 환경 - HTTP Basic 인증 (admin/admin123 또는 user/user123)")));
+                                .description("세션 기반 인증 - 로그인 후 자동으로 설정되는 세션 쿠키")));
 
         // Define ErrorField schema for validation errors
         Schema<?> errorField = new Schema<>()
@@ -131,34 +122,6 @@ public class OpenApiConfig {
         };
     }
 
-    /**
-     * Dev 프로파일에서 인증이 필요한 엔드포인트에 자동으로 basic-auth를 추가합니다.
-     * 이를 통해 Swagger UI에서 HTTP Basic 인증을 사용할 수 있습니다.
-     */
-    @Bean
-    @Profile("dev")
-    public OpenApiCustomizer devProfileBasicAuthCustomizer() {
-        return openApi -> {
-            // 모든 경로를 순회
-            openApi.getPaths().forEach((path, pathItem) -> {
-                pathItem.readOperations().forEach(operation -> {
-                    // 이미 security requirement가 있는 경우 (인증이 필요한 엔드포인트)
-                    if (operation.getSecurity() != null && !operation.getSecurity().isEmpty()) {
-                        // basic-auth가 이미 포함되어 있는지 확인
-                        boolean hasBasicAuth = operation.getSecurity().stream()
-                                .anyMatch(req -> req.containsKey("basic-auth"));
-
-                        if (!hasBasicAuth) {
-                            // basic-auth 추가
-                            List<SecurityRequirement> updatedSecurity = new ArrayList<>(operation.getSecurity());
-                            updatedSecurity.add(new SecurityRequirement().addList("basic-auth"));
-                            operation.setSecurity(updatedSecurity);
-                        }
-                    }
-                });
-            });
-        };
-    }
 
     private void addProblemResponse(ApiResponses responses, String code, String description) {
         if (responses.containsKey(code)) return;

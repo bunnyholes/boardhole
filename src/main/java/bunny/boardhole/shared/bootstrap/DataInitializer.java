@@ -20,9 +20,6 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class DataInitializer implements CommandLineRunner {
 
-    // 기본 게시글 상수
-    public static final String WELCOME_BOARD_TITLE = "Board Hole에 오신 것을 환영합니다!";
-    public static final String WELCOME_BOARD_CONTENT = "첫 번째 게시글입니다. 자유롭게 둘러보고 게시물을 작성해 보세요!";
     private final UserRepository userRepository;
     private final BoardRepository boardRepository;
     private final PasswordEncoder passwordEncoder;
@@ -92,10 +89,13 @@ public class DataInitializer implements CommandLineRunner {
 
     private void createWelcomeBoard() {
         User admin = userRepository.findByUsername(adminUsername);
+        
+        String title = messageSource.getMessage("data.welcome.board.title", null, LocaleContextHolder.getLocale());
+        String content = messageSource.getMessage("data.welcome.board.content", null, LocaleContextHolder.getLocale());
 
         Board welcomeBoard = Board.builder()
-                .title(WELCOME_BOARD_TITLE)
-                .content(WELCOME_BOARD_CONTENT)
+                .title(title)
+                .content(content)
                 .author(admin)
                 .build();
         boardRepository.save(welcomeBoard);
