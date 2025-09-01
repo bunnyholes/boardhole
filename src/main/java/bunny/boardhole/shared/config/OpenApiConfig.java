@@ -1,28 +1,17 @@
 package bunny.boardhole.shared.config;
 
-import io.swagger.v3.oas.models.Components;
-import io.swagger.v3.oas.models.OpenAPI;
-import io.swagger.v3.oas.models.Operation;
-import io.swagger.v3.oas.models.info.Contact;
-import io.swagger.v3.oas.models.info.Info;
-import io.swagger.v3.oas.models.info.License;
-import io.swagger.v3.oas.models.media.Content;
-import io.swagger.v3.oas.models.media.MediaType;
-import io.swagger.v3.oas.models.media.Schema;
-import io.swagger.v3.oas.models.responses.ApiResponse;
-import io.swagger.v3.oas.models.responses.ApiResponses;
-import io.swagger.v3.oas.models.security.SecurityRequirement;
-import io.swagger.v3.oas.models.security.SecurityScheme;
+import io.swagger.v3.oas.models.*;
+import io.swagger.v3.oas.models.info.*;
+import io.swagger.v3.oas.models.media.*;
+import io.swagger.v3.oas.models.responses.*;
+import io.swagger.v3.oas.models.security.*;
 import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
+import org.springframework.context.annotation.*;
 import org.springframework.core.env.Environment;
 import org.springframework.http.ProblemDetail;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Configuration
 public class OpenApiConfig {
@@ -95,7 +84,7 @@ public class OpenApiConfig {
             if (openApi.getComponents() == null) {
                 openApi.setComponents(new Components());
             }
-            
+
             // Add ErrorField schema if not present
             if (openApi.getComponents().getSchemas() == null || !openApi.getComponents().getSchemas().containsKey("ErrorField")) {
                 Schema<?> errorField = new Schema<>()
@@ -106,7 +95,7 @@ public class OpenApiConfig {
                         .addProperty("rejectedValue", new Schema<>().type("object").description("거부된 값").example(""));
                 openApi.getComponents().addSchemas("ErrorField", errorField);
             }
-            
+
             // Add ProblemDetailExtended schema if not present
             if (openApi.getComponents().getSchemas() == null || !openApi.getComponents().getSchemas().containsKey("ProblemDetailExtended")) {
                 Schema<?> problemDetailExt = new Schema<>()
@@ -127,7 +116,7 @@ public class OpenApiConfig {
                                 .addProperty("errors", new Schema<>().type("array").description("유효성 검증 오류 목록").items(new Schema<>().$ref("#/components/schemas/ErrorField"))));
                 openApi.getComponents().addSchemas("ProblemDetailExtended", problemDetailExt);
             }
-            
+
             // Add error responses to all operations
             openApi.getPaths().forEach((path, pathItem) -> {
                 pathItem.readOperations().forEach(operation -> {
@@ -158,7 +147,7 @@ public class OpenApiConfig {
                         // basic-auth가 이미 포함되어 있는지 확인
                         boolean hasBasicAuth = operation.getSecurity().stream()
                                 .anyMatch(req -> req.containsKey("basic-auth"));
-                        
+
                         if (!hasBasicAuth) {
                             // basic-auth 추가
                             List<SecurityRequirement> updatedSecurity = new ArrayList<>(operation.getSecurity());

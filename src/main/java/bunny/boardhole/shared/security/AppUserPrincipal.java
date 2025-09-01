@@ -1,15 +1,12 @@
 package bunny.boardhole.shared.security;
 
-import bunny.boardhole.user.domain.Role;
-import bunny.boardhole.user.domain.User;
+import bunny.boardhole.user.domain.*;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.Collection;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Schema(name = "AppUserPrincipal", description = "인증된 사용자 주체 정보 - Spring Security UserDetails 구현체")

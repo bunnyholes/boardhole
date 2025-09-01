@@ -1,14 +1,10 @@
 package bunny.boardhole.board.presentation.mapper;
 
-import bunny.boardhole.board.application.command.CreateBoardCommand;
-import bunny.boardhole.board.application.command.UpdateBoardCommand;
+import bunny.boardhole.board.application.command.*;
 import bunny.boardhole.board.application.result.BoardResult;
-import bunny.boardhole.board.presentation.dto.BoardCreateRequest;
-import bunny.boardhole.board.presentation.dto.BoardResponse;
-import bunny.boardhole.board.presentation.dto.BoardUpdateRequest;
+import bunny.boardhole.board.presentation.dto.*;
 import bunny.boardhole.shared.mapstruct.MapstructConfig;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import org.mapstruct.*;
 
 /**
  * 게시글 웹 계층 매퍼

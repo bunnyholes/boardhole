@@ -3,13 +3,9 @@ package bunny.boardhole.shared.session;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.security.core.session.SessionInformation;
-import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.session.FindByIndexNameSessionRepository;
-import org.springframework.session.Session;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -25,9 +21,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class SessionService {
 
-    private final RedisTemplate<String, Object> redisTemplate;
     private static final String SESSION_NAMESPACE = "board-hole:session:sessions:";
     private static final String INDEX_NAMESPACE = "board-hole:session:index:";
+    private final RedisTemplate<String, Object> redisTemplate;
 
     /**
      * 현재 활성 세션 수 조회
@@ -46,18 +42,18 @@ public class SessionService {
      * @return 세션 ID 목록
      */
     public Set<String> getUserSessions(String username) {
-        String indexKey = INDEX_NAMESPACE + 
-                FindByIndexNameSessionRepository.PRINCIPAL_NAME_INDEX_NAME + 
+        String indexKey = INDEX_NAMESPACE +
+                FindByIndexNameSessionRepository.PRINCIPAL_NAME_INDEX_NAME +
                 ":" + username;
-        
+
         Set<Object> sessionIds = redisTemplate.opsForSet().members(indexKey);
-        
+
         if (sessionIds != null) {
             return sessionIds.stream()
                     .map(Object::toString)
                     .collect(Collectors.toSet());
         }
-        
+
         return Collections.emptySet();
     }
 
@@ -70,13 +66,13 @@ public class SessionService {
     public int invalidateUserSessions(String username) {
         Set<String> sessionIds = getUserSessions(username);
         int count = 0;
-        
+
         for (String sessionId : sessionIds) {
             if (invalidateSession(sessionId)) {
                 count++;
             }
         }
-        
+
         log.info("사용자 {} 의 {} 개 세션이 무효화되었습니다.", username, count);
         return count;
     }
@@ -90,12 +86,12 @@ public class SessionService {
     public boolean invalidateSession(String sessionId) {
         String sessionKey = SESSION_NAMESPACE + sessionId;
         Boolean deleted = redisTemplate.delete(sessionKey);
-        
-        if (Boolean.TRUE.equals(deleted)) {
+
+        if (deleted) {
             log.info("세션 {} 이(가) 무효화되었습니다.", sessionId);
             return true;
         }
-        
+
         return false;
     }
 
@@ -108,18 +104,18 @@ public class SessionService {
     public Map<String, Object> getSessionInfo(String sessionId) {
         String sessionKey = SESSION_NAMESPACE + sessionId;
         Map<Object, Object> sessionData = redisTemplate.opsForHash().entries(sessionKey);
-        
+
         if (sessionData.isEmpty()) {
             return Collections.emptyMap();
         }
-        
+
         Map<String, Object> sessionInfo = new HashMap<>();
         sessionInfo.put("sessionId", sessionId);
-        
+
         // 세션 데이터 변환
         sessionData.forEach((key, value) -> {
             String keyStr = key.toString();
-            
+
             switch (keyStr) {
                 case "creationTime":
                     sessionInfo.put("creationTime", parseTime(value));
@@ -141,13 +137,13 @@ public class SessionService {
                     }
             }
         });
-        
+
         // TTL 계산
         Long ttl = redisTemplate.getExpire(sessionKey, TimeUnit.SECONDS);
         if (ttl != null && ttl > 0) {
             sessionInfo.put("ttlSeconds", ttl);
         }
-        
+
         return sessionInfo;
     }
 
@@ -158,7 +154,7 @@ public class SessionService {
      */
     public Map<String, Object> getSessionStatistics() {
         Map<String, Object> stats = new HashMap<>();
-        
+
         Set<String> sessionKeys = redisTemplate.keys(SESSION_NAMESPACE + "*");
         if (sessionKeys == null || sessionKeys.isEmpty()) {
             stats.put("totalSessions", 0);
@@ -166,15 +162,15 @@ public class SessionService {
             stats.put("anonymousSessions", 0);
             return stats;
         }
-        
+
         int totalSessions = sessionKeys.size();
         int authenticatedSessions = 0;
         int anonymousSessions = 0;
         List<Long> ttlList = new ArrayList<>();
-        
+
         for (String key : sessionKeys) {
             Map<Object, Object> sessionData = redisTemplate.opsForHash().entries(key);
-            
+
             // 인증 여부 확인
             boolean isAuthenticated = sessionData.containsKey("sessionAttr:SPRING_SECURITY_CONTEXT");
             if (isAuthenticated) {
@@ -182,18 +178,18 @@ public class SessionService {
             } else {
                 anonymousSessions++;
             }
-            
+
             // TTL 수집
             Long ttl = redisTemplate.getExpire(key, TimeUnit.SECONDS);
             if (ttl != null && ttl > 0) {
                 ttlList.add(ttl);
             }
         }
-        
+
         stats.put("totalSessions", totalSessions);
         stats.put("authenticatedSessions", authenticatedSessions);
         stats.put("anonymousSessions", anonymousSessions);
-        
+
         // 평균 TTL 계산
         if (!ttlList.isEmpty()) {
             double avgTtl = ttlList.stream()
@@ -202,7 +198,7 @@ public class SessionService {
                     .orElse(0.0);
             stats.put("averageTtlSeconds", Math.round(avgTtl));
         }
-        
+
         return stats;
     }
 
@@ -224,7 +220,7 @@ public class SessionService {
     public Set<String> getExpiringSessions(long withinSeconds) {
         Set<String> expiringSessions = new HashSet<>();
         Set<String> sessionKeys = redisTemplate.keys(SESSION_NAMESPACE + "*");
-        
+
         if (sessionKeys != null) {
             for (String key : sessionKeys) {
                 Long ttl = redisTemplate.getExpire(key, TimeUnit.SECONDS);
@@ -234,31 +230,31 @@ public class SessionService {
                 }
             }
         }
-        
+
         return expiringSessions;
     }
 
     /**
      * 세션 TTL 연장
      *
-     * @param sessionId 세션 ID
+     * @param sessionId         세션 ID
      * @param additionalSeconds 추가할 초
      * @return 성공 여부
      */
     public boolean extendSessionTtl(String sessionId, long additionalSeconds) {
         String sessionKey = SESSION_NAMESPACE + sessionId;
-        
+
         Long currentTtl = redisTemplate.getExpire(sessionKey, TimeUnit.SECONDS);
         if (currentTtl != null && currentTtl > 0) {
             long newTtl = currentTtl + additionalSeconds;
             Boolean result = redisTemplate.expire(sessionKey, newTtl, TimeUnit.SECONDS);
-            
-            if (Boolean.TRUE.equals(result)) {
+
+            if (result) {
                 log.info("세션 {} 의 TTL이 {} 초 연장되었습니다.", sessionId, additionalSeconds);
                 return true;
             }
         }
-        
+
         return false;
     }
 
