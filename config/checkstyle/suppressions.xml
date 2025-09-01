@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<!DOCTYPE suppressions PUBLIC
+        "-//Checkstyle//DTD SuppressionFilter Configuration 1.2//EN"
+        "https://checkstyle.org/dtds/suppressions_1_2.dtd">
+
+<suppressions>
+    <!-- Swagger 어노테이션의 한글 설명은 허용 -->
+    <suppress checks="RegexpSingleline"
+              files=".*Controller\.java"
+              lines="1-999"
+              message=".*@Tag.*|.*@Operation.*|.*@ApiResponse.*|.*@Parameter.*|.*@Schema.*"/>
+    
+    <!-- 테스트 파일의 @DisplayName 한글은 허용 -->
+    <suppress checks="RegexpSingleline"
+              files=".*Test\.java|.*Tests\.java"
+              lines="1-999999"/>
+    
+    <!-- 마이그레이션 또는 스크립트 파일 제외 -->
+    <suppress checks="RegexpSingleline"
+              files=".*Migration.*\.java|.*Script.*\.java"/>
+    
+    <!-- 설정 파일 제외 -->
+    <suppress checks="RegexpSingleline"
+              files=".*Config\.java|.*Configuration\.java"/>
+</suppressions>

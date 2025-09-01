@@ -110,40 +110,44 @@ public class GlobalExceptionHandler {
         return pd;
     }
 
-    @ExceptionHandler({MethodArgumentNotValidException.class})
-    public ProblemDetail handleInvalid(MethodArgumentNotValidException ex, HttpServletRequest request) {
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<ProblemDetail> handleInvalid(MethodArgumentNotValidException ex, HttpServletRequest request) {
         ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
         pd.setTitle(messageSource.getMessage("exception.title.validation-failed", null, LocaleContextHolder.getLocale()));
+        pd.setDetail(messageSource.getMessage("error.validation-failed", null, LocaleContextHolder.getLocale()));
         List<Map<String, Object>> errors = ex.getBindingResult().getFieldErrors().stream()
                 .map(fe -> Map.of(
                         "field", fe.getField(),
-                        "message", fe.getDefaultMessage(),
-                        "rejectedValue", fe.getRejectedValue()
+                        "message", fe.getDefaultMessage() != null ? fe.getDefaultMessage() : "Invalid value",
+                        "rejectedValue", fe.getRejectedValue() != null ? fe.getRejectedValue() : ""
                 ))
                 .collect(Collectors.toList());
         pd.setProperty("errors", errors);
         pd.setProperty("code", "VALIDATION_ERROR");
         pd.setType(buildType("validation-error"));
         addCommon(pd, request);
-        return pd;
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(pd);
     }
 
     @ExceptionHandler(BindException.class)
-    public ProblemDetail handleBindException(BindException ex, HttpServletRequest request) {
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<ProblemDetail> handleBindException(BindException ex, HttpServletRequest request) {
         ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
         pd.setTitle(messageSource.getMessage("exception.title.validation-failed", null, LocaleContextHolder.getLocale()));
+        pd.setDetail(messageSource.getMessage("error.validation-failed", null, LocaleContextHolder.getLocale()));
         List<Map<String, Object>> errors = ex.getBindingResult().getFieldErrors().stream()
                 .map(fe -> Map.of(
                         "field", fe.getField(),
-                        "message", fe.getDefaultMessage(),
-                        "rejectedValue", fe.getRejectedValue()
+                        "message", fe.getDefaultMessage() != null ? fe.getDefaultMessage() : "Invalid value",
+                        "rejectedValue", fe.getRejectedValue() != null ? fe.getRejectedValue() : ""
                 ))
                 .collect(Collectors.toList());
         pd.setProperty("errors", errors);
         pd.setProperty("code", "VALIDATION_ERROR");
         pd.setType(buildType("validation-error"));
         addCommon(pd, request);
-        return pd;
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(pd);
     }
 
     @ExceptionHandler({ConstraintViolationException.class, IllegalArgumentException.class})
@@ -159,7 +163,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ProblemDetail handleMessageNotReadable(HttpMessageNotReadableException ex, HttpServletRequest request) {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST,
-                messageSource.getMessage("error.invalid-json", null, "잘못된 JSON 형식입니다.", LocaleContextHolder.getLocale()));
+                messageSource.getMessage("error.invalid-json", null, LocaleContextHolder.getLocale()));
         pd.setTitle(messageSource.getMessage("exception.title.bad-request", null, LocaleContextHolder.getLocale()));
         pd.setProperty("code", "INVALID_JSON");
         pd.setType(buildType("invalid-json"));
@@ -169,9 +173,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ProblemDetail handleMethodNotSupported(HttpRequestMethodNotSupportedException ex, HttpServletRequest request) {
+        String supportedMethods = String.join(", ", ex.getSupportedMethods());
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.METHOD_NOT_ALLOWED,
-                String.format("지원하지 않는 HTTP 메서드입니다. 지원 메서드: %s", String.join(", ", ex.getSupportedMethods())));
-        pd.setTitle(messageSource.getMessage("exception.title.method-not-allowed", null, "메서드 허용 안됨", LocaleContextHolder.getLocale()));
+                messageSource.getMessage("error.method-not-allowed.detail", 
+                        new Object[]{supportedMethods}, LocaleContextHolder.getLocale()));
+        pd.setTitle(messageSource.getMessage("exception.title.method-not-allowed", null, LocaleContextHolder.getLocale()));
         pd.setProperty("code", "METHOD_NOT_ALLOWED");
         pd.setProperty("supportedMethods", ex.getSupportedMethods());
         pd.setType(buildType("method-not-allowed"));
@@ -182,8 +188,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
     public ProblemDetail handleMediaTypeNotSupported(HttpMediaTypeNotSupportedException ex, HttpServletRequest request) {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.UNSUPPORTED_MEDIA_TYPE,
-                messageSource.getMessage("error.unsupported-media-type", null, "지원하지 않는 미디어 타입입니다.", LocaleContextHolder.getLocale()));
-        pd.setTitle(messageSource.getMessage("exception.title.unsupported-media-type", null, "미디어 타입 미지원", LocaleContextHolder.getLocale()));
+                messageSource.getMessage("error.unsupported-media-type", null, LocaleContextHolder.getLocale()));
+        pd.setTitle(messageSource.getMessage("exception.title.unsupported-media-type", null, LocaleContextHolder.getLocale()));
         pd.setProperty("code", "UNSUPPORTED_MEDIA_TYPE");
         pd.setType(buildType("unsupported-media-type"));
         addCommon(pd, request);
@@ -193,8 +199,9 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public ProblemDetail handleMissingParameter(MissingServletRequestParameterException ex, HttpServletRequest request) {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST,
-                String.format("필수 파라미터가 누락되었습니다: %s", ex.getParameterName()));
-        pd.setTitle(messageSource.getMessage("exception.title.missing-parameter", null, "필수 파라미터 누락", LocaleContextHolder.getLocale()));
+                messageSource.getMessage("error.missing-parameter.detail", 
+                        new Object[]{ex.getParameterName()}, LocaleContextHolder.getLocale()));
+        pd.setTitle(messageSource.getMessage("exception.title.missing-parameter", null, LocaleContextHolder.getLocale()));
         pd.setProperty("code", "MISSING_PARAMETER");
         pd.setProperty("parameter", ex.getParameterName());
         pd.setProperty("parameterType", ex.getParameterType());
@@ -206,8 +213,9 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(TypeMismatchException.class)
     public ProblemDetail handleTypeMismatch(TypeMismatchException ex, HttpServletRequest request) {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST,
-                String.format("파라미터 타입이 올바르지 않습니다: %s", ex.getPropertyName()));
-        pd.setTitle(messageSource.getMessage("exception.title.type-mismatch", null, "타입 불일치", LocaleContextHolder.getLocale()));
+                messageSource.getMessage("error.type-mismatch.detail", 
+                        new Object[]{ex.getPropertyName()}, LocaleContextHolder.getLocale()));
+        pd.setTitle(messageSource.getMessage("exception.title.type-mismatch", null, LocaleContextHolder.getLocale()));
         pd.setProperty("code", "TYPE_MISMATCH");
         pd.setProperty("property", ex.getPropertyName());
         pd.setProperty("requiredType", ex.getRequiredType() != null ? ex.getRequiredType().getSimpleName() : null);

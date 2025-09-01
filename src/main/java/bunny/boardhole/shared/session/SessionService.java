@@ -2,6 +2,8 @@ package bunny.boardhole.shared.session;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.session.FindByIndexNameSessionRepository;
 import org.springframework.stereotype.Service;
@@ -24,6 +26,7 @@ public class SessionService {
     private static final String SESSION_NAMESPACE = "board-hole:session:sessions:";
     private static final String INDEX_NAMESPACE = "board-hole:session:index:";
     private final RedisTemplate<String, Object> redisTemplate;
+    private final MessageSource messageSource;
 
     /**
      * 현재 활성 세션 수 조회
@@ -73,7 +76,8 @@ public class SessionService {
             }
         }
 
-        log.info("사용자 {} 의 {} 개 세션이 무효화되었습니다.", username, count);
+        log.info(messageSource.getMessage("log.session.invalidated.user", 
+                new Object[]{username, count}, LocaleContextHolder.getLocale()));
         return count;
     }
 
@@ -88,7 +92,8 @@ public class SessionService {
         Boolean deleted = redisTemplate.delete(sessionKey);
 
         if (deleted) {
-            log.info("세션 {} 이(가) 무효화되었습니다.", sessionId);
+            log.info(messageSource.getMessage("log.session.invalidated.single", 
+                    new Object[]{sessionId}, LocaleContextHolder.getLocale()));
             return true;
         }
 
@@ -250,7 +255,8 @@ public class SessionService {
             Boolean result = redisTemplate.expire(sessionKey, newTtl, TimeUnit.SECONDS);
 
             if (result) {
-                log.info("세션 {} 의 TTL이 {} 초 연장되었습니다.", sessionId, additionalSeconds);
+                log.info(messageSource.getMessage("log.session.ttl.extended", 
+                        new Object[]{sessionId, additionalSeconds}, LocaleContextHolder.getLocale()));
                 return true;
             }
         }

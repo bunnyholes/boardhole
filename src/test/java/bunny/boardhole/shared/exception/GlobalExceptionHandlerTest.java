@@ -198,9 +198,12 @@ class GlobalExceptionHandlerTest {
                 .thenReturn("유효성 검증 실패");
 
         // When
-        ProblemDetail result = handler.handleInvalid(ex, request);
+        ResponseEntity<ProblemDetail> response = handler.handleInvalid(ex, request);
+        ProblemDetail result = response.getBody();
 
         // Then
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(result).isNotNull();
         assertThat(result.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
         assertThat(result.getTitle()).isEqualTo("유효성 검증 실패");
         assertThat(result.getType()).isEqualTo(URI.create("urn:problem-type:validation-error"));

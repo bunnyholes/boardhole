@@ -7,6 +7,8 @@ import jakarta.servlet.http.*;
 import org.slf4j.MDC;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.*;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
@@ -24,14 +26,15 @@ import java.time.Instant;
 public class ProblemDetailsAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
     private final ObjectMapper objectMapper;
+    private final MessageSource messageSource;
     @Value("${boardhole.problem.base-uri:}")
     private String problemBaseUri;
 
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException {
         ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.UNAUTHORIZED);
-        pd.setTitle("인증 필요");
-        pd.setDetail("로그인이 필요합니다.");
+        pd.setTitle(messageSource.getMessage("exception.title.unauthorized", null, LocaleContextHolder.getLocale()));
+        pd.setDetail(messageSource.getMessage("error.auth.not-logged-in", null, LocaleContextHolder.getLocale()));
         pd.setType(buildType("unauthorized"));
         try {
             pd.setInstance(URI.create(request.getRequestURI()));

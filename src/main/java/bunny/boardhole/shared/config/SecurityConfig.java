@@ -3,9 +3,9 @@ package bunny.boardhole.shared.config;
 import bunny.boardhole.shared.security.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.MessageSource;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.*;
-import org.springframework.core.env.*;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.access.expression.method.*;
@@ -29,8 +29,6 @@ import org.springframework.security.web.context.*;
 @EnableMethodSecurity(prePostEnabled = true, securedEnabled = true, jsr250Enabled = true)
 @RequiredArgsConstructor
 public class SecurityConfig {
-
-    private final Environment environment;
 
     /**
      * 비밀번호 인코더 빈 설정
@@ -93,12 +91,8 @@ public class SecurityConfig {
                         .authenticationEntryPoint(authenticationEntryPoint)
                         .accessDeniedHandler(accessDeniedHandler)
                 )
-                .formLogin(AbstractHttpConfigurer::disable);
-
-        // dev 프로파일일 때만 HTTP Basic 인증 활성화
-        if (environment.acceptsProfiles(Profiles.of("dev"))) {
-            http.httpBasic(Customizer.withDefaults());
-        }
+                .formLogin(AbstractHttpConfigurer::disable)
+                .httpBasic(AbstractHttpConfigurer::disable); // HTTP Basic 인증 비활성화
 
         http.sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
@@ -126,21 +120,23 @@ public class SecurityConfig {
      * ProblemDetail 형식의 인증 실패 응답 처리기
      *
      * @param objectMapper JSON 직렬화를 위한 ObjectMapper
+     * @param messageSource 메시지 소스
      * @return 인증 실패 진입점 핸들러
      */
     @Bean
-    public ProblemDetailsAuthenticationEntryPoint problemDetailsAuthenticationEntryPoint(ObjectMapper objectMapper) {
-        return new ProblemDetailsAuthenticationEntryPoint(objectMapper);
+    public ProblemDetailsAuthenticationEntryPoint problemDetailsAuthenticationEntryPoint(ObjectMapper objectMapper, MessageSource messageSource) {
+        return new ProblemDetailsAuthenticationEntryPoint(objectMapper, messageSource);
     }
 
     /**
      * ProblemDetail 형식의 접근 거부 응답 처리기
      *
      * @param objectMapper JSON 직렬화를 위한 ObjectMapper
+     * @param messageSource 메시지 소스
      * @return 접근 거부 핸들러
      */
     @Bean
-    public ProblemDetailsAccessDeniedHandler problemDetailsAccessDeniedHandler(ObjectMapper objectMapper) {
-        return new ProblemDetailsAccessDeniedHandler(objectMapper);
+    public ProblemDetailsAccessDeniedHandler problemDetailsAccessDeniedHandler(ObjectMapper objectMapper, MessageSource messageSource) {
+        return new ProblemDetailsAccessDeniedHandler(objectMapper, messageSource);
     }
 }

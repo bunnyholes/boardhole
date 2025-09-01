@@ -7,6 +7,8 @@ import jakarta.servlet.http.*;
 import org.slf4j.MDC;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.*;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.web.access.AccessDeniedHandler;
@@ -24,14 +26,15 @@ import java.time.Instant;
 public class ProblemDetailsAccessDeniedHandler implements AccessDeniedHandler {
 
     private final ObjectMapper objectMapper;
+    private final MessageSource messageSource;
     @Value("${boardhole.problem.base-uri:}")
     private String problemBaseUri;
 
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException {
         ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.FORBIDDEN);
-        pd.setTitle("접근 거부");
-        pd.setDetail("권한이 부족합니다.");
+        pd.setTitle(messageSource.getMessage("exception.title.access-denied", null, LocaleContextHolder.getLocale()));
+        pd.setDetail(messageSource.getMessage("error.auth.access-denied", null, LocaleContextHolder.getLocale()));
         pd.setType(buildType("forbidden"));
         try {
             pd.setInstance(URI.create(request.getRequestURI()));
