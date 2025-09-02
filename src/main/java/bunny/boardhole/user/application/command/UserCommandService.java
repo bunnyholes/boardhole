@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.lang.NonNull;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 /**
  * 사용자 명령 서비스
@@ -65,7 +67,7 @@ public class UserCommandService {
     // 조회 관련(get/list)는 UserQueryService에서 담당
 
     /**
-     * 사용자 정보 수정
+     * 사용자 정보 수정 - @DynamicUpdate를 활용한 선택적 업데이트
      *
      * @param cmd 사용자 수정 명령
      * @return 수정된 사용자 결과
@@ -73,15 +75,21 @@ public class UserCommandService {
      */
     @Transactional
     @PreAuthorize("hasPermission(#cmd.userId, 'USER', 'WRITE')")
-    public UserResult update(@Valid UpdateUserCommand cmd) {
+    public UserResult update(@Valid @NonNull UpdateUserCommand cmd) {
         Long id = cmd.userId();
-        User existing = userRepository.findById(id)
+        User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(messageUtils.getMessage("error.user.not-found.id", id)));
-        if (cmd.name() != null) existing.changeName(cmd.name());
-        if (cmd.email() != null) existing.changeEmail(cmd.email());
-        if (cmd.password() != null) existing.changePassword(passwordEncoder.encode(cmd.password()));
-        User saved = userRepository.save(existing);
-
+        
+        // Optional을 사용한 선택적 필드 업데이트
+        Optional.ofNullable(cmd.name()).ifPresent(user::changeName);
+        Optional.ofNullable(cmd.email()).ifPresent(user::changeEmail);
+        Optional.ofNullable(cmd.password())
+                .map(passwordEncoder::encode)
+                .ifPresent(user::changePassword);
+        
+        // @DynamicUpdate가 변경된 필드만 업데이트, @PreUpdate가 updatedAt 자동 설정
+        User saved = userRepository.save(user);
+        
         log.info(messageUtils.getMessage("log.user.updated", saved.getUsername()));
         return userMapper.toResult(saved);
     }

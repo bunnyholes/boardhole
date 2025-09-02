@@ -12,10 +12,13 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.lang.NonNull;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
+
+import java.util.Optional;
 
 /**
  * 게시글 명령 서비스
@@ -58,7 +61,7 @@ public class BoardCommandService {
     // 조회 전용: 증가 없이 단순 조회 (권한 확인 등 내부 용도)
 
     /**
-     * 게시글 수정
+     * 게시글 수정 - @DynamicUpdate를 활용한 선택적 업데이트
      *
      * @param cmd 게시글 수정 명령
      * @return 수정된 게시글 결과
@@ -66,13 +69,18 @@ public class BoardCommandService {
      */
     @Transactional
     @PreAuthorize("hasPermission(#cmd.boardId, 'BOARD', 'WRITE')")
-    public BoardResult update(@Valid UpdateBoardCommand cmd) {
+    public BoardResult update(@Valid @NonNull UpdateBoardCommand cmd) {
         Long id = cmd.boardId();
-        Board existing = loadBoardOrThrow(id);
-        if (cmd.title() != null) existing.changeTitle(cmd.title());
-        if (cmd.content() != null) existing.changeContent(cmd.content());
-        Board saved = boardRepository.save(existing);
-
+        Board board = boardRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(messageUtils.getMessage("error.board.not-found.id", id)));
+        
+        // Optional을 사용한 선택적 필드 업데이트
+        Optional.ofNullable(cmd.title()).ifPresent(board::changeTitle);
+        Optional.ofNullable(cmd.content()).ifPresent(board::changeContent);
+        
+        // @DynamicUpdate가 변경된 필드만 업데이트, @PreUpdate가 updatedAt 자동 설정
+        Board saved = boardRepository.save(board);
+        
         log.info(messageUtils.getMessage("log.board.updated", saved.getId(), saved.getTitle(), saved.getAuthor().getUsername()));
         return boardMapper.toResult(saved);
     }
@@ -122,7 +130,8 @@ public class BoardCommandService {
      * @return 게시글 엔티티
      * @throws ResourceNotFoundException 게시글을 찾을 수 없는 경우
      */
-    private Board loadBoardOrThrow(Long id) {
+    @NonNull
+    private Board loadBoardOrThrow(@NonNull Long id) {
         return boardRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(messageUtils.getMessage("error.board.not-found.id", id)));
     }
