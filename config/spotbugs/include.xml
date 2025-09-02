@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+    <!-- 모든 Java 파일 포함 -->
+    <Match>
+        <Class name="~.*"/>
+    </Match>
+    
+    <!-- 모든 보안 관련 버그 패턴 강제 검사 -->
+    <Match>
+        <Bug category="SECURITY"/>
+    </Match>
+    
+    <!-- 모든 성능 관련 버그 패턴 강제 검사 -->
+    <Match>
+        <Bug category="PERFORMANCE"/>
+    </Match>
+    
+    <!-- 모든 정확성 관련 버그 패턴 강제 검사 -->
+    <Match>
+        <Bug category="CORRECTNESS"/>
+    </Match>
+    
+    <!-- 모든 멀티스레딩 관련 버그 패턴 강제 검사 -->
+    <Match>
+        <Bug category="MT_CORRECTNESS"/>
+    </Match>
+</FindBugsFilter>
