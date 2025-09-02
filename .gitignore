@@ -47,5 +47,7 @@ application-local.yaml
 application-local.properties
 
 ### Security & Credentials ###
-# SonarCloud token and other sensitive properties
-gradle.properties
+# Local developer configuration with sensitive properties
+# (SonarCloud tokens, passwords, etc.)
+gradle-local.properties
+# Note: gradle.properties is tracked for version management
