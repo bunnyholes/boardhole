@@ -3,6 +3,9 @@ package bunny.boardhole.user.domain;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.DynamicUpdate;
+import org.springframework.lang.NonNull;
+import org.springframework.util.Assert;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -13,6 +16,7 @@ import java.time.LocalDateTime;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @ToString(exclude = {"password", "roles"})
 @Entity
+@DynamicUpdate
 @Table(name = "users", indexes = {
         @Index(name = "idx_user_username", columnList = "username"),
         @Index(name = "idx_user_email", columnList = "email"),
@@ -64,7 +68,15 @@ public class User implements Serializable {
 
     // 필요한 필드만 받는 생성자에 @Builder 적용
     @Builder
-    public User(String username, String password, String name, String email, java.util.Set<Role> roles) {
+    public User(@NonNull String username, @NonNull String password, @NonNull String name, @NonNull String email, java.util.Set<Role> roles) {
+        Assert.hasText(username, "사용자명은 필수입니다");
+        Assert.isTrue(username.length() <= 20, "사용자명은 20자를 초과할 수 없습니다");
+        Assert.hasText(password, "비밀번호는 필수입니다");
+        Assert.hasText(name, "이름은 필수입니다");
+        Assert.isTrue(name.length() <= 50, "이름은 50자를 초과할 수 없습니다");
+        Assert.hasText(email, "이메일은 필수입니다");
+        Assert.isTrue(email.length() <= 255, "이메일은 255자를 초과할 수 없습니다");
+        
         this.username = username;
         this.password = password;
         this.name = name;
@@ -84,15 +96,20 @@ public class User implements Serializable {
         updatedAt = LocalDateTime.now();
     }
 
-    public void changeName(String name) {
+    public void changeName(@NonNull String name) {
+        Assert.hasText(name, "이름은 필수입니다");
+        Assert.isTrue(name.length() <= 50, "이름은 50자를 초과할 수 없습니다");
         this.name = name;
     }
 
-    public void changeEmail(String email) {
+    public void changeEmail(@NonNull String email) {
+        Assert.hasText(email, "이메일은 필수입니다");
+        Assert.isTrue(email.length() <= 255, "이메일은 255자를 초과할 수 없습니다");
         this.email = email;
     }
 
-    public void changePassword(String password) {
+    public void changePassword(@NonNull String password) {
+        Assert.hasText(password, "비밀번호는 필수입니다");
         this.password = password;
     }
 

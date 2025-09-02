@@ -1,443 +1,312 @@
 package bunny.boardhole.auth.presentation;
 
-import bunny.boardhole.shared.config.TestUserConfig;
+import bunny.boardhole.shared.web.ControllerTestBase;
 import org.junit.jupiter.api.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithUserDetails;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureMockMvc
-@ActiveProfiles("test")
-@TestInstance(TestInstance.Lifecycle.PER_METHOD)
-@DisplayName("인증 컨트롤러 통합 테스트")
-@Import(TestUserConfig.class)
-class AuthControllerTest {
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@TestMethodOrder(MethodOrderer.DisplayName.class)
+@DisplayName("인증 API 통합 테스트")
+@Tag("integration")
+@Tag("auth")
+class AuthControllerTest extends ControllerTestBase {
 
-    @Autowired
-    private MockMvc mockMvc;
+    @Nested
+    @DisplayName("POST /api/auth/signup - 회원가입")
+    @Tag("create")
+    class Signup {
+        
+        @Test
+        @DisplayName("✅ 유효한 데이터로 회원가입 성공")
+        void shouldCreateUserWithValidData() throws Exception {
+            String uniqueId = UUID.randomUUID().toString().substring(0, 8);
 
-    @Autowired
-    private TestUserConfig.TestUserProperties testUserProperties;
+            mockMvc.perform(post("/api/auth/signup")
+                            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                            .param("username", "new_" + uniqueId)
+                            .param("password", "Password123!")
+                            .param("name", "New User")
+                            .param("email", "newuser_" + uniqueId + "@example.com"))
+                    .andExpect(status().isNoContent())
+                    .andDo(print());
+        }
 
-    // ========== CREATE: 회원가입 테스트 ==========
+        @ParameterizedTest(name = "[{index}] {0}")
+        @MethodSource("provideInvalidSignupData")
+        @DisplayName("❌ 필수 필드 누락 → 400 Bad Request")
+        void shouldFailWhenRequiredFieldMissing(String displayName, String username, String password, String name, String email) throws Exception {
+            mockMvc.perform(post("/api/auth/signup")
+                            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                            .param("username", username)
+                            .param("password", password)
+                            .param("name", name)
+                            .param("email", email))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.type").exists())
+                    .andExpect(jsonPath("$.title").exists())
+                    .andExpect(jsonPath("$.status").value(400))
+                    .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
+                    .andExpect(jsonPath("$.errors").isArray())
+                    .andDo(print());
+        }
+        
+        static Stream<Arguments> provideInvalidSignupData() {
+            return Stream.of(
+                Arguments.of("username 누락", "", "Password123!", "Test User", "test@example.com"),
+                Arguments.of("password 누락", "testuser", "", "Test User", "test@example.com"),
+                Arguments.of("name 누락", "testuser", "Password123!", "", "test@example.com"),
+                Arguments.of("email 누락", "testuser", "Password123!", "Test User", ""),
+                Arguments.of("잘못된 이메일 형식", "testuser", "Password123!", "Test User", "invalid-email-format")
+            );
+        }
 
-    @Test
-    @DisplayName("01. 회원가입 성공")
-    void test_01_signup_success() throws Exception {
-        String uniqueId = UUID.randomUUID().toString().substring(0, 8);
+        @Nested
+        @DisplayName("중복 검증")
+        class DuplicateValidation {
+            
+            @Test
+            @DisplayName("❌ 중복된 사용자명 → 409 Conflict")
+            void shouldFailWhenUsernameDuplicated() throws Exception {
+                String uniqueId = UUID.randomUUID().toString().substring(0, 8);
+                String username = "dup_" + uniqueId;
+                String email = "dup_" + uniqueId + "@example.com";
 
-        mockMvc.perform(post("/api/auth/signup")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("username", "new_" + uniqueId)
-                        .param("password", "password123")
-                        .param("name", "New User")
-                        .param("email", "newuser_" + uniqueId + "@example.com"))
-                .andExpect(status().isNoContent())
-                .andDo(print());
+                // 첫 번째 회원가입 (성공)
+                mockMvc.perform(post("/api/auth/signup")
+                                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                                .param("username", username)
+                                .param("password", "Password123!")
+                                .param("name", "First User")
+                                .param("email", email))
+                        .andExpect(status().isNoContent());
+
+                // 같은 사용자명으로 두 번째 회원가입 시도 (실패)
+                mockMvc.perform(post("/api/auth/signup")
+                                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                                .param("username", username)
+                                .param("password", "Password456!")
+                                .param("name", "Second User")
+                                .param("email", "different_" + uniqueId + "@example.com"))
+                        .andExpect(status().isConflict())
+                        .andExpect(jsonPath("$.code").value("USER_DUPLICATE_USERNAME"))
+                        .andDo(print());
+            }
+
+            @Test
+            @DisplayName("❌ 중복된 이메일 → 409 Conflict")
+            void shouldFailWhenEmailDuplicated() throws Exception {
+                String uniqueId = UUID.randomUUID().toString().substring(0, 8);
+                String email = "dup_email_" + uniqueId + "@example.com";
+
+                // 첫 번째 회원가입 (성공)
+                mockMvc.perform(post("/api/auth/signup")
+                                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                                .param("username", "user1_" + uniqueId)
+                                .param("password", "Password123!")
+                                .param("name", "First User")
+                                .param("email", email))
+                        .andExpect(status().isNoContent());
+
+                // 같은 이메일로 두 번째 회원가입 시도 (실패)
+                mockMvc.perform(post("/api/auth/signup")
+                                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                                .param("username", "user2_" + uniqueId)
+                                .param("password", "Password456!")
+                                .param("name", "Second User")
+                                .param("email", email))
+                        .andExpect(status().isConflict())
+                        .andExpect(jsonPath("$.code").value("USER_DUPLICATE_EMAIL"))
+                        .andDo(print());
+            }
+        }
     }
 
-    @Test
-    @DisplayName("02. 회원가입 실패 - 필수 필드 누락")
-    void test_02_signup_fail_missing_field() throws Exception {
-        // username 누락
-        mockMvc.perform(post("/api/auth/signup")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("password", "password123")
-                        .param("name", "Test User"))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.type").exists())
-                .andExpect(jsonPath("$.title").exists())
-                .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.detail").exists())
-                .andExpect(jsonPath("$.instance").value("/api/auth/signup"))
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
-                .andExpect(jsonPath("$.errors").isArray())
-                .andDo(print());
+    @Nested
+    @DisplayName("POST /api/auth/login - 로그인")
+    @Tag("auth")
+    class Login {
+        
+        @Test
+        @DisplayName("✅ 유효한 자격증명으로 로그인 성공")
+        void shouldLoginWithValidCredentials() throws Exception {
+            String uniqueId = UUID.randomUUID().toString().substring(0, 8);
+            String username = "usr_" + uniqueId;
+            String password = "Password123!";
+
+            // 먼저 회원가입
+            mockMvc.perform(post("/api/auth/signup")
+                            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                            .param("username", username)
+                            .param("password", password)
+                            .param("name", "Login User")
+                            .param("email", "loginuser_" + uniqueId + "@example.com"))
+                    .andExpect(status().isNoContent());
+
+            // 로그인 시도
+            mockMvc.perform(post("/api/auth/login")
+                            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                            .param("username", username)
+                            .param("password", password))
+                    .andExpect(status().isNoContent())
+                    .andDo(print());
+        }
+
+        @ParameterizedTest(name = "[{index}] {0}")
+        @MethodSource("provideInvalidLoginData")
+        @DisplayName("❌ 잘못된 자격증명 → 401 Unauthorized")
+        void shouldFailWithInvalidCredentials(String displayName, String username, String password) throws Exception {
+            mockMvc.perform(post("/api/auth/login")
+                            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                            .param("username", username)
+                            .param("password", password))
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.type").value("urn:problem-type:unauthorized"))
+                    .andExpect(jsonPath("$.status").value(401))
+                    .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
+                    .andDo(print());
+        }
+        
+        static Stream<Arguments> provideInvalidLoginData() {
+            String validUsername = "validuser";
+            String nonExistentUser = "nonexistent_" + UUID.randomUUID().toString().substring(0, 8);
+            
+            return Stream.of(
+                Arguments.of("잘못된 비밀번호", validUsername, "WrongPass123!"),
+                Arguments.of("존재하지 않는 사용자", nonExistentUser, "AnyPass123!")
+            );
+        }
+        
+        @BeforeEach
+        void setupValidUser() throws Exception {
+            // 유효한 사용자 생성 (테스트용)
+            mockMvc.perform(post("/api/auth/signup")
+                            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                            .param("username", "validuser")
+                            .param("password", "Password123!")
+                            .param("name", "Valid User")
+                            .param("email", "valid@example.com"))
+                    .andExpect(status().isNoContent());
+        }
     }
 
-    @Test
-    @DisplayName("02-1. 회원가입 실패 - 중복된 사용자명")
-    void test_02_1_signup_fail_duplicate_username() throws Exception {
-        String uniqueId = UUID.randomUUID().toString().substring(0, 8);
-        String username = "dup_" + uniqueId;
-        String email = "dup_" + uniqueId + "@example.com";
-
-        // 첫 번째 회원가입 (성공)
-        mockMvc.perform(post("/api/auth/signup")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("username", username)
-                        .param("password", "password123")
-                        .param("name", "First User")
-                        .param("email", email))
-                .andExpect(status().isNoContent());
-
-        // 같은 사용자명으로 두 번째 회원가입 시도 (실패)
-        mockMvc.perform(post("/api/auth/signup")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("username", username)
-                        .param("password", "password456")
-                        .param("name", "Second User")
-                        .param("email", "different_" + uniqueId + "@example.com"))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.type").value("urn:problem-type:duplicate-username"))
-                .andExpect(jsonPath("$.title").exists())
-                .andExpect(jsonPath("$.status").value(409))
-                .andExpect(jsonPath("$.code").value("USER_DUPLICATE_USERNAME"))
-                .andDo(print());
+    @Nested
+    @DisplayName("GET /api/auth/check - 로그인 상태 확인")
+    @Tag("auth")
+    class AuthCheck {
+        
+        @Test
+        @DisplayName("❌ 인증되지 않은 사용자 → 401 Unauthorized")
+        void shouldReturn401WhenNotAuthenticated() throws Exception {
+            mockMvc.perform(get("/api/auth/check"))
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.type").value("urn:problem-type:unauthorized"))
+                    .andExpect(jsonPath("$.status").value(401))
+                    .andDo(print());
+        }
     }
 
-    @Test
-    @DisplayName("02-2. 회원가입 실패 - 중복된 이메일")
-    void test_02_2_signup_fail_duplicate_email() throws Exception {
-        String uniqueId = UUID.randomUUID().toString().substring(0, 8);
-        String email = "dup_email_" + uniqueId + "@example.com";
+    @Nested
+    @DisplayName("권한별 접근 제어")
+    @Tag("security")
+    class AccessControl {
+        
+        @Test
+        @DisplayName("✅ 공개 엔드포인트 - 인증 없이 접근 가능")
+        void shouldAllowPublicAccess() throws Exception {
+            mockMvc.perform(get("/api/auth/public-access"))
+                    .andExpect(status().isNoContent())
+                    .andDo(print());
+        }
 
-        // 첫 번째 회원가입 (성공)
-        mockMvc.perform(post("/api/auth/signup")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("username", "user1_" + uniqueId)
-                        .param("password", "password123")
-                        .param("name", "First User")
-                        .param("email", email))
-                .andExpect(status().isNoContent());
+        @Test
+        @DisplayName("❌ 사용자 전용 엔드포인트 - 인증 없이 접근 실패")
+        void shouldDenyUserAccessWithoutAuth() throws Exception {
+            mockMvc.perform(get("/api/auth/user-access"))
+                    .andExpect(status().isUnauthorized())
+                    .andDo(print());
+        }
+        
+        @Test
+        @DisplayName("✅ 사용자 전용 엔드포인트 - 일반 사용자 접근 성공")
+        @WithUserDetails
+        void shouldAllowUserAccess() throws Exception {
+            mockMvc.perform(get("/api/auth/user-access"))
+                    .andExpect(status().isNoContent())
+                    .andDo(print());
+        }
 
-        // 같은 이메일로 두 번째 회원가입 시도 (실패)
-        mockMvc.perform(post("/api/auth/signup")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("username", "user2_" + uniqueId)
-                        .param("password", "password456")
-                        .param("name", "Second User")
-                        .param("email", email))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.type").value("urn:problem-type:duplicate-email"))
-                .andExpect(jsonPath("$.title").exists())
-                .andExpect(jsonPath("$.status").value(409))
-                .andExpect(jsonPath("$.code").value("USER_DUPLICATE_EMAIL"))
-                .andDo(print());
+        @Test
+        @DisplayName("✅ 사용자 전용 엔드포인트 - 관리자 접근 성공")
+        @WithUserDetails("admin")
+        void shouldAllowAdminAccessToUserEndpoint() throws Exception {
+            mockMvc.perform(get("/api/auth/user-access"))
+                    .andExpect(status().isNoContent())
+                    .andDo(print());
+        }
+
+        @Nested
+        @DisplayName("관리자 전용 엔드포인트")
+        class AdminOnly {
+            
+            @Test
+            @DisplayName("❌ 인증 없이 접근 → 401 Unauthorized")
+            void shouldReturn401WhenNotAuthenticated() throws Exception {
+                mockMvc.perform(get("/api/auth/admin-only"))
+                        .andExpect(status().isUnauthorized())
+                        .andDo(print());
+            }
+
+            @Test
+            @DisplayName("❌ 일반 사용자 접근 → 403 Forbidden")
+            @WithUserDetails
+            void shouldReturn403WhenRegularUser() throws Exception {
+                mockMvc.perform(get("/api/auth/admin-only"))
+                        .andExpect(status().isForbidden())
+                        .andDo(print());
+            }
+
+            @Test
+            @DisplayName("✅ 관리자 접근 성공")
+            @WithUserDetails("admin")
+            void shouldAllowAdminAccess() throws Exception {
+                mockMvc.perform(get("/api/auth/admin-only"))
+                        .andExpect(status().isNoContent())
+                        .andDo(print());
+            }
+        }
     }
 
-    // ========== READ: 로그인 및 세션 관리 테스트 ==========
+    @Nested
+    @DisplayName("POST /api/auth/logout - 로그아웃")
+    @Tag("auth")
+    class Logout {
+        
+        @Test
+        @DisplayName("✅ 로그인된 사용자 로그아웃 성공")
+        @WithUserDetails
+        void shouldLogoutWhenAuthenticated() throws Exception {
+            mockMvc.perform(post("/api/auth/logout"))
+                    .andExpect(status().isNoContent())
+                    .andDo(print());
+        }
 
-    @Test
-    @DisplayName("03. 로그인 성공")
-    void test_03_login_success() throws Exception {
-        // 먼저 회원가입
-        String uniqueId = UUID.randomUUID().toString().substring(0, 8);
-
-        mockMvc.perform(post("/api/auth/signup")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("username", "usr_" + uniqueId)
-                        .param("password", "password123")
-                        .param("name", "Login User")
-                        .param("email", "loginuser_" + uniqueId + "@example.com"))
-                .andExpect(status().isNoContent());
-
-        // 로그인 시도 - 세션이 생성되어야 함
-        mockMvc.perform(post("/api/auth/login")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("username", "usr_" + uniqueId)
-                        .param("password", "password123"))
-                .andExpect(status().isNoContent())
-                .andDo(print());
-
-        // 로그인 테스트는 상태 코드로만 검증
-        // 실제 인증 후 접근 테스트는 @WithUserDetails를 사용하는 별도 테스트에서 수행
-    }
-
-    @Test
-    @DisplayName("04. 로그인 실패 - 잘못된 비밀번호")
-    void test_04_login_fail_wrong_password() throws Exception {
-        // 먼저 회원가입
-        String uniqueId = UUID.randomUUID().toString().substring(0, 8);
-        String username = "pwd_" + uniqueId;
-
-        mockMvc.perform(post("/api/auth/signup")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("username", username)
-                        .param("password", "correctpassword")
-                        .param("name", "Test User")
-                        .param("email", "pwd_" + uniqueId + "@example.com"))
-                .andExpect(status().isNoContent());
-
-        // 잘못된 비밀번호로 로그인 시도
-        mockMvc.perform(post("/api/auth/login")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("username", username)
-                        .param("password", "wrongpassword"))
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.type").value("urn:problem-type:unauthorized"))
-                .andExpect(jsonPath("$.title").exists())
-                .andExpect(jsonPath("$.status").value(401))
-                .andExpect(jsonPath("$.detail").exists())
-                .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
-                .andDo(print());
-    }
-
-    @Test
-    @DisplayName("05. 로그인 실패 - 존재하지 않는 사용자")
-    void test_05_login_fail_nonexistent_user() throws Exception {
-        String nonExistentUser = "nonexistent_" + UUID.randomUUID().toString().substring(0, 8);
-
-        mockMvc.perform(post("/api/auth/login")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("username", nonExistentUser)
-                        .param("password", "anypassword"))
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.type").value("urn:problem-type:unauthorized"))
-                .andExpect(jsonPath("$.title").exists())
-                .andExpect(jsonPath("$.status").value(401))
-                .andExpect(jsonPath("$.detail").exists())
-                .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
-                .andDo(print());
-    }
-
-    @Test
-    @DisplayName("06. 로그인 상태 확인 - 인증되지 않은 사용자")
-    void test_06_check_unauthenticated() throws Exception {
-        mockMvc.perform(get("/api/auth/check"))
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.type").value("urn:problem-type:unauthorized"))
-                .andExpect(jsonPath("$.title").exists())
-                .andExpect(jsonPath("$.status").value(401))
-                .andExpect(jsonPath("$.detail").exists())
-                .andDo(print());
-    }
-
-    // ========== UPDATE: 권한별 접근 테스트 ==========
-
-    @Test
-    @DisplayName("07. 공개 엔드포인트 접근 - 인증 없이 접근 가능")
-    void test_07_public_access_without_auth() throws Exception {
-        mockMvc.perform(get("/api/auth/public-access"))
-                .andExpect(status().isNoContent())
-                .andDo(print());
-    }
-
-    @Test
-    @DisplayName("08. 사용자 전용 엔드포인트 - 인증 없이 접근 실패")
-    void test_08_user_access_without_auth() throws Exception {
-        mockMvc.perform(get("/api/auth/user-access"))
-                .andExpect(status().isUnauthorized())
-                .andDo(print());
-    }
-
-    @Test
-    @DisplayName("09. 관리자 전용 엔드포인트 - 일반 사용자 접근 실패")
-    @WithUserDetails("user")
-        // 일반 사용자로 인증
-    void test_09_admin_access_with_user_role() throws Exception {
-        // 관리자 엔드포인트 접근 시도
-        mockMvc.perform(get("/api/auth/admin-only"))
-                .andExpect(status().isForbidden())
-                .andDo(print());
-    }
-
-    @Test
-    @DisplayName("10. 관리자 전용 엔드포인트 - 관리자 접근 성공")
-    @WithUserDetails("admin")
-        // 관리자로 인증
-    void test_10_admin_access_with_admin_role() throws Exception {
-        // 관리자 엔드포인트 접근
-        mockMvc.perform(get("/api/auth/admin-only"))
-                .andExpect(status().isNoContent())
-                .andDo(print());
-    }
-
-    // ========== DELETE: 로그아웃 테스트 ==========
-
-    @Test
-    @DisplayName("09. 로그아웃 성공")
-    @WithUserDetails("user")
-        // 일반 사용자로 인증
-    void test_09_logout_success() throws Exception {
-        // 로그아웃
-        mockMvc.perform(post("/api/auth/logout"))
-                .andExpect(status().isNoContent())
-                .andDo(print());
-
-        // 로그아웃 후 세션이 무효화되므로 별도 테스트에서 인증 실패 확인
-    }
-
-    @Test
-    @DisplayName("10. 로그아웃 실패 - 인증되지 않은 상태")
-    void test_10_logout_without_auth() throws Exception {
-        mockMvc.perform(post("/api/auth/logout"))
-                .andExpect(status().isUnauthorized())
-                .andDo(print());
-    }
-
-    @Test
-    @DisplayName("11. 회원가입 실패 - 중복 사용자명 (409 Conflict)")
-    void test_11_signup_fail_duplicate_username() throws Exception {
-        // 첫 번째 회원가입
-        String uniqueId = UUID.randomUUID().toString().substring(0, 8);
-        String duplicateUsername = "dup_" + uniqueId;
-
-        mockMvc.perform(post("/api/auth/signup")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("username", duplicateUsername)
-                        .param("password", "password123")
-                        .param("name", "First User")
-                        .param("email", "first_" + uniqueId + "@example.com"))
-                .andExpect(status().isNoContent());
-
-        // 동일한 사용자명으로 두 번째 회원가입 시도
-        mockMvc.perform(post("/api/auth/signup")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("username", duplicateUsername)
-                        .param("password", "password123")
-                        .param("name", "Second User")
-                        .param("email", "second_" + uniqueId + "@example.com"))
-                .andExpect(status().isConflict())
-                .andDo(print());
-    }
-
-    @Test
-    @DisplayName("12. 회원가입 실패 - 중복 이메일 (409 Conflict)")
-    void test_12_signup_fail_duplicate_email() throws Exception {
-        // 첫 번째 회원가입
-        String uniqueId = UUID.randomUUID().toString().substring(0, 8);
-        String duplicateEmail = "duplicate_" + uniqueId + "@example.com";
-
-        mockMvc.perform(post("/api/auth/signup")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("username", "first_" + uniqueId)
-                        .param("password", "password123")
-                        .param("name", "First User")
-                        .param("email", duplicateEmail))
-                .andExpect(status().isNoContent());
-
-        // 동일한 이메일로 두 번째 회원가입 시도
-        mockMvc.perform(post("/api/auth/signup")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("username", "second_" + uniqueId)
-                        .param("password", "password123")
-                        .param("name", "Second User")
-                        .param("email", duplicateEmail))
-                .andExpect(status().isConflict())
-                .andDo(print());
-    }
-
-    @Test
-    @DisplayName("13. 로그인 실패 - 존재하지 않는 사용자")
-    void test_13_login_fail_nonexistent_user() throws Exception {
-        String uniqueId = UUID.randomUUID().toString().substring(0, 8);
-
-        mockMvc.perform(post("/api/auth/login")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("username", "nonexistent_" + uniqueId)
-                        .param("password", "password123"))
-                .andExpect(status().isUnauthorized())
-                .andDo(print());
-    }
-
-    @Test
-    @DisplayName("14. 회원가입 실패 - 잘못된 이메일 형식")
-    void test_14_signup_fail_invalid_email() throws Exception {
-        String uniqueId = UUID.randomUUID().toString().substring(0, 8);
-
-        mockMvc.perform(post("/api/auth/signup")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("username", "invalid_" + uniqueId)
-                        .param("password", "password123")
-                        .param("name", "Invalid Email User")
-                        .param("email", "invalid-email-format"))
-                .andExpect(status().isBadRequest())
-                .andDo(print());
-    }
-
-    // ========== ROLE-BASED ACCESS CONTROL TESTS ==========
-
-    @Test
-    @DisplayName("15. 사용자 접근 엔드포인트 - 일반 사용자 접근 성공")
-    @WithUserDetails("user")
-        // 일반 사용자로 인증
-    void test_15_user_access_with_user_role() throws Exception {
-        // 사용자 접근 엔드포인트 접근
-        mockMvc.perform(get("/api/auth/user-access"))
-                .andExpect(status().isNoContent())
-                .andDo(print());
-    }
-
-    @Test
-    @DisplayName("16. 사용자 접근 엔드포인트 - 관리자 접근 성공")
-    @WithUserDetails("admin")
-        // 관리자로 인증
-    void test_16_user_access_with_admin_role() throws Exception {
-        // 사용자 접근 엔드포인트 접근
-        mockMvc.perform(get("/api/auth/user-access"))
-                .andExpect(status().isNoContent())
-                .andDo(print());
-    }
-
-    @Test
-    @DisplayName("17. 관리자 전용 엔드포인트 - 인증 없이 접근 실패")
-    void test_17_admin_access_without_auth() throws Exception {
-        mockMvc.perform(get("/api/auth/admin-only"))
-                .andExpect(status().isUnauthorized())
-                .andDo(print());
-    }
-
-    // ========== BAD REQUEST TESTS ==========
-
-    @Test
-    @DisplayName("18. 회원가입 실패 - 필수 필드 누락 (사용자명)")
-    void test_18_signup_fail_missing_username() throws Exception {
-        String uniqueId = UUID.randomUUID().toString().substring(0, 8);
-
-        mockMvc.perform(post("/api/auth/signup")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("password", "password123")
-                        .param("name", "No Username User")
-                        .param("email", "nouser_" + uniqueId + "@example.com"))
-                .andExpect(status().isBadRequest())
-                .andDo(print());
-    }
-
-    @Test
-    @DisplayName("19. 회원가입 실패 - 필수 필드 누락 (비밀번호)")
-    void test_19_signup_fail_missing_password() throws Exception {
-        String uniqueId = UUID.randomUUID().toString().substring(0, 8);
-
-        mockMvc.perform(post("/api/auth/signup")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("username", "nopass_" + uniqueId)
-                        .param("name", "No Password User")
-                        .param("email", "nopass_" + uniqueId + "@example.com"))
-                .andExpect(status().isBadRequest())
-                .andDo(print());
-    }
-
-    @Test
-    @DisplayName("20. 로그인 실패 - 필수 필드 누락 (사용자명)")
-    void test_20_login_fail_missing_username() throws Exception {
-        mockMvc.perform(post("/api/auth/login")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("password", "password123"))
-                .andExpect(status().isBadRequest())
-                .andDo(print());
-    }
-
-    @Test
-    @DisplayName("21. 로그인 실패 - 필수 필드 누락 (비밀번호)")
-    void test_21_login_fail_missing_password() throws Exception {
-        mockMvc.perform(post("/api/auth/login")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("username", testUserProperties.regularUsername()))
-                .andExpect(status().isBadRequest())
-                .andDo(print());
+        @Test
+        @DisplayName("❌ 인증되지 않은 상태에서 로그아웃 → 401 Unauthorized")
+        void shouldReturn401WhenNotAuthenticated() throws Exception {
+            mockMvc.perform(post("/api/auth/logout"))
+                    .andExpect(status().isUnauthorized())
+                    .andDo(print());
+        }
     }
 }

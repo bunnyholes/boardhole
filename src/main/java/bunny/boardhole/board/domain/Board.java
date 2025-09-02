@@ -4,6 +4,9 @@ import bunny.boardhole.user.domain.User;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.DynamicUpdate;
+import org.springframework.lang.NonNull;
+import org.springframework.util.Assert;
 
 import java.time.LocalDateTime;
 
@@ -13,6 +16,7 @@ import java.time.LocalDateTime;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @ToString(exclude = {"author"})
 @Entity
+@DynamicUpdate
 @Table(name = "boards", indexes = {
         @Index(name = "idx_board_title", columnList = "title"),
         @Index(name = "idx_board_created_at", columnList = "created_at")
@@ -56,7 +60,13 @@ public class Board {
 
     // 필요한 필드만 받는 생성자에 @Builder 적용
     @Builder
-    public Board(String title, String content, User author) {
+    public Board(@NonNull String title, @NonNull String content, @NonNull User author) {
+        Assert.hasText(title, "게시글 제목은 필수입니다");
+        Assert.isTrue(title.length() <= 200, "게시글 제목은 200자를 초과할 수 없습니다");
+        Assert.hasText(content, "게시글 내용은 필수입니다");
+        Assert.isTrue(content.length() <= 10000, "게시글 내용은 10000자를 초과할 수 없습니다");
+        Assert.notNull(author, "작성자는 필수입니다");
+        
         this.title = title;
         this.content = content;
         this.author = author;
@@ -75,11 +85,15 @@ public class Board {
         updatedAt = LocalDateTime.now();
     }
 
-    public void changeTitle(String title) {
+    public void changeTitle(@NonNull String title) {
+        Assert.hasText(title, "게시글 제목은 필수입니다");
+        Assert.isTrue(title.length() <= 200, "게시글 제목은 200자를 초과할 수 없습니다");
         this.title = title;
     }
 
-    public void changeContent(String content) {
+    public void changeContent(@NonNull String content) {
+        Assert.hasText(content, "게시글 내용은 필수입니다");
+        Assert.isTrue(content.length() <= 10000, "게시글 내용은 10000자를 초과할 수 없습니다");
         this.content = content;
     }
 

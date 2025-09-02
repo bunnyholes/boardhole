@@ -1,19 +1,11 @@
 package bunny.boardhole.shared.exception;
 
 import bunny.boardhole.board.domain.Board;
-import bunny.boardhole.board.infrastructure.BoardRepository;
-import bunny.boardhole.shared.config.TestUserConfig;
-import bunny.boardhole.user.infrastructure.UserRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import bunny.boardhole.shared.web.ControllerTestBase;
 import org.junit.jupiter.api.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.test.context.support.WithUserDetails;
-import org.springframework.test.web.servlet.*;
+import org.springframework.test.web.servlet.MvcResult;
 
 import java.util.*;
 
@@ -22,26 +14,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureMockMvc
 @DisplayName("에러 처리 통합 테스트")
-@Import(TestUserConfig.class)
-public class ErrorHandlingIntegrationTest {
-
-    @Autowired
-    private MockMvc mockMvc;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @Autowired
-    private TestUserConfig.TestUserProperties testUserProperties;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private BoardRepository boardRepository;
+public class ErrorHandlingIntegrationTest extends ControllerTestBase {
 
     @Test
     @DisplayName("E2E: 404 Not Found - 존재하지 않는 리소스")
@@ -68,14 +42,10 @@ public class ErrorHandlingIntegrationTest {
 
     @Test
     @DisplayName("E2E: 400 Bad Request - 유효성 검증 실패")
-    @WithUserDetails("user")
+    @WithUserDetails
     void test_400_validation_error() throws Exception {
-        // 로그인
-        MockHttpSession session = loginAsUser();
-
         // 제목 없이 게시글 생성 시도
         mockMvc.perform(post("/api/boards")
-                        .session(session)
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("content", "Content without title"))
                 .andExpect(status().isBadRequest())
@@ -126,7 +96,7 @@ public class ErrorHandlingIntegrationTest {
         mockMvc.perform(post("/api/auth/signup")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("username", username)
-                        .param("password", "password123")
+                        .param("password", "Password123!")
                         .param("name", "First User")
                         .param("email", email1))
                 .andExpect(status().isNoContent());
@@ -135,7 +105,7 @@ public class ErrorHandlingIntegrationTest {
         mockMvc.perform(post("/api/auth/signup")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("username", username)
-                        .param("password", "password456")
+                        .param("password", "Password456!")
                         .param("name", "Second User")
                         .param("email", email2))
                 .andExpect(status().isConflict())
@@ -172,29 +142,26 @@ public class ErrorHandlingIntegrationTest {
 
     @Test
     @DisplayName("E2E: 다른 사용자의 리소스 수정 시도")
+    @WithUserDetails
     void test_403_forbidden_resource_owner() throws Exception {
-        // 첫 번째 사용자로 게시글 데이터 시드
-        var user1 = userRepository.findByUsername(testUserProperties.regularUsername());
+        // 다른 사용자(현재 user가 아닌)의 게시글 데이터 시드
+        String owner = "owner_" + UUID.randomUUID().toString().substring(0, 8);
+        var ownerUser = userRepository.save(bunny.boardhole.user.domain.User.builder()
+                .username(owner)
+                .password("plain")
+                .name("Owner")
+                .email(owner + "@example.com")
+                .roles(new java.util.HashSet<>(java.util.Set.of(bunny.boardhole.user.domain.Role.USER)))
+                .build());
+
         Long boardId = boardRepository.save(Board.builder()
-                .title("User1's Board")
-                .content("User1's Content")
-                .author(user1)
+                .title("Owner's Board")
+                .content("Owner's Content")
+                .author(ownerUser)
                 .build()).getId();
 
-        // 두 번째 사용자 생성 및 로그인
-        String user2Id = UUID.randomUUID().toString().substring(0, 8);
-        mockMvc.perform(post("/api/auth/signup")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("username", "other_" + user2Id)
-                        .param("password", "password123")
-                        .param("name", "Other User")
-                        .param("email", "other_" + user2Id + "@example.com"))
-                .andExpect(status().isNoContent());
-
-        // 다른 사용자가 수정 시도 (보안 주체 직접 주입)
-        var otherPrincipal = new bunny.boardhole.shared.security.AppUserPrincipal(userRepository.findByUsername("other_" + user2Id));
+        // 현재 사용자(user)가 타인의 게시글 수정 시도 → 403 기대
         mockMvc.perform(put("/api/boards/" + boardId)
-                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user(otherPrincipal))
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("title", "Hacked Title")
                         .param("content", "Hacked Content"))
@@ -227,27 +194,6 @@ public class ErrorHandlingIntegrationTest {
     }
 
     // Helper methods
-    private MockHttpSession loginAsUser() throws Exception {
-        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("username", testUserProperties.regularUsername())
-                        .param("password", testUserProperties.regularPassword()))
-                .andExpect(status().isNoContent())
-                .andReturn();
-
-        return (MockHttpSession) loginResult.getRequest().getSession();
-    }
-
-    private MockHttpSession loginAsAdmin() throws Exception {
-        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("username", testUserProperties.adminUsername())
-                        .param("password", testUserProperties.adminPassword()))
-                .andExpect(status().isNoContent())
-                .andReturn();
-
-        return (MockHttpSession) loginResult.getRequest().getSession();
-    }
 
     private Long extractBoardId(String jsonResponse) {
         return Long.parseLong(jsonResponse.replaceAll(".*\"id\":(\\d+).*", "$1"));

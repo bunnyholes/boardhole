@@ -44,6 +44,9 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
+        // 주의: 이 초기화기는 모든 환경(프로덕션 포함)에서 항상 실행되어
+        // 기본 관리자/사용자 계정과 환영 게시글을 삽입합니다.
+        // 중복 삽입을 피하기 위해 존재 여부를 확인하는 멱등 로직으로 설계되어 있습니다.
         log.info(messageSource.getMessage("log.user.init.start", null, LocaleContextHolder.getLocale()));
 
         // 관리자 계정 확인 및 생성
