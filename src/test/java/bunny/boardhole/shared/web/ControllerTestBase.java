@@ -6,6 +6,9 @@ import bunny.boardhole.shared.config.TestUserConfig;
 import bunny.boardhole.user.domain.*;
 import bunny.boardhole.user.infrastructure.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.util.Set;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -47,7 +50,7 @@ public abstract class ControllerTestBase {
         return boardRepository.save(board).getId();
     }
 
-    protected Long seedUser(String username, String name, String email, String rawPassword, java.util.Set<Role> roles) {
+    protected Long seedUser(String username, String name, String email, String rawPassword, Set<Role> roles) {
         User existing = userRepository.findByUsername(username);
         if (existing != null) return existing.getId();
         User user = User.builder()
@@ -55,7 +58,7 @@ public abstract class ControllerTestBase {
                 .password(rawPassword) // tests should not authenticate with this; used for data only
                 .name(name)
                 .email(email)
-                .userRoles(roles)
+                .roles(roles)
                 .build();
         return userRepository.save(user).getId();
     }

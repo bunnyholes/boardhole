@@ -2,6 +2,7 @@ package bunny.boardhole.shared.exception;
 
 import bunny.boardhole.board.domain.Board;
 import bunny.boardhole.shared.web.ControllerTestBase;
+import bunny.boardhole.user.domain.*;
 import org.junit.jupiter.api.*;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithUserDetails;
@@ -146,12 +147,12 @@ public class ErrorHandlingIntegrationTest extends ControllerTestBase {
     void test_403_forbidden_resource_owner() throws Exception {
         // 다른 사용자(현재 user가 아닌)의 게시글 데이터 시드
         String owner = "owner_" + UUID.randomUUID().toString().substring(0, 8);
-        var ownerUser = userRepository.save(bunny.boardhole.user.domain.User.builder()
+        var ownerUser = userRepository.save(User.builder()
                 .username(owner)
                 .password("plain")
                 .name("Owner")
                 .email(owner + "@example.com")
-                .userRoles(java.util.Set.of(bunny.boardhole.user.domain.Role.USER))
+                .roles(Set.of(Role.USER))
                 .build());
 
         Long boardId = boardRepository.save(Board.builder()
