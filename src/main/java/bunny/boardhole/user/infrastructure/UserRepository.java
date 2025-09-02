@@ -41,6 +41,24 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @EntityGraph(attributePaths = {"roles"})
     User findByUsername(@NotNull String username);
 
+    /**
+     * 사용자명으로 사용자 조회 (Optional)
+     *
+     * @param username 조회할 사용자명
+     * @return 사용자 엔티티 Optional
+     */
+    @EntityGraph(attributePaths = {"roles"})
+    Optional<User> findOptionalByUsername(@NotNull String username);
+
+    /**
+     * 이메일로 사용자 조회
+     *
+     * @param email 조회할 이메일
+     * @return 사용자 엔티티 Optional
+     */
+    @EntityGraph(attributePaths = {"roles"})
+    Optional<User> findByEmail(@NotNull String email);
+
     @EntityGraph(attributePaths = {"roles"})
     Optional<User> findById(Long id);
 

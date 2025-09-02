@@ -37,6 +37,7 @@ class EmailVerificationEntityTest extends EntityTestBase {
                     .userId(userId)
                     .newEmail(newEmail)
                     .expiresAt(expiresAt)
+                    .verificationType(EmailVerificationType.SIGNUP)
                     .build();
 
             // then
@@ -66,6 +67,7 @@ class EmailVerificationEntityTest extends EntityTestBase {
                     .userId(1L)
                     .newEmail(createUniqueEmail())
                     .expiresAt(getTestExpirationTime())
+                    .verificationType(EmailVerificationType.SIGNUP)
                     .build())
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessage(expectedMessage);
@@ -84,6 +86,7 @@ class EmailVerificationEntityTest extends EntityTestBase {
                     .userId(1L)
                     .newEmail("")
                     .expiresAt(getTestExpirationTime())
+                    .verificationType(EmailVerificationType.SIGNUP)
                     .build())
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessage(expectedMessage);
@@ -169,6 +172,7 @@ class EmailVerificationEntityTest extends EntityTestBase {
                     .userId(1L)
                     .newEmail(createUniqueEmail())
                     .expiresAt(LocalDateTime.now(ZoneId.systemDefault()).minusHours(1))
+                    .verificationType(EmailVerificationType.SIGNUP)
                     .build();
 
             EmailVerification validVerification = createEmailVerification();
@@ -192,6 +196,7 @@ class EmailVerificationEntityTest extends EntityTestBase {
                     .userId(1L)
                     .newEmail(createUniqueEmail())
                     .expiresAt(LocalDateTime.now(ZoneId.systemDefault()).minusHours(1))
+                    .verificationType(EmailVerificationType.SIGNUP)
                     .build();
 
             // when & then
@@ -235,6 +240,7 @@ class EmailVerificationEntityTest extends EntityTestBase {
                     .userId(1L)
                     .newEmail(createUniqueEmail())
                     .expiresAt(LocalDateTime.now(ZoneId.systemDefault()).plusHours(1))
+                    .verificationType(EmailVerificationType.SIGNUP)
                     .build();
 
             EmailVerification verification2 = EmailVerification.builder()
@@ -242,6 +248,7 @@ class EmailVerificationEntityTest extends EntityTestBase {
                     .userId(2L)
                     .newEmail(createUniqueEmail())
                     .expiresAt(LocalDateTime.now(ZoneId.systemDefault()).plusHours(2))
+                    .verificationType(EmailVerificationType.CHANGE_EMAIL)
                     .build();
 
             // when
@@ -264,6 +271,7 @@ class EmailVerificationEntityTest extends EntityTestBase {
                 .userId(1L)
                 .newEmail(createUniqueEmail())
                 .expiresAt(getTestExpirationTime())
+                .verificationType(EmailVerificationType.SIGNUP)
                 .build();
     }
 }

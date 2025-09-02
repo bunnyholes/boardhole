@@ -31,6 +31,7 @@ public final class ValidationMessages {
     public static final String EMAIL_VERIFICATION_USER_ID_REQUIRED = "validation.email-verification.user-id.required";
     public static final String EMAIL_VERIFICATION_NEW_EMAIL_REQUIRED = "validation.email-verification.new-email.required";
     public static final String EMAIL_VERIFICATION_EXPIRES_AT_REQUIRED = "validation.email-verification.expires-at.required";
+    public static final String EMAIL_VERIFICATION_TYPE_REQUIRED = "validation.email-verification.type.required";
 
     // Fallback messages (English)
     public static final String USER_USERNAME_REQUIRED_FALLBACK = "Username is required";
@@ -51,4 +52,5 @@ public final class ValidationMessages {
     public static final String EMAIL_VERIFICATION_USER_ID_REQUIRED_FALLBACK = "User ID is required";
     public static final String EMAIL_VERIFICATION_NEW_EMAIL_REQUIRED_FALLBACK = "New email is required";
     public static final String EMAIL_VERIFICATION_EXPIRES_AT_REQUIRED_FALLBACK = "Expiration time is required";
+    public static final String EMAIL_VERIFICATION_TYPE_REQUIRED_FALLBACK = "Verification type is required";
 }
