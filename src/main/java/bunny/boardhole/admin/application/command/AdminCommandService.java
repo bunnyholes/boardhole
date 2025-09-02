@@ -45,27 +45,34 @@ public class AdminCommandService {
         switch (cmd.action()) {
             case BLOCK -> {
                 // 관리자는 차단할 수 없음
-                if (user.getRoles().contains(Role.ADMIN)) {
+                if (user.hasAdminRole()) {
                     throw new IllegalArgumentException(messageUtils.getMessage("error.admin.cannot-block-admin"));
                 }
-                // 실제로는 User 도메인에 blocked 필드가 있어야 하지만, 현재는 로그만 남김
-                log.info(messageUtils.getMessage("log.admin.user.blocked", user.getUsername()));
+                // TODO: User 도메인에 blocked 필드 추가 후 user.block() 메서드 구현 필요
+                // 현재는 감사 로그만 남김 (실제 차단 기능은 미구현)
+                log.warn("ADMIN ACTION: User {} blocked by admin (NOT IMPLEMENTED - audit only)", user.getUsername());
             }
             case UNBLOCK -> {
-                log.info(messageUtils.getMessage("log.admin.user.unblocked", user.getUsername()));
+                // TODO: User 도메인에 blocked 필드 추가 후 user.unblock() 메서드 구현 필요
+                // 현재는 감사 로그만 남김 (실제 차단해제 기능은 미구현)
+                log.warn("ADMIN ACTION: User {} unblocked by admin (NOT IMPLEMENTED - audit only)", user.getUsername());
             }
             case GRANT_ADMIN -> {
-                if (!user.getRoles().contains(Role.ADMIN)) {
-                    user.getRoles().add(Role.ADMIN);
+                if (!user.hasAdminRole()) {
+                    user.grantAdminRole();
                     userRepository.save(user);
                     log.info(messageUtils.getMessage("log.admin.user.granted-admin", user.getUsername()));
                 }
             }
             case REVOKE_ADMIN -> {
-                if (user.getRoles().contains(Role.ADMIN) && user.getRoles().size() > 1) {
-                    user.getRoles().remove(Role.ADMIN);
-                    userRepository.save(user);
-                    log.info(messageUtils.getMessage("log.admin.user.revoked-admin", user.getUsername()));
+                if (user.hasAdminRole()) {
+                    boolean revoked = user.revokeAdminRole();
+                    if (revoked) {
+                        userRepository.save(user);
+                        log.info(messageUtils.getMessage("log.admin.user.revoked-admin", user.getUsername()));
+                    } else {
+                        throw new IllegalArgumentException(messageUtils.getMessage("error.admin.cannot-revoke-last-admin"));
+                    }
                 }
             }
         }
@@ -85,14 +92,17 @@ public class AdminCommandService {
         switch (cmd.action()) {
             case DELETE -> {
                 boardRepository.delete(board);
-                log.info(messageUtils.getMessage("log.admin.content.deleted", board.getId(), board.getTitle()));
+                log.info("ADMIN ACTION: Board {} '{}' deleted by admin", board.getId(), board.getTitle());
             }
             case HIDE -> {
-                // 실제로는 Board 도메인에 hidden 필드가 있어야 하지만, 현재는 로그만 남김
-                log.info(messageUtils.getMessage("log.admin.content.hidden", board.getId(), board.getTitle()));
+                // TODO: Board 도메인에 hidden 필드 추가 후 board.hide() 메서드 구현 필요
+                // 현재는 감사 로그만 남김 (실제 숨김 기능은 미구현)
+                log.warn("ADMIN ACTION: Board {} '{}' hidden by admin (NOT IMPLEMENTED - audit only)", board.getId(), board.getTitle());
             }
             case SHOW -> {
-                log.info(messageUtils.getMessage("log.admin.content.shown", board.getId(), board.getTitle()));
+                // TODO: Board 도메인에 hidden 필드 추가 후 board.show() 메서드 구현 필요
+                // 현재는 감사 로그만 남김 (실제 표시 기능은 미구현)
+                log.warn("ADMIN ACTION: Board {} '{}' shown by admin (NOT IMPLEMENTED - audit only)", board.getId(), board.getTitle());
             }
         }
     }
@@ -104,8 +114,9 @@ public class AdminCommandService {
      */
     @Transactional
     public void updateSystemSettings(@Valid @NonNull UpdateSystemSettingsCommand cmd) {
-        // 실제 구현에서는 시스템 설정을 저장하는 별도의 엔티티가 있어야 함
-        // 현재는 로그만 남김
-        log.info(messageUtils.getMessage("log.admin.system.settings-updated", cmd.settingKey(), cmd.settingValue()));
+        // TODO: SystemSettings 엔티티 생성 후 실제 설정 저장 기능 구현 필요
+        // 현재는 감사 로그만 남김 (실제 설정 저장 기능은 미구현)
+        log.warn("ADMIN ACTION: System setting {}={} updated by admin (NOT IMPLEMENTED - audit only)", 
+                cmd.settingKey(), cmd.settingValue());
     }
 }
