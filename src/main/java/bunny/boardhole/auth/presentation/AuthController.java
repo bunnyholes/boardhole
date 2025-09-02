@@ -1,6 +1,8 @@
 package bunny.boardhole.auth.presentation;
 
 import bunny.boardhole.auth.application.command.*;
+import bunny.boardhole.auth.application.query.*;
+import bunny.boardhole.auth.application.result.*;
 import bunny.boardhole.auth.presentation.dto.LoginRequest;
 import bunny.boardhole.auth.presentation.mapper.AuthWebMapper;
 import bunny.boardhole.shared.constants.ApiPaths;
@@ -16,6 +18,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.security.PermitAll;
 import jakarta.servlet.http.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.*;
 import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -33,6 +36,7 @@ public class AuthController {
 
     private final UserCommandService userCommandService;
     private final AuthCommandService authCommandService;
+    private final AuthQueryService authQueryService;
     private final AuthWebMapper authWebMapper;
     private final UserWebMapper userWebMapper;
 
@@ -171,6 +175,66 @@ public class AuthController {
     })
     public void publicAccess() {
         // Test endpoint - no response body needed
+    }
+
+    @GetMapping("/me")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(
+            summary = "현재 인증 정보 조회",
+            description = "[AUTH] 현재 인증된 사용자의 인증 정보를 조회합니다.",
+            security = @SecurityRequirement(name = "session")
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "인증 정보 조회 성공",
+                    content = @Content(schema = @Schema(implementation = AuthenticationResult.class))),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
+    })
+    public ResponseEntity<AuthenticationResult> getCurrentAuthentication(
+            @AuthenticationPrincipal AppUserPrincipal principal) {
+        var query = GetCurrentAuthenticationQuery.of(principal.user().getId());
+        var result = authQueryService.getCurrentAuthentication(query);
+        return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/validate")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(
+            summary = "토큰 검증",
+            description = "[AUTH] 현재 세션의 토큰 유효성을 검증합니다.",
+            security = @SecurityRequirement(name = "session")
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "토큰 검증 완료",
+                    content = @Content(schema = @Schema(implementation = TokenValidationResult.class))),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
+    })
+    public ResponseEntity<TokenValidationResult> validateToken(HttpServletRequest request) {
+        // 세션 기반 인증에서는 세션 ID를 토큰으로 사용
+        String sessionId = request.getSession(false) != null ? 
+                request.getSession(false).getId() : "no-session";
+        var query = ValidateTokenQuery.of(sessionId);
+        var result = authQueryService.validateToken(query);
+        return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/history")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(
+            summary = "인증 이력 조회",
+            description = "[AUTH] 현재 사용자의 인증 이력을 페이지네이션으로 조회합니다.",
+            security = @SecurityRequirement(name = "session")
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "인증 이력 조회 성공",
+                    content = @Content(schema = @Schema(implementation = Page.class))),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
+    })
+    public ResponseEntity<Page<AuthenticationHistoryResult>> getAuthenticationHistory(
+            @AuthenticationPrincipal AppUserPrincipal principal,
+            Pageable pageable) {
+        var query = GetAuthenticationHistoryQuery.of(principal.user().getId(), pageable);
+        var result = authQueryService.getAuthenticationHistory(query);
+        return ResponseEntity.ok(result);
     }
 
 
