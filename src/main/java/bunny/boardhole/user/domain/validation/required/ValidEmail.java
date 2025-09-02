@@ -1,5 +1,6 @@
-package bunny.boardhole.user.domain.validation;
+package bunny.boardhole.user.domain.validation.required;
 
+import bunny.boardhole.shared.constants.ValidationConstants;
 import jakarta.validation.*;
 import jakarta.validation.constraints.*;
 
@@ -16,7 +17,7 @@ import java.lang.annotation.*;
 @Documented
 @NotBlank(message = "{user.validation.email.required}")
 @Email(message = "{user.validation.email.format}")
-@Size(max = 255, message = "{user.validation.email.size}")
+@Size(max = ValidationConstants.USER_EMAIL_MAX_LENGTH, message = "{user.validation.email.size}")
 @Constraint(validatedBy = {})
 public @interface ValidEmail {
     String message() default "{user.validation.email.invalid}";

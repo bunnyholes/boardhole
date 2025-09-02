@@ -1,6 +1,7 @@
 package bunny.boardhole.shared.exception;
 
 import bunny.boardhole.shared.config.log.RequestLoggingFilter;
+import bunny.boardhole.shared.constants.ErrorCode;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
@@ -67,7 +68,7 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleConflict(Exception ex, HttpServletRequest request) {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
         pd.setTitle(messageSource.getMessage("exception.title.conflict", null, LocaleContextHolder.getLocale()));
-        pd.setProperty("code", "CONFLICT");
+        pd.setProperty("code", ErrorCode.CONFLICT.getCode());
         pd.setType(buildType("conflict"));
         addCommon(pd, request);
         return pd;
@@ -77,7 +78,7 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleDuplicateUsername(DuplicateUsernameException ex, HttpServletRequest request) {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
         pd.setTitle(messageSource.getMessage("exception.title.duplicate-username", null, LocaleContextHolder.getLocale()));
-        pd.setProperty("code", "USER_DUPLICATE_USERNAME");
+        pd.setProperty("code", ErrorCode.USER_DUPLICATE_USERNAME.getCode());
         pd.setType(buildType("duplicate-username"));
         addCommon(pd, request);
         return pd;
@@ -87,7 +88,7 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleDuplicateEmail(DuplicateEmailException ex, HttpServletRequest request) {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
         pd.setTitle(messageSource.getMessage("exception.title.duplicate-email", null, LocaleContextHolder.getLocale()));
-        pd.setProperty("code", "USER_DUPLICATE_EMAIL");
+        pd.setProperty("code", ErrorCode.USER_DUPLICATE_EMAIL.getCode());
         pd.setType(buildType("duplicate-email"));
         addCommon(pd, request);
         return pd;
@@ -98,7 +99,7 @@ public class GlobalExceptionHandler {
         // 인증 실패는 401(Unauthorized)이 적합
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, ex.getMessage());
         pd.setTitle(messageSource.getMessage("exception.title.unauthorized", null, LocaleContextHolder.getLocale()));
-        pd.setProperty("code", "UNAUTHORIZED");
+        pd.setProperty("code", ErrorCode.UNAUTHORIZED.getCode());
         pd.setType(buildType("unauthorized"));
         addCommon(pd, request);
         return pd;
@@ -108,7 +109,7 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleAccessDenied(AccessDeniedException ex, HttpServletRequest request) {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, ex.getMessage());
         pd.setTitle(messageSource.getMessage("exception.title.access-denied", null, LocaleContextHolder.getLocale()));
-        pd.setProperty("code", "FORBIDDEN");
+        pd.setProperty("code", ErrorCode.FORBIDDEN.getCode());
         pd.setType(buildType("forbidden"));
         addCommon(pd, request);
         return pd;
@@ -128,7 +129,7 @@ public class GlobalExceptionHandler {
                 ))
                 .collect(Collectors.toList());
         pd.setProperty("errors", errors);
-        pd.setProperty("code", "VALIDATION_ERROR");
+        pd.setProperty("code", ErrorCode.VALIDATION_ERROR.getCode());
         pd.setType(buildType("validation-error"));
         addCommon(pd, request);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(pd);
@@ -148,7 +149,7 @@ public class GlobalExceptionHandler {
                 ))
                 .collect(Collectors.toList());
         pd.setProperty("errors", errors);
-        pd.setProperty("code", "VALIDATION_ERROR");
+        pd.setProperty("code", ErrorCode.VALIDATION_ERROR.getCode());
         pd.setType(buildType("validation-error"));
         addCommon(pd, request);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(pd);
@@ -158,7 +159,7 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleBadRequest(Exception ex, HttpServletRequest request) {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
         pd.setTitle(messageSource.getMessage("exception.title.bad-request", null, LocaleContextHolder.getLocale()));
-        pd.setProperty("code", "BAD_REQUEST");
+        pd.setProperty("code", ErrorCode.BAD_REQUEST.getCode());
         pd.setType(buildType("bad-request"));
         addCommon(pd, request);
         return pd;
@@ -169,7 +170,7 @@ public class GlobalExceptionHandler {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST,
                 messageSource.getMessage("error.invalid-json", null, LocaleContextHolder.getLocale()));
         pd.setTitle(messageSource.getMessage("exception.title.bad-request", null, LocaleContextHolder.getLocale()));
-        pd.setProperty("code", "INVALID_JSON");
+        pd.setProperty("code", ErrorCode.INVALID_JSON.getCode());
         pd.setType(buildType("invalid-json"));
         addCommon(pd, request);
         return pd;
@@ -182,7 +183,7 @@ public class GlobalExceptionHandler {
                 messageSource.getMessage("error.method-not-allowed.detail",
                         new Object[]{supportedMethods}, LocaleContextHolder.getLocale()));
         pd.setTitle(messageSource.getMessage("exception.title.method-not-allowed", null, LocaleContextHolder.getLocale()));
-        pd.setProperty("code", "METHOD_NOT_ALLOWED");
+        pd.setProperty("code", ErrorCode.METHOD_NOT_ALLOWED.getCode());
         pd.setProperty("supportedMethods", ex.getSupportedMethods());
         pd.setType(buildType("method-not-allowed"));
         addCommon(pd, request);
@@ -194,7 +195,7 @@ public class GlobalExceptionHandler {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.UNSUPPORTED_MEDIA_TYPE,
                 messageSource.getMessage("error.unsupported-media-type", null, LocaleContextHolder.getLocale()));
         pd.setTitle(messageSource.getMessage("exception.title.unsupported-media-type", null, LocaleContextHolder.getLocale()));
-        pd.setProperty("code", "UNSUPPORTED_MEDIA_TYPE");
+        pd.setProperty("code", ErrorCode.UNSUPPORTED_MEDIA_TYPE.getCode());
         pd.setType(buildType("unsupported-media-type"));
         addCommon(pd, request);
         return pd;
@@ -206,7 +207,7 @@ public class GlobalExceptionHandler {
                 messageSource.getMessage("error.missing-parameter.detail",
                         new Object[]{ex.getParameterName()}, LocaleContextHolder.getLocale()));
         pd.setTitle(messageSource.getMessage("exception.title.missing-parameter", null, LocaleContextHolder.getLocale()));
-        pd.setProperty("code", "MISSING_PARAMETER");
+        pd.setProperty("code", ErrorCode.MISSING_PARAMETER.getCode());
         pd.setProperty("parameter", ex.getParameterName());
         pd.setProperty("parameterType", ex.getParameterType());
         pd.setType(buildType("missing-parameter"));
@@ -220,7 +221,7 @@ public class GlobalExceptionHandler {
                 messageSource.getMessage("error.type-mismatch.detail",
                         new Object[]{ex.getPropertyName()}, LocaleContextHolder.getLocale()));
         pd.setTitle(messageSource.getMessage("exception.title.type-mismatch", null, LocaleContextHolder.getLocale()));
-        pd.setProperty("code", "TYPE_MISMATCH");
+        pd.setProperty("code", ErrorCode.TYPE_MISMATCH.getCode());
         pd.setProperty("property", ex.getPropertyName());
         Optional.ofNullable(ex.getRequiredType())
                 .map(Class::getSimpleName)
@@ -236,7 +237,7 @@ public class GlobalExceptionHandler {
                 messageSource.getMessage("error.internal", null, LocaleContextHolder.getLocale()));
         pd.setTitle(messageSource.getMessage("exception.title.internal-error", null, LocaleContextHolder.getLocale()));
         pd.setType(buildType("internal-error"));
-        pd.setProperty("code", "INTERNAL_ERROR");
+        pd.setProperty("code", ErrorCode.INTERNAL_ERROR.getCode());
         addCommon(pd, request);
         return pd;
     }

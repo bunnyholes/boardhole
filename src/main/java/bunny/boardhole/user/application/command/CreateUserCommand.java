@@ -1,6 +1,6 @@
 package bunny.boardhole.user.application.command;
 
-import bunny.boardhole.user.domain.validation.*;
+import bunny.boardhole.user.domain.validation.required.*;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(name = "CreateUserCommand", description = "사용자 생성 명령 - CQRS 패턴의 Command 객체")

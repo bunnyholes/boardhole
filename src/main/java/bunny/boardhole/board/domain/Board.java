@@ -1,5 +1,6 @@
 package bunny.boardhole.board.domain;
 
+import bunny.boardhole.shared.constants.ValidationConstants;
 import bunny.boardhole.user.domain.User;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
@@ -29,11 +30,11 @@ public class Board {
     @Schema(description = "게시글 고유 ID (자동 생성)", example = "1")
     private Long id;
 
-    @Column(nullable = false, length = 200)
+    @Column(nullable = false, length = ValidationConstants.BOARD_TITLE_MAX_LENGTH)
     @Schema(description = "게시글 제목 (최대 200자)", example = "안녕하세요, 반갑습니다!")
     private String title;
 
-    @Column(nullable = false, length = 10000)
+    @Column(nullable = false, length = ValidationConstants.BOARD_CONTENT_MAX_LENGTH)
     @Schema(description = "게시글 내용 (최대 10,000자)", example = "이것은 게시글의 내용입니다.")
     private String content;
 
@@ -62,9 +63,9 @@ public class Board {
     @Builder
     public Board(@NonNull String title, @NonNull String content, @NonNull User author) {
         Assert.hasText(title, "게시글 제목은 필수입니다");
-        Assert.isTrue(title.length() <= 200, "게시글 제목은 200자를 초과할 수 없습니다");
+        Assert.isTrue(title.length() <= ValidationConstants.BOARD_TITLE_MAX_LENGTH, "게시글 제목은 " + ValidationConstants.BOARD_TITLE_MAX_LENGTH + "자를 초과할 수 없습니다");
         Assert.hasText(content, "게시글 내용은 필수입니다");
-        Assert.isTrue(content.length() <= 10000, "게시글 내용은 10000자를 초과할 수 없습니다");
+        Assert.isTrue(content.length() <= ValidationConstants.BOARD_CONTENT_MAX_LENGTH, "게시글 내용은 " + ValidationConstants.BOARD_CONTENT_MAX_LENGTH + "자를 초과할 수 없습니다");
         Assert.notNull(author, "작성자는 필수입니다");
 
         this.title = title;
@@ -87,13 +88,13 @@ public class Board {
 
     public void changeTitle(@NonNull String title) {
         Assert.hasText(title, "게시글 제목은 필수입니다");
-        Assert.isTrue(title.length() <= 200, "게시글 제목은 200자를 초과할 수 없습니다");
+        Assert.isTrue(title.length() <= ValidationConstants.BOARD_TITLE_MAX_LENGTH, "게시글 제목은 " + ValidationConstants.BOARD_TITLE_MAX_LENGTH + "자를 초과할 수 없습니다");
         this.title = title;
     }
 
     public void changeContent(@NonNull String content) {
         Assert.hasText(content, "게시글 내용은 필수입니다");
-        Assert.isTrue(content.length() <= 10000, "게시글 내용은 10000자를 초과할 수 없습니다");
+        Assert.isTrue(content.length() <= ValidationConstants.BOARD_CONTENT_MAX_LENGTH, "게시글 내용은 " + ValidationConstants.BOARD_CONTENT_MAX_LENGTH + "자를 초과할 수 없습니다");
         this.content = content;
     }
 

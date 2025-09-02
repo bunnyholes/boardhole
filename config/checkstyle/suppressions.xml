@@ -24,4 +24,20 @@
     <suppress checks="IllegalTokenText" 
               files=".*Entity\.java"
               lines="toString"/>
+    
+    <!-- 상수 클래스에서는 매직 넘버 허용 -->
+    <suppress checks="MagicNumber"
+              files="ValidationConstants\.java|ApiPaths\.java|ErrorCode\.java|PermissionType\.java"/>
+    
+    <!-- 테스트 파일에서 매직 넘버 허용 -->
+    <suppress checks="MagicNumber"
+              files=".*Test\.java|.*Tests\.java"/>
+    
+    <!-- application.yml 경로에서 RegexpSinglelineJava 억제 -->
+    <suppress checks="RegexpSinglelineJava"
+              files="ValidationConstants\.java|ApiPaths\.java"/>
+    
+    <!-- Properties 클래스에서 매직 넘버 허용 -->
+    <suppress checks="MagicNumber"
+              files=".*Properties\.java"/>
 </suppressions>
