@@ -55,6 +55,22 @@ spring:
       shutdown:
         await-termination: true
         await-termination-period: 10s
+  
+  # 이메일 설정
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          ssl:
+            trust: ${MAIL_HOST:smtp.gmail.com}
+    test-connection: false
 
 # ========================================
 # 애플리케이션 도메인 설정
@@ -76,6 +92,7 @@ boardhole:
     email-verification:
       expiration-minutes: 30
       code-length: 6
+      signup-expiration-hours: 24
   
   # 보안 설정
   security:
@@ -93,6 +110,14 @@ boardhole:
       normal-threshold-ms: 500
       slow-threshold-ms: 1000
       duration-threshold-ms: 1000
+  
+  # 이메일 관련 설정
+  email:
+    base-url: ${EMAIL_BASE_URL:http://localhost:8080}
+    from-name: ${EMAIL_FROM_NAME:Board-Hole}
+    rate-limit:
+      per-hour: 5
+      per-day: 20
   
   # CORS 기본값 (환경별 프로필에서 오버라이드 권장)
   cors:

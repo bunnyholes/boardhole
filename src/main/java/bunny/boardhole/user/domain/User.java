@@ -60,6 +60,14 @@ public class User implements Serializable {
     @Schema(description = "마지막 로그인 일시", example = "2024-01-16T14:20:15")
     private LocalDateTime lastLogin;
 
+    @Column(name = "email_verified", nullable = false)
+    @Schema(description = "이메일 인증 여부", example = "false")
+    private boolean emailVerified = false;
+
+    @Column(name = "email_verified_at")
+    @Schema(description = "이메일 인증 완료 일시", example = "2024-01-16T14:20:15")
+    private LocalDateTime emailVerifiedAt;
+
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"))
     @Enumerated(EnumType.STRING)
@@ -116,5 +124,18 @@ public class User implements Serializable {
 
     public void recordLastLogin(LocalDateTime lastLogin) {
         this.lastLogin = lastLogin;
+    }
+
+    public void verifyEmail() {
+        this.emailVerified = true;
+        this.emailVerifiedAt = LocalDateTime.now();
+    }
+
+    public boolean isEmailVerified() {
+        return emailVerified;
+    }
+
+    public boolean canAccessService() {
+        return emailVerified;
     }
 }

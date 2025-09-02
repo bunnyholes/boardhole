@@ -34,6 +34,11 @@ public class EmailVerification {
     @Schema(description = "변경할 새 이메일 주소", example = "newemail@example.com")
     private String newEmail;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "verification_type", nullable = false)
+    @Schema(description = "인증 타입 (SIGNUP, CHANGE_EMAIL)", example = "SIGNUP")
+    private EmailVerificationType verificationType;
+
     @Column(name = "expires_at", nullable = false)
     @Schema(description = "만료 시간", example = "2024-01-15T10:30:00")
     private LocalDateTime expiresAt;
@@ -47,16 +52,19 @@ public class EmailVerification {
     private LocalDateTime createdAt;
 
     @Builder
-    public EmailVerification(@NonNull String code, @NonNull Long userId, @NonNull String newEmail, @NonNull LocalDateTime expiresAt) {
+    public EmailVerification(@NonNull String code, @NonNull Long userId, @NonNull String newEmail, 
+                           @NonNull LocalDateTime expiresAt, @NonNull EmailVerificationType verificationType) {
         Assert.hasText(code, "검증 코드는 필수입니다");
         Assert.notNull(userId, "사용자 ID는 필수입니다");
         Assert.hasText(newEmail, "새 이메일은 필수입니다");
         Assert.notNull(expiresAt, "만료 시간은 필수입니다");
+        Assert.notNull(verificationType, "인증 타입은 필수입니다");
 
         this.code = code;
         this.userId = userId;
         this.newEmail = newEmail;
         this.expiresAt = expiresAt;
+        this.verificationType = verificationType;
         this.used = false;
     }
 
