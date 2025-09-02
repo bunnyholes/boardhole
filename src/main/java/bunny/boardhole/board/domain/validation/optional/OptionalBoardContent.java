@@ -1,5 +1,6 @@
-package bunny.boardhole.board.domain.validation;
+package bunny.boardhole.board.domain.validation.optional;
 
+import bunny.boardhole.shared.constants.ValidationConstants;
 import jakarta.validation.*;
 import jakarta.validation.constraints.Size;
 
@@ -13,7 +14,7 @@ import java.lang.annotation.*;
 @Target({ElementType.FIELD, ElementType.PARAMETER, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-@Size(max = 10000, message = "{board.validation.content.size}")
+@Size(max = ValidationConstants.BOARD_CONTENT_MAX_LENGTH, message = "{board.validation.content.size}")
 @Constraint(validatedBy = {})
 public @interface OptionalBoardContent {
     String message() default "{board.validation.content.invalid}";

@@ -1,6 +1,8 @@
 package bunny.boardhole.shared.security;
 
 import bunny.boardhole.board.infrastructure.BoardRepository;
+import bunny.boardhole.shared.config.properties.SecurityProperties;
+import bunny.boardhole.shared.constants.PermissionType;
 import bunny.boardhole.user.infrastructure.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.PermissionEvaluator;
@@ -15,6 +17,7 @@ public class AppPermissionEvaluator implements PermissionEvaluator {
 
     private final BoardRepository boardRepository;
     private final UserRepository userRepository;
+    private final SecurityProperties securityProperties;
 
     @Override
     public boolean hasPermission(Authentication authentication, Object targetDomainObject, Object permission) {
@@ -29,19 +32,19 @@ public class AppPermissionEvaluator implements PermissionEvaluator {
         String perm = (permission == null ? "" : permission.toString().toUpperCase());
 
         // Admin shortcut
-        if (hasRole(auth, "ROLE_ADMIN")) {
+        if (hasRole(auth, securityProperties.getRolePrefix() + "ADMIN")) {
             return true;
         }
 
         if (!(targetId instanceof Long id)) return false;
 
         return switch (type) {
-            case "BOARD" -> switch (perm) {
-                case "WRITE", "DELETE" -> isBoardOwner(auth, id);
+            case PermissionType.TARGET_BOARD -> switch (perm) {
+                case PermissionType.WRITE, PermissionType.DELETE -> isBoardOwner(auth, id);
                 default -> false;
             };
-            case "USER" -> switch (perm) {
-                case "WRITE", "DELETE" -> isSameUser(auth, id);
+            case PermissionType.TARGET_USER -> switch (perm) {
+                case PermissionType.WRITE, PermissionType.DELETE -> isSameUser(auth, id);
                 default -> false;
             };
             default -> false;

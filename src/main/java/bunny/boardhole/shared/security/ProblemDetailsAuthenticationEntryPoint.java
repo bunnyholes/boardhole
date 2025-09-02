@@ -1,6 +1,7 @@
 package bunny.boardhole.shared.security;
 
 import bunny.boardhole.shared.config.log.RequestLoggingFilter;
+import bunny.boardhole.shared.constants.ErrorCode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.servlet.http.*;
@@ -50,6 +51,7 @@ public class ProblemDetailsAuthenticationEntryPoint implements AuthenticationEnt
         pd.setProperty("path", request.getRequestURI());
         pd.setProperty("method", request.getMethod());
         pd.setProperty("timestamp", Instant.now().toString());
+        pd.setProperty("code", ErrorCode.UNAUTHORIZED.getCode());
 
         response.setStatus(HttpStatus.UNAUTHORIZED.value());
         response.setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);

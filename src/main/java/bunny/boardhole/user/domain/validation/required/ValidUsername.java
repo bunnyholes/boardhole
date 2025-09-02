@@ -1,23 +1,24 @@
-package bunny.boardhole.user.domain.validation;
+package bunny.boardhole.user.domain.validation.required;
 
+import bunny.boardhole.shared.constants.ValidationConstants;
 import jakarta.validation.*;
 import jakarta.validation.constraints.*;
 
 import java.lang.annotation.*;
 
 /**
- * 사용자 실명 검증 애너테이션
+ * 사용자명(username) 검증 애너테이션
  * - 필수값 검증
- * - 1-50자 제한
+ * - 3-20자 제한
  */
 @Target({ElementType.FIELD, ElementType.PARAMETER, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-@NotBlank(message = "{user.validation.name.required}")
-@Size(min = 1, max = 50, message = "{user.validation.name.size}")
+@NotBlank(message = "{user.validation.username.required}")
+@Size(min = ValidationConstants.USER_USERNAME_MIN_LENGTH, max = ValidationConstants.USER_USERNAME_MAX_LENGTH, message = "{user.validation.username.size}")
 @Constraint(validatedBy = {})
-public @interface ValidName {
-    String message() default "{user.validation.name.invalid}";
+public @interface ValidUsername {
+    String message() default "{user.validation.username.invalid}";
 
     Class<?>[] groups() default {};
 
@@ -27,6 +28,6 @@ public @interface ValidName {
     @Retention(RetentionPolicy.RUNTIME)
     @Documented
     @interface List {
-        ValidName[] value();
+        ValidUsername[] value();
     }
 }

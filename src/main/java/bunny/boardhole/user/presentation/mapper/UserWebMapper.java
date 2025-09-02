@@ -42,7 +42,40 @@ public interface UserWebMapper {
      */
     @Mapping(target = "userId", source = "id")
     @Mapping(target = "name", source = "req.name")
-    @Mapping(target = "email", source = "req.email")
-    @Mapping(target = "password", source = "req.password")
     UpdateUserCommand toUpdateCommand(Long id, UserUpdateRequest req);
+
+    /**
+     * 패스워드 변경 요청을 명령으로 변환
+     *
+     * @param id  사용자 ID
+     * @param req 패스워드 변경 요청 DTO
+     * @return 패스워드 변경 명령
+     */
+    @Mapping(target = "userId", source = "id")
+    @Mapping(target = "currentPassword", source = "req.currentPassword")
+    @Mapping(target = "newPassword", source = "req.newPassword")
+    UpdatePasswordCommand toUpdatePasswordCommand(Long id, PasswordUpdateRequest req);
+
+    /**
+     * 이메일 검증 요청을 명령으로 변환
+     *
+     * @param id  사용자 ID
+     * @param req 이메일 검증 요청 DTO
+     * @return 이메일 검증 요청 명령
+     */
+    @Mapping(target = "userId", source = "id")
+    @Mapping(target = "currentPassword", source = "req.currentPassword")
+    @Mapping(target = "newEmail", source = "req.newEmail")
+    RequestEmailVerificationCommand toRequestEmailVerificationCommand(Long id, EmailVerificationRequest req);
+
+    /**
+     * 이메일 변경 요청을 명령으로 변환
+     *
+     * @param id  사용자 ID
+     * @param req 이메일 변경 요청 DTO
+     * @return 이메일 변경 명령
+     */
+    @Mapping(target = "userId", source = "id")
+    @Mapping(target = "verificationCode", source = "req.verificationCode")
+    UpdateEmailCommand toUpdateEmailCommand(Long id, EmailUpdateRequest req);
 }

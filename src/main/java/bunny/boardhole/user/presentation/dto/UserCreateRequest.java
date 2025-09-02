@@ -1,6 +1,6 @@
 package bunny.boardhole.user.presentation.dto;
 
-import bunny.boardhole.user.domain.validation.*;
+import bunny.boardhole.user.domain.validation.required.*;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(name = "UserCreateRequest", description = "사용자 생성 요청")

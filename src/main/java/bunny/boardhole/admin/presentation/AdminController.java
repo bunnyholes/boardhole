@@ -2,6 +2,7 @@ package bunny.boardhole.admin.presentation;
 
 import bunny.boardhole.admin.application.query.AdminQueryService;
 import bunny.boardhole.admin.presentation.dto.AdminStatsResponse;
+import bunny.boardhole.shared.constants.ApiPaths;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.*;
 import io.swagger.v3.oas.annotations.responses.*;
@@ -12,14 +13,14 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/admin")
+@RequestMapping(ApiPaths.ADMIN)
 @Tag(name = "관리자 API", description = "시스템 관리 및 통계 기능")
 @RequiredArgsConstructor
 public class AdminController {
 
     private final AdminQueryService adminQueryService;
 
-    @GetMapping("/stats")
+    @GetMapping(ApiPaths.ADMIN_STATS)
     @PreAuthorize("isAuthenticated() and hasRole('ADMIN')")
     @Operation(
             summary = "시스템 통계 조회",
