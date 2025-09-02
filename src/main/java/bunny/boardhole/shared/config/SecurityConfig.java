@@ -1,5 +1,6 @@
 package bunny.boardhole.shared.config;
 
+import bunny.boardhole.shared.constants.ApiPaths;
 import bunny.boardhole.shared.security.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -82,8 +83,8 @@ public class SecurityConfig {
                         // Error page
                         .requestMatchers("/error").permitAll()
                         // Public API endpoints - explicit permit only
-                        .requestMatchers("/api/auth/signup", "/api/auth/login", "/api/auth/public-access").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/boards", "/api/boards/**").permitAll()
+                        .requestMatchers(ApiPaths.AUTH + ApiPaths.AUTH_SIGNUP, ApiPaths.AUTH + ApiPaths.AUTH_LOGIN, ApiPaths.AUTH + ApiPaths.AUTH_PUBLIC_ACCESS).permitAll()
+                        .requestMatchers(HttpMethod.GET, ApiPaths.BOARDS, ApiPaths.BOARDS + "/**").permitAll()
                         // All other requests require authentication by default
                         .anyRequest().authenticated()
                 )

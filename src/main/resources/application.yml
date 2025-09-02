@@ -42,11 +42,58 @@ spring:
       namespace: board-hole:session
       flush-mode: on-save
     timeout: 30m
+  
+  # 비동기 처리 설정 - Spring Boot 기본 제공
+  task:
+    execution:
+      pool:
+        core-size: ${ASYNC_CORE_SIZE:2}
+        max-size: ${ASYNC_MAX_SIZE:10}
+        queue-capacity: ${ASYNC_QUEUE_CAPACITY:100}
+        keep-alive: 60s
+      thread-name-prefix: Async-
+      shutdown:
+        await-termination: true
+        await-termination-period: 10s
 
 # ========================================
 # 애플리케이션 도메인 설정
 # ========================================
 boardhole:
+  # 검증 규칙
+  validation:
+    board:
+      title-max-length: 200
+      content-max-length: 10000
+    user:
+      username-min-length: 3
+      username-max-length: 20
+      password-min-length: 8
+      password-max-length: 100
+      email-max-length: 255
+      name-min-length: 1
+      name-max-length: 50
+    email-verification:
+      expiration-minutes: 30
+      code-length: 6
+  
+  # 보안 설정
+  security:
+    verification-code:
+      length: 6
+      expiry-minutes: 30
+      charset: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+    role-prefix: "ROLE_"
+    session-timeout-minutes: 30
+    
+  # 성능 임계값
+  performance:
+    logging:
+      fast-threshold-ms: 100
+      normal-threshold-ms: 500
+      slow-threshold-ms: 1000
+      duration-threshold-ms: 1000
+  
   # CORS 기본값 (환경별 프로필에서 오버라이드 권장)
   cors:
     path-patterns:
@@ -92,9 +139,9 @@ boardhole:
     description: Board-Hole REST API Documentation
     terms-of-service: https://boardhole.com/terms
     contact:
-      name: Board-Hole Team
-      email: admin@boardhole.com
-      url: https://boardhole.com
+      name: BUNNY
+      email: bunny@xiyo.dev
+      url: mailto:contact@xiyo.dev
     license:
       name: Apache 2.0
       url: https://www.apache.org/licenses/LICENSE-2.0

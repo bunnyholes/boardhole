@@ -3,6 +3,7 @@ package bunny.boardhole.auth.presentation;
 import bunny.boardhole.auth.application.command.*;
 import bunny.boardhole.auth.presentation.dto.LoginRequest;
 import bunny.boardhole.auth.presentation.mapper.AuthWebMapper;
+import bunny.boardhole.shared.constants.ApiPaths;
 import bunny.boardhole.shared.security.AppUserPrincipal;
 import bunny.boardhole.user.application.command.UserCommandService;
 import bunny.boardhole.user.presentation.dto.UserCreateRequest;
@@ -24,7 +25,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping(ApiPaths.AUTH)
 @Validated
 @RequiredArgsConstructor
 @Tag(name = "인증 API", description = "사용자 인증 및 권한 관리 기능")
@@ -35,7 +36,7 @@ public class AuthController {
     private final AuthWebMapper authWebMapper;
     private final UserWebMapper userWebMapper;
 
-    @PostMapping(value = "/signup", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    @PostMapping(value = ApiPaths.AUTH_SIGNUP, consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PermitAll
     @Operation(
@@ -59,7 +60,7 @@ public class AuthController {
         userCommandService.create(cmd);
     }
 
-    @PostMapping(value = "/login", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    @PostMapping(value = ApiPaths.AUTH_LOGIN, consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PermitAll
     @Operation(
@@ -95,7 +96,7 @@ public class AuthController {
         }
     }
 
-    @PostMapping("/logout")
+    @PostMapping(ApiPaths.AUTH_LOGOUT)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("isAuthenticated()")
     @Operation(
@@ -124,7 +125,7 @@ public class AuthController {
         }
     }
 
-    @GetMapping("/admin-only")
+    @GetMapping(ApiPaths.AUTH_ADMIN_ONLY)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("isAuthenticated() and hasRole('ADMIN')")
     @Operation(
@@ -141,7 +142,7 @@ public class AuthController {
         // Test endpoint - no response body needed
     }
 
-    @GetMapping("/user-access")
+    @GetMapping(ApiPaths.AUTH_USER_ACCESS)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("isAuthenticated() and hasAnyRole('USER', 'ADMIN')")
     @Operation(
@@ -158,7 +159,7 @@ public class AuthController {
         // Test endpoint - no response body needed
     }
 
-    @GetMapping("/public-access")
+    @GetMapping(ApiPaths.AUTH_PUBLIC_ACCESS)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PermitAll
     @Operation(

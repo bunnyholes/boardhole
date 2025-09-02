@@ -1,5 +1,6 @@
 package bunny.boardhole.user.domain;
 
+import bunny.boardhole.shared.constants.ValidationConstants;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.*;
@@ -31,19 +32,19 @@ public class User implements Serializable {
     @Schema(description = "사용자 고유 ID (자동 생성)", example = "1")
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 20)
+    @Column(nullable = false, unique = true, length = ValidationConstants.USER_USERNAME_MAX_LENGTH)
     @Schema(description = "사용자명 (고유값, 3-20자)", example = "johndoe")
     private String username;
 
-    @Column(nullable = false, length = 100)
+    @Column(nullable = false, length = ValidationConstants.USER_PASSWORD_MAX_LENGTH)
     @Schema(description = "암호화된 비밀번호", example = "$2a$10$encrypted...")
     private String password;
 
-    @Column(nullable = false, length = 50)
+    @Column(nullable = false, length = ValidationConstants.USER_NAME_MAX_LENGTH)
     @Schema(description = "사용자 실명 (1-50자)", example = "홍길동")
     private String name;
 
-    @Column(nullable = false, unique = true, length = 255)
+    @Column(nullable = false, unique = true, length = ValidationConstants.USER_EMAIL_MAX_LENGTH)
     @Schema(description = "이메일 주소 (고유값)", example = "john@example.com")
     private String email;
 
@@ -70,12 +71,12 @@ public class User implements Serializable {
     @Builder
     public User(@NonNull String username, @NonNull String password, @NonNull String name, @NonNull String email, java.util.Set<Role> roles) {
         Assert.hasText(username, "사용자명은 필수입니다");
-        Assert.isTrue(username.length() <= 20, "사용자명은 20자를 초과할 수 없습니다");
+        Assert.isTrue(username.length() <= ValidationConstants.USER_USERNAME_MAX_LENGTH, "사용자명은 " + ValidationConstants.USER_USERNAME_MAX_LENGTH + "자를 초과할 수 없습니다");
         Assert.hasText(password, "비밀번호는 필수입니다");
         Assert.hasText(name, "이름은 필수입니다");
-        Assert.isTrue(name.length() <= 50, "이름은 50자를 초과할 수 없습니다");
+        Assert.isTrue(name.length() <= ValidationConstants.USER_NAME_MAX_LENGTH, "이름은 " + ValidationConstants.USER_NAME_MAX_LENGTH + "자를 초과할 수 없습니다");
         Assert.hasText(email, "이메일은 필수입니다");
-        Assert.isTrue(email.length() <= 255, "이메일은 255자를 초과할 수 없습니다");
+        Assert.isTrue(email.length() <= ValidationConstants.USER_EMAIL_MAX_LENGTH, "이메일은 " + ValidationConstants.USER_EMAIL_MAX_LENGTH + "자를 초과할 수 없습니다");
 
         this.username = username;
         this.password = password;
@@ -98,13 +99,13 @@ public class User implements Serializable {
 
     public void changeName(@NonNull String name) {
         Assert.hasText(name, "이름은 필수입니다");
-        Assert.isTrue(name.length() <= 50, "이름은 50자를 초과할 수 없습니다");
+        Assert.isTrue(name.length() <= ValidationConstants.USER_NAME_MAX_LENGTH, "이름은 " + ValidationConstants.USER_NAME_MAX_LENGTH + "자를 초과할 수 없습니다");
         this.name = name;
     }
 
     public void changeEmail(@NonNull String email) {
         Assert.hasText(email, "이메일은 필수입니다");
-        Assert.isTrue(email.length() <= 255, "이메일은 255자를 초과할 수 없습니다");
+        Assert.isTrue(email.length() <= ValidationConstants.USER_EMAIL_MAX_LENGTH, "이메일은 " + ValidationConstants.USER_EMAIL_MAX_LENGTH + "자를 초과할 수 없습니다");
         this.email = email;
     }
 

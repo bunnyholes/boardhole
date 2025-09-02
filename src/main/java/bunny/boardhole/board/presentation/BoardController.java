@@ -6,6 +6,7 @@ import bunny.boardhole.board.application.query.*;
 import bunny.boardhole.board.application.result.BoardResult;
 import bunny.boardhole.board.presentation.dto.*;
 import bunny.boardhole.board.presentation.mapper.BoardWebMapper;
+import bunny.boardhole.shared.constants.ApiPaths;
 import bunny.boardhole.shared.security.AppUserPrincipal;
 import bunny.boardhole.user.domain.User;
 import io.swagger.v3.oas.annotations.*;
@@ -28,7 +29,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/boards")
+@RequestMapping(ApiPaths.BOARDS)
 @Validated
 @RequiredArgsConstructor
 @Tag(name = "게시판 API", description = "게시판 CRUD 작업을 위한 REST API")
@@ -67,7 +68,7 @@ public class BoardController {
         var cmd = boardWebMapper.toCreateCommand(req, current.getId());
         var result = boardCommandService.create(cmd);
         var body = boardWebMapper.toResponse(result);
-        return ResponseEntity.created(java.net.URI.create("/api/boards/" + result.id())).body(body);
+        return ResponseEntity.created(java.net.URI.create(ApiPaths.BOARDS + "/" + result.id())).body(body);
     }
 
     @GetMapping
