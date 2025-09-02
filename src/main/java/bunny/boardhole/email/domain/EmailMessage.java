@@ -1,7 +1,7 @@
 package bunny.boardhole.email.domain;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.*;
+import lombok.Builder;
 import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
 

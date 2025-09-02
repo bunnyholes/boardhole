@@ -41,34 +41,31 @@ public class UserController {
     private final MessageUtils messageUtils;
 
     @GetMapping
-    @PreAuthorize("isAuthenticated() and hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(
             summary = "사용자 목록 조회",
-            description = "[ADMIN] 페이지네이션을 지원하는 사용자 목록을 조회합니다. 관리자만 접근 가능합니다.",
-            security = @SecurityRequirement(name = "session")
+            description = "[ROLE:ADMIN] 관리자가 사용자 목록을 페이지네이션으로 조회합니다. 검색 기능을 제공합니다.",
+            security = @SecurityRequirement(name = "admin-role")
     )
     @ApiResponses({
             @ApiResponse(
                     responseCode = "200",
                     description = "사용자 목록 조회 성공",
                     content = @Content(schema = @Schema(implementation = Page.class))
-            )
-    })
-    @Parameters({
-            @Parameter(name = "page", description = "0부터 시작하는 페이지 인덱스", example = "0"),
-            @Parameter(name = "size", description = "페이지 크기", example = "10"),
-            @Parameter(name = "sort", description = "정렬 (필드,방향)", example = "id,desc")
+            ),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+            @ApiResponse(responseCode = "403", description = "관리자 권한 없음")
     })
     public Page<UserResponse> list(
-            @Parameter(description = "페이지네이션 정보 (기본: 페이지 크기 10, ID 내림차순 정렬)")
-            @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.DESC) @ParameterObject Pageable pageable,
-            @Parameter(description = "검색어 (사용자명으로 검색)", example = "admin")
-            @RequestParam(required = false) String search
-    ) {
-        Page<UserResult> page = search == null
-                ? userQueryService.listWithPaging(pageable)
-                : userQueryService.listWithPaging(pageable, search);
-        return page.map(userWebMapper::toResponse);
+            @Parameter(description = "검색어 (사용자명, 이름, 이메일)")
+            @RequestParam(required = false) String search,
+            @ParameterObject @PageableDefault(size = 20) Pageable pageable) {
+
+        Page<UserResult> results = (search != null && !search.trim().isEmpty())
+                ? userQueryService.listWithPaging(pageable, search.trim())
+                : userQueryService.listWithPaging(pageable);
+
+        return results.map(userWebMapper::toResponse);
     }
 
     @GetMapping("/{id}")
@@ -173,6 +170,7 @@ public class UserController {
         var cmd = userWebMapper.toUpdatePasswordCommand(id, req);
         userCommandService.updatePassword(cmd);
     }
+
 
     @PostMapping("/{id}/email/verification")
     @PreAuthorize("isAuthenticated()")

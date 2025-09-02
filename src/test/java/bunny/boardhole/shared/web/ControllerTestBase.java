@@ -2,7 +2,7 @@ package bunny.boardhole.shared.web;
 
 import bunny.boardhole.board.domain.Board;
 import bunny.boardhole.board.infrastructure.BoardRepository;
-import bunny.boardhole.shared.config.TestUserConfig;
+import bunny.boardhole.shared.config.*;
 import bunny.boardhole.user.domain.*;
 import bunny.boardhole.user.infrastructure.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Transactional
-@Import(TestUserConfig.class)
+@Import({TestUserConfig.class, TestEmailConfig.class})
 public abstract class ControllerTestBase {
 
     @Autowired
@@ -57,6 +57,7 @@ public abstract class ControllerTestBase {
                 .email(email)
                 .roles(new java.util.HashSet<>(roles))
                 .build();
+        user.verifyEmail(); // 테스트용 사용자는 이메일 인증 완료 상태로 생성
         return userRepository.save(user).getId();
     }
 

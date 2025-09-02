@@ -6,7 +6,8 @@ package bunny.boardhole.shared.util;
  */
 public class EntityMessageProvider {
 
-    private EntityMessageProvider() {}
+    private EntityMessageProvider() {
+    }
 
     /**
      * 메시지 키를 사용하더라도, 엔티티 레벨에서는 폴백 메시지를 그대로 사용합니다.
@@ -26,12 +27,16 @@ public class EntityMessageProvider {
         return fallbackMessage;
     }
 
-    /** 테스트용 훅 - 더 이상 필요 없지만 시그니처 유지 */
+    /**
+     * 테스트용 훅 - 더 이상 필요 없지만 시그니처 유지
+     */
     public static void setMessageUtilsForTest(MessageUtils testMessageUtils) {
         // no-op
     }
 
-    /** 테스트 후 정리 - no-op */
+    /**
+     * 테스트 후 정리 - no-op
+     */
     public static void clearForTest() {
         // no-op
     }
