@@ -33,6 +33,7 @@ public class AuthQueryService {
 
     private final UserRepository userRepository;
     private final MessageUtils messageUtils;
+    private final AuthHistoryMockDataProvider mockDataProvider;
 
     /**
      * 현재 인증 정보 조회
@@ -61,12 +62,16 @@ public class AuthQueryService {
 
         log.info(messageUtils.getMessage("log.auth.query-current", user.getUsername(), user.getId()));
 
+        // 안전한 Role 접근
+        String roleName = user.getRoles().isEmpty() ? 
+                "USER" : user.getRoles().iterator().next().name();
+
         return new AuthenticationResult(
                 user.getId(),
                 user.getUsername(),
                 user.getEmail(),
                 user.getName(),
-                user.getRoles().iterator().next().name(),
+                roleName,
                 true,
                 sessionId
         );
@@ -128,26 +133,7 @@ public class AuthQueryService {
 
         // 현재 구현에서는 모의 이력 데이터 반환
         // 실제 환경에서는 AuthenticationHistory 엔티티와 Repository가 필요
-        List<AuthenticationHistoryResult> mockHistory = List.of(
-                new AuthenticationHistoryResult(
-                        1L,
-                        user.getId(),
-                        user.getUsername(),
-                        "LOGIN",
-                        LocalDateTime.now().minusHours(2),
-                        "192.168.1.100",
-                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-                ),
-                new AuthenticationHistoryResult(
-                        2L,
-                        user.getId(),
-                        user.getUsername(),
-                        "LOGOUT",
-                        LocalDateTime.now().minusHours(1),
-                        "192.168.1.100",
-                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-                )
-        );
+        List<AuthenticationHistoryResult> mockHistory = mockDataProvider.generateMockHistory(user);
 
         log.info(messageUtils.getMessage("log.auth.history-queried", user.getUsername(), mockHistory.size()));
 
