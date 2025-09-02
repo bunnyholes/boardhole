@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -43,4 +44,20 @@ public interface EmailVerificationRepository extends JpaRepository<EmailVerifica
     @Transactional
     @Query("UPDATE EmailVerification ev SET ev.used = true WHERE ev.userId = :userId AND ev.used = false")
     int invalidateUserVerifications(@Param("userId") Long userId);
+
+    /**
+     * 코드로 미사용 검증 정보 조회
+     *
+     * @param code 검증 코드
+     * @return 검증 정보
+     */
+    Optional<EmailVerification> findByCodeAndUsedFalse(String code);
+
+    /**
+     * 사용자 ID로 미사용 검증 정보 목록 조회
+     *
+     * @param userId 사용자 ID
+     * @return 검증 정보 목록
+     */
+    List<EmailVerification> findByUserIdAndUsedFalse(Long userId);
 }

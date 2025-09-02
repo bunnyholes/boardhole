@@ -1,9 +1,11 @@
 package bunny.boardhole.auth.presentation;
 
+import bunny.boardhole.email.application.EmailService;
 import bunny.boardhole.shared.web.ControllerTestBase;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.*;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithUserDetails;
 
@@ -20,6 +22,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Tag("integration")
 @Tag("auth")
 class AuthControllerTest extends ControllerTestBase {
+
+    @MockBean
+    private EmailService emailService;
 
     @Nested
     @DisplayName("POST /api/auth/signup - 회원가입")

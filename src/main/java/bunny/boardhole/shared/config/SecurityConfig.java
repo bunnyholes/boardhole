@@ -20,6 +20,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.context.*;
 
 /**
@@ -62,7 +63,8 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, SecurityContextRepository securityContextRepository,
                                            ProblemDetailsAuthenticationEntryPoint authenticationEntryPoint,
-                                           ProblemDetailsAccessDeniedHandler accessDeniedHandler) throws Exception {
+                                           ProblemDetailsAccessDeniedHandler accessDeniedHandler,
+                                           EmailVerificationFilter emailVerificationFilter) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
@@ -84,6 +86,7 @@ public class SecurityConfig {
                         .requestMatchers("/error").permitAll()
                         // Public API endpoints - explicit permit only
                         .requestMatchers(ApiPaths.AUTH + ApiPaths.AUTH_SIGNUP, ApiPaths.AUTH + ApiPaths.AUTH_LOGIN, ApiPaths.AUTH + ApiPaths.AUTH_PUBLIC_ACCESS).permitAll()
+                        .requestMatchers(ApiPaths.AUTH + "/verify-email", ApiPaths.AUTH + "/resend-verification").permitAll()
                         .requestMatchers(HttpMethod.GET, ApiPaths.BOARDS, ApiPaths.BOARDS + "/**").permitAll()
                         // All other requests require authentication by default
                         .anyRequest().authenticated()
@@ -101,7 +104,8 @@ public class SecurityConfig {
                         .maximumSessions(1)
                         .maxSessionsPreventsLogin(false))
                 .securityContext((securityContext) -> securityContext
-                        .securityContextRepository(securityContextRepository));
+                        .securityContextRepository(securityContextRepository))
+                .addFilterAfter(emailVerificationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 
