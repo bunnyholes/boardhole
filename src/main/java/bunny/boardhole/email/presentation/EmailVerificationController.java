@@ -6,8 +6,7 @@ import bunny.boardhole.shared.exception.ResourceNotFoundException;
 import bunny.boardhole.shared.util.MessageUtils;
 import bunny.boardhole.user.domain.*;
 import bunny.boardhole.user.infrastructure.*;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.*;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -29,16 +28,15 @@ import java.time.LocalDateTime;
 @Tag(name = "이메일 인증", description = "이메일 인증 관련 API")
 public class EmailVerificationController {
 
+    private final UserRepository userRepository;
+    private final EmailVerificationRepository emailVerificationRepository;
+    private final EmailService emailService;
+    private final MessageUtils messageUtils;
     /**
      * 인증 토큰 만료 시간 (시간)
      */
     @Value("${boardhole.email.verification-expiration-hours:24}")
     private int verificationExpirationHours;
-
-    private final UserRepository userRepository;
-    private final EmailVerificationRepository emailVerificationRepository;
-    private final EmailService emailService;
-    private final MessageUtils messageUtils;
 
     /**
      * 이메일 인증 처리
@@ -48,8 +46,8 @@ public class EmailVerificationController {
      */
     @GetMapping("/verify-email")
     @Operation(
-        summary = "이메일 인증",
-        description = "토큰을 통한 이메일 인증 처리 (회원가입/이메일 변경)"
+            summary = "이메일 인증",
+            description = "토큰을 통한 이메일 인증 처리 (회원가입/이메일 변경)"
     )
     @ApiResponse(responseCode = "200", description = "인증 성공")
     @ApiResponse(responseCode = "400", description = "잘못된 토큰 또는 만료된 토큰")
@@ -58,19 +56,19 @@ public class EmailVerificationController {
     public ResponseEntity<String> verifyEmail(
             @Parameter(description = "인증 토큰", example = "abc123def456")
             @RequestParam final String verificationToken) {
-        
+
         final EmailVerification verification = emailVerificationRepository.findByCodeAndUsedFalse(verificationToken)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                    messageUtils.getMessage("error.email-verification.invalid-token")));
+                        messageUtils.getMessage("error.email-verification.invalid-token")));
 
         if (verification.isExpired()) {
             throw new IllegalArgumentException(
-                messageUtils.getMessage("error.email-verification.expired"));
+                    messageUtils.getMessage("error.email-verification.expired"));
         }
 
         final User user = userRepository.findById(verification.getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException(
-                    messageUtils.getMessage("error.user.not-found.id", verification.getUserId())));
+                        messageUtils.getMessage("error.user.not-found.id", verification.getUserId())));
 
         // 인증 타입에 따른 처리
         if (verification.getVerificationType() == EmailVerificationType.SIGNUP) {
@@ -78,17 +76,17 @@ public class EmailVerificationController {
             user.verifyEmail();
             user.changeEmail(verification.getNewEmail());
             emailService.sendWelcomeEmail(user);
-            
-            log.info("회원가입 이메일 인증 완료: userId={}, email={}", 
+
+            log.info("회원가입 이메일 인증 완료: userId={}, email={}",
                     user.getId(), user.getEmail());
-            
+
         } else if (verification.getVerificationType() == EmailVerificationType.CHANGE_EMAIL) {
             // 이메일 변경 인증
             final String oldEmail = user.getEmail();
             user.changeEmail(verification.getNewEmail());
             emailService.sendEmailChangedNotification(user, verification.getNewEmail());
-            
-            log.info("이메일 변경 인증 완료: userId={}, oldEmail={}, newEmail={}", 
+
+            log.info("이메일 변경 인증 완료: userId={}, oldEmail={}, newEmail={}",
                     user.getId(), oldEmail, verification.getNewEmail());
         }
 
@@ -107,8 +105,8 @@ public class EmailVerificationController {
      */
     @PostMapping("/resend-verification")
     @Operation(
-        summary = "인증 이메일 재발송",
-        description = "미인증 사용자의 인증 이메일 재발송"
+            summary = "인증 이메일 재발송",
+            description = "미인증 사용자의 인증 이메일 재발송"
     )
     @ApiResponse(responseCode = "200", description = "재발송 성공")
     @ApiResponse(responseCode = "400", description = "이미 인증된 사용자 또는 잘못된 요청")
@@ -117,14 +115,14 @@ public class EmailVerificationController {
     public ResponseEntity<String> resendVerificationEmail(
             @Parameter(description = "재발송할 이메일 주소", example = "user@example.com")
             @RequestParam final String emailAddress) {
-        
+
         final User user = userRepository.findByEmail(emailAddress)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                    messageUtils.getMessage("error.user.not-found.email", emailAddress)));
+                        messageUtils.getMessage("error.user.not-found.email", emailAddress)));
 
         if (user.isEmailVerified()) {
             throw new IllegalArgumentException(
-                messageUtils.getMessage("error.email-verification.already-verified"));
+                    messageUtils.getMessage("error.email-verification.already-verified"));
         }
 
         // 기존 미사용 토큰들을 만료 처리
@@ -137,7 +135,7 @@ public class EmailVerificationController {
         // 새 인증 토큰 생성 및 이메일 발송
         final String newToken = java.util.UUID.randomUUID().toString();
         final LocalDateTime expiresAt = LocalDateTime.now().plusHours(verificationExpirationHours);
-        
+
         final EmailVerification newVerification = EmailVerification.builder()
                 .code(newToken)
                 .userId(user.getId())
@@ -145,7 +143,7 @@ public class EmailVerificationController {
                 .expiresAt(expiresAt)
                 .verificationType(EmailVerificationType.SIGNUP)
                 .build();
-        
+
         emailVerificationRepository.save(newVerification);
         emailService.sendSignupVerificationEmail(user, newToken);
 
