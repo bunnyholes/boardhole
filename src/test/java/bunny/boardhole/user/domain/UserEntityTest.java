@@ -1,0 +1,421 @@
+package bunny.boardhole.user.domain;
+
+import bunny.boardhole.shared.constants.ValidationConstants;
+import bunny.boardhole.shared.constants.ValidationMessages;
+import bunny.boardhole.shared.test.EntityTestBase;
+import org.junit.jupiter.api.*;
+
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Set;
+
+import static org.assertj.core.api.Assertions.*;
+
+@DisplayName("User 엔티티 테스트")
+@TestMethodOrder(MethodOrderer.DisplayName.class)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@Tag("entity")
+@Tag("jpa")
+class UserEntityTest extends EntityTestBase {
+
+    @Nested
+    @DisplayName("생성자 및 빌더 테스트")
+    @Tag("creation")
+    class UserCreation {
+
+        @Test
+        @DisplayName("✅ 빌더를 사용한 User 생성 테스트")
+        void createUser_WithBuilder_Success() {
+            // given
+            String username = createUniqueUsername();
+            String email = createUniqueEmail();
+
+            // when
+            User user = User.builder()
+                    .username(username)
+                    .password(testData.password())
+                    .name(testData.name())
+                    .email(email)
+                    .roles(Set.of(Role.USER))
+                    .build();
+
+            // then
+            assertThat(user.getUsername()).isEqualTo(username);
+            assertThat(user.getPassword()).isEqualTo(testData.password());
+            assertThat(user.getName()).isEqualTo(testData.name());
+            assertThat(user.getEmail()).isEqualTo(email);
+            assertThat(user.getRoles()).isEqualTo(Set.of(Role.USER));
+            assertThat(user.getCreatedAt()).isNull();
+            assertThat(user.getUpdatedAt()).isNull();
+            assertThat(user.getLastLogin()).isNull();
+        }
+    }
+
+    @Nested
+    @DisplayName("필수 필드 검증 테스트")
+    @Tag("validation")
+    class RequiredFieldValidation {
+
+        @Test
+        @DisplayName("❌ 빈 사용자명으로 User 생성 시 예외 발생")
+        void createUser_WithEmptyUsername_ThrowsException() {
+            // given
+            String expectedMessage = ValidationMessages.USER_USERNAME_REQUIRED_FALLBACK;
+
+            // when & then
+            assertThatThrownBy(() -> User.builder()
+                    .username("")
+                    .password(testData.password())
+                    .name(testData.name())
+                    .email(testData.email())
+                    .roles(Set.of(Role.USER))
+                    .build())
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessage(expectedMessage);
+        }
+
+        @Test
+        @DisplayName("❌ 빈 비밀번호로 User 생성 시 예외 발생")
+        void createUser_WithEmptyPassword_ThrowsException() {
+            // given
+            String expectedMessage = ValidationMessages.USER_PASSWORD_REQUIRED_FALLBACK;
+
+            // when & then
+            assertThatThrownBy(() -> User.builder()
+                    .username(createUniqueUsername())
+                    .password("")
+                    .name(testData.name())
+                    .email(testData.email())
+                    .roles(Set.of(Role.USER))
+                    .build())
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessage(expectedMessage);
+        }
+
+        @Test
+        @DisplayName("❌ 빈 이름으로 User 생성 시 예외 발생")
+        void createUser_WithEmptyName_ThrowsException() {
+            // given
+            String expectedMessage = ValidationMessages.USER_NAME_REQUIRED_FALLBACK;
+
+            // when & then
+            assertThatThrownBy(() -> User.builder()
+                    .username(createUniqueUsername())
+                    .password(testData.password())
+                    .name("")
+                    .email(testData.email())
+                    .roles(Set.of(Role.USER))
+                    .build())
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessage(expectedMessage);
+        }
+
+        @Test
+        @DisplayName("❌ 빈 이메일로 User 생성 시 예외 발생")
+        void createUser_WithEmptyEmail_ThrowsException() {
+            // given
+            String expectedMessage = ValidationMessages.USER_EMAIL_REQUIRED_FALLBACK;
+
+            // when & then
+            assertThatThrownBy(() -> User.builder()
+                    .username(createUniqueUsername())
+                    .password(testData.password())
+                    .name(testData.name())
+                    .email("")
+                    .roles(Set.of(Role.USER))
+                    .build())
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessage(expectedMessage);
+        }
+    }
+
+    @Nested
+    @DisplayName("길이 제한 검증 테스트")
+    @Tag("validation")
+    class LengthValidation {
+
+        @Test
+        @DisplayName("❌ 사용자명이 최대 길이를 초과할 때 예외 발생")
+        void createUser_WithUsernameTooLong_ThrowsException() {
+            // given
+            String longUsername = "a".repeat(ValidationConstants.USER_USERNAME_MAX_LENGTH + 1);
+            String expectedMessage = String.format(ValidationMessages.USER_USERNAME_TOO_LONG_FALLBACK, ValidationConstants.USER_USERNAME_MAX_LENGTH);
+
+            // when & then
+            assertThatThrownBy(() -> User.builder()
+                    .username(longUsername)
+                    .password(testData.password())
+                    .name(testData.name())
+                    .email(testData.email())
+                    .roles(Set.of(Role.USER))
+                    .build())
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessage(expectedMessage);
+        }
+
+        @Test
+        @DisplayName("❌ 이름이 최대 길이를 초과할 때 예외 발생")
+        void createUser_WithNameTooLong_ThrowsException() {
+            // given
+            String longName = "a".repeat(ValidationConstants.USER_NAME_MAX_LENGTH + 1);
+            String expectedMessage = String.format(ValidationMessages.USER_NAME_TOO_LONG_FALLBACK, ValidationConstants.USER_NAME_MAX_LENGTH);
+
+            // when & then
+            assertThatThrownBy(() -> User.builder()
+                    .username(createUniqueUsername())
+                    .password(testData.password())
+                    .name(longName)
+                    .email(testData.email())
+                    .roles(Set.of(Role.USER))
+                    .build())
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessage(expectedMessage);
+        }
+
+        @Test
+        @DisplayName("❌ 이메일이 최대 길이를 초과할 때 예외 발생")
+        void createUser_WithEmailTooLong_ThrowsException() {
+            // given
+            String longEmail = "a".repeat(ValidationConstants.USER_EMAIL_MAX_LENGTH) + "@example.com";
+            String expectedMessage = String.format(ValidationMessages.USER_EMAIL_TOO_LONG_FALLBACK, ValidationConstants.USER_EMAIL_MAX_LENGTH);
+
+            // when & then
+            assertThatThrownBy(() -> User.builder()
+                    .username(createUniqueUsername())
+                    .password(testData.password())
+                    .name(testData.name())
+                    .email(longEmail)
+                    .roles(Set.of(Role.USER))
+                    .build())
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessage(expectedMessage);
+        }
+    }
+
+    @Nested
+    @DisplayName("JPA 생명주기 테스트")
+    @Tag("lifecycle")
+    class JpaLifecycle {
+
+        @Test
+        @DisplayName("✅ @PrePersist 테스트 - 생성 시 시간 필드 자동 설정")
+        void prePersist_SetsTimestamps() {
+            // given
+            User user = createTestUser();
+
+            // when
+            entityManager.persistAndFlush(user);
+
+            // then
+            assertThat(user.getCreatedAt()).isNotNull();
+            assertThat(user.getUpdatedAt()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("✅ @PreUpdate 테스트 - 수정 시 updatedAt 갱신")
+        void preUpdate_UpdatesTimestamp() {
+            // given
+            User user = createTestUser();
+            entityManager.persistAndFlush(user);
+            LocalDateTime originalUpdatedAt = user.getUpdatedAt();
+
+            // when
+            user.changeName("새로운 이름");
+            entityManager.flush();
+
+            // then
+            assertThat(user.getUpdatedAt()).isAfter(originalUpdatedAt);
+        }
+    }
+
+    @Nested
+    @DisplayName("비즈니스 메서드 테스트")
+    @Tag("business")
+    class BusinessMethods {
+
+        @Test
+        @DisplayName("✅ changeName 테스트 - 정상적인 이름 변경")
+        void changeName_WithValidName_Success() {
+            // given
+            User user = createTestUser();
+            String newName = "새로운 이름";
+
+            // when
+            user.changeName(newName);
+
+            // then
+            assertThat(user.getName()).isEqualTo(newName);
+        }
+
+        @Test
+        @DisplayName("❌ changeName 테스트 - 빈 이름으로 변경 시 예외 발생")
+        void changeName_WithEmptyName_ThrowsException() {
+            // given
+            User user = createTestUser();
+            String expectedMessage = ValidationMessages.USER_NAME_REQUIRED_FALLBACK;
+
+            // when & then
+            assertThatThrownBy(() -> user.changeName(""))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessage(expectedMessage);
+        }
+
+        @Test
+        @DisplayName("✅ changeEmail 테스트 - 정상적인 이메일 변경")
+        void changeEmail_WithValidEmail_Success() {
+            // given
+            User user = createTestUser();
+            String newEmail = createUniqueEmail();
+
+            // when
+            user.changeEmail(newEmail);
+
+            // then
+            assertThat(user.getEmail()).isEqualTo(newEmail);
+        }
+
+        @Test
+        @DisplayName("✅ changePassword 테스트 - 정상적인 비밀번호 변경")
+        void changePassword_WithValidPassword_Success() {
+            // given
+            User user = createTestUser();
+            String newPassword = "newpassword123";
+
+            // when
+            user.changePassword(newPassword);
+
+            // then
+            assertThat(user.getPassword()).isEqualTo(newPassword);
+        }
+
+        @Test
+        @DisplayName("✅ recordLastLogin 테스트 - 마지막 로그인 시간 기록")
+        void recordLastLogin_UpdatesLastLoginTime() {
+            // given
+            User user = createTestUser();
+            LocalDateTime loginTime = LocalDateTime.now(ZoneId.systemDefault());
+
+            // when
+            user.recordLastLogin(loginTime);
+
+            // then
+            assertThat(user.getLastLogin()).isEqualTo(loginTime);
+        }
+    }
+
+    @Nested
+    @DisplayName("JPA 영속성 테스트")
+    @Tag("persistence")
+    class JpaPersistence {
+
+        @Test
+        @DisplayName("✅ JPA 저장 및 조회 테스트")
+        void saveAndFind_PersistsCorrectly() {
+            // given
+            User user = User.builder()
+                    .username(createUniqueUsername())
+                    .password(testData.password())
+                    .name(testData.name())
+                    .email(createUniqueEmail())
+                    .roles(Set.of(Role.USER, Role.ADMIN))
+                    .build();
+
+            // when
+            entityManager.persistAndFlush(user);
+            entityManager.clear();
+            User foundUser = entityManager.find(User.class, user.getId());
+
+            // then
+            assertThat(foundUser).isNotNull();
+            assertThat(foundUser.getUsername()).isEqualTo(user.getUsername());
+            assertThat(foundUser.getName()).isEqualTo(testData.name());
+            assertThat(foundUser.getEmail()).isEqualTo(user.getEmail());
+            assertThat(foundUser.getRoles()).containsExactlyInAnyOrder(Role.USER, Role.ADMIN);
+            assertThat(foundUser.getCreatedAt()).isNotNull();
+            assertThat(foundUser.getUpdatedAt()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("✅ equals와 hashCode 테스트 - ID 기반 동등성")
+        void equalsAndHashCode_BasedOnId() {
+            // given
+            User user1 = User.builder()
+                    .username(createUniqueUsername())
+                    .password(testData.password())
+                    .name("사용자1")
+                    .email(createUniqueEmail())
+                    .roles(Set.of(Role.USER))
+                    .build();
+            
+            User user2 = User.builder()
+                    .username(createUniqueUsername())
+                    .password("password456")
+                    .name("사용자2")
+                    .email(createUniqueEmail())
+                    .roles(Set.of(Role.ADMIN))
+                    .build();
+
+            // when
+            entityManager.persistAndFlush(user1);
+            entityManager.persistAndFlush(user2);
+
+            // then
+            assertThat(user1).isNotEqualTo(user2);
+            assertThat(user1.hashCode()).isNotEqualTo(user2.hashCode());
+            
+            // 같은 ID를 가진 User는 동등
+            User sameUser = entityManager.find(User.class, user1.getId());
+            assertThat(user1).isEqualTo(sameUser);
+        }
+
+        @Test
+        @DisplayName("✅ 권한 컬렉션 테스트")
+        void roles_CollectionHandling() {
+            // given
+            User user = User.builder()
+                    .username(createUniqueUsername())
+                    .password(testData.password())
+                    .name(testData.name())
+                    .email(createUniqueEmail())
+                    .roles(Set.of(Role.USER, Role.ADMIN))
+                    .build();
+
+            // when
+            entityManager.persistAndFlush(user);
+            entityManager.clear();
+            User foundUser = entityManager.find(User.class, user.getId());
+
+            // then
+            assertThat(foundUser.getRoles()).hasSize(2);
+            assertThat(foundUser.getRoles()).containsExactlyInAnyOrder(Role.USER, Role.ADMIN);
+        }
+    }
+
+    @Nested
+    @DisplayName("보안 테스트")
+    @Tag("security")
+    class SecurityTests {
+
+        @Test
+        @DisplayName("✅ toString 테스트 - 민감한 정보 제외")
+        void toString_ExcludesSensitiveFields() {
+            // given
+            User user = User.builder()
+                    .username(createUniqueUsername())
+                    .password("secretpassword")
+                    .name(testData.name())
+                    .email(createUniqueEmail())
+                    .roles(Set.of(Role.USER))
+                    .build();
+
+            // when
+            String userString = user.toString();
+
+            // then
+            assertThat(userString).doesNotContain("secretpassword");
+            assertThat(userString).doesNotContain("password");
+            assertThat(userString).contains(user.getUsername());
+            assertThat(userString).contains(testData.name());
+        }
+    }
+}

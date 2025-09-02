@@ -1,6 +1,8 @@
 package bunny.boardhole.user.domain;
 
 import bunny.boardhole.shared.constants.ValidationConstants;
+import bunny.boardhole.shared.constants.ValidationMessages;
+import bunny.boardhole.shared.util.EntityMessageProvider;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.*;
@@ -70,13 +72,13 @@ public class User implements Serializable {
     // 필요한 필드만 받는 생성자에 @Builder 적용
     @Builder
     public User(@NonNull String username, @NonNull String password, @NonNull String name, @NonNull String email, java.util.Set<Role> roles) {
-        Assert.hasText(username, "사용자명은 필수입니다");
-        Assert.isTrue(username.length() <= ValidationConstants.USER_USERNAME_MAX_LENGTH, "사용자명은 " + ValidationConstants.USER_USERNAME_MAX_LENGTH + "자를 초과할 수 없습니다");
-        Assert.hasText(password, "비밀번호는 필수입니다");
-        Assert.hasText(name, "이름은 필수입니다");
-        Assert.isTrue(name.length() <= ValidationConstants.USER_NAME_MAX_LENGTH, "이름은 " + ValidationConstants.USER_NAME_MAX_LENGTH + "자를 초과할 수 없습니다");
-        Assert.hasText(email, "이메일은 필수입니다");
-        Assert.isTrue(email.length() <= ValidationConstants.USER_EMAIL_MAX_LENGTH, "이메일은 " + ValidationConstants.USER_EMAIL_MAX_LENGTH + "자를 초과할 수 없습니다");
+        Assert.hasText(username, EntityMessageProvider.getMessage(ValidationMessages.USER_USERNAME_REQUIRED, ValidationMessages.USER_USERNAME_REQUIRED_FALLBACK));
+        Assert.isTrue(username.length() <= ValidationConstants.USER_USERNAME_MAX_LENGTH, EntityMessageProvider.getMessage(ValidationMessages.USER_USERNAME_TOO_LONG, ValidationMessages.USER_USERNAME_TOO_LONG_FALLBACK, ValidationConstants.USER_USERNAME_MAX_LENGTH));
+        Assert.hasText(password, EntityMessageProvider.getMessage(ValidationMessages.USER_PASSWORD_REQUIRED, ValidationMessages.USER_PASSWORD_REQUIRED_FALLBACK));
+        Assert.hasText(name, EntityMessageProvider.getMessage(ValidationMessages.USER_NAME_REQUIRED, ValidationMessages.USER_NAME_REQUIRED_FALLBACK));
+        Assert.isTrue(name.length() <= ValidationConstants.USER_NAME_MAX_LENGTH, EntityMessageProvider.getMessage(ValidationMessages.USER_NAME_TOO_LONG, ValidationMessages.USER_NAME_TOO_LONG_FALLBACK, ValidationConstants.USER_NAME_MAX_LENGTH));
+        Assert.hasText(email, EntityMessageProvider.getMessage(ValidationMessages.USER_EMAIL_REQUIRED, ValidationMessages.USER_EMAIL_REQUIRED_FALLBACK));
+        Assert.isTrue(email.length() <= ValidationConstants.USER_EMAIL_MAX_LENGTH, EntityMessageProvider.getMessage(ValidationMessages.USER_EMAIL_TOO_LONG, ValidationMessages.USER_EMAIL_TOO_LONG_FALLBACK, ValidationConstants.USER_EMAIL_MAX_LENGTH));
 
         this.username = username;
         this.password = password;
@@ -98,19 +100,19 @@ public class User implements Serializable {
     }
 
     public void changeName(@NonNull String name) {
-        Assert.hasText(name, "이름은 필수입니다");
-        Assert.isTrue(name.length() <= ValidationConstants.USER_NAME_MAX_LENGTH, "이름은 " + ValidationConstants.USER_NAME_MAX_LENGTH + "자를 초과할 수 없습니다");
+        Assert.hasText(name, EntityMessageProvider.getMessage(ValidationMessages.USER_NAME_REQUIRED, ValidationMessages.USER_NAME_REQUIRED_FALLBACK));
+        Assert.isTrue(name.length() <= ValidationConstants.USER_NAME_MAX_LENGTH, EntityMessageProvider.getMessage(ValidationMessages.USER_NAME_TOO_LONG, ValidationMessages.USER_NAME_TOO_LONG_FALLBACK, ValidationConstants.USER_NAME_MAX_LENGTH));
         this.name = name;
     }
 
     public void changeEmail(@NonNull String email) {
-        Assert.hasText(email, "이메일은 필수입니다");
-        Assert.isTrue(email.length() <= ValidationConstants.USER_EMAIL_MAX_LENGTH, "이메일은 " + ValidationConstants.USER_EMAIL_MAX_LENGTH + "자를 초과할 수 없습니다");
+        Assert.hasText(email, EntityMessageProvider.getMessage(ValidationMessages.USER_EMAIL_REQUIRED, ValidationMessages.USER_EMAIL_REQUIRED_FALLBACK));
+        Assert.isTrue(email.length() <= ValidationConstants.USER_EMAIL_MAX_LENGTH, EntityMessageProvider.getMessage(ValidationMessages.USER_EMAIL_TOO_LONG, ValidationMessages.USER_EMAIL_TOO_LONG_FALLBACK, ValidationConstants.USER_EMAIL_MAX_LENGTH));
         this.email = email;
     }
 
     public void changePassword(@NonNull String password) {
-        Assert.hasText(password, "비밀번호는 필수입니다");
+        Assert.hasText(password, EntityMessageProvider.getMessage(ValidationMessages.USER_PASSWORD_REQUIRED, ValidationMessages.USER_PASSWORD_REQUIRED_FALLBACK));
         this.password = password;
     }
 

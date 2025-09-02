@@ -1,6 +1,8 @@
 package bunny.boardhole.board.domain;
 
 import bunny.boardhole.shared.constants.ValidationConstants;
+import bunny.boardhole.shared.constants.ValidationMessages;
+import bunny.boardhole.shared.util.EntityMessageProvider;
 import bunny.boardhole.user.domain.User;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
@@ -62,11 +64,11 @@ public class Board {
     // 필요한 필드만 받는 생성자에 @Builder 적용
     @Builder
     public Board(@NonNull String title, @NonNull String content, @NonNull User author) {
-        Assert.hasText(title, "게시글 제목은 필수입니다");
-        Assert.isTrue(title.length() <= ValidationConstants.BOARD_TITLE_MAX_LENGTH, "게시글 제목은 " + ValidationConstants.BOARD_TITLE_MAX_LENGTH + "자를 초과할 수 없습니다");
-        Assert.hasText(content, "게시글 내용은 필수입니다");
-        Assert.isTrue(content.length() <= ValidationConstants.BOARD_CONTENT_MAX_LENGTH, "게시글 내용은 " + ValidationConstants.BOARD_CONTENT_MAX_LENGTH + "자를 초과할 수 없습니다");
-        Assert.notNull(author, "작성자는 필수입니다");
+        Assert.hasText(title, EntityMessageProvider.getMessage(ValidationMessages.BOARD_TITLE_REQUIRED, ValidationMessages.BOARD_TITLE_REQUIRED_FALLBACK));
+        Assert.isTrue(title.length() <= ValidationConstants.BOARD_TITLE_MAX_LENGTH, EntityMessageProvider.getMessage(ValidationMessages.BOARD_TITLE_TOO_LONG, ValidationMessages.BOARD_TITLE_TOO_LONG_FALLBACK, ValidationConstants.BOARD_TITLE_MAX_LENGTH));
+        Assert.hasText(content, EntityMessageProvider.getMessage(ValidationMessages.BOARD_CONTENT_REQUIRED, ValidationMessages.BOARD_CONTENT_REQUIRED_FALLBACK));
+        Assert.isTrue(content.length() <= ValidationConstants.BOARD_CONTENT_MAX_LENGTH, EntityMessageProvider.getMessage(ValidationMessages.BOARD_CONTENT_TOO_LONG, ValidationMessages.BOARD_CONTENT_TOO_LONG_FALLBACK, ValidationConstants.BOARD_CONTENT_MAX_LENGTH));
+        Assert.notNull(author, EntityMessageProvider.getMessage(ValidationMessages.BOARD_AUTHOR_REQUIRED, ValidationMessages.BOARD_AUTHOR_REQUIRED_FALLBACK));
 
         this.title = title;
         this.content = content;
@@ -87,14 +89,14 @@ public class Board {
     }
 
     public void changeTitle(@NonNull String title) {
-        Assert.hasText(title, "게시글 제목은 필수입니다");
-        Assert.isTrue(title.length() <= ValidationConstants.BOARD_TITLE_MAX_LENGTH, "게시글 제목은 " + ValidationConstants.BOARD_TITLE_MAX_LENGTH + "자를 초과할 수 없습니다");
+        Assert.hasText(title, EntityMessageProvider.getMessage(ValidationMessages.BOARD_TITLE_REQUIRED, ValidationMessages.BOARD_TITLE_REQUIRED_FALLBACK));
+        Assert.isTrue(title.length() <= ValidationConstants.BOARD_TITLE_MAX_LENGTH, EntityMessageProvider.getMessage(ValidationMessages.BOARD_TITLE_TOO_LONG, ValidationMessages.BOARD_TITLE_TOO_LONG_FALLBACK, ValidationConstants.BOARD_TITLE_MAX_LENGTH));
         this.title = title;
     }
 
     public void changeContent(@NonNull String content) {
-        Assert.hasText(content, "게시글 내용은 필수입니다");
-        Assert.isTrue(content.length() <= ValidationConstants.BOARD_CONTENT_MAX_LENGTH, "게시글 내용은 " + ValidationConstants.BOARD_CONTENT_MAX_LENGTH + "자를 초과할 수 없습니다");
+        Assert.hasText(content, EntityMessageProvider.getMessage(ValidationMessages.BOARD_CONTENT_REQUIRED, ValidationMessages.BOARD_CONTENT_REQUIRED_FALLBACK));
+        Assert.isTrue(content.length() <= ValidationConstants.BOARD_CONTENT_MAX_LENGTH, EntityMessageProvider.getMessage(ValidationMessages.BOARD_CONTENT_TOO_LONG, ValidationMessages.BOARD_CONTENT_TOO_LONG_FALLBACK, ValidationConstants.BOARD_CONTENT_MAX_LENGTH));
         this.content = content;
     }
 

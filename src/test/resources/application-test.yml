@@ -45,3 +45,17 @@ boardhole:
       password: admin123
     regular:
       password: user123
+      
+  # Entity 테스트용 데이터
+  test-data:
+    user:
+      username: testuser
+      password: password123
+      name: 테스트 사용자
+      email: test@example.com
+    board:
+      title: 테스트 제목
+      content: 테스트 내용
+    email-verification:
+      code: ABC123
+      expiration-hours: 1
