@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+    <!-- 테스트 클래스는 일부 규칙 완화 (교과서적으로 허용되는 패턴) -->
+    <Match>
+        <Class name="~.*Test"/>
+        <Bug pattern="DMI_HARDCODED_ABSOLUTE_FILENAME"/>
+    </Match>
+    
+    <Match>
+        <Class name="~.*Test"/>
+        <Bug pattern="PATH_TRAVERSAL_IN"/>
+    </Match>
+    
+    <!-- Spring Boot 자동 구성 클래스 제외 -->
+    <Match>
+        <Class name="~.*Application"/>
+        <Bug pattern="UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR"/>
+    </Match>
+    
+    <!-- DTO/Entity 클래스의 불가피한 패턴 제외 -->
+    <Match>
+        <Class name="~.*\.(dto|entity|domain)\..*"/>
+        <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2"/>
+    </Match>
+</FindBugsFilter>
