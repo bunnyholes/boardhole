@@ -37,5 +37,6 @@ public class ValidationProperties {
     public static class EmailVerification {
         private int expirationMinutes = 30;
         private int codeLength = 6;
+        private int signupExpirationHours = 24;
     }
 }

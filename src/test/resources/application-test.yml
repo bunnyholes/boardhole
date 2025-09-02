@@ -22,6 +22,20 @@ spring:
         format_sql: true
     show-sql: false
 
+  # 테스트용 Mail 설정 (GreenMail 사용)
+  mail:
+    host: localhost
+    port: 3025
+    username: 
+    password: 
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+        debug: false
+
 # 로깅 설정
 logging:
   level:
@@ -29,8 +43,12 @@ logging:
     org.springframework.security: DEBUG
     org.springframework.web: DEBUG
 
-# 테스트용 기본 사용자 설정
 boardhole:
+  # 이메일 설정 (테스트용)
+  email:
+    from-email: noreply@test.boardhole.com
+    base-url: http://localhost:8080
+
   # CORS 설정 (테스트용)
   cors:
     allowed-origins: "http://localhost:8080"

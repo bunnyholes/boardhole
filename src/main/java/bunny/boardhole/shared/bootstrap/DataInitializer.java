@@ -58,6 +58,7 @@ public class DataInitializer implements CommandLineRunner {
                     .email(adminEmail)
                     .roles(Set.of(Role.ADMIN))
                     .build();
+            admin.verifyEmail(); // 기본 사용자는 이메일 인증 완료 상태로 생성
             userRepository.save(admin);
             log.info(messageSource.getMessage("log.user.admin.created",
                     new Object[]{adminUsername}, LocaleContextHolder.getLocale()));
@@ -75,6 +76,7 @@ public class DataInitializer implements CommandLineRunner {
                     .email(regularEmail)
                     .roles(Set.of(Role.USER))
                     .build();
+            regularUser.verifyEmail(); // 기본 사용자는 이메일 인증 완료 상태로 생성
             userRepository.save(regularUser);
             log.info(messageSource.getMessage("log.user.regular.created",
                     new Object[]{regularUsername}, LocaleContextHolder.getLocale()));
