@@ -193,9 +193,4 @@ public class ErrorHandlingIntegrationTest extends ControllerTestBase {
                 .andDo(print());
     }
 
-    // Helper methods
-
-    private Long extractBoardId(String jsonResponse) {
-        return Long.parseLong(jsonResponse.replaceAll(".*\"id\":(\\d+).*", "$1"));
-    }
 }

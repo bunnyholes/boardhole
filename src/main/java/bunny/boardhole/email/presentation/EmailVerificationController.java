@@ -17,13 +17,14 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 이메일 인증 관련 컨트롤러
  */
 @Slf4j
 @RestController
-@RequestMapping(ApiPaths.AUTH)
+@RequestMapping(ApiPaths.USERS)
 @RequiredArgsConstructor
 @Tag(name = "이메일 인증", description = "이메일 인증 관련 API")
 public class EmailVerificationController {
@@ -32,19 +33,11 @@ public class EmailVerificationController {
     private final EmailVerificationRepository emailVerificationRepository;
     private final EmailService emailService;
     private final MessageUtils messageUtils;
-    /**
-     * 인증 토큰 만료 시간 (시간)
-     */
+
     @Value("${boardhole.email.verification-expiration-hours:24}")
     private int verificationExpirationHours;
 
-    /**
-     * 이메일 인증 처리
-     *
-     * @param token 인증 토큰
-     * @return 인증 결과
-     */
-    @GetMapping("/verify-email")
+    @GetMapping("/{id}/email/verify")
     @Operation(
             summary = "이메일 인증",
             description = "토큰을 통한 이메일 인증 처리 (회원가입/이메일 변경)"
@@ -54,10 +47,12 @@ public class EmailVerificationController {
     @ApiResponse(responseCode = "404", description = "토큰을 찾을 수 없음")
     @Transactional
     public ResponseEntity<String> verifyEmail(
+            @Parameter(description = "사용자 ID")
+            @PathVariable Long id,
             @Parameter(description = "인증 토큰", example = "abc123def456")
-            @RequestParam final String verificationToken) {
+            @RequestParam final String token) {
 
-        final EmailVerification verification = emailVerificationRepository.findByCodeAndUsedFalse(verificationToken)
+        final EmailVerification verification = emailVerificationRepository.findByCodeAndUsedFalse(token)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         messageUtils.getMessage("error.email-verification.invalid-token")));
 
@@ -97,13 +92,7 @@ public class EmailVerificationController {
         return ResponseEntity.ok(messageUtils.getMessage("success.email-verification.completed"));
     }
 
-    /**
-     * 인증 이메일 재발송
-     *
-     * @param email 이메일 주소
-     * @return 재발송 결과
-     */
-    @PostMapping("/resend-verification")
+    @PostMapping("/{id}/email/resend")
     @Operation(
             summary = "인증 이메일 재발송",
             description = "미인증 사용자의 인증 이메일 재발송"
@@ -113,12 +102,12 @@ public class EmailVerificationController {
     @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음")
     @Transactional
     public ResponseEntity<String> resendVerificationEmail(
-            @Parameter(description = "재발송할 이메일 주소", example = "user@example.com")
-            @RequestParam final String emailAddress) {
+            @Parameter(description = "사용자 ID")
+            @PathVariable Long id) {
 
-        final User user = userRepository.findByEmail(emailAddress)
+        final User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        messageUtils.getMessage("error.user.not-found.email", emailAddress)));
+                        messageUtils.getMessage("error.user.not-found.id", id)));
 
         if (user.isEmailVerified()) {
             throw new IllegalArgumentException(
@@ -126,11 +115,11 @@ public class EmailVerificationController {
         }
 
         // 기존 미사용 토큰들을 만료 처리
-        emailVerificationRepository.findByUserIdAndUsedFalse(user.getId())
-                .forEach(verification -> {
-                    verification.markAsUsed();
-                    emailVerificationRepository.save(verification);
-                });
+        List<EmailVerification> existingVerifications = emailVerificationRepository.findByUserIdAndUsedFalse(user.getId());
+        existingVerifications.forEach(verification -> {
+            verification.markAsUsed();
+            emailVerificationRepository.save(verification);
+        });
 
         // 새 인증 토큰 생성 및 이메일 발송
         final String newToken = java.util.UUID.randomUUID().toString();
@@ -147,7 +136,7 @@ public class EmailVerificationController {
         emailVerificationRepository.save(newVerification);
         emailService.sendSignupVerificationEmail(user, newToken);
 
-        log.info("인증 이메일 재발송: userId={}, email={}", user.getId(), emailAddress);
+        log.info("인증 이메일 재발송: userId={}, email={}", user.getId(), user.getEmail());
         return ResponseEntity.ok(messageUtils.getMessage("success.email-verification.resent"));
     }
 }

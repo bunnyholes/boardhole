@@ -128,9 +128,7 @@ public class User implements Serializable {
     }
 
     public void grantAdminRole() {
-        if (!this.roles.contains(Role.ADMIN)) {
-            this.roles.add(Role.ADMIN);
-        }
+        this.roles.add(Role.ADMIN);
     }
 
     public boolean revokeAdminRole() {

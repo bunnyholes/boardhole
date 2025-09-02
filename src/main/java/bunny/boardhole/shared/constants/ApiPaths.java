@@ -12,7 +12,6 @@ public final class ApiPaths {
     public static final String AUTH = API_PREFIX + "/auth";
     public static final String USERS = API_PREFIX + "/users";
     public static final String BOARDS = API_PREFIX + "/boards";
-    public static final String ADMIN = API_PREFIX + "/admin";
 
     // Auth 경로
     public static final String AUTH_BASE = API_PREFIX + "/auth";
@@ -36,9 +35,6 @@ public final class ApiPaths {
     public static final String BOARD_BASE = API_PREFIX + "/boards";
     public static final String BOARD_BY_ID = "/{id}";
 
-    // Admin 경로
-    public static final String ADMIN_BASE = API_PREFIX + "/admin";
-    public static final String ADMIN_STATS = "/stats";
 
     private ApiPaths() {
         // 인스턴스 생성 방지

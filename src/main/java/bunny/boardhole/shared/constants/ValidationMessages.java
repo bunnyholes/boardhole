@@ -44,6 +44,7 @@ public final class ValidationMessages {
     public static final String EMAIL_VERIFICATION_NEW_EMAIL_REQUIRED_FALLBACK = "New email is required";
     public static final String EMAIL_VERIFICATION_EXPIRES_AT_REQUIRED_FALLBACK = "Expiration time is required";
     public static final String EMAIL_VERIFICATION_TYPE_REQUIRED_FALLBACK = "Verification type is required";
+
     private ValidationMessages() {
         throw new UnsupportedOperationException("Constants class");
     }

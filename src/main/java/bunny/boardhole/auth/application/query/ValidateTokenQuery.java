@@ -1,7 +1,7 @@
 package bunny.boardhole.auth.application.query;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.NotBlank;
 
 /**
  * 토큰 검증 쿼리

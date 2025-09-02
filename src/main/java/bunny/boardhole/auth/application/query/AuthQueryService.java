@@ -6,7 +6,6 @@ import bunny.boardhole.shared.security.AppUserPrincipal;
 import bunny.boardhole.shared.util.MessageUtils;
 import bunny.boardhole.user.domain.User;
 import bunny.boardhole.user.infrastructure.UserRepository;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,8 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
-import java.time.LocalDateTime;
-import java.util.*;
+import java.util.List;
 
 /**
  * 인증 조회 서비스
@@ -35,7 +33,7 @@ public class AuthQueryService {
     private final UserRepository userRepository;
     private final MessageUtils messageUtils;
     private final AuthHistoryMockDataProvider mockDataProvider;
-    
+
     @Value("${boardhole.auth.default-role}")
     private String defaultRole;
 
@@ -45,13 +43,13 @@ public class AuthQueryService {
      * @param query 현재 인증 정보 조회 쿼리
      * @return 현재 인증 정보 결과
      * @throws ResourceNotFoundException 사용자를 찾을 수 없는 경우
-     * @throws UnauthorizedException 인증되지 않은 경우
+     * @throws UnauthorizedException     인증되지 않은 경우
      */
     @Transactional(readOnly = true)
     @NonNull
     public AuthenticationResult getCurrentAuthentication(@Valid @NonNull GetCurrentAuthenticationQuery query) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        
+
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new UnauthorizedException(messageUtils.getMessage("error.auth.not-authenticated"));
         }
@@ -61,13 +59,13 @@ public class AuthQueryService {
                 .orElseThrow(() -> new ResourceNotFoundException(messageUtils.getMessage("error.user.not-found.id", query.userId())));
 
         // 세션 ID 추출 (가능한 경우)
-        String sessionId = authentication.getDetails() != null ? 
+        String sessionId = authentication.getDetails() != null ?
                 authentication.getDetails().toString() : "N/A";
 
         log.info(messageUtils.getMessage("log.auth.query-current", user.getUsername(), user.getId()));
 
         // 안전한 Role 접근
-        String roleName = user.getRoles().isEmpty() ? 
+        String roleName = user.getRoles().isEmpty() ?
                 defaultRole : user.getRoles().iterator().next().name();
 
         return new AuthenticationResult(
@@ -93,16 +91,15 @@ public class AuthQueryService {
         try {
             // 현재 Spring Security 컨텍스트에서 인증 정보 확인
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            
+
             if (authentication == null || !authentication.isAuthenticated()) {
                 return new TokenValidationResult(false, null, null, "Not authenticated");
             }
 
-            if (authentication.getPrincipal() instanceof AppUserPrincipal principal) {
-                User user = principal.user();
-                
+            if (authentication.getPrincipal() instanceof AppUserPrincipal(User user)) {
+
                 log.info(messageUtils.getMessage("log.auth.token-validated", user.getUsername()));
-                
+
                 return new TokenValidationResult(
                         true,
                         user.getId(),
@@ -112,7 +109,7 @@ public class AuthQueryService {
             }
 
             return new TokenValidationResult(false, null, null, "Invalid principal type");
-            
+
         } catch (Exception e) {
             log.warn(messageUtils.getMessage("log.auth.token-validation-failed"), e);
             return new TokenValidationResult(false, null, null, e.getMessage());
@@ -121,7 +118,7 @@ public class AuthQueryService {
 
     /**
      * 인증 이력 조회 (선택적 기능)
-     * 
+     * <p>
      * 현재 구현에서는 실제 이력 테이블이 없으므로 모의 데이터를 반환합니다.
      * 실제 운영 환경에서는 별도의 이력 테이블과 Repository가 필요합니다.
      *
