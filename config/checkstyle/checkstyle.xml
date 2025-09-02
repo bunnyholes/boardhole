@@ -85,8 +85,7 @@
         </module>
 
     </module>
-
-    <!-- 줄 길이 제한 (Checker의 직접 자식으로 위치해야 함) -->
+    <!-- 줄 길이 제한 -->
     <module name="LineLength">
         <property name="max" value="120"/>
         <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://"/>
