@@ -117,4 +117,25 @@ public class User implements Serializable {
     public void recordLastLogin(LocalDateTime lastLogin) {
         this.lastLogin = lastLogin;
     }
+
+    public void grantAdminRole() {
+        if (!this.roles.contains(Role.ADMIN)) {
+            this.roles.add(Role.ADMIN);
+        }
+    }
+
+    public boolean revokeAdminRole() {
+        if (this.roles.contains(Role.ADMIN)) {
+            if (this.roles.size() <= 1) {
+                return false; // 마지막 역할이 ADMIN인 경우 제거 불가
+            }
+            this.roles.remove(Role.ADMIN);
+            return true;
+        }
+        return false; // ADMIN 역할이 없음
+    }
+
+    public boolean hasAdminRole() {
+        return this.roles.contains(Role.ADMIN);
+    }
 }
