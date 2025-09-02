@@ -10,8 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.MailException;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.mail.javamail.*;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -25,16 +24,14 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class SmtpEmailService implements EmailService {
 
+    private final JavaMailSender mailSender;
+    private final EmailTemplateService templateService;
+    private final MessageUtils messageUtils;
     /**
      * 인증 토큰 만료 시간 (시간)
      */
     @Value("${boardhole.email.verification-expiration-hours:24}")
     private int verificationExpirationHours;
-
-    private final JavaMailSender mailSender;
-    private final EmailTemplateService templateService;
-    private final MessageUtils messageUtils;
-
     @Value("${spring.mail.username:noreply@boardhole.com}")
     private String fromEmail;
 
@@ -49,23 +46,23 @@ public class SmtpEmailService implements EmailService {
             final MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
 
             helper.setFrom(fromEmail);
-            helper.setTo(emailMessage.getRecipientEmail());
-            helper.setSubject(emailMessage.getSubject());
-            helper.setText(emailMessage.getContent(), true);
+            helper.setTo(emailMessage.recipientEmail());
+            helper.setSubject(emailMessage.subject());
+            helper.setText(emailMessage.content(), true);
 
-            if (emailMessage.getCarbonCopy() != null && !emailMessage.getCarbonCopy().isEmpty()) {
-                helper.setCc(emailMessage.getCarbonCopy().toArray(new String[0]));
+            if (emailMessage.carbonCopy() != null && !emailMessage.carbonCopy().isEmpty()) {
+                helper.setCc(emailMessage.carbonCopy().toArray(new String[0]));
             }
 
-            if (emailMessage.getBlindCarbonCopy() != null && !emailMessage.getBlindCarbonCopy().isEmpty()) {
-                helper.setBcc(emailMessage.getBlindCarbonCopy().toArray(new String[0]));
+            if (emailMessage.blindCarbonCopy() != null && !emailMessage.blindCarbonCopy().isEmpty()) {
+                helper.setBcc(emailMessage.blindCarbonCopy().toArray(new String[0]));
             }
 
             mailSender.send(mimeMessage);
-            log.info("이메일 발송 성공: to={}, subject={}", emailMessage.getRecipientEmail(), emailMessage.getSubject());
+            log.info("이메일 발송 성공: to={}, subject={}", emailMessage.recipientEmail(), emailMessage.subject());
 
         } catch (final MessagingException | MailException e) {
-            log.error("이메일 발송 실패: to={}, error={}", emailMessage.getRecipientEmail(), e.getMessage(), e);
+            log.error("이메일 발송 실패: to={}, error={}", emailMessage.recipientEmail(), e.getMessage(), e);
             throw new RuntimeException("이메일 발송에 실패했습니다", e);
         }
     }
@@ -80,7 +77,7 @@ public class SmtpEmailService implements EmailService {
     @Override
     public void sendSignupVerificationEmail(final User user, final String verificationToken) {
         final String verificationUrl = baseUrl + "/api/auth/verify-email?token=" + verificationToken;
-        
+
         final Map<String, Object> templateVariables = Map.of(
                 "userName", user.getName(),
                 "userEmail", user.getEmail(),
@@ -95,7 +92,7 @@ public class SmtpEmailService implements EmailService {
     @Override
     public void sendEmailChangeVerificationEmail(final User user, final String newEmail, final String verificationToken) {
         final String verificationUrl = baseUrl + "/api/auth/verify-email?token=" + verificationToken;
-        
+
         final Map<String, Object> templateVariables = Map.of(
                 "userName", user.getName(),
                 "currentEmail", user.getEmail(),

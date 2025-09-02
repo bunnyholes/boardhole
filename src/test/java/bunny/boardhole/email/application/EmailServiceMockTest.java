@@ -1,6 +1,6 @@
 package bunny.boardhole.email.application;
 
-import bunny.boardhole.email.domain.*;
+import bunny.boardhole.email.domain.EmailTemplate;
 import bunny.boardhole.email.infrastructure.SmtpEmailService;
 import bunny.boardhole.shared.util.MessageUtils;
 import bunny.boardhole.user.domain.*;
@@ -12,8 +12,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -50,7 +49,7 @@ class EmailServiceMockTest {
 
         when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
         doNothing().when(mailSender).send(any(MimeMessage.class));
-        
+
         // @Value 필드 모킹
         ReflectionTestUtils.setField(emailService, "fromEmail", "noreply@test.boardhole.com");
         ReflectionTestUtils.setField(emailService, "baseUrl", "http://localhost:8080");
@@ -62,7 +61,7 @@ class EmailServiceMockTest {
         // given
         String verificationToken = "test-token-123";
         String processedTemplate = "<html>인증 이메일 내용</html>";
-        
+
         when(templateService.processTemplate(eq(EmailTemplate.SIGNUP_VERIFICATION), any(Map.class)))
                 .thenReturn(processedTemplate);
 
@@ -79,7 +78,7 @@ class EmailServiceMockTest {
     void sendWelcomeEmail_Mock() {
         // given
         String processedTemplate = "<html>환영 이메일 내용</html>";
-        
+
         when(templateService.processTemplate(eq(EmailTemplate.WELCOME), any(Map.class)))
                 .thenReturn(processedTemplate);
 
@@ -98,7 +97,7 @@ class EmailServiceMockTest {
         String newEmail = "newemail@example.com";
         String verificationToken = "change-token-123";
         String processedTemplate = "<html>이메일 변경 인증 내용</html>";
-        
+
         when(templateService.processTemplate(eq(EmailTemplate.EMAIL_CHANGE_VERIFICATION), any(Map.class)))
                 .thenReturn(processedTemplate);
 

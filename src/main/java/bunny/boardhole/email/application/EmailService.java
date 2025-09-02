@@ -21,8 +21,8 @@ public interface EmailService {
     /**
      * 템플릿 기반 이메일 발송
      *
-     * @param recipientEmail   받는 사람 이메일
-     * @param emailTemplate    이메일 템플릿
+     * @param recipientEmail    받는 사람 이메일
+     * @param emailTemplate     이메일 템플릿
      * @param templateVariables 템플릿 변수들
      */
     void sendTemplatedEmail(@NonNull String recipientEmail, @NonNull EmailTemplate emailTemplate, @NonNull Map<String, Object> templateVariables);

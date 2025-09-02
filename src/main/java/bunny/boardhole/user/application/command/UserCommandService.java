@@ -70,7 +70,7 @@ public class UserCommandService {
         String verificationToken = java.util.UUID.randomUUID().toString();
         LocalDateTime expiresAt = LocalDateTime.now()
                 .plusHours(validationProperties.getEmailVerification().getSignupExpirationHours());
-        
+
         EmailVerification verification = EmailVerification.builder()
                 .code(verificationToken)
                 .userId(saved.getId())
@@ -78,7 +78,7 @@ public class UserCommandService {
                 .expiresAt(expiresAt)
                 .verificationType(EmailVerificationType.SIGNUP)
                 .build();
-        
+
         emailVerificationRepository.save(verification);
         emailService.sendSignupVerificationEmail(saved, verificationToken);
 
