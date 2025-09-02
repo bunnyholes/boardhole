@@ -1,7 +1,7 @@
 package bunny.boardhole.user.presentation.dto;
 
-import io.swagger.v3.oas.annotations.media.Schema;
 import bunny.boardhole.user.domain.validation.*;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(name = "UserUpdateRequest", description = "사용자 정보 수정 요청")
 public record UserUpdateRequest(

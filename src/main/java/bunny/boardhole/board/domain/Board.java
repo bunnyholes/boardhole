@@ -66,7 +66,7 @@ public class Board {
         Assert.hasText(content, "게시글 내용은 필수입니다");
         Assert.isTrue(content.length() <= 10000, "게시글 내용은 10000자를 초과할 수 없습니다");
         Assert.notNull(author, "작성자는 필수입니다");
-        
+
         this.title = title;
         this.content = content;
         this.author = author;

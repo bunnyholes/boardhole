@@ -1,13 +1,11 @@
 package bunny.boardhole.shared.config;
 
-import io.swagger.v3.oas.models.Components;
-import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.*;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.info.BuildProperties;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.*;
 
 /**
  * OpenAPI Bean 설정
@@ -15,25 +13,25 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 public class OpenApiConfiguration {
-    
+
     private final OpenApiConfig openApiConfig;
     private final BuildProperties buildProperties;
-    
-    public OpenApiConfiguration(OpenApiConfig openApiConfig, 
-                               @Autowired(required = false) BuildProperties buildProperties) {
+
+    public OpenApiConfiguration(OpenApiConfig openApiConfig,
+                                @Autowired(required = false) BuildProperties buildProperties) {
         this.openApiConfig = openApiConfig;
         this.buildProperties = buildProperties;
     }
-    
+
     @Bean
     public OpenAPI boardHoleOpenAPI() {
         // BuildProperties가 있으면 Gradle 정보 사용, 없으면 yml 설정값 사용
-        String finalVersion = buildProperties != null ? 
+        String finalVersion = buildProperties != null ?
                 buildProperties.getVersion() : openApiConfig.getVersion();
         String finalDescription = buildProperties != null ?
                 openApiConfig.getDescription() + " (Build: " + buildProperties.getTime() + ")" :
                 openApiConfig.getDescription();
-                
+
         return new OpenAPI()
                 .info(new Info()
                         .title(openApiConfig.getTitle())

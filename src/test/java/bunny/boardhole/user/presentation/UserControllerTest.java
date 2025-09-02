@@ -6,8 +6,7 @@ import org.junit.jupiter.api.*;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithUserDetails;
 
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -25,7 +24,7 @@ class UserControllerTest extends ControllerTestBase {
     @DisplayName("GET /api/users - 사용자 목록 조회")
     @Tag("read")
     class ListUsers {
-        
+
         @Test
         @DisplayName("✅ 관리자 - 목록 조회 성공")
         @WithUserDetails("admin")
@@ -62,12 +61,12 @@ class UserControllerTest extends ControllerTestBase {
                     .andDo(print());
         }
     }
-    
+
     @Nested
     @DisplayName("GET /api/users/{id} - 사용자 단일 조회")
     @Tag("read")
     class GetUser {
-        
+
         @Test
         @DisplayName("✅ 일반 사용자 - 본인 조회 성공")
         @WithUserDetails
@@ -89,19 +88,19 @@ class UserControllerTest extends ControllerTestBase {
                     .andDo(print());
         }
     }
-    
+
     @Nested
     @DisplayName("PUT /api/users/{id} - 사용자 정보 수정")
     @Tag("update")
     class UpdateUser {
-        
+
         @Test
         @DisplayName("✅ 본인 정보 수정 성공")
         @WithUserDetails
         void shouldAllowUserToUpdateOwnInfo() throws Exception {
             Long userId = findUserIdByUsername(testUserProperties.regularUsername());
             String uniqueId = UUID.randomUUID().toString().substring(0, 8);
-            
+
             mockMvc.perform(put("/api/users/" + userId)
                             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                             .param("name", "Updated Name")
@@ -133,13 +132,13 @@ class UserControllerTest extends ControllerTestBase {
                     .andDo(print());
         }
     }
-    
+
     @Nested
     @DisplayName("DELETE /api/users/{id} - 사용자 삭제")
     @Tag("delete")
     @TestInstance(TestInstance.Lifecycle.PER_CLASS)
     class DeleteUser {
-        
+
         @Test
         @DisplayName("✅ 본인 삭제 성공")
         void shouldAllowUserToDeleteOwnAccount() throws Exception {
@@ -148,11 +147,11 @@ class UserControllerTest extends ControllerTestBase {
             Long userId = seedUser(username, "To Delete", "delete_" + uniqueId + "@example.com", "plain", Set.of(bunny.boardhole.user.domain.Role.USER));
             var principal = new AppUserPrincipal(userRepository.findByUsername(username));
             var adminPrincipal = new AppUserPrincipal(userRepository.findByUsername(testUserProperties.adminUsername()));
-            
+
             mockMvc.perform(delete("/api/users/" + userId).with(user(principal)))
                     .andExpect(status().isNoContent())
                     .andDo(print());
-            
+
             // 삭제 확인
             mockMvc.perform(get("/api/users/" + userId).with(user(adminPrincipal)))
                     .andExpect(status().isNotFound())
@@ -175,30 +174,30 @@ class UserControllerTest extends ControllerTestBase {
                     .andExpect(status().isForbidden())
                     .andDo(print());
         }
-        
+
         @Nested
         @DisplayName("권한별 접근 제어")
         class AccessControl {
-            
+
             @Test
             @DisplayName("❌ 다른 일반 사용자가 삭제 시도 → 403 Forbidden")
             void shouldDenyOtherUserToDelete() throws Exception {
                 String uniqueId = UUID.randomUUID().toString().substring(0, 8);
                 Long userId = seedUser("del_" + uniqueId, "Delete Test User", "del_" + uniqueId + "@example.com", "plain", Set.of(bunny.boardhole.user.domain.Role.USER));
                 var otherPrincipal = new AppUserPrincipal(userRepository.findByUsername(testUserProperties.regularUsername()));
-                
+
                 mockMvc.perform(delete("/api/users/" + userId).with(user(otherPrincipal)))
                         .andExpect(status().isForbidden())
                         .andDo(print());
             }
         }
     }
-    
+
     @Nested
     @DisplayName("GET /api/users/me - 현재 사용자 정보")
     @Tag("profile")
     class CurrentUser {
-        
+
         @Test
         @DisplayName("✅ 현재 로그인한 사용자 정보 조회")
         @WithUserDetails

@@ -1,7 +1,6 @@
 package bunny.boardhole.user.domain.validation;
 
-import jakarta.validation.Constraint;
-import jakarta.validation.Payload;
+import jakarta.validation.*;
 import jakarta.validation.constraints.*;
 
 import java.lang.annotation.*;
@@ -20,11 +19,11 @@ import java.lang.annotation.*;
 @Constraint(validatedBy = {})
 public @interface OptionalEmail {
     String message() default "{user.validation.email.invalid}";
-    
+
     Class<?>[] groups() default {};
-    
+
     Class<? extends Payload>[] payload() default {};
-    
+
     @Target({ElementType.FIELD, ElementType.PARAMETER, ElementType.METHOD})
     @Retention(RetentionPolicy.RUNTIME)
     @Documented

@@ -1,7 +1,7 @@
 package bunny.boardhole.board.presentation.dto;
 
-import io.swagger.v3.oas.annotations.media.Schema;
 import bunny.boardhole.board.domain.validation.*;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(name = "BoardUpdateRequest", description = "게시글 수정 요청")
 public record BoardUpdateRequest(
