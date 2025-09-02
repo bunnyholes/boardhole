@@ -1,6 +1,7 @@
 package bunny.boardhole.user.domain;
 
-import bunny.boardhole.shared.constants.ValidationConstants;
+import bunny.boardhole.shared.constants.*;
+import bunny.boardhole.shared.util.EntityMessageProvider;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.*;
@@ -34,6 +35,11 @@ public class EmailVerification {
     @Schema(description = "변경할 새 이메일 주소", example = "newemail@example.com")
     private String newEmail;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "verification_type", nullable = false)
+    @Schema(description = "인증 타입 (SIGNUP, CHANGE_EMAIL)", example = "SIGNUP")
+    private EmailVerificationType verificationType;
+
     @Column(name = "expires_at", nullable = false)
     @Schema(description = "만료 시간", example = "2024-01-15T10:30:00")
     private LocalDateTime expiresAt;
@@ -47,16 +53,19 @@ public class EmailVerification {
     private LocalDateTime createdAt;
 
     @Builder
-    public EmailVerification(@NonNull String code, @NonNull Long userId, @NonNull String newEmail, @NonNull LocalDateTime expiresAt) {
-        Assert.hasText(code, "검증 코드는 필수입니다");
-        Assert.notNull(userId, "사용자 ID는 필수입니다");
-        Assert.hasText(newEmail, "새 이메일은 필수입니다");
-        Assert.notNull(expiresAt, "만료 시간은 필수입니다");
+    public EmailVerification(@NonNull String code, @NonNull Long userId, @NonNull String newEmail,
+                             @NonNull LocalDateTime expiresAt, @NonNull EmailVerificationType verificationType) {
+        Assert.hasText(code, EntityMessageProvider.getMessage(ValidationMessages.EMAIL_VERIFICATION_CODE_REQUIRED, ValidationMessages.EMAIL_VERIFICATION_CODE_REQUIRED_FALLBACK));
+        Assert.notNull(userId, EntityMessageProvider.getMessage(ValidationMessages.EMAIL_VERIFICATION_USER_ID_REQUIRED, ValidationMessages.EMAIL_VERIFICATION_USER_ID_REQUIRED_FALLBACK));
+        Assert.hasText(newEmail, EntityMessageProvider.getMessage(ValidationMessages.EMAIL_VERIFICATION_NEW_EMAIL_REQUIRED, ValidationMessages.EMAIL_VERIFICATION_NEW_EMAIL_REQUIRED_FALLBACK));
+        Assert.notNull(expiresAt, EntityMessageProvider.getMessage(ValidationMessages.EMAIL_VERIFICATION_EXPIRES_AT_REQUIRED, ValidationMessages.EMAIL_VERIFICATION_EXPIRES_AT_REQUIRED_FALLBACK));
+        Assert.notNull(verificationType, EntityMessageProvider.getMessage(ValidationMessages.EMAIL_VERIFICATION_TYPE_REQUIRED, ValidationMessages.EMAIL_VERIFICATION_TYPE_REQUIRED_FALLBACK));
 
         this.code = code;
         this.userId = userId;
         this.newEmail = newEmail;
         this.expiresAt = expiresAt;
+        this.verificationType = verificationType;
         this.used = false;
     }
 

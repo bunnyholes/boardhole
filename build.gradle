@@ -51,6 +51,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-aop'
     implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
     
     // -- Session Management (Redis) --
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
@@ -83,6 +85,10 @@ dependencies {
     testImplementation 'org.springframework.security:spring-security-test'
     testImplementation 'com.h2database:h2'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    
+    // -- TestContainers for real SMTP testing --
+    testImplementation 'org.testcontainers:junit-jupiter'
+    testImplementation 'com.icegreen:greenmail-junit5:2.0.0'
     
     // -- ArchUnit for architecture testing --
     testImplementation 'com.tngtech.archunit:archunit-junit5:1.4.1'
