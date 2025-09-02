@@ -286,8 +286,8 @@ class BoardControllerTest extends ControllerTestBase {
         @TestInstance(Lifecycle.PER_CLASS)
         class AccessControl {
 
-            private Long boardId;
             private final String boardOwner = "owner_" + UUID.randomUUID().toString().substring(0, 8);
+            private Long boardId;
 
             @BeforeAll
             void setup() {

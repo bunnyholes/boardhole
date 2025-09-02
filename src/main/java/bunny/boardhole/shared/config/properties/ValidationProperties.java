@@ -15,13 +15,13 @@ public class ValidationProperties {
     private Board board = new Board();
     private User user = new User();
     private EmailVerification emailVerification = new EmailVerification();
-    
+
     @Data
     public static class Board {
         private int titleMaxLength = 200;
         private int contentMaxLength = 10000;
     }
-    
+
     @Data
     public static class User {
         private int usernameMinLength = 3;
@@ -32,7 +32,7 @@ public class ValidationProperties {
         private int nameMinLength = 1;
         private int nameMaxLength = 50;
     }
-    
+
     @Data
     public static class EmailVerification {
         private int expirationMinutes = 30;

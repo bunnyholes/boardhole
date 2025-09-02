@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 @Data
 public class PerformanceProperties {
     private Logging logging = new Logging();
-    
+
     @Data
     public static class Logging {
         private long fastThresholdMs = 100;

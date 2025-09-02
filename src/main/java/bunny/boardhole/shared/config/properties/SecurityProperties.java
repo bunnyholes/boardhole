@@ -15,7 +15,7 @@ public class SecurityProperties {
     private VerificationCode verificationCode = new VerificationCode();
     private String rolePrefix = "ROLE_";
     private int sessionTimeoutMinutes = 30;
-    
+
     @Data
     public static class VerificationCode {
         private int length = 6;

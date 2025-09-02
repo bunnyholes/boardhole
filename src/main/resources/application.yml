@@ -85,7 +85,7 @@ boardhole:
       charset: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
     role-prefix: "ROLE_"
     session-timeout-minutes: 30
-    
+
   # 성능 임계값
   performance:
     logging:

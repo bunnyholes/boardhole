@@ -18,13 +18,13 @@ public enum ErrorCode {
     INTERNAL_ERROR("INTERNAL_ERROR"),
     USER_DUPLICATE_USERNAME("USER_DUPLICATE_USERNAME"),
     USER_DUPLICATE_EMAIL("USER_DUPLICATE_EMAIL");
-    
+
     private final String code;
-    
+
     ErrorCode(String code) {
         this.code = code;
     }
-    
+
     public String getCode() {
         return code;
     }

@@ -164,12 +164,12 @@ public class UserController {
             @PathVariable Long id,
             @Validated @RequestBody PasswordUpdateRequest req,
             @AuthenticationPrincipal AppUserPrincipal principal) {
-        
+
         // 패스워드 확인 불일치 처리
         if (!req.newPassword().equals(req.confirmPassword())) {
             throw new ValidationException(messageUtils.getMessage("error.user.password.confirm.mismatch"));
         }
-        
+
         var cmd = userWebMapper.toUpdatePasswordCommand(id, req);
         userCommandService.updatePassword(cmd);
     }
@@ -195,10 +195,10 @@ public class UserController {
             @Parameter(description = "사용자 ID")
             @PathVariable Long id,
             @Validated @RequestBody EmailVerificationRequest req) {
-        
+
         var cmd = userWebMapper.toRequestEmailVerificationCommand(id, req);
         String code = userCommandService.requestEmailVerification(cmd);
-        
+
         // 개발 환경에서만 코드 반환, 프로덕션에서는 메시지만
         java.util.Map<String, String> response = new java.util.HashMap<>();
         response.put("message", messageUtils.getMessage("info.user.email.verification.sent"));
@@ -229,7 +229,7 @@ public class UserController {
             @Parameter(description = "사용자 ID")
             @PathVariable Long id,
             @Validated @RequestBody EmailUpdateRequest req) {
-        
+
         var cmd = userWebMapper.toUpdateEmailCommand(id, req);
         var updated = userCommandService.updateEmail(cmd);
         return userWebMapper.toResponse(updated);
