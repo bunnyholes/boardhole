@@ -10,6 +10,7 @@ import jakarta.servlet.http.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.*;
@@ -17,6 +18,8 @@ import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
+
+import java.util.Optional;
 
 /**
  * 인증 명령 서비스
@@ -43,7 +46,8 @@ public class AuthCommandService {
      * @throws UnauthorizedException 인증 실패 시
      */
     @Transactional(readOnly = true)
-    public AuthResult login(@Valid LoginCommand cmd, HttpServletRequest request, HttpServletResponse response) {
+    @NonNull
+    public AuthResult login(@Valid @NonNull LoginCommand cmd, @NonNull HttpServletRequest request, @NonNull HttpServletResponse response) {
         try {
             // Spring Security를 통한 인증 처리
             Authentication authRequest = new UsernamePasswordAuthenticationToken(
@@ -83,20 +87,19 @@ public class AuthCommandService {
     }
 
     /**
-     * 사용자 로그아웃 처리
+     * 사용자 로귳아웃 처리
      *
-     * @param cmd      로그아웃 명령
+     * @param cmd      로귳아웃 명령
      * @param request  HTTP 요청
      * @param response HTTP 응답
      */
-    public void logout(@Valid LogoutCommand cmd, HttpServletRequest request, HttpServletResponse response) {
+    public void logout(@Valid @NonNull LogoutCommand cmd, @NonNull HttpServletRequest request, @NonNull HttpServletResponse response) {
         // SecurityContext 정리
         SecurityContextHolder.clearContext();
 
-        // 세션 무효화
-        if (request.getSession(false) != null) {
-            request.getSession().invalidate();
-        }
+        // 세션 무효화 - Optional을 사용한 null 체크 제거
+        Optional.ofNullable(request.getSession(false))
+                .ifPresent(HttpSession::invalidate);
 
         // SecurityContext 저장소에서도 제거
         securityContextRepository.saveContext(SecurityContextHolder.createEmptyContext(), request, response);
