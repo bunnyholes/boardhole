@@ -1,5 +1,6 @@
 package bunny.boardhole.user.application.command;
 
+import bunny.boardhole.email.application.EmailService;
 import bunny.boardhole.shared.config.properties.ValidationProperties;
 import bunny.boardhole.shared.exception.*;
 import bunny.boardhole.shared.util.*;
@@ -38,6 +39,7 @@ public class UserCommandService {
     private final MessageUtils messageUtils;
     private final ValidationProperties validationProperties;
     private final VerificationCodeGenerator verificationCodeGenerator;
+    private final EmailService emailService;
 
     /**
      * 사용자 생성
@@ -63,6 +65,22 @@ public class UserCommandService {
                 .roles(java.util.Set.of(Role.USER))
                 .build();
         User saved = userRepository.save(user);
+
+        // 회원가입 이메일 인증 토큰 생성 및 발송
+        String verificationToken = java.util.UUID.randomUUID().toString();
+        LocalDateTime expiresAt = LocalDateTime.now()
+                .plusHours(validationProperties.getEmailVerification().getSignupExpirationHours());
+
+        EmailVerification verification = EmailVerification.builder()
+                .code(verificationToken)
+                .userId(saved.getId())
+                .newEmail(saved.getEmail())
+                .expiresAt(expiresAt)
+                .verificationType(EmailVerificationType.SIGNUP)
+                .build();
+
+        emailVerificationRepository.save(verification);
+        emailService.sendSignupVerificationEmail(saved, verificationToken);
 
         log.info(messageUtils.getMessage("log.user.created", saved.getUsername(), saved.getEmail()));
         return userMapper.toResult(saved);
