@@ -72,9 +72,13 @@ public class LoggingAspect {
                         org.springframework.context.i18n.LocaleContextHolder.getLocale()));
             }
 
-            // 메서드 종료 로깅은 DEBUG 레벨에서만
+            // 메서드 종료 로깅은 DEBUG 레벨에서만 (로깅 포맷 오류가 있어도 비즈니스 흐름에 영향 주지 않도록 보호)
             if (log.isDebugEnabled() && tookMs > 10) { // 10ms 이상인 경우만 로깅
-                log.debug(logFormatter.formatMethodEnd(signature, result, tookMs));
+                try {
+                    log.debug(logFormatter.formatMethodEnd(signature, result, tookMs));
+                } catch (Throwable formatEx) {
+                    log.warn("Log formatting failed for {}: {}", signature, formatEx.toString());
+                }
             }
             return result;
         } catch (Throwable ex) {

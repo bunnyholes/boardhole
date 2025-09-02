@@ -1,13 +1,14 @@
 package bunny.boardhole.user.presentation;
 
+import bunny.boardhole.shared.security.AppUserPrincipal;
 import bunny.boardhole.shared.web.ControllerTestBase;
 import org.junit.jupiter.api.*;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
+import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.web.servlet.MvcResult;
 
-import java.util.UUID;
-
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -20,6 +21,7 @@ class UserControllerTest extends ControllerTestBase {
 
     @Test
     @DisplayName("01. 사용자 목록 조회")
+    @WithUserDetails("admin")
     void test_01_list_users() throws Exception {
         // 관리자 로그인
         MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
@@ -40,6 +42,7 @@ class UserControllerTest extends ControllerTestBase {
 
     @Test
     @DisplayName("02. 사용자 검색")
+    @WithUserDetails("admin")
     void test_02_search_users() throws Exception {
         // 관리자 로그인
         MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
@@ -62,52 +65,14 @@ class UserControllerTest extends ControllerTestBase {
     @Test
     @DisplayName("03. 사용자 단일 조회")
     void test_03_get_user() throws Exception {
-        // 새로운 사용자 생성
-        String uniqueId = UUID.randomUUID().toString().substring(0, 8);
-        mockMvc.perform(post("/api/auth/signup")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("username", "user_" + uniqueId)
-                        .param("password", "password123")
-                        .param("name", "Test User")
-                        .param("email", "user_" + uniqueId + "@example.com"))
-                .andExpect(status().isNoContent());
-
-        // 관리자 로그인
-        MvcResult adminLoginResult = mockMvc.perform(post("/api/auth/login")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("username", testUserProperties.adminUsername())
-                        .param("password", testUserProperties.adminPassword()))
-                .andExpect(status().isNoContent())
-                .andReturn();
-
-        MockHttpSession adminSession = (MockHttpSession) adminLoginResult.getRequest().getSession();
-
-        // 사용자 목록에서 해당 사용자 찾기
-        MvcResult listResult = mockMvc.perform(get("/api/users")
-                        .param("search", "user_" + uniqueId)
-                        .session(adminSession))
-                .andExpect(status().isOk())
-                .andReturn();
-
-        String responseContent = listResult.getResponse().getContentAsString();
-        // ID 추출 (첫 번째 사용자의 ID를 가져옴)
-        Long userId = Long.parseLong(responseContent.replaceAll(".*\"content\":\\[\\{\"id\":(\\d+).*", "$1"));
-
-        // 사용자 자신 로그인
-        MvcResult userLoginResult = mockMvc.perform(post("/api/auth/login")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("username", "user_" + uniqueId)
-                        .param("password", "password123"))
-                .andExpect(status().isNoContent())
-                .andReturn();
-
-        MockHttpSession userSession = (MockHttpSession) userLoginResult.getRequest().getSession();
-
-        // 사용자 조회 (자신)
-        mockMvc.perform(get("/api/users/" + userId).session(userSession))
+        String uniqueId = java.util.UUID.randomUUID().toString().substring(0, 8);
+        String username = "user_" + uniqueId;
+        Long userId = seedUser(username, "Test User", username + "@example.com", "plain", java.util.Set.of(bunny.boardhole.user.domain.Role.USER));
+        var principal = new AppUserPrincipal(userRepository.findByUsername(username));
+        mockMvc.perform(get("/api/users/" + userId).with(user(principal)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(userId))
-                .andExpect(jsonPath("$.username").value("user_" + uniqueId))
+                .andExpect(jsonPath("$.username").value(username))
                 .andDo(print());
     }
 
@@ -124,7 +89,7 @@ class UserControllerTest extends ControllerTestBase {
 
         MockHttpSession session = (MockHttpSession) loginResult.getRequest().getSession();
 
-        mockMvc.perform(get("/api/users/999999").session(session))
+        mockMvc.perform(get("/api/users/999999").with(user(new AppUserPrincipal(userRepository.findByUsername(testUserProperties.adminUsername())))))
                 .andExpect(status().isNotFound())
                 .andDo(print());
     }
@@ -134,47 +99,12 @@ class UserControllerTest extends ControllerTestBase {
     @Test
     @DisplayName("05. 사용자 정보 수정 성공")
     void test_05_update_user_success() throws Exception {
-        // 새로운 사용자 생성 및 로그인
-        String uniqueId = UUID.randomUUID().toString().substring(0, 8);
-        mockMvc.perform(post("/api/auth/signup")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("username", "update_" + uniqueId)
-                        .param("password", "password123")
-                        .param("name", "Original Name")
-                        .param("email", "update_" + uniqueId + "@example.com"))
-                .andExpect(status().isNoContent());
-
-        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("username", "update_" + uniqueId)
-                        .param("password", "password123"))
-                .andExpect(status().isNoContent())
-                .andReturn();
-
-        MockHttpSession session = (MockHttpSession) loginResult.getRequest().getSession();
-
-        // 관리자로 사용자 ID 찾기
-        MvcResult adminLoginResult = mockMvc.perform(post("/api/auth/login")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("username", testUserProperties.adminUsername())
-                        .param("password", testUserProperties.adminPassword()))
-                .andExpect(status().isNoContent())
-                .andReturn();
-
-        MockHttpSession adminSession = (MockHttpSession) adminLoginResult.getRequest().getSession();
-
-        MvcResult listResult = mockMvc.perform(get("/api/users")
-                        .param("search", "update_" + uniqueId)
-                        .session(adminSession))
-                .andExpect(status().isOk())
-                .andReturn();
-
-        String responseContent = listResult.getResponse().getContentAsString();
-        Long userId = Long.parseLong(responseContent.replaceAll(".*\"content\":\\[\\{\"id\":(\\d+).*", "$1"));
-
-        // 사용자 정보 수정
+        String uniqueId = java.util.UUID.randomUUID().toString().substring(0, 8);
+        String username = "update_" + uniqueId;
+        Long userId = seedUser(username, "Original Name", "update_" + uniqueId + "@example.com", "plain", java.util.Set.of(bunny.boardhole.user.domain.Role.USER));
+        var principal = new AppUserPrincipal(userRepository.findByUsername(username));
         mockMvc.perform(put("/api/users/" + userId)
-                        .session(session)
+                        .with(user(principal))
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("name", "Updated Name")
                         .param("email", "updated_" + uniqueId + "@example.com"))
@@ -197,6 +127,7 @@ class UserControllerTest extends ControllerTestBase {
 
     @Test
     @DisplayName("07. 존재하지 않는 사용자 수정")
+    @WithUserDetails("user")
     void test_07_update_nonexistent_user() throws Exception {
         // 로그인
         MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
@@ -222,52 +153,15 @@ class UserControllerTest extends ControllerTestBase {
     @Test
     @DisplayName("08. 사용자 삭제 성공")
     void test_08_delete_user_success() throws Exception {
-        // 새로운 사용자 생성 및 로그인
-        String uniqueId = UUID.randomUUID().toString().substring(0, 8);
-        mockMvc.perform(post("/api/auth/signup")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("username", "delete_" + uniqueId)
-                        .param("password", "password123")
-                        .param("name", "To Delete")
-                        .param("email", "delete_" + uniqueId + "@example.com"))
-                .andExpect(status().isNoContent());
-
-        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("username", "delete_" + uniqueId)
-                        .param("password", "password123"))
-                .andExpect(status().isNoContent())
-                .andReturn();
-
-        MockHttpSession session = (MockHttpSession) loginResult.getRequest().getSession();
-
-        // 관리자로 사용자 ID 찾기
-        MvcResult adminLoginResult = mockMvc.perform(post("/api/auth/login")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("username", testUserProperties.adminUsername())
-                        .param("password", testUserProperties.adminPassword()))
-                .andExpect(status().isNoContent())
-                .andReturn();
-
-        MockHttpSession adminSession = (MockHttpSession) adminLoginResult.getRequest().getSession();
-
-        MvcResult listResult = mockMvc.perform(get("/api/users")
-                        .param("search", "delete_" + uniqueId)
-                        .session(adminSession))
-                .andExpect(status().isOk())
-                .andReturn();
-
-        String responseContent = listResult.getResponse().getContentAsString();
-        Long userId = Long.parseLong(responseContent.replaceAll(".*\"content\":\\[\\{\"id\":(\\d+).*", "$1"));
-
-        // 사용자 삭제
-        mockMvc.perform(delete("/api/users/" + userId)
-                        .session(session))
+        String uniqueId = java.util.UUID.randomUUID().toString().substring(0, 8);
+        String username = "delete_" + uniqueId;
+        Long userId = seedUser(username, "To Delete", "delete_" + uniqueId + "@example.com", "plain", java.util.Set.of(bunny.boardhole.user.domain.Role.USER));
+        var principal = new AppUserPrincipal(userRepository.findByUsername(username));
+        var adminPrincipal = new AppUserPrincipal(userRepository.findByUsername(testUserProperties.adminUsername()));
+        mockMvc.perform(delete("/api/users/" + userId).with(user(principal)))
                 .andExpect(status().isNoContent())
                 .andDo(print());
-
-        // 삭제된 사용자 조회 시도 (404 예상) - 관리자로 확인
-        mockMvc.perform(get("/api/users/" + userId).session(adminSession))
+        mockMvc.perform(get("/api/users/" + userId).with(user(adminPrincipal)))
                 .andExpect(status().isNotFound())
                 .andDo(print());
     }
@@ -282,6 +176,7 @@ class UserControllerTest extends ControllerTestBase {
 
     @Test
     @DisplayName("10. 존재하지 않는 사용자 삭제")
+    @WithUserDetails("user")
     void test_10_delete_nonexistent_user() throws Exception {
         // 로그인
         MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
@@ -303,6 +198,7 @@ class UserControllerTest extends ControllerTestBase {
 
     @Test
     @DisplayName("11. 현재 로그인한 사용자 정보 조회")
+    @WithUserDetails("user")
     void test_11_get_current_user() throws Exception {
         // 로그인
         MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
@@ -333,6 +229,7 @@ class UserControllerTest extends ControllerTestBase {
 
     @Test
     @DisplayName("13. 사용자 목록 조회 - 페이지네이션 테스트")
+    @WithUserDetails("admin")
     void test_13_list_users_pagination() throws Exception {
         // 관리자 로그인
         MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
@@ -359,57 +256,13 @@ class UserControllerTest extends ControllerTestBase {
     @Test
     @DisplayName("14. 다른 사용자 정보 수정 실패 - 일반 사용자")
     void test_14_update_other_user_forbidden() throws Exception {
-        // 첫 번째 사용자 생성
-        String user1Id = UUID.randomUUID().toString().substring(0, 8);
-        mockMvc.perform(post("/api/auth/signup")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("username", "user1_" + user1Id)
-                        .param("password", "password123")
-                        .param("name", "User One")
-                        .param("email", "user1_" + user1Id + "@example.com"))
-                .andExpect(status().isNoContent());
-
-        // 두 번째 사용자 생성 및 로그인
-        String user2Id = UUID.randomUUID().toString().substring(0, 8);
-        mockMvc.perform(post("/api/auth/signup")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("username", "user2_" + user2Id)
-                        .param("password", "password123")
-                        .param("name", "User Two")
-                        .param("email", "user2_" + user2Id + "@example.com"))
-                .andExpect(status().isNoContent());
-
-        MvcResult user2LoginResult = mockMvc.perform(post("/api/auth/login")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("username", "user2_" + user2Id)
-                        .param("password", "password123"))
-                .andExpect(status().isNoContent())
-                .andReturn();
-
-        MockHttpSession user2Session = (MockHttpSession) user2LoginResult.getRequest().getSession();
-
-        // 관리자로 첫 번째 사용자 ID 찾기
-        MvcResult adminLoginResult = mockMvc.perform(post("/api/auth/login")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("username", testUserProperties.adminUsername())
-                        .param("password", testUserProperties.adminPassword()))
-                .andExpect(status().isNoContent())
-                .andReturn();
-
-        MockHttpSession adminSession = (MockHttpSession) adminLoginResult.getRequest().getSession();
-
-        MvcResult listResult = mockMvc.perform(get("/api/users")
-                        .param("search", "user1_" + user1Id)
-                        .session(adminSession))
-                .andExpect(status().isOk())
-                .andReturn();
-
-        String responseContent = listResult.getResponse().getContentAsString();
-        Long user1IdLong = Long.parseLong(responseContent.replaceAll(".*\"content\":\\[\\{\"id\":(\\d+).*", "$1"));
-
-        // 두 번째 사용자가 첫 번째 사용자 수정 시도 (권한 없음)
-        mockMvc.perform(put("/api/users/" + user1IdLong)
-                        .session(user2Session)
+        String user1IdStr = java.util.UUID.randomUUID().toString().substring(0, 8);
+        String user2IdStr = java.util.UUID.randomUUID().toString().substring(0, 8);
+        Long user1Id = seedUser("user1_" + user1IdStr, "User One", "user1_" + user1IdStr + "@example.com", "plain", java.util.Set.of(bunny.boardhole.user.domain.Role.USER));
+        Long user2Id = seedUser("user2_" + user2IdStr, "User Two", "user2_" + user2IdStr + "@example.com", "plain", java.util.Set.of(bunny.boardhole.user.domain.Role.USER));
+        var user2Principal = new AppUserPrincipal(userRepository.findByUsername("user2_" + user2IdStr));
+        mockMvc.perform(put("/api/users/" + user1Id)
+                        .with(user(user2Principal))
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("name", "Hacked Name")
                         .param("email", "hacked@example.com"))
@@ -420,39 +273,11 @@ class UserControllerTest extends ControllerTestBase {
     @Test
     @DisplayName("15. 관리자가 다른 사용자 정보 수정 성공")
     void test_15_admin_update_other_user_success() throws Exception {
-        // 새로운 사용자 생성
-        String uniqueId = UUID.randomUUID().toString().substring(0, 8);
-        mockMvc.perform(post("/api/auth/signup")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("username", "target_" + uniqueId)
-                        .param("password", "password123")
-                        .param("name", "Target User")
-                        .param("email", "target_" + uniqueId + "@example.com"))
-                .andExpect(status().isNoContent());
-
-        // 관리자로 로그인
-        MvcResult adminLoginResult = mockMvc.perform(post("/api/auth/login")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("username", testUserProperties.adminUsername())
-                        .param("password", testUserProperties.adminPassword()))
-                .andExpect(status().isNoContent())
-                .andReturn();
-
-        MockHttpSession adminSession = (MockHttpSession) adminLoginResult.getRequest().getSession();
-
-        // 대상 사용자 ID 찾기
-        MvcResult listResult = mockMvc.perform(get("/api/users")
-                        .param("search", "target_" + uniqueId)
-                        .session(adminSession))
-                .andExpect(status().isOk())
-                .andReturn();
-
-        String responseContent = listResult.getResponse().getContentAsString();
-        Long targetUserId = Long.parseLong(responseContent.replaceAll(".*\"content\":\\[\\{\"id\":(\\d+).*", "$1"));
-
-        // 관리자가 다른 사용자 정보 수정
+        String uniqueId = java.util.UUID.randomUUID().toString().substring(0, 8);
+        Long targetUserId = seedUser("target_" + uniqueId, "Target User", "target_" + uniqueId + "@example.com", "plain", java.util.Set.of(bunny.boardhole.user.domain.Role.USER));
+        var adminPrincipal = new AppUserPrincipal(userRepository.findByUsername(testUserProperties.adminUsername()));
         mockMvc.perform(put("/api/users/" + targetUserId)
-                        .session(adminSession)
+                        .with(user(adminPrincipal))
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("name", "Admin Updated Name")
                         .param("email", "admin_updated_" + uniqueId + "@example.com"))
@@ -467,26 +292,8 @@ class UserControllerTest extends ControllerTestBase {
     @Test
     @DisplayName("20. 사용자 삭제 - 권한 매트릭스 테스트")
     void test_20_delete_user_permission_matrix() throws Exception {
-        // 테스트용 사용자 생성
-        String uniqueId = UUID.randomUUID().toString().substring(0, 8);
-        mockMvc.perform(post("/api/auth/signup")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("username", "del_" + uniqueId)
-                        .param("password", "password123")
-                        .param("name", "Delete Test User")
-                        .param("email", "del_" + uniqueId + "@example.com"))
-                .andExpect(status().isNoContent());
-
-        // 관리자로 사용자 ID 찾기
-        MockHttpSession adminSession = loginAsAdmin();
-        MvcResult listResult = mockMvc.perform(get("/api/users")
-                        .param("search", "del_" + uniqueId)
-                        .session(adminSession))
-                .andExpect(status().isOk())
-                .andReturn();
-
-        String responseContent = listResult.getResponse().getContentAsString();
-        Long userId = Long.parseLong(responseContent.replaceAll(".*\"content\":\\[\\{\"id\":(\\d+).*", "$1"));
+        String uniqueId = java.util.UUID.randomUUID().toString().substring(0, 8);
+        Long userId = seedUser("del_" + uniqueId, "Delete Test User", "del_" + uniqueId + "@example.com", "plain", java.util.Set.of(bunny.boardhole.user.domain.Role.USER));
 
         // 익명 사용자 - 실패 (401)
         mockMvc.perform(delete("/api/users/" + userId))
@@ -494,14 +301,14 @@ class UserControllerTest extends ControllerTestBase {
                 .andDo(print());
 
         // 다른 일반 사용자 - 실패 (403)
-        MockHttpSession otherUserSession = loginAsUser();
-        mockMvc.perform(delete("/api/users/" + userId).session(otherUserSession))
+        var otherPrincipal = new AppUserPrincipal(userRepository.findByUsername(testUserProperties.regularUsername()));
+        mockMvc.perform(delete("/api/users/" + userId).with(user(otherPrincipal)))
                 .andExpect(status().isForbidden())
                 .andDo(print());
 
         // 본인 - 성공
-        MockHttpSession ownUserSession = loginAsCustomUser("del_" + uniqueId, "password123");
-        mockMvc.perform(delete("/api/users/" + userId).session(ownUserSession))
+        var ownPrincipal = new AppUserPrincipal(userRepository.findByUsername("del_" + uniqueId));
+        mockMvc.perform(delete("/api/users/" + userId).with(user(ownPrincipal)))
                 .andExpect(status().isNoContent())
                 .andDo(print());
     }

@@ -3,8 +3,8 @@ package bunny.boardhole.shared.config;
 import bunny.boardhole.shared.security.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.MessageSource;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
+import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.*;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.access.PermissionEvaluator;
@@ -96,7 +96,7 @@ public class SecurityConfig {
 
         http.sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-                        .sessionFixation().newSession()
+                        .sessionFixation().migrateSession()
                         .maximumSessions(1)
                         .maxSessionsPreventsLogin(false))
                 .securityContext((securityContext) -> securityContext
@@ -119,7 +119,7 @@ public class SecurityConfig {
     /**
      * ProblemDetail 형식의 인증 실패 응답 처리기
      *
-     * @param objectMapper JSON 직렬화를 위한 ObjectMapper
+     * @param objectMapper  JSON 직렬화를 위한 ObjectMapper
      * @param messageSource 메시지 소스
      * @return 인증 실패 진입점 핸들러
      */
@@ -131,7 +131,7 @@ public class SecurityConfig {
     /**
      * ProblemDetail 형식의 접근 거부 응답 처리기
      *
-     * @param objectMapper JSON 직렬화를 위한 ObjectMapper
+     * @param objectMapper  JSON 직렬화를 위한 ObjectMapper
      * @param messageSource 메시지 소스
      * @return 접근 거부 핸들러
      */

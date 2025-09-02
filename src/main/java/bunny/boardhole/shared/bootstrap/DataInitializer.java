@@ -89,7 +89,7 @@ public class DataInitializer implements CommandLineRunner {
 
     private void createWelcomeBoard() {
         User admin = userRepository.findByUsername(adminUsername);
-        
+
         String title = messageSource.getMessage("data.welcome.board.title", null, LocaleContextHolder.getLocale());
         String content = messageSource.getMessage("data.welcome.board.content", null, LocaleContextHolder.getLocale());
 
