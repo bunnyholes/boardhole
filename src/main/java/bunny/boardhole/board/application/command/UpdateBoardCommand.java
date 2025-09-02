@@ -3,8 +3,7 @@ package bunny.boardhole.board.application.command;
 import bunny.boardhole.board.domain.validation.OptionalBoardContent;
 import bunny.boardhole.board.domain.validation.OptionalBoardTitle;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.*;
 
 @Schema(name = "UpdateBoardCommand", description = "게시글 수정 명령 - CQRS 패턴의 Command 객체")
 public record UpdateBoardCommand(

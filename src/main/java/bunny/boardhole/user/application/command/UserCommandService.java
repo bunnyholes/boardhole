@@ -111,13 +111,6 @@ public class UserCommandService {
         log.info(messageUtils.getMessage("log.user.deleted", username));
     }
 
-    @Deprecated
-    public User login(String username, String password) {
-        throw new UnsupportedOperationException(
-                "Authentication should be handled by Spring Security AuthenticationManager"
-        );
-    }
-
     /**
      * 마지막 로그인 시간 업데이트
      *

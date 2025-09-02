@@ -84,6 +84,24 @@ boardhole:
       username: user
       name: 일반 사용자
       email: user@boardhole.com
+  
+  # OpenAPI 문서 설정
+  api:
+    title: Board-Hole API
+    version: 0.0.1-SNAPSHOT
+    description: Board-Hole REST API Documentation
+    terms-of-service: https://boardhole.com/terms
+    contact:
+      name: Board-Hole Team
+      email: admin@boardhole.com
+      url: https://boardhole.com
+    license:
+      name: Apache 2.0
+      url: https://www.apache.org/licenses/LICENSE-2.0
+    security:
+      session:
+        name: JSESSIONID
+        description: 세션 기반 인증 - JSESSIONID 쿠키 사용
 
 # ========================================
 # 로깅 공통 설정
