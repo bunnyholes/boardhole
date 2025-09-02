@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.*;
 import org.springframework.lang.NonNull;
 import org.springframework.security.core.Authentication;
@@ -34,6 +35,9 @@ public class AuthQueryService {
     private final UserRepository userRepository;
     private final MessageUtils messageUtils;
     private final AuthHistoryMockDataProvider mockDataProvider;
+    
+    @Value("${boardhole.auth.default-role}")
+    private String defaultRole;
 
     /**
      * 현재 인증 정보 조회
@@ -64,7 +68,7 @@ public class AuthQueryService {
 
         // 안전한 Role 접근
         String roleName = user.getRoles().isEmpty() ? 
-                "USER" : user.getRoles().iterator().next().name();
+                defaultRole : user.getRoles().iterator().next().name();
 
         return new AuthenticationResult(
                 user.getId(),
