@@ -210,8 +210,8 @@ public class AuthController {
     })
     public ResponseEntity<TokenValidationResult> validateToken(HttpServletRequest request) {
         // 세션 기반 인증에서는 세션 ID를 토큰으로 사용
-        String sessionId = request.getSession(false) != null ? 
-                request.getSession(false).getId() : "no-session";
+        HttpSession session = request.getSession(false);
+        String sessionId = session != null ? session.getId() : "no-session";
         var query = ValidateTokenQuery.of(sessionId);
         var result = authQueryService.validateToken(query);
         return ResponseEntity.ok(result);
