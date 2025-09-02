@@ -8,6 +8,16 @@
     <property name="severity" value="warning"/>
     <property name="fileExtensions" value="java"/>
 
+    <!-- Suppressions -->
+    <module name="SuppressionFilter">
+        <property name="file" value="${config_loc}/suppressions.xml"/>
+    </module>
+
+    <!-- 파일 길이 제한 -->
+    <module name="FileLength">
+        <property name="max" value="500"/>
+    </module>
+
     <module name="TreeWalker">
         <!-- 매직 넘버 검사 -->
         <module name="MagicNumber">
@@ -71,11 +81,6 @@
             <property name="tokens" value="METHOD_DEF"/>
             <property name="max" value="50"/>
             <property name="countEmpty" value="false"/>
-        </module>
-
-        <!-- 클래스 길이 제한 -->
-        <module name="FileLength">
-            <property name="max" value="500"/>
         </module>
 
         <!-- 줄 길이 제한 -->
