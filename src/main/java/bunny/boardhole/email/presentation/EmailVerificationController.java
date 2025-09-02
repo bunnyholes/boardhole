@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -27,6 +28,12 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 @Tag(name = "이메일 인증", description = "이메일 인증 관련 API")
 public class EmailVerificationController {
+
+    /**
+     * 인증 토큰 만료 시간 (시간)
+     */
+    @Value("${boardhole.email.verification-expiration-hours:24}")
+    private int verificationExpirationHours;
 
     private final UserRepository userRepository;
     private final EmailVerificationRepository emailVerificationRepository;
@@ -50,9 +57,9 @@ public class EmailVerificationController {
     @Transactional
     public ResponseEntity<String> verifyEmail(
             @Parameter(description = "인증 토큰", example = "abc123def456")
-            @RequestParam String token) {
+            @RequestParam final String verificationToken) {
         
-        EmailVerification verification = emailVerificationRepository.findByCodeAndUsedFalse(token)
+        final EmailVerification verification = emailVerificationRepository.findByCodeAndUsedFalse(verificationToken)
                 .orElseThrow(() -> new ResourceNotFoundException(
                     messageUtils.getMessage("error.email-verification.invalid-token")));
 
@@ -61,7 +68,7 @@ public class EmailVerificationController {
                 messageUtils.getMessage("error.email-verification.expired"));
         }
 
-        User user = userRepository.findById(verification.getUserId())
+        final User user = userRepository.findById(verification.getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException(
                     messageUtils.getMessage("error.user.not-found.id", verification.getUserId())));
 
@@ -77,7 +84,7 @@ public class EmailVerificationController {
             
         } else if (verification.getVerificationType() == EmailVerificationType.CHANGE_EMAIL) {
             // 이메일 변경 인증
-            String oldEmail = user.getEmail();
+            final String oldEmail = user.getEmail();
             user.changeEmail(verification.getNewEmail());
             emailService.sendEmailChangedNotification(user, verification.getNewEmail());
             
@@ -109,11 +116,11 @@ public class EmailVerificationController {
     @Transactional
     public ResponseEntity<String> resendVerificationEmail(
             @Parameter(description = "재발송할 이메일 주소", example = "user@example.com")
-            @RequestParam String email) {
+            @RequestParam final String emailAddress) {
         
-        User user = userRepository.findByEmail(email)
+        final User user = userRepository.findByEmail(emailAddress)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                    messageUtils.getMessage("error.user.not-found.email", email)));
+                    messageUtils.getMessage("error.user.not-found.email", emailAddress)));
 
         if (user.isEmailVerified()) {
             throw new IllegalArgumentException(
@@ -128,10 +135,10 @@ public class EmailVerificationController {
                 });
 
         // 새 인증 토큰 생성 및 이메일 발송
-        String newToken = java.util.UUID.randomUUID().toString();
-        LocalDateTime expiresAt = LocalDateTime.now().plusHours(24);
+        final String newToken = java.util.UUID.randomUUID().toString();
+        final LocalDateTime expiresAt = LocalDateTime.now().plusHours(verificationExpirationHours);
         
-        EmailVerification newVerification = EmailVerification.builder()
+        final EmailVerification newVerification = EmailVerification.builder()
                 .code(newToken)
                 .userId(user.getId())
                 .newEmail(user.getEmail())
@@ -142,7 +149,7 @@ public class EmailVerificationController {
         emailVerificationRepository.save(newVerification);
         emailService.sendSignupVerificationEmail(user, newToken);
 
-        log.info("인증 이메일 재발송: userId={}, email={}", user.getId(), email);
+        log.info("인증 이메일 재발송: userId={}, email={}", user.getId(), emailAddress);
         return ResponseEntity.ok(messageUtils.getMessage("success.email-verification.resent"));
     }
 }

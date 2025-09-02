@@ -8,6 +8,9 @@ import org.springframework.util.Assert;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 이메일 메시지를 표현하는 도메인 객체
+ */
 @Getter
 @Builder
 @AllArgsConstructor
@@ -16,51 +19,86 @@ import java.util.Map;
 @Schema(name = "EmailMessage", description = "이메일 메시지 도메인 객체")
 public class EmailMessage {
 
+    /**
+     * 받는 사람 이메일 주소
+     */
     @NonNull
     @Schema(description = "받는 사람 이메일 주소", example = "user@example.com")
-    private final String to;
+    private final String recipientEmail;
 
+    /**
+     * 이메일 제목
+     */
     @NonNull
     @Schema(description = "이메일 제목", example = "이메일 인증 안내")
     private final String subject;
 
+    /**
+     * 이메일 내용 (HTML)
+     */
     @NonNull
     @Schema(description = "이메일 내용 (HTML)", example = "<h1>환영합니다!</h1>")
     private final String content;
 
+    /**
+     * 참조 수신자 목록
+     */
     @Schema(description = "참조 수신자 목록")
-    private final List<String> cc;
+    private final List<String> carbonCopy;
 
+    /**
+     * 숨은 참조 수신자 목록
+     */
     @Schema(description = "숨은 참조 수신자 목록")
-    private final List<String> bcc;
+    private final List<String> blindCarbonCopy;
 
+    /**
+     * 이메일 템플릿 변수들
+     */
     @Schema(description = "이메일 템플릿 변수들")
     private final Map<String, Object> templateVariables;
 
-    public static EmailMessage create(@NonNull String to, @NonNull String subject, @NonNull String content) {
-        Assert.hasText(to, "받는 사람 이메일은 필수입니다");
-        Assert.hasText(subject, "이메일 제목은 필수입니다");
-        Assert.hasText(content, "이메일 내용은 필수입니다");
+    /**
+     * 기본 이메일 메시지를 생성합니다.
+     *
+     * @param recipientEmail 받는 사람 이메일 주소
+     * @param emailSubject   이메일 제목
+     * @param emailContent   이메일 내용
+     * @return 생성된 이메일 메시지
+     */
+    public static EmailMessage create(@NonNull final String recipientEmail, @NonNull final String emailSubject, @NonNull final String emailContent) {
+        Assert.hasText(recipientEmail, "받는 사람 이메일은 필수입니다");
+        Assert.hasText(emailSubject, "이메일 제목은 필수입니다");
+        Assert.hasText(emailContent, "이메일 내용은 필수입니다");
         
         return EmailMessage.builder()
-                .to(to)
-                .subject(subject)
-                .content(content)
+                .recipientEmail(recipientEmail)
+                .subject(emailSubject)
+                .content(emailContent)
                 .build();
     }
 
-    public static EmailMessage createFromTemplate(@NonNull String to, @NonNull String subject, 
-                                                @NonNull String template, @NonNull Map<String, Object> variables) {
-        Assert.hasText(to, "받는 사람 이메일은 필수입니다");
-        Assert.hasText(subject, "이메일 제목은 필수입니다");
-        Assert.hasText(template, "템플릿은 필수입니다");
-        Assert.notNull(variables, "템플릿 변수는 필수입니다");
+    /**
+     * 템플릿 기반 이메일 메시지를 생성합니다.
+     *
+     * @param recipientEmail    받는 사람 이메일 주소
+     * @param emailSubject      이메일 제목
+     * @param emailTemplate     이메일 템플릿
+     * @param templateVariables 템플릿 변수들
+     * @return 생성된 이메일 메시지
+     */
+    public static EmailMessage createFromTemplate(@NonNull final String recipientEmail, @NonNull final String emailSubject, 
+                                                @NonNull final String emailTemplate, @NonNull final Map<String, Object> templateVariables) {
+        Assert.hasText(recipientEmail, "받는 사람 이메일은 필수입니다");
+        Assert.hasText(emailSubject, "이메일 제목은 필수입니다");
+        Assert.hasText(emailTemplate, "템플릿은 필수입니다");
+        Assert.notNull(templateVariables, "템플릿 변수는 필수입니다");
         
         return EmailMessage.builder()
-                .to(to)
-                .subject(subject)
-                .content(template)
-                .templateVariables(variables)
+                .recipientEmail(recipientEmail)
+                .subject(emailSubject)
+                .content(emailTemplate)
+                .templateVariables(templateVariables)
                 .build();
     }
 }

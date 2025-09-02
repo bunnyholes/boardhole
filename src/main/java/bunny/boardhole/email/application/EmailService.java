@@ -21,11 +21,11 @@ public interface EmailService {
     /**
      * 템플릿 기반 이메일 발송
      *
-     * @param to           받는 사람 이메일
-     * @param template     이메일 템플릿
-     * @param variables    템플릿 변수들
+     * @param recipientEmail   받는 사람 이메일
+     * @param emailTemplate    이메일 템플릿
+     * @param templateVariables 템플릿 변수들
      */
-    void sendTemplatedEmail(@NonNull String to, @NonNull EmailTemplate template, @NonNull Map<String, Object> variables);
+    void sendTemplatedEmail(@NonNull String recipientEmail, @NonNull EmailTemplate emailTemplate, @NonNull Map<String, Object> templateVariables);
 
     /**
      * 회원가입 인증 이메일 발송

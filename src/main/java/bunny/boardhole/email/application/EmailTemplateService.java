@@ -13,17 +13,17 @@ public interface EmailTemplateService {
     /**
      * 템플릿을 처리하여 HTML 내용 생성
      *
-     * @param template  이메일 템플릿
-     * @param variables 템플릿 변수들
+     * @param emailTemplate     이메일 템플릿
+     * @param templateVariables 템플릿 변수들
      * @return 처리된 HTML 내용
      */
-    String processTemplate(@NonNull EmailTemplate template, @NonNull Map<String, Object> variables);
+    String processTemplate(@NonNull EmailTemplate emailTemplate, @NonNull Map<String, Object> templateVariables);
 
     /**
      * 템플릿 파일 경로 생성
      *
-     * @param template 이메일 템플릿
+     * @param emailTemplate 이메일 템플릿
      * @return 템플릿 파일 경로
      */
-    String getTemplatePath(@NonNull EmailTemplate template);
+    String getTemplatePath(@NonNull EmailTemplate emailTemplate);
 }

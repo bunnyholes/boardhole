@@ -115,6 +115,7 @@ boardhole:
   email:
     base-url: ${EMAIL_BASE_URL:http://localhost:8080}
     from-name: ${EMAIL_FROM_NAME:Board-Hole}
+    verification-expiration-hours: 24
     rate-limit:
       per-hour: 5
       per-day: 20

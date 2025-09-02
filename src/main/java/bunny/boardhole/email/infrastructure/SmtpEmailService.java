@@ -25,6 +25,12 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class SmtpEmailService implements EmailService {
 
+    /**
+     * 인증 토큰 만료 시간 (시간)
+     */
+    @Value("${boardhole.email.verification-expiration-hours:24}")
+    private int verificationExpirationHours;
+
     private final JavaMailSender mailSender;
     private final EmailTemplateService templateService;
     private final MessageUtils messageUtils;
@@ -37,92 +43,92 @@ public class SmtpEmailService implements EmailService {
 
     @Override
     @Async
-    public void sendEmail(EmailMessage emailMessage) {
+    public void sendEmail(final EmailMessage emailMessage) {
         try {
-            MimeMessage mimeMessage = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+            final MimeMessage mimeMessage = mailSender.createMimeMessage();
+            final MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
 
             helper.setFrom(fromEmail);
-            helper.setTo(emailMessage.getTo());
+            helper.setTo(emailMessage.getRecipientEmail());
             helper.setSubject(emailMessage.getSubject());
             helper.setText(emailMessage.getContent(), true);
 
-            if (emailMessage.getCc() != null && !emailMessage.getCc().isEmpty()) {
-                helper.setCc(emailMessage.getCc().toArray(new String[0]));
+            if (emailMessage.getCarbonCopy() != null && !emailMessage.getCarbonCopy().isEmpty()) {
+                helper.setCc(emailMessage.getCarbonCopy().toArray(new String[0]));
             }
 
-            if (emailMessage.getBcc() != null && !emailMessage.getBcc().isEmpty()) {
-                helper.setBcc(emailMessage.getBcc().toArray(new String[0]));
+            if (emailMessage.getBlindCarbonCopy() != null && !emailMessage.getBlindCarbonCopy().isEmpty()) {
+                helper.setBcc(emailMessage.getBlindCarbonCopy().toArray(new String[0]));
             }
 
             mailSender.send(mimeMessage);
-            log.info("이메일 발송 성공: to={}, subject={}", emailMessage.getTo(), emailMessage.getSubject());
+            log.info("이메일 발송 성공: to={}, subject={}", emailMessage.getRecipientEmail(), emailMessage.getSubject());
 
-        } catch (MessagingException | MailException e) {
-            log.error("이메일 발송 실패: to={}, error={}", emailMessage.getTo(), e.getMessage(), e);
+        } catch (final MessagingException | MailException e) {
+            log.error("이메일 발송 실패: to={}, error={}", emailMessage.getRecipientEmail(), e.getMessage(), e);
             throw new RuntimeException("이메일 발송에 실패했습니다", e);
         }
     }
 
     @Override
-    public void sendTemplatedEmail(String to, EmailTemplate template, Map<String, Object> variables) {
-        String processedContent = templateService.processTemplate(template, variables);
-        EmailMessage emailMessage = EmailMessage.create(to, template.getDefaultSubject(), processedContent);
+    public void sendTemplatedEmail(final String recipientEmail, final EmailTemplate emailTemplate, final Map<String, Object> templateVariables) {
+        final String processedContent = templateService.processTemplate(emailTemplate, templateVariables);
+        final EmailMessage emailMessage = EmailMessage.create(recipientEmail, emailTemplate.getDefaultSubject(), processedContent);
         sendEmail(emailMessage);
     }
 
     @Override
-    public void sendSignupVerificationEmail(User user, String verificationToken) {
-        String verificationUrl = baseUrl + "/api/auth/verify-email?token=" + verificationToken;
+    public void sendSignupVerificationEmail(final User user, final String verificationToken) {
+        final String verificationUrl = baseUrl + "/api/auth/verify-email?token=" + verificationToken;
         
-        Map<String, Object> variables = Map.of(
+        final Map<String, Object> templateVariables = Map.of(
                 "userName", user.getName(),
                 "userEmail", user.getEmail(),
                 "verificationUrl", verificationUrl,
-                "expirationHours", 24
+                "expirationHours", verificationExpirationHours
         );
 
-        sendTemplatedEmail(user.getEmail(), EmailTemplate.SIGNUP_VERIFICATION, variables);
+        sendTemplatedEmail(user.getEmail(), EmailTemplate.SIGNUP_VERIFICATION, templateVariables);
         log.info("회원가입 인증 이메일 발송: userId={}, email={}", user.getId(), user.getEmail());
     }
 
     @Override
-    public void sendEmailChangeVerificationEmail(User user, String newEmail, String verificationToken) {
-        String verificationUrl = baseUrl + "/api/auth/verify-email?token=" + verificationToken;
+    public void sendEmailChangeVerificationEmail(final User user, final String newEmail, final String verificationToken) {
+        final String verificationUrl = baseUrl + "/api/auth/verify-email?token=" + verificationToken;
         
-        Map<String, Object> variables = Map.of(
+        final Map<String, Object> templateVariables = Map.of(
                 "userName", user.getName(),
                 "currentEmail", user.getEmail(),
                 "newEmail", newEmail,
                 "verificationUrl", verificationUrl,
-                "expirationHours", 24
+                "expirationHours", verificationExpirationHours
         );
 
-        sendTemplatedEmail(newEmail, EmailTemplate.EMAIL_CHANGE_VERIFICATION, variables);
+        sendTemplatedEmail(newEmail, EmailTemplate.EMAIL_CHANGE_VERIFICATION, templateVariables);
         log.info("이메일 변경 인증 이메일 발송: userId={}, newEmail={}", user.getId(), newEmail);
     }
 
     @Override
-    public void sendWelcomeEmail(User user) {
-        Map<String, Object> variables = Map.of(
+    public void sendWelcomeEmail(final User user) {
+        final Map<String, Object> templateVariables = Map.of(
                 "userName", user.getName(),
                 "userEmail", user.getEmail(),
                 "loginUrl", baseUrl + "/login"
         );
 
-        sendTemplatedEmail(user.getEmail(), EmailTemplate.WELCOME, variables);
+        sendTemplatedEmail(user.getEmail(), EmailTemplate.WELCOME, templateVariables);
         log.info("환영 이메일 발송: userId={}, email={}", user.getId(), user.getEmail());
     }
 
     @Override
-    public void sendEmailChangedNotification(User user, String newEmail) {
-        Map<String, Object> variables = Map.of(
+    public void sendEmailChangedNotification(final User user, final String newEmail) {
+        final Map<String, Object> templateVariables = Map.of(
                 "userName", user.getName(),
                 "newEmail", newEmail,
                 "loginUrl", baseUrl + "/login"
         );
 
-        sendTemplatedEmail(newEmail, EmailTemplate.EMAIL_CHANGED, variables);
+        sendTemplatedEmail(newEmail, EmailTemplate.EMAIL_CHANGED, templateVariables);
         log.info("이메일 변경 완료 알림 발송: userId={}, newEmail={}", user.getId(), newEmail);
     }
 }
