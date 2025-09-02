@@ -37,23 +37,35 @@ spring:
     ansi:
       enabled: DETECT  # 터미널 지원시 자동 활성화 (ALWAYS, DETECT, NEVER)
   
-  # 세션 관리 설정 (Redis)
   session:
-    store-type: redis
     redis:
       namespace: board-hole:session
-      flush-mode: on-save  # 저장 시점에만 Redis에 플러시
-    timeout: 30m  # 세션 타임아웃
+      flush-mode: on-save
+    timeout: 30m
 
 # ========================================
 # 애플리케이션 도메인 설정
 # ========================================
 boardhole:
-  # CORS 기본 설정 (환경별 오버라이드 가능)
+  # CORS 기본값 (환경별 프로필에서 오버라이드 권장)
   cors:
-    allowed-methods: "GET,POST,PUT,DELETE,OPTIONS"
-    # 보안을 위해 구체적인 헤더만 허용
-    allowed-headers: "Origin,Content-Type,Accept,Authorization,X-Requested-With"
+    path-patterns:
+      - "/api/**"
+    allowed-origins:
+      - "*"
+    allowed-methods:
+      - GET
+      - POST
+      - PUT
+      - DELETE
+      - OPTIONS
+    allowed-headers:
+      - Origin
+      - Content-Type
+      - Accept
+      - Authorization
+      - X-Requested-With
+    allow-credentials: false
     max-age: 3600
   
   # Problem Details API 설정

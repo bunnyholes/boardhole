@@ -3,6 +3,7 @@ package bunny.boardhole.shared.config.log;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Field;
@@ -11,6 +12,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Component
+@ConditionalOnProperty(name = "boardhole.logging.enabled", havingValue = "true", matchIfMissing = true)
 public class LogFormatter {
 
     private static final Set<String> SENSITIVE_FIELD_NAMES = Set.of(LogConstants.SENSITIVE_FIELDS);

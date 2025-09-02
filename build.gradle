@@ -5,6 +5,8 @@ plugins {
     id 'org.openrewrite.rewrite' version '7.15.0'
     id 'com.github.ben-manes.versions' version '0.52.0'
     id 'checkstyle'
+    id 'org.sonarqube' version '6.3.1.5724'
+    id 'com.github.spotbugs' version '6.2.6'
 }
 
 group = 'bunny'
@@ -29,6 +31,9 @@ repositories {
 }
 
 dependencies {
+    // -- SpotBugs Security Plugin --
+    spotbugsPlugins 'com.h3xstream.findsecbugs:findsecbugs-plugin:1.14.0'
+    
     // -- Core Spring Boot Starters --
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
@@ -69,7 +74,7 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     
     // -- ArchUnit for architecture testing --
-    testImplementation 'com.tngtech.archunit:archunit-junit5:1.2.1'
+    testImplementation 'com.tngtech.archunit:archunit-junit5:1.4.1'
 
     // -- OpenRewrite recipes (static analysis/refactoring) --
     rewrite 'org.openrewrite.recipe:rewrite-spring:6.13.0'
@@ -101,5 +106,79 @@ tasks.withType(Checkstyle) {
     reports {
         xml.required = true
         html.required = true
+    }
+}
+
+sonarqube {
+    properties {
+        property "sonar.projectKey", "bunnyxiyo_board-hole"
+        property "sonar.organization", "bunnyxiyo"
+        property "sonar.host.url", "https://sonarcloud.io"
+        property "sonar.sources", "src/main/java"
+        property "sonar.tests", "src/test/java"
+        property "sonar.java.binaries", "build/classes"
+        property "sonar.java.test.binaries", "build/test-results/test"
+        property "sonar.exclusions", "**/*Test.java, **/*Tests.java, **/test/**"
+    }
+}
+
+task sonarAnalysis {
+    group = 'verification'
+    description = 'Run SonarCloud analysis'
+    doLast {
+        println 'Running SonarCloud analysis...'
+        println 'Execute: ./gradlew sonar'
+    }
+    dependsOn 'sonar'
+}
+
+spotbugs {
+    toolVersion = '4.8.6'
+    effort = 'max'  // 분석 강도: min, default, max
+    reportLevel = 'medium'  // 버그 리포트 레벨: low, medium, high
+    ignoreFailures = false  // 버그 발견시 빌드 실패 여부
+}
+
+spotbugsMain {
+    reports {
+        html {
+            required = true
+            outputLocation = file("$buildDir/reports/spotbugs/main.html")
+        }
+        xml {
+            required = false  // SonarCloud 연동시 true로 변경
+        }
+        text {
+            required = true  // 터미널 출력용
+            outputLocation = file("$buildDir/reports/spotbugs/main.txt")
+        }
+    }
+}
+
+spotbugsTest {
+    reports {
+        html {
+            required = true
+            outputLocation = file("$buildDir/reports/spotbugs/test.html")
+        }
+        text {
+            required = false
+        }
+    }
+}
+
+task spotbugsConsole {
+    group = 'verification'
+    description = 'Run SpotBugs and display results in console'
+    dependsOn 'spotbugsMain'
+    doLast {
+        def reportFile = file("$buildDir/reports/spotbugs/main.txt")
+        if (reportFile.exists()) {
+            println "\n========== SpotBugs Analysis Results =========="
+            println reportFile.text
+            println "================================================\n"
+        } else {
+            println "No bugs found! ✅"
+        }
     }
 }

@@ -10,12 +10,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.*;
+import org.springframework.lang.NonNull;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.web.access.AccessDeniedHandler;
 
 import java.io.IOException;
 import java.net.URI;
 import java.time.Instant;
+import java.util.Optional;
 
 /**
  * 접근 거부 처리 핸들러
@@ -40,10 +42,10 @@ public class ProblemDetailsAccessDeniedHandler implements AccessDeniedHandler {
             pd.setInstance(URI.create(request.getRequestURI()));
         } catch (IllegalArgumentException ignored) {
         }
-        String traceId = MDC.get(RequestLoggingFilter.TRACE_ID);
-        if (traceId != null && !traceId.isBlank()) {
-            pd.setProperty("traceId", traceId);
-        }
+        // Optional을 사용한 null 체크 제거
+        Optional.ofNullable(MDC.get(RequestLoggingFilter.TRACE_ID))
+                .filter(traceId -> !traceId.isBlank())
+                .ifPresent(traceId -> pd.setProperty("traceId", traceId));
         pd.setProperty("path", request.getRequestURI());
         pd.setProperty("method", request.getMethod());
         pd.setProperty("timestamp", Instant.now().toString());
@@ -53,16 +55,19 @@ public class ProblemDetailsAccessDeniedHandler implements AccessDeniedHandler {
         objectMapper.writeValue(response.getWriter(), pd);
     }
 
-    private URI buildType(String slug) {
-        String base = problemBaseUri;
-        if (base != null && !base.isBlank()) {
-            if (!base.endsWith("/")) base = base + "/";
-            try {
-                return URI.create(base + slug);
-            } catch (IllegalArgumentException ignored) {
-            }
-        }
-        return URI.create("urn:problem-type:" + slug);
+    @NonNull
+    private URI buildType(@NonNull String slug) {
+        return Optional.ofNullable(problemBaseUri)
+                .filter(base -> !base.isBlank())
+                .map(base -> base.endsWith("/") ? base : base + "/")
+                .map(base -> {
+                    try {
+                        return URI.create(base + slug);
+                    } catch (IllegalArgumentException ignored) {
+                        return null;
+                    }
+                })
+                .orElse(URI.create("urn:problem-type:" + slug));
     }
 
 }

@@ -67,16 +67,16 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(auth -> auth
                         // Static resources and common locations
-                        .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
+                        .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll() // 현재는 실제 배포 전까지는 항상 유지
                         // Assets - allow all
-                        .requestMatchers("/assets/**").permitAll()
+                        .requestMatchers("/assets/**").permitAll() // 현재는 실제 배포 전까지는 항상 유지
                         // Other static resources
-                        .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**", "/favicon.ico").permitAll()
+                        .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**", "/favicon.ico").permitAll() // 현재는 실제 배포 전까지는 항상 유지
                         // Root and specific HTML files
-                        .requestMatchers("/").permitAll()
-                        .requestMatchers("/*.html").permitAll()
-                        .requestMatchers("/admin*.html", "/board*.html", "/user*.html").permitAll()
-                        .requestMatchers("/login.html", "/signup.html", "/welcome.html", "/my-page.html").permitAll()
+                        .requestMatchers("/").permitAll() // 현재는 실제 배포 전까지는 항상 유지
+                        .requestMatchers("/*.html").permitAll() // 현재는 실제 배포 전까지는 항상 유지
+                        .requestMatchers("/admin*.html", "/board*.html", "/user*.html").permitAll() // 현재는 실제 배포 전까지는 항상 유지
+                        .requestMatchers("/login.html", "/signup.html", "/welcome.html", "/my-page.html").permitAll() // 현재는 실제 배포 전까지는 항상 유지
                         // Swagger UI - explicitly permit
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**").permitAll()
                         // Error page

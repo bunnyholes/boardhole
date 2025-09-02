@@ -13,6 +13,8 @@ import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.*;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.BindException;
 import org.springframework.web.*;
@@ -34,19 +36,22 @@ public class GlobalExceptionHandler {
     @Value("${boardhole.problem.base-uri:}")
     private String problemBaseUri;
 
-    private static void addCommon(ProblemDetail pd, HttpServletRequest request) {
-        String traceId = MDC.get(RequestLoggingFilter.TRACE_ID);
-        if (traceId != null && !traceId.isBlank()) {
-            pd.setProperty("traceId", traceId);
-        }
-        if (request != null) {
-            pd.setProperty("path", request.getRequestURI());
-            pd.setProperty("method", request.getMethod());
-            try {
-                pd.setInstance(URI.create(request.getRequestURI()));
-            } catch (IllegalArgumentException ignored) {
-            }
-        }
+    private static void addCommon(@NonNull ProblemDetail pd, @Nullable HttpServletRequest request) {
+        // Optional을 사용한 null 체크 제거
+        Optional.ofNullable(MDC.get(RequestLoggingFilter.TRACE_ID))
+                .filter(traceId -> !traceId.isBlank())
+                .ifPresent(traceId -> pd.setProperty("traceId", traceId));
+        
+        Optional.ofNullable(request)
+                .ifPresent(req -> {
+                    pd.setProperty("path", req.getRequestURI());
+                    pd.setProperty("method", req.getMethod());
+                    try {
+                        pd.setInstance(URI.create(req.getRequestURI()));
+                    } catch (IllegalArgumentException ignored) {
+                    }
+                });
+        
         pd.setProperty("timestamp", Instant.now().toString());
     }
 
@@ -119,8 +124,8 @@ public class GlobalExceptionHandler {
         List<Map<String, Object>> errors = ex.getBindingResult().getFieldErrors().stream()
                 .map(fe -> Map.of(
                         "field", fe.getField(),
-                        "message", fe.getDefaultMessage() != null ? fe.getDefaultMessage() : "Invalid value",
-                        "rejectedValue", fe.getRejectedValue() != null ? fe.getRejectedValue() : ""
+                        "message", Optional.ofNullable(fe.getDefaultMessage()).orElse("Invalid value"),
+                        "rejectedValue", Optional.ofNullable(fe.getRejectedValue()).orElse("")
                 ))
                 .collect(Collectors.toList());
         pd.setProperty("errors", errors);
@@ -139,8 +144,8 @@ public class GlobalExceptionHandler {
         List<Map<String, Object>> errors = ex.getBindingResult().getFieldErrors().stream()
                 .map(fe -> Map.of(
                         "field", fe.getField(),
-                        "message", fe.getDefaultMessage() != null ? fe.getDefaultMessage() : "Invalid value",
-                        "rejectedValue", fe.getRejectedValue() != null ? fe.getRejectedValue() : ""
+                        "message", Optional.ofNullable(fe.getDefaultMessage()).orElse("Invalid value"),
+                        "rejectedValue", Optional.ofNullable(fe.getRejectedValue()).orElse("")
                 ))
                 .collect(Collectors.toList());
         pd.setProperty("errors", errors);
@@ -218,7 +223,9 @@ public class GlobalExceptionHandler {
         pd.setTitle(messageSource.getMessage("exception.title.type-mismatch", null, LocaleContextHolder.getLocale()));
         pd.setProperty("code", "TYPE_MISMATCH");
         pd.setProperty("property", ex.getPropertyName());
-        pd.setProperty("requiredType", ex.getRequiredType() != null ? ex.getRequiredType().getSimpleName() : null);
+        Optional.ofNullable(ex.getRequiredType())
+                .map(Class::getSimpleName)
+                .ifPresent(type -> pd.setProperty("requiredType", type));
         pd.setType(buildType("type-mismatch"));
         addCommon(pd, request);
         return pd;
@@ -235,15 +242,18 @@ public class GlobalExceptionHandler {
         return pd;
     }
 
-    private URI buildType(String slug) {
-        String base = problemBaseUri;
-        if (base != null && !base.isBlank()) {
-            if (!base.endsWith("/")) base = base + "/";
-            try {
-                return URI.create(base + slug);
-            } catch (IllegalArgumentException ignored) {
-            }
-        }
-        return URI.create("urn:problem-type:" + slug);
+    @NonNull
+    private URI buildType(@NonNull String slug) {
+        return Optional.ofNullable(problemBaseUri)
+                .filter(base -> !base.isBlank())
+                .map(base -> base.endsWith("/") ? base : base + "/")
+                .map(base -> {
+                    try {
+                        return URI.create(base + slug);
+                    } catch (IllegalArgumentException ignored) {
+                        return null;
+                    }
+                })
+                .orElse(URI.create("urn:problem-type:" + slug));
     }
 }
