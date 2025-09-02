@@ -1,6 +1,7 @@
 package bunny.boardhole.auth.application.command;
 
 import bunny.boardhole.auth.application.result.AuthResult;
+import bunny.boardhole.auth.domain.AuthenticationService;
 import bunny.boardhole.shared.exception.UnauthorizedException;
 import bunny.boardhole.shared.security.AppUserPrincipal;
 import bunny.boardhole.shared.util.MessageUtils;
@@ -29,7 +30,7 @@ import java.util.Optional;
 @Service
 @Validated
 @RequiredArgsConstructor
-public class AuthCommandService {
+public class AuthCommandService implements AuthenticationService {
 
     private final AuthenticationManager authenticationManager;
     private final SecurityContextRepository securityContextRepository;
@@ -45,6 +46,7 @@ public class AuthCommandService {
      * @return 인증 결과
      * @throws UnauthorizedException 인증 실패 시
      */
+    @Override
     @Transactional(readOnly = true)
     @NonNull
     public AuthResult login(@Valid @NonNull LoginCommand cmd, @NonNull HttpServletRequest request, @NonNull HttpServletResponse response) {
@@ -93,6 +95,7 @@ public class AuthCommandService {
      * @param request  HTTP 요청
      * @param response HTTP 응답
      */
+    @Override
     public void logout(@Valid @NonNull LogoutCommand cmd, @NonNull HttpServletRequest request, @NonNull HttpServletResponse response) {
         // SecurityContext 정리
         SecurityContextHolder.clearContext();
