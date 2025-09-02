@@ -44,6 +44,8 @@ dependencies {
     
     // -- ErrorProne --
     errorprone 'com.google.errorprone:error_prone_core:2.36.0'
+    compileOnly 'com.google.errorprone:error_prone_check_api:2.36.0'
+    compileOnly 'com.google.errorprone:error_prone_annotation:2.36.0'
     
     // -- Core Spring Boot Starters --
     implementation 'org.springframework.boot:spring-boot-starter-web'
@@ -549,6 +551,11 @@ tasks.withType(JavaCompile).configureEach {
         allErrorsAsWarnings = false
         allDisabledChecksAsWarnings = false
     }
+    options.compilerArgs += [
+        '--add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED',
+        '--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED',
+        '--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED'
+    ]
 }
 
 // 통합 품질 검사 태스크 - 교과서적 엄격 모드
