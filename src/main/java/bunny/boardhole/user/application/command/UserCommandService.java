@@ -2,8 +2,7 @@ package bunny.boardhole.user.application.command;
 
 import bunny.boardhole.shared.config.properties.ValidationProperties;
 import bunny.boardhole.shared.exception.*;
-import bunny.boardhole.shared.util.MessageUtils;
-import bunny.boardhole.shared.util.VerificationCodeGenerator;
+import bunny.boardhole.shared.util.*;
 import bunny.boardhole.user.application.mapper.UserMapper;
 import bunny.boardhole.user.application.result.UserResult;
 import bunny.boardhole.user.domain.*;
@@ -20,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Optional;
 
 /**
  * 사용자 명령 서비스
@@ -133,7 +132,7 @@ public class UserCommandService {
      *
      * @param cmd 패스워드 변경 명령
      * @throws ResourceNotFoundException 사용자를 찾을 수 없는 경우
-     * @throws UnauthorizedException 현재 패스워드가 일치하지 않는 경우
+     * @throws UnauthorizedException     현재 패스워드가 일치하지 않는 경우
      */
     @Transactional
     @PreAuthorize("hasPermission(#cmd.userId, 'USER', 'WRITE')")
@@ -160,8 +159,8 @@ public class UserCommandService {
      * @param cmd 이메일 검증 요청 명령
      * @return 검증 코드 (테스트 환경에서만 반환, 프로덕션에서는 이메일 발송)
      * @throws ResourceNotFoundException 사용자를 찾을 수 없는 경우
-     * @throws UnauthorizedException 현재 패스워드가 일치하지 않는 경우
-     * @throws DuplicateEmailException 이메일이 이미 사용 중인 경우
+     * @throws UnauthorizedException     현재 패스워드가 일치하지 않는 경우
+     * @throws DuplicateEmailException   이메일이 이미 사용 중인 경우
      */
     @Transactional
     @PreAuthorize("hasPermission(#cmd.userId, 'USER', 'WRITE')")
@@ -185,7 +184,7 @@ public class UserCommandService {
 
         // 검증 코드 생성
         String verificationCode = verificationCodeGenerator.generate();
-        
+
         // 검증 정보 저장
         EmailVerification verification = EmailVerification.builder()
                 .code(verificationCode)
@@ -197,8 +196,8 @@ public class UserCommandService {
 
         // TODO: 실제 환경에서는 이메일 발송 서비스 호출
         // emailService.sendVerificationEmail(user.getEmail(), cmd.newEmail(), verificationCode);
-        
-        log.info(messageUtils.getMessage("log.user.email.verification.requested", 
+
+        log.info(messageUtils.getMessage("log.user.email.verification.requested",
                 user.getId(), user.getEmail(), cmd.newEmail()));
 
         // 개발/테스트 환경에서만 코드 반환, 프로덕션에서는 null 반환
@@ -211,7 +210,7 @@ public class UserCommandService {
      * @param cmd 이메일 변경 명령
      * @return 변경된 사용자 정보
      * @throws ResourceNotFoundException 사용자나 검증 정보를 찾을 수 없는 경우
-     * @throws ValidationException 검증 코드가 유효하지 않은 경우
+     * @throws ValidationException       검증 코드가 유효하지 않은 경우
      */
     @Transactional
     @PreAuthorize("hasPermission(#cmd.userId, 'USER', 'WRITE')")
@@ -236,7 +235,7 @@ public class UserCommandService {
         // TODO: 실제 환경에서는 이메일 변경 알림 발송
         // emailService.sendEmailChangeNotification(oldEmail, verification.getNewEmail());
 
-        log.info(messageUtils.getMessage("log.user.email.changed", 
+        log.info(messageUtils.getMessage("log.user.email.changed",
                 user.getId(), oldEmail, verification.getNewEmail()));
 
         return userMapper.toResult(saved);

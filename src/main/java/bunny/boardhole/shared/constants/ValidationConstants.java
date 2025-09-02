@@ -9,7 +9,7 @@ public final class ValidationConstants {
     // Board 검증 상수
     public static final int BOARD_TITLE_MAX_LENGTH = 200;
     public static final int BOARD_CONTENT_MAX_LENGTH = 10000;
-    
+
     // User 검증 상수
     public static final int USER_USERNAME_MIN_LENGTH = 3;
     public static final int USER_USERNAME_MAX_LENGTH = 20;
@@ -19,7 +19,7 @@ public final class ValidationConstants {
     public static final int USER_EMAIL_MAX_LENGTH = 255;
     public static final int USER_NAME_MIN_LENGTH = 1;
     public static final int USER_NAME_MAX_LENGTH = 50;
-    
+
     private ValidationConstants() {
         // 인스턴스 생성 방지
     }

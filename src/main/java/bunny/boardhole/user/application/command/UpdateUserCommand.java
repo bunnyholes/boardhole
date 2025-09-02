@@ -1,6 +1,6 @@
 package bunny.boardhole.user.application.command;
 
-import bunny.boardhole.user.domain.validation.optional.*;
+import bunny.boardhole.user.domain.validation.optional.OptionalName;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 
