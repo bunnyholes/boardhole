@@ -20,8 +20,13 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class UserQueryService {
 
+    /** User repository for database read operations */
     private final UserRepository userRepository;
+    
+    /** User mapper for entity-result conversions */
     private final UserMapper userMapper;
+    
+    /** Message utilities for internationalization */
     private final MessageUtils messageUtils;
 
     /**
@@ -32,10 +37,16 @@ public class UserQueryService {
      * @throws ResourceNotFoundException 사용자를 찾을 수 없는 경우
      */
     @Transactional(readOnly = true)
-    public UserResult get(Long id) {
-        return userRepository.findById(id)
+    public UserResult get(final Long identifier) {
+        final UserResult result = userRepository.findById(identifier)
                 .map(userMapper::toResult)
-                .orElseThrow(() -> new ResourceNotFoundException(messageUtils.getMessage("error.user.not-found.id", id)));
+                .orElseThrow(() -> new ResourceNotFoundException(messageUtils.getMessage("error.user.not-found.id", identifier)));
+        
+        if (log.isDebugEnabled()) {
+            log.debug(messageUtils.getMessage("log.user.fetched", identifier));
+        }
+        
+        return result;
     }
 
     /**
@@ -45,8 +56,14 @@ public class UserQueryService {
      * @return 사용자 목록 페이지
      */
     @Transactional(readOnly = true)
-    public Page<UserResult> listWithPaging(Pageable pageable) {
-        return userRepository.findAll(pageable).map(userMapper::toResult);
+    public Page<UserResult> listWithPaging(final Pageable pageable) {
+        final Page<UserResult> results = userRepository.findAll(pageable).map(userMapper::toResult);
+        
+        if (log.isDebugEnabled()) {
+            log.debug(messageUtils.getMessage("log.user.list.fetched", results.getTotalElements(), pageable.getPageNumber()));
+        }
+        
+        return results;
     }
 
     /**
@@ -57,12 +74,29 @@ public class UserQueryService {
      * @return 검색된 사용자 목록 페이지
      */
     @Transactional(readOnly = true)
-    public Page<UserResult> listWithPaging(Pageable pageable, String search) {
-        return userRepository
+    public Page<UserResult> listWithPaging(final Pageable pageable, final String searchTerm) {
+        final Page<UserResult> results = userRepository
                 .findByUsernameContainingIgnoreCaseOrNameContainingIgnoreCaseOrEmailContainingIgnoreCase(
-                        search, search, search, pageable)
+                        searchTerm, searchTerm, searchTerm, pageable)
                 .map(userMapper::toResult);
+        
+        if (log.isDebugEnabled()) {
+            final String sanitizedSearchTerm = sanitizeForLog(searchTerm);
+            log.debug(messageUtils.getMessage("log.user.search.fetched", results.getTotalElements(), sanitizedSearchTerm));
+        }
+        
+        return results;
     }
 
+    /**
+     * 로그 출력용 문자열 새니타이징
+     * CRLF 인젝션 공격을 방지하기 위해 개행 문자를 제거합니다.
+     *
+     * @param input 새니타이징할 입력 문자열
+     * @return 새니타이징된 문자열
+     */
+    private String sanitizeForLog(final String input) {
+        return (input == null) ? "null" : input.replaceAll("[\r\n]", "_");
+    }
 
 }

@@ -17,10 +17,16 @@ import java.util.List;
 @RequiredArgsConstructor
 public class WebConfig implements WebMvcConfigurer {
 
-    private final CurrentUserArgumentResolver currentUserArgumentResolver;
+    /** 현재 사용자 인자 해결자 */
+    private final CurrentUserArgumentResolver userResolver;
 
+    /**
+     * 사용자 정의 인자 해결자 등록
+     *
+     * @param argumentResolvers 인자 해결자 목록
+     */
     @Override
-    public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
-        resolvers.add(currentUserArgumentResolver);
+    public void addArgumentResolvers(final List<HandlerMethodArgumentResolver> argumentResolvers) {
+        argumentResolvers.add(userResolver);
     }
 }

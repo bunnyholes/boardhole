@@ -28,9 +28,9 @@ public interface BoardWebMapper {
      * @param authorId 작성자 ID
      * @return 게시글 생성 명령
      */
-    @Mapping(target = "authorId", source = "authorId")
-    @Mapping(target = "title", source = "req.title")
-    @Mapping(target = "content", source = "req.content")
+    @Mapping(target = "authorId", source = "authorId") // 작성자 ID 매핑
+    @Mapping(target = "title", source = "req.title") // 게시글 제목 매핑
+    @Mapping(target = "content", source = "req.content") // 게시글 내용 매핑
     CreateBoardCommand toCreateCommand(BoardCreateRequest req, Long authorId);
 
     /**
@@ -41,9 +41,9 @@ public interface BoardWebMapper {
      * @param req      게시글 수정 요청 DTO
      * @return 게시글 수정 명령
      */
-    @Mapping(target = "boardId", source = "id")
-    @Mapping(target = "authorId", source = "authorId")
-    @Mapping(target = "title", source = "req.title")
-    @Mapping(target = "content", source = "req.content")
+    @Mapping(target = "boardId", source = "id") // 게시글 ID 매핑
+    @Mapping(target = "authorId", source = "authorId") // 작성자 ID 매핑
+    @Mapping(target = "title", source = "req.title") // 게시글 제목 매핑
+    @Mapping(target = "content", source = "req.content") // 게시글 내용 매핑
     UpdateBoardCommand toUpdateCommand(Long id, Long authorId, BoardUpdateRequest req);
 }

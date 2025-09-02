@@ -4,6 +4,11 @@ import bunny.boardhole.user.domain.validation.required.ValidPassword;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 
+/**
+ * 패스워드 변경 요청 DTO
+ * 사용자의 비밀번호 변경을 위한 요청 데이터를 담고 있는 객체입니다.
+ * 보안을 위해 현재 비밀번호 확인이 필요합니다.
+ */
 @Schema(name = "PasswordUpdateRequest", description = "패스워드 변경 요청")
 public record PasswordUpdateRequest(
         @NotBlank(message = "{user.validation.password.current.required}")

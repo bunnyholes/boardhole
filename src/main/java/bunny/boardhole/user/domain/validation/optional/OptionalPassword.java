@@ -7,10 +7,20 @@ import jakarta.validation.constraints.*;
 import java.lang.annotation.*;
 
 /**
- * 비밀번호 검증 애너테이션 (선택적 필드)
- * - null 허용
- * - 값이 있을 경우 8-100자 제한
- * - 값이 있을 경우 영문 대문자, 소문자, 숫자, 특수문자 모두 포함 필수
+ * 사용자 비밀번호 선택적 검증을 위한 커스텀 어노테이션입니다.
+ * 
+ * <p>다음 조건들을 만족해야 합니다:
+ * <ul>
+ *   <li>null 값 허용: 선택적 필드로 빈 값 가능</li>
+ *   <li>길이 제한: 값이 있을 경우 최소 8자에서 최대 100자까지 허용</li>
+ *   <li>복잡도 요구사항: 값이 있을 경우 영문 대문자, 소문자, 숫자, 특수문자 모두 최소 1개씩 포함</li>
+ * </ul>
+ * 
+ * @see ValidationConstants#USER_PASSWORD_MIN_LENGTH
+ * @see ValidationConstants#USER_PASSWORD_MAX_LENGTH
+ * @see ValidationConstants#PASSWORD_PATTERN
+ * @since 1.0
+ * @author BoardHole Development Team
  */
 @Target({ElementType.FIELD, ElementType.PARAMETER, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)

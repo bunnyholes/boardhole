@@ -30,46 +30,67 @@ import java.util.Optional;
 @Validated
 @RequiredArgsConstructor
 public class AuthCommandService {
+    
+    /** 로그 새니타이징용 정규식 패턴 */
+    private static final String LOG_SANITIZE_PATTERN = "[\r\n]";
+    
+    /** 로그 새니타이징시 교체 문자 */
+    private static final String LOG_REPLACEMENT_CHAR = "_";
+    
+    /** null 값에 대한 로그 출력 문자열 */
+    private static final String NULL_LOG_VALUE = "null";
 
-    private final AuthenticationManager authenticationManager;
-    private final SecurityContextRepository securityContextRepository;
+    /** 스프링 시큐리티 인증 관리자 */
+    private final AuthenticationManager authManager;
+    
+    /** 보안 컨텍스트 저장소 */
+    private final SecurityContextRepository contextRepository;
+    
+    /** 사용자 정보 레포지토리 */
     private final UserRepository userRepository;
+    
+    /** 메시지 유틸리티 */
     private final MessageUtils messageUtils;
 
     /**
      * 사용자 로그인 처리
-     *
-     * @param cmd      로그인 명령
-     * @param request  HTTP 요청
+     * @param cmd 로그인 명령
+     * @param request HTTP 요청
      * @param response HTTP 응답
      * @return 인증 결과
      * @throws UnauthorizedException 인증 실패 시
      */
     @Transactional(readOnly = true)
     @NonNull
-    public AuthResult login(@Valid @NonNull LoginCommand cmd, @NonNull HttpServletRequest request, @NonNull HttpServletResponse response) {
+    public AuthResult login(@Valid @NonNull final LoginCommand cmd, @NonNull final HttpServletRequest request, @NonNull final HttpServletResponse response) {
         try {
             // Spring Security를 통한 인증 처리
-            Authentication authRequest = new UsernamePasswordAuthenticationToken(
+            final Authentication authRequest = new UsernamePasswordAuthenticationToken(
                     cmd.username(),
                     cmd.password()
             );
 
-            Authentication authResult = authenticationManager.authenticate(authRequest);
+            final Authentication authResult = authManager.authenticate(authRequest);
 
             // SecurityContext에 인증 정보 저장
-            SecurityContext context = SecurityContextHolder.createEmptyContext();
+            final SecurityContext context = SecurityContextHolder.createEmptyContext();
             context.setAuthentication(authResult);
             SecurityContextHolder.setContext(context);
 
             // SecurityContextRepository를 통한 저장 (Spring Security 통합)
-            securityContextRepository.saveContext(context, request, response);
+            contextRepository.saveContext(context, request, response);
 
             // 사용자 정보 조회
-            AppUserPrincipal principal = (AppUserPrincipal) authResult.getPrincipal();
-            User user = principal.user();
+            final AppUserPrincipal principal = (AppUserPrincipal) authResult.getPrincipal();
+            final User user = principal.user();
 
-            log.info(messageUtils.getMessage("log.auth.login-success", user.getUsername(), user.getId()));
+            // CRLF 인젝션 방지 - 사용자 입력값 새니타이징
+            final String sanitizedUsername = sanitizeForLog(user.getUsername());
+            final Long userId = user.getId();
+            
+            if (log.isInfoEnabled()) {
+                log.info(messageUtils.getMessage("log.auth.login-success", sanitizedUsername, userId));
+            }
 
             return new AuthResult(
                     user.getId(),
@@ -80,9 +101,12 @@ public class AuthCommandService {
                     true
             );
 
-        } catch (BadCredentialsException e) {
-            log.warn(messageUtils.getMessage("log.auth.login-failed", cmd.username()));
-            throw new UnauthorizedException(messageUtils.getMessage("error.auth.invalid-credentials"));
+        } catch (final BadCredentialsException ex) {
+            final String sanitizedUsername = sanitizeForLog(cmd.username());
+            if (log.isWarnEnabled()) {
+                log.warn(messageUtils.getMessage("log.auth.login-failed", sanitizedUsername));
+            }
+            throw new UnauthorizedException(messageUtils.getMessage("error.auth.invalid-credentials"), ex);
         }
     }
 
@@ -93,7 +117,7 @@ public class AuthCommandService {
      * @param request  HTTP 요청
      * @param response HTTP 응답
      */
-    public void logout(@Valid @NonNull LogoutCommand cmd, @NonNull HttpServletRequest request, @NonNull HttpServletResponse response) {
+    public void logout(@Valid @NonNull final LogoutCommand cmd, @NonNull final HttpServletRequest request, @NonNull final HttpServletResponse response) {
         // SecurityContext 정리
         SecurityContextHolder.clearContext();
 
@@ -102,8 +126,21 @@ public class AuthCommandService {
                 .ifPresent(HttpSession::invalidate);
 
         // SecurityContext 저장소에서도 제거
-        securityContextRepository.saveContext(SecurityContextHolder.createEmptyContext(), request, response);
+        contextRepository.saveContext(SecurityContextHolder.createEmptyContext(), request, response);
 
-        log.info(messageUtils.getMessage("log.auth.logout-success", cmd.userId()));
+        if (log.isInfoEnabled()) {
+            log.info(messageUtils.getMessage("log.auth.logout-success", cmd.userId()));
+        }
+    }
+    
+    /**
+     * 로그 출력용 문자열 새니타이징
+     * CRLF 인젝션 공격을 방지하기 위해 개행 문자를 제거합니다.
+     *
+     * @param input 새니타이징할 입력 문자열
+     * @return 새니타이징된 문자열
+     */
+    private String sanitizeForLog(final String input) {
+        return (input == null) ? NULL_LOG_VALUE : input.replaceAll(LOG_SANITIZE_PATTERN, LOG_REPLACEMENT_CHAR);
     }
 }

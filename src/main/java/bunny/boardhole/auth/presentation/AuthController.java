@@ -5,6 +5,7 @@ import bunny.boardhole.auth.presentation.dto.LoginRequest;
 import bunny.boardhole.auth.presentation.mapper.AuthWebMapper;
 import bunny.boardhole.shared.constants.ApiPaths;
 import bunny.boardhole.shared.security.AppUserPrincipal;
+import bunny.boardhole.user.application.command.CreateUserCommand;
 import bunny.boardhole.user.application.command.UserCommandService;
 import bunny.boardhole.user.presentation.dto.UserCreateRequest;
 import bunny.boardhole.user.presentation.mapper.UserWebMapper;
@@ -24,16 +25,33 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * 인증 API 컨트롤러
+ * 회원가입, 로그인, 로그아웃, 현재 사용자 정보 조회 등 인증 관련 기능을 제공합니다.
+ */
 @RestController
 @RequestMapping(ApiPaths.AUTH)
 @Validated
 @RequiredArgsConstructor
 @Tag(name = "인증 API", description = "사용자 인증 및 권한 관리 기능")
 public class AuthController {
+    
+    /** HTTP 204 No Content 응답 코드 */
+    private static final String HTTP_NO_CONTENT = "204";
+    
+    /** HTTP 401 Unauthorized 응답 코드 */
+    private static final String HTTP_UNAUTHORIZED = "401";
 
+    /** 사용자 명령 서비스 */
     private final UserCommandService userCommandService;
+    
+    /** 인증 명령 서비스 */
     private final AuthCommandService authCommandService;
+    
+    /** 인증 웹 매퍼 */
     private final AuthWebMapper authWebMapper;
+    
+    /** 사용자 웹 매퍼 */
     private final UserWebMapper userWebMapper;
 
     @PostMapping(value = ApiPaths.AUTH_SIGNUP, consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
@@ -51,13 +69,13 @@ public class AuthController {
             )
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "204", description = "회원가입 성공"),
+            @ApiResponse(responseCode = HTTP_NO_CONTENT, description = "회원가입 성공"),
             @ApiResponse(responseCode = "400", description = "잘못된 요청 데이터 또는 중복된 사용자명/이메일")
     })
-    public void signup(@Validated @ModelAttribute UserCreateRequest req) {
+    public void signup(@Validated @ModelAttribute final UserCreateRequest request) {
         // Map request to command; keep repository returning entities in service
-        var cmd = userWebMapper.toCreateCommand(req);
-        userCommandService.create(cmd);
+        final CreateUserCommand createCommand = userWebMapper.toCreateCommand(request);
+        userCommandService.create(createCommand);
     }
 
     @PostMapping(value = ApiPaths.AUTH_LOGIN, consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
@@ -75,23 +93,23 @@ public class AuthController {
             )
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "204", description = "로그인 성공"),
-            @ApiResponse(responseCode = "401", description = "잘못된 인증 정보")
+            @ApiResponse(responseCode = HTTP_NO_CONTENT, description = "로그인 성공"),
+            @ApiResponse(responseCode = HTTP_UNAUTHORIZED, description = "잘못된 인증 정보")
     })
-    public void login(@Validated @ModelAttribute LoginRequest req, HttpServletRequest request, HttpServletResponse response) {
+    public void login(@Validated @ModelAttribute final LoginRequest loginRequest, final HttpServletRequest request, final HttpServletResponse response) {
         // CQRS 패턴을 통한 로그인 처리
-        var loginCommand = authWebMapper.toLoginCommand(req);
-        authCommandService.login(loginCommand, request, response);
+        final LoginCommand processedLoginCommand = authWebMapper.toLoginCommand(loginRequest);
+        authCommandService.login(processedLoginCommand, request, response);
 
         // 마지막 로그인 시간 업데이트 (기존 로직 유지)
         try {
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            if (authentication != null && authentication.getPrincipal() instanceof AppUserPrincipal(
+            final Authentication authenticatedUser = SecurityContextHolder.getContext().getAuthentication();
+            if (authenticatedUser != null && authenticatedUser.getPrincipal() instanceof AppUserPrincipal(
                     bunny.boardhole.user.domain.User user
             )) {
                 userCommandService.updateLastLogin(user.getId());
             }
-        } catch (UnsupportedOperationException ignored) {
+        } catch (final UnsupportedOperationException ignored) {
             // 일부 테스트/환경에서 보조 로직 미구현으로 인한 예외는 로그인 성공 흐름에 영향 주지 않도록 무시
         }
     }
@@ -105,22 +123,22 @@ public class AuthController {
             security = @SecurityRequirement(name = "session")
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "204", description = "로그아웃 성공"),
-            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
+            @ApiResponse(responseCode = HTTP_NO_CONTENT, description = "로그아웃 성공"),
+            @ApiResponse(responseCode = HTTP_UNAUTHORIZED, description = "인증되지 않은 사용자")
     })
-    public void logout(HttpServletRequest request, HttpServletResponse response,
-                       @AuthenticationPrincipal AppUserPrincipal principal) {
+    public void logout(final HttpServletRequest request, final HttpServletResponse response,
+                       @AuthenticationPrincipal final AppUserPrincipal principal) {
         // CQRS 패턴을 통한 로그아웃 처리
-        Long userId = principal != null ? principal.user().getId() : null;
+        final Long userId = principal != null ? principal.user().getId() : null;
         if (userId != null) {
-            var logoutCommand = LogoutCommand.of(userId);
-            authCommandService.logout(logoutCommand, request, response);
+            final LogoutCommand processedLogoutCommand = LogoutCommand.create(userId);
+            authCommandService.logout(processedLogoutCommand, request, response);
         } else {
             // 인증 정보가 없는 경우 기본 로그아웃 처리
             SecurityContextHolder.clearContext();
-            HttpSession session = request.getSession(false);
-            if (session != null) {
-                session.invalidate();
+            final HttpSession currentSession = request.getSession(false);
+            if (currentSession != null) {
+                currentSession.invalidate();
             }
         }
     }
@@ -134,11 +152,11 @@ public class AuthController {
             security = @SecurityRequirement(name = "admin-role")
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "204", description = "관리자 접근 성공"),
-            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+            @ApiResponse(responseCode = HTTP_NO_CONTENT, description = "관리자 접근 성공"),
+            @ApiResponse(responseCode = HTTP_UNAUTHORIZED, description = "인증되지 않은 사용자"),
             @ApiResponse(responseCode = "403", description = "관리자 권한 없음")
     })
-    public void adminOnly(@AuthenticationPrincipal AppUserPrincipal principal) {
+    public void adminOnly(@AuthenticationPrincipal final AppUserPrincipal principal) {
         // Test endpoint - no response body needed
     }
 
@@ -151,11 +169,11 @@ public class AuthController {
             security = @SecurityRequirement(name = "user-role")
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "204", description = "사용자 접근 성공"),
-            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+            @ApiResponse(responseCode = HTTP_NO_CONTENT, description = "사용자 접근 성공"),
+            @ApiResponse(responseCode = HTTP_UNAUTHORIZED, description = "인증되지 않은 사용자"),
             @ApiResponse(responseCode = "403", description = "사용자 권한 없음")
     })
-    public void userAccess(@AuthenticationPrincipal AppUserPrincipal principal) {
+    public void userAccess(@AuthenticationPrincipal final AppUserPrincipal principal) {
         // Test endpoint - no response body needed
     }
 
@@ -167,7 +185,7 @@ public class AuthController {
             description = "[PUBLIC] 인증 없이 모든 사용자가 접근할 수 있는 공개 테스트 엔드포인트입니다."
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "204", description = "공개 엔드포인트 접근 성공")
+            @ApiResponse(responseCode = HTTP_NO_CONTENT, description = "공개 엔드포인트 접근 성공")
     })
     public void publicAccess() {
         // Test endpoint - no response body needed

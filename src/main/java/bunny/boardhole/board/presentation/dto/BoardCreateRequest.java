@@ -3,6 +3,10 @@ package bunny.boardhole.board.presentation.dto;
 import bunny.boardhole.board.domain.validation.required.*;
 import io.swagger.v3.oas.annotations.media.Schema;
 
+/**
+ * 게시글 작성 요청 DTO
+ * 새로운 게시글 작성을 위한 요청 데이터를 담는 데이터 전송 객체입니다.
+ */
 @Schema(name = "BoardCreateRequest", description = "게시글 작성 요청")
 public record BoardCreateRequest(
         @ValidBoardTitle
@@ -10,7 +14,7 @@ public record BoardCreateRequest(
         String title,
 
         @ValidBoardContent
-        @Schema(description = "게시글 내용", example = "이것은 새로운 게시글의 내용입니다.", maxLength = 10000, requiredMode = Schema.RequiredMode.REQUIRED)
+        @Schema(description = "게시글 내용", example = "이것은 새로운 게시글의 내용입니다.", maxLength = 10_000, requiredMode = Schema.RequiredMode.REQUIRED)
         String content
 ) {
 }

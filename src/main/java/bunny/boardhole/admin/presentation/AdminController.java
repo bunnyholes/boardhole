@@ -12,14 +12,26 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * 관리자 API 컨트롤러
+ * 시스템 통계 조회 및 관리자 전용 기능을 제공합니다.
+ * 모든 엔드포인트는 ADMIN 권한이 필요합니다.
+ */
 @RestController
 @RequestMapping(ApiPaths.ADMIN)
 @Tag(name = "관리자 API", description = "시스템 관리 및 통계 기능")
 @RequiredArgsConstructor
 public class AdminController {
 
+    /** 관리자 조회 서비스 */
     private final AdminQueryService adminQueryService;
 
+    /**
+     * 시스템 통계 조회 API
+     * 전체 사용자 수, 게시글 수, 전체 조회수를 반환합니다.
+     *
+     * @return 시스템 통계 정보
+     */
     @GetMapping(ApiPaths.ADMIN_STATS)
     @PreAuthorize("isAuthenticated() and hasRole('ADMIN')")
     @Operation(

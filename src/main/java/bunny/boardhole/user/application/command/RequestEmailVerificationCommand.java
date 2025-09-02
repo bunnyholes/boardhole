@@ -4,6 +4,11 @@ import bunny.boardhole.user.domain.validation.required.ValidEmail;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 
+/**
+ * 이메일 검증 요청 명령 DTO
+ * CQRS 패턴의 Command 객체로 이메일 변경을 위한 검증 요청을 표현합니다.
+ * 보안을 위해 현재 비밀번호로 본인 확인이 필요합니다.
+ */
 @Schema(name = "RequestEmailVerificationCommand", description = "이메일 검증 요청 명령 - CQRS 패턴의 Command 객체")
 public record RequestEmailVerificationCommand(
         @NotNull(message = "{user.validation.userId.required}")

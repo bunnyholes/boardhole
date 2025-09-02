@@ -12,30 +12,99 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "boardhole.validation")
 @Data
 public class ValidationProperties {
-    private Board board = new Board();
-    private User user = new User();
-    private EmailVerification emailVerification = new EmailVerification();
+    /** 게시판 검증 설정 */
+    private final Board board = new Board();
+    
+    /** 사용자 검증 설정 */
+    private final User user = new User();
+    
+    /** 이메일 인증 검증 설정 */
+    private final EmailVerification emailVerification = new EmailVerification();
 
+    /**
+     * 게시판 검증 설정 클래스
+     */
     @Data
     public static class Board {
-        private int titleMaxLength = 200;
-        private int contentMaxLength = 10000;
+        
+        /** 기본 제목 최대 길이 */
+        private static final int DEFAULT_TITLE_MAX_LENGTH = 200;
+        
+        /** 기본 내용 최대 길이 */
+        private static final int DEFAULT_CONTENT_MAX_LENGTH = 10000;
+        
+        /** 게시글 제목 최대 길이 */
+        private int titleMaxLength = DEFAULT_TITLE_MAX_LENGTH;
+        
+        /** 게시글 내용 최대 길이 */
+        private int contentMaxLength = DEFAULT_CONTENT_MAX_LENGTH;
     }
 
+    /**
+     * 사용자 검증 설정 클래스
+     */
     @Data
     public static class User {
-        private int usernameMinLength = 3;
-        private int usernameMaxLength = 20;
-        private int passwordMinLength = 8;
-        private int passwordMaxLength = 100;
-        private int emailMaxLength = 255;
-        private int nameMinLength = 1;
-        private int nameMaxLength = 50;
+        
+        /** 기본 사용자명 최소 길이 */
+        private static final int DEFAULT_USERNAME_MIN_LENGTH = 3;
+        
+        /** 기본 사용자명 최대 길이 */
+        private static final int DEFAULT_USERNAME_MAX_LENGTH = 20;
+        
+        /** 기본 패스워드 최소 길이 */
+        private static final int DEFAULT_PASSWORD_MIN_LENGTH = 8;
+        
+        /** 기본 패스워드 최대 길이 */
+        private static final int DEFAULT_PASSWORD_MAX_LENGTH = 100;
+        
+        /** 기본 이메일 최대 길이 */
+        private static final int DEFAULT_EMAIL_MAX_LENGTH = 255;
+        
+        /** 기본 이름 최소 길이 */
+        private static final int DEFAULT_NAME_MIN_LENGTH = 1;
+        
+        /** 기본 이름 최대 길이 */
+        private static final int DEFAULT_NAME_MAX_LENGTH = 50;
+        
+        /** 사용자명 최소 길이 */
+        private int usernameMinLength = DEFAULT_USERNAME_MIN_LENGTH;
+        
+        /** 사용자명 최대 길이 */
+        private int usernameMaxLength = DEFAULT_USERNAME_MAX_LENGTH;
+        
+        /** 패스워드 최소 길이 */
+        private int passwordMinLength = DEFAULT_PASSWORD_MIN_LENGTH;
+        
+        /** 패스워드 최대 길이 */
+        private int passwordMaxLength = DEFAULT_PASSWORD_MAX_LENGTH;
+        
+        /** 이메일 최대 길이 */
+        private int emailMaxLength = DEFAULT_EMAIL_MAX_LENGTH;
+        
+        /** 이름 최소 길이 */
+        private int nameMinLength = DEFAULT_NAME_MIN_LENGTH;
+        
+        /** 이름 최대 길이 */
+        private int nameMaxLength = DEFAULT_NAME_MAX_LENGTH;
     }
 
+    /**
+     * 이메일 인증 검증 설정 클래스
+     */
     @Data
     public static class EmailVerification {
-        private int expirationMinutes = 30;
-        private int codeLength = 6;
+        
+        /** 기본 만료 시간(분) */
+        private static final int DEFAULT_EXPIRATION_MINUTES = 30;
+        
+        /** 기본 코드 길이 */
+        private static final int DEFAULT_CODE_LENGTH = 6;
+        
+        /** 인증 코드 만료 시간 (분) */
+        private int expirationMinutes = DEFAULT_EXPIRATION_MINUTES;
+        
+        /** 인증 코드 길이 */
+        private int codeLength = DEFAULT_CODE_LENGTH;
     }
 }

@@ -10,7 +10,7 @@
 
     <!-- Suppressions -->
     <module name="SuppressionFilter">
-        <property name="file" value="${config_loc}/suppressions.xml"/>
+        <property name="file" value="/Users/gimtaehui/IdeaProjects/board-hole/config/checkstyle/suppressions.xml"/>
     </module>
 
     <!-- 파일 길이 제한 -->

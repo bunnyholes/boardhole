@@ -4,6 +4,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.LocalDateTime;
 
+/**
+ * 게시글 응답 DTO
+ * 클라이언트에게 게시글 정보를 전달하기 위한 응답 데이터 전송 객체입니다.
+ */
 @Schema(name = "BoardResponse", description = "게시글 응답")
 public record BoardResponse(
         @Schema(description = "게시글 ID", example = "1")

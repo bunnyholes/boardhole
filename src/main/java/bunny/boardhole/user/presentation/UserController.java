@@ -27,6 +27,11 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * 사용자 API 컨트롤러
+ * 사용자의 생성, 조회, 수정, 삭제 및 관련 기능을 제공합니다.
+ * 관리자 권한이나 본인 권한에 따른 접근 제어가 적용됩니다.
+ */
 @Slf4j
 @RestController
 @RequestMapping(ApiPaths.USERS)
@@ -34,10 +39,19 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @Tag(name = "사용자 API", description = "사용자 관리 및 조회 기능")
 public class UserController {
+    /** User command service for data modification operations */
     private final UserCommandService userCommandService;
+    
+    /** User query service for data retrieval operations */
     private final UserQueryService userQueryService;
+    
+    /** User web mapper for web DTO conversions */
     private final UserWebMapper userWebMapper;
+    
+    /** Authentication web mapper for auth DTO conversions */
     private final AuthWebMapper authWebMapper;
+    
+    /** Message utilities for internationalization */
     private final MessageUtils messageUtils;
 
     @GetMapping
@@ -59,16 +73,24 @@ public class UserController {
             @Parameter(name = "size", description = "페이지 크기", example = "10"),
             @Parameter(name = "sort", description = "정렬 (필드,방향)", example = "id,desc")
     })
+    /**
+     * 사용자 목록을 페이지네이션으로 조회합니다.
+     * 관리자만 접근 가능하며, 검색어로 사용자명을 필터링할 수 있습니다.
+     *
+     * @param pageable 페이지네이션 정보 (기본: 페이지 크기 10, ID 내림차순 정렬)
+     * @param searchTerm 검색어 (사용자명으로 검색)
+     * @return 사용자 목록 페이지
+     */
     public Page<UserResponse> list(
             @Parameter(description = "페이지네이션 정보 (기본: 페이지 크기 10, ID 내림차순 정렬)")
-            @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.DESC) @ParameterObject Pageable pageable,
+            @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.DESC) @ParameterObject final Pageable pageable,
             @Parameter(description = "검색어 (사용자명으로 검색)", example = "admin")
-            @RequestParam(required = false) String search
+            @RequestParam(required = false) final String searchTerm
     ) {
-        Page<UserResult> page = search == null
+        final Page<UserResult> resultPage = searchTerm == null
                 ? userQueryService.listWithPaging(pageable)
-                : userQueryService.listWithPaging(pageable, search);
-        return page.map(userWebMapper::toResponse);
+                : userQueryService.listWithPaging(pageable, searchTerm);
+        return resultPage.map(userWebMapper::toResponse);
     }
 
     @GetMapping("/{id}")
@@ -86,10 +108,17 @@ public class UserController {
             ),
             @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음")
     })
+    /**
+     * 특정 사용자의 상세 정보를 조회합니다.
+     * 관리자이거나 본인만 조회 가능합니다.
+     *
+     * @param identifier 조회할 사용자 ID
+     * @return 사용자 상세 정보
+     */
     public UserResponse get(
             @Parameter(description = "조회할 사용자 ID")
-            @PathVariable Long id) {
-        var userResult = userQueryService.get(id);
+            @PathVariable final Long identifier) {
+        final UserResult userResult = userQueryService.get(identifier);
         return userWebMapper.toResponse(userResult);
     }
 
@@ -117,13 +146,21 @@ public class UserController {
             @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
             @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음")
     })
+    /**
+     * 사용자의 개인 정보를 수정합니다.
+     * 인증된 사용자만 사용할 수 있습니다.
+     *
+     * @param identifier 수정할 사용자 ID
+     * @param request 사용자 수정 요청 데이터
+     * @return 수정된 사용자 정보
+     */
     public UserResponse update(
             @Parameter(description = "수정할 사용자 ID")
-            @PathVariable Long id,
-            @Validated @ModelAttribute UserUpdateRequest req) {
-        var cmd = userWebMapper.toUpdateCommand(id, req);
-        var updated = userCommandService.update(cmd);
-        return userWebMapper.toResponse(updated);
+            @PathVariable final Long identifier,
+            @Validated @ModelAttribute final UserUpdateRequest request) {
+        final var command = userWebMapper.toUpdateCommand(identifier, request);
+        final var updatedUser = userCommandService.update(command);
+        return userWebMapper.toResponse(updatedUser);
     }
 
     @DeleteMapping("/{id}")
@@ -139,10 +176,16 @@ public class UserController {
             @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
             @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음")
     })
+    /**
+     * 사용자 계정을 삭제합니다.
+     * 인증된 사용자만 사용할 수 있습니다.
+     *
+     * @param identifier 삭제할 사용자 ID
+     */
     public void delete(
             @Parameter(description = "삭제할 사용자 ID")
-            @PathVariable Long id) {
-        userCommandService.delete(id);
+            @PathVariable final Long identifier) {
+        userCommandService.delete(identifier);
     }
 
     @PatchMapping("/{id}/password")
@@ -159,19 +202,27 @@ public class UserController {
             @ApiResponse(responseCode = "401", description = "현재 패스워드 불일치"),
             @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음")
     })
+    /**
+     * 사용자의 패스워드를 변경합니다.
+     * 현재 패스워드 확인이 필요하며, 새 패스워드와 확인 패스워드가 일치해야 합니다.
+     *
+     * @param identifier 사용자 ID
+     * @param request 패스워드 변경 요청 데이터
+     * @param principal 현재 인증된 사용자 정보
+     */
     public void updatePassword(
             @Parameter(description = "사용자 ID")
-            @PathVariable Long id,
-            @Validated @RequestBody PasswordUpdateRequest req,
-            @AuthenticationPrincipal AppUserPrincipal principal) {
+            @PathVariable final Long identifier,
+            @Validated @RequestBody final PasswordUpdateRequest request,
+            @AuthenticationPrincipal final AppUserPrincipal principal) {
 
         // 패스워드 확인 불일치 처리
-        if (!req.newPassword().equals(req.confirmPassword())) {
+        if (!request.newPassword().equals(request.confirmPassword())) {
             throw new ValidationException(messageUtils.getMessage("error.user.password.confirm.mismatch"));
         }
 
-        var cmd = userWebMapper.toUpdatePasswordCommand(id, req);
-        userCommandService.updatePassword(cmd);
+        final var command = userWebMapper.toUpdatePasswordCommand(identifier, request);
+        userCommandService.updatePassword(command);
     }
 
     @PostMapping("/{id}/email/verification")
@@ -191,22 +242,30 @@ public class UserController {
             @ApiResponse(responseCode = "401", description = "현재 패스워드 불일치"),
             @ApiResponse(responseCode = "409", description = "이메일 중복")
     })
+    /**
+     * 이메일 변경을 위한 검증 코드를 요청합니다.
+     * 검증 코드는 새로운 이메일 주소로 발송됩니다.
+     *
+     * @param identifier 사용자 ID
+     * @param request 이메일 검증 요청 데이터
+     * @return 검증 코드 발송 완료 메시지
+     */
     public ResponseEntity<java.util.Map<String, String>> requestEmailVerification(
             @Parameter(description = "사용자 ID")
-            @PathVariable Long id,
-            @Validated @RequestBody EmailVerificationRequest req) {
+            @PathVariable final Long identifier,
+            @Validated @RequestBody final EmailVerificationRequest request) {
 
-        var cmd = userWebMapper.toRequestEmailVerificationCommand(id, req);
-        String code = userCommandService.requestEmailVerification(cmd);
+        final var command = userWebMapper.toRequestEmailVerificationCommand(identifier, request);
+        final String verificationCode = userCommandService.requestEmailVerification(command);
 
         // 개발 환경에서만 코드 반환, 프로덕션에서는 메시지만
-        java.util.Map<String, String> response = new java.util.HashMap<>();
-        response.put("message", messageUtils.getMessage("info.user.email.verification.sent"));
+        final java.util.Map<String, String> responseMap = new java.util.HashMap<>();
+        responseMap.put("message", messageUtils.getMessage("info.user.email.verification.sent"));
         // TODO: 개발 환경 체크 후 코드 포함 여부 결정
-        if (code != null) {
-            response.put("code", code); // 테스트용
+        if (verificationCode != null) {
+            responseMap.put("code", verificationCode); // 테스트용
         }
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(responseMap);
     }
 
     @PatchMapping("/{id}/email")
@@ -225,14 +284,22 @@ public class UserController {
             @ApiResponse(responseCode = "400", description = "유효하지 않은 검증 코드"),
             @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음")
     })
+    /**
+     * 검증 코드를 확인하고 이메일을 변경합니다.
+     * 유효한 검증 코드가 제공되어야 합니다.
+     *
+     * @param identifier 사용자 ID
+     * @param request 이메일 변경 요청 데이터 (검증 코드 포함)
+     * @return 변경된 사용자 정보
+     */
     public UserResponse updateEmail(
             @Parameter(description = "사용자 ID")
-            @PathVariable Long id,
-            @Validated @RequestBody EmailUpdateRequest req) {
+            @PathVariable final Long identifier,
+            @Validated @RequestBody final EmailUpdateRequest request) {
 
-        var cmd = userWebMapper.toUpdateEmailCommand(id, req);
-        var updated = userCommandService.updateEmail(cmd);
-        return userWebMapper.toResponse(updated);
+        final var command = userWebMapper.toUpdateEmailCommand(identifier, request);
+        final var updatedUser = userCommandService.updateEmail(command);
+        return userWebMapper.toResponse(updatedUser);
     }
 
     @GetMapping(ApiPaths.USERS_ME)
@@ -250,7 +317,15 @@ public class UserController {
             ),
             @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
     })
-    public CurrentUserResponse me(@AuthenticationPrincipal AppUserPrincipal principal) {
+    /**
+     * 현재 로그인한 사용자의 상세 정보를 조회합니다.
+     * 인증된 사용자만 접근 가능합니다.
+     *
+     * @param principal 현재 인증된 사용자 정보
+     * @return 현재 사용자 정보
+     * @throws UnauthorizedException 인증되지 않은 경우
+     */
+    public CurrentUserResponse me(@AuthenticationPrincipal final AppUserPrincipal principal) {
         if (principal == null) {
             throw new UnauthorizedException(messageUtils.getMessage("error.auth.not-logged-in"));
         }

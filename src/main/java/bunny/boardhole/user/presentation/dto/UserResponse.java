@@ -6,6 +6,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
 import java.util.Set;
 
+/**
+ * 사용자 정보 응답 DTO
+ * 사용자 정보 조회 시 반환되는 데이터를 담고 있는 응답 객체입니다.
+ * 민감한 정보(비밀번호 등)는 제외하고 필요한 정보만 포함합니다.
+ */
 @Schema(name = "UserResponse", description = "사용자 정보 응답")
 public record UserResponse(
         @Schema(description = "사용자 ID", example = "1")

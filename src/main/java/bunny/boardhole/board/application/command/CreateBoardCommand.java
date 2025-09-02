@@ -4,6 +4,10 @@ import bunny.boardhole.board.domain.validation.required.*;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 
+/**
+ * 게시글 생성 명령 DTO
+ * CQRS 패턴의 Command 객체로 새로운 게시글 생성 요청을 표현합니다.
+ */
 @Schema(name = "CreateBoardCommand", description = "게시글 생성 명령 - CQRS 패턴의 Command 객체")
 public record CreateBoardCommand(
         @NotNull(message = "{board.validation.authorId.required}")
