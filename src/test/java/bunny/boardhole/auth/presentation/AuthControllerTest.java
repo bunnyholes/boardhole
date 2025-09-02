@@ -308,4 +308,85 @@ class AuthControllerTest extends ControllerTestBase {
                     .andDo(print());
         }
     }
+
+    @Nested
+    @DisplayName("GET /api/auth/me - 현재 인증 정보 조회")
+    @Tag("query")
+    class GetCurrentAuthentication {
+
+        @Test
+        @DisplayName("✅ 인증된 사용자 - 현재 인증 정보 조회 성공")
+        @WithUserDetails
+        void shouldReturnCurrentAuthenticationWhenAuthenticated() throws Exception {
+            mockMvc.perform(get("/api/auth/me"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.userId").value(1))
+                    .andExpect(jsonPath("$.username").value("user"))
+                    .andExpect(jsonPath("$.authenticated").value(true))
+                    .andExpect(jsonPath("$.role").exists())
+                    .andDo(print());
+        }
+
+        @Test
+        @DisplayName("❌ 인증되지 않은 사용자 → 401 Unauthorized")
+        void shouldReturn401WhenNotAuthenticated() throws Exception {
+            mockMvc.perform(get("/api/auth/me"))
+                    .andExpect(status().isUnauthorized())
+                    .andDo(print());
+        }
+    }
+
+    @Nested
+    @DisplayName("GET /api/auth/validate - 토큰 검증")
+    @Tag("query")
+    class ValidateToken {
+
+        @Test
+        @DisplayName("✅ 인증된 사용자 - 토큰 검증 성공")
+        @WithUserDetails
+        void shouldValidateTokenWhenAuthenticated() throws Exception {
+            mockMvc.perform(get("/api/auth/validate"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.valid").value(true))
+                    .andExpect(jsonPath("$.userId").exists())
+                    .andExpect(jsonPath("$.username").exists())
+                    .andDo(print());
+        }
+
+        @Test
+        @DisplayName("❌ 인증되지 않은 사용자 → 401 Unauthorized")
+        void shouldReturn401WhenNotAuthenticated() throws Exception {
+            mockMvc.perform(get("/api/auth/validate"))
+                    .andExpect(status().isUnauthorized())
+                    .andDo(print());
+        }
+    }
+
+    @Nested
+    @DisplayName("GET /api/auth/history - 인증 이력 조회")
+    @Tag("query")
+    class GetAuthenticationHistory {
+
+        @Test
+        @DisplayName("✅ 인증된 사용자 - 인증 이력 조회 성공")
+        @WithUserDetails
+        void shouldReturnAuthenticationHistoryWhenAuthenticated() throws Exception {
+            mockMvc.perform(get("/api/auth/history")
+                            .param("page", "0")
+                            .param("size", "10"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content").isArray())
+                    .andExpect(jsonPath("$.pageable").exists())
+                    .andExpect(jsonPath("$.totalElements").exists())
+                    .andDo(print());
+        }
+
+        @Test
+        @DisplayName("❌ 인증되지 않은 사용자 → 401 Unauthorized")
+        void shouldReturn401WhenNotAuthenticated() throws Exception {
+            mockMvc.perform(get("/api/auth/history"))
+                    .andExpect(status().isUnauthorized())
+                    .andDo(print());
+        }
+    }
 }
