@@ -18,7 +18,6 @@ import java.util.*;
  * @param templateVariables 이메일 템플릿 변수들
  */
 @Builder
-@AllArgsConstructor
 @Schema(name = "EmailMessage", description = "이메일 메시지 도메인 객체")
 public record EmailMessage(
         @NonNull @Schema(description = "받는 사람 이메일 주소", example = "user@example.com") String recipientEmail,
