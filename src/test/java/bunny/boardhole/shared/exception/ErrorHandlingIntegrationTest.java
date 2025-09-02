@@ -151,7 +151,7 @@ public class ErrorHandlingIntegrationTest extends ControllerTestBase {
                 .password("plain")
                 .name("Owner")
                 .email(owner + "@example.com")
-                .roles(new java.util.HashSet<>(java.util.Set.of(bunny.boardhole.user.domain.Role.USER)))
+                .userRoles(java.util.Set.of(bunny.boardhole.user.domain.Role.USER))
                 .build());
 
         Long boardId = boardRepository.save(Board.builder()

@@ -14,7 +14,13 @@ public record LogoutCommand(
         @Positive(message = "{user.validation.userId.positive}")
         Long userId
 ) {
-    public static LogoutCommand of(Long userId) {
+    /**
+     * 로그아웃 명령 객체를 생성하는 정적 팩토리 메서드
+     *
+     * @param userId 로그아웃할 사용자의 ID
+     * @return 생성된 LogoutCommand 객체
+     */
+    public static LogoutCommand create(final Long userId) {
         return new LogoutCommand(userId);
     }
 }

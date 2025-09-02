@@ -29,6 +29,6 @@ public interface AuthWebMapper {
      * @param user 사용자 도메인 엔티티
      * @return 현재 사용자 응답 DTO
      */
-    @Mapping(target = "userId", source = "id")
+    @Mapping(target = "userId", source = "id") // 사용자 ID 매핑
     CurrentUserResponse toCurrentUser(User user);
 }

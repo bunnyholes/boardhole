@@ -4,6 +4,10 @@ import bunny.boardhole.board.domain.validation.optional.*;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 
+/**
+ * 게시글 수정 명령 DTO
+ * CQRS 패턴의 Command 객체로 게시글 수정 요청을 표현하며, 부분 수정을 지원합니다.
+ */
 @Schema(name = "UpdateBoardCommand", description = "게시글 수정 명령 - CQRS 패턴의 Command 객체")
 public record UpdateBoardCommand(
         @NotNull(message = "{board.validation.boardId.required}")

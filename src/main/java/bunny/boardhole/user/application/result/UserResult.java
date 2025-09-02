@@ -6,6 +6,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
 import java.util.Set;
 
+/**
+ * 사용자 서비스 결과 객체
+ * 애플리케이션 레이어에서 사용되는 사용자 정보를 담는 Result 객체입니다.
+ * CQRS 패턴의 Query 결과로 사용됩니다.
+ */
 @Schema(name = "UserResult", description = "사용자 서비스 결과 객체 - 애플리케이션 레이어에서 사용되는 사용자 정보")
 public record UserResult(
         @Schema(description = "사용자 ID", example = "1")

@@ -24,58 +24,58 @@ public interface UserWebMapper {
     /**
      * 사용자 생성 요청을 명령으로 변환
      *
-     * @param req 사용자 생성 요청 DTO
+     * @param request 사용자 생성 요청 DTO
      * @return 사용자 생성 명령
      */
-    @Mapping(target = "username", source = "req.username")
-    @Mapping(target = "password", source = "req.password")
-    @Mapping(target = "name", source = "req.name")
-    @Mapping(target = "email", source = "req.email")
-    CreateUserCommand toCreateCommand(UserCreateRequest req);
+    @Mapping(target = "username", source = "request.username") // 사용자명 매핑
+    @Mapping(target = "password", source = "request.password") // 비밀번호 매핑
+    @Mapping(target = "name", source = "request.name") // 이름 매핑
+    @Mapping(target = "email", source = "request.email") // 이메일 매핑
+    CreateUserCommand toCreateCommand(UserCreateRequest request);
 
     /**
      * 사용자 수정 요청을 명령으로 변환
      *
-     * @param id  수정할 사용자 ID
-     * @param req 사용자 수정 요청 DTO
+     * @param identifier  수정할 사용자 ID
+     * @param request 사용자 수정 요청 DTO
      * @return 사용자 수정 명령
      */
-    @Mapping(target = "userId", source = "id")
-    @Mapping(target = "name", source = "req.name")
-    UpdateUserCommand toUpdateCommand(Long id, UserUpdateRequest req);
+    @Mapping(target = "userId", source = "identifier") // 사용자 ID 매핑
+    @Mapping(target = "name", source = "request.name") // 이름 매핑
+    UpdateUserCommand toUpdateCommand(Long identifier, UserUpdateRequest request);
 
     /**
      * 패스워드 변경 요청을 명령으로 변환
      *
-     * @param id  사용자 ID
-     * @param req 패스워드 변경 요청 DTO
+     * @param identifier  사용자 ID
+     * @param request 패스워드 변경 요청 DTO
      * @return 패스워드 변경 명령
      */
-    @Mapping(target = "userId", source = "id")
-    @Mapping(target = "currentPassword", source = "req.currentPassword")
-    @Mapping(target = "newPassword", source = "req.newPassword")
-    UpdatePasswordCommand toUpdatePasswordCommand(Long id, PasswordUpdateRequest req);
+    @Mapping(target = "userId", source = "identifier") // 사용자 ID 매핑
+    @Mapping(target = "currentPassword", source = "request.currentPassword") // 현재 비밀번호 매핑
+    @Mapping(target = "newPassword", source = "request.newPassword") // 새 비밀번호 매핑
+    UpdatePasswordCommand toUpdatePasswordCommand(Long identifier, PasswordUpdateRequest request);
 
     /**
      * 이메일 검증 요청을 명령으로 변환
      *
-     * @param id  사용자 ID
-     * @param req 이메일 검증 요청 DTO
+     * @param identifier  사용자 ID
+     * @param request 이메일 검증 요청 DTO
      * @return 이메일 검증 요청 명령
      */
-    @Mapping(target = "userId", source = "id")
-    @Mapping(target = "currentPassword", source = "req.currentPassword")
-    @Mapping(target = "newEmail", source = "req.newEmail")
-    RequestEmailVerificationCommand toRequestEmailVerificationCommand(Long id, EmailVerificationRequest req);
+    @Mapping(target = "userId", source = "identifier") // 사용자 ID 매핑
+    @Mapping(target = "currentPassword", source = "request.currentPassword") // 현재 비밀번호 매핑
+    @Mapping(target = "newEmail", source = "request.newEmail") // 새 이메일 매핑
+    RequestEmailVerificationCommand toRequestEmailVerificationCommand(Long identifier, EmailVerificationRequest request);
 
     /**
      * 이메일 변경 요청을 명령으로 변환
      *
-     * @param id  사용자 ID
-     * @param req 이메일 변경 요청 DTO
+     * @param identifier  사용자 ID
+     * @param request 이메일 변경 요청 DTO
      * @return 이메일 변경 명령
      */
-    @Mapping(target = "userId", source = "id")
-    @Mapping(target = "verificationCode", source = "req.verificationCode")
-    UpdateEmailCommand toUpdateEmailCommand(Long id, EmailUpdateRequest req);
+    @Mapping(target = "userId", source = "identifier") // 사용자 ID 매핑
+    @Mapping(target = "verificationCode", source = "request.verificationCode") // 검증 코드 매핑
+    UpdateEmailCommand toUpdateEmailCommand(Long identifier, EmailUpdateRequest request);
 }

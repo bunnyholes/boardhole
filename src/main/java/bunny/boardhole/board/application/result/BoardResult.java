@@ -4,6 +4,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.LocalDateTime;
 
+/**
+ * 게시글 서비스 결과 DTO
+ * CQRS 패턴에서 애플리케이션 레이어의 쿼리/명령 결과를 표현하는 데이터 전송 객체입니다.
+ */
 @Schema(name = "BoardResult", description = "게시글 서비스 결과 객체 - 애플리케이션 레이어에서 사용되는 게시글 정보")
 public record BoardResult(
         @Schema(description = "게시글 ID", example = "1")

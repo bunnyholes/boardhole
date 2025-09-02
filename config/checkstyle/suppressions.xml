@@ -20,10 +20,10 @@
     <suppress checks="IllegalTokenText" 
               files=".*Configuration\.java"/>
     
-    <!-- 엔티티 클래스의 toString 메서드는 디버깅용이므로 허용 -->
-    <suppress checks="IllegalTokenText" 
-              files=".*Entity\.java"
-              lines="toString"/>
+        <!-- 엔티티 클래스의 toString 메서드는 디버깅용이므로 허용 -->
+        <!-- 'lines' 속성은 숫자(라인번호)여야 하므로 제거함. 전체 파일에서 해당 체크를 억제합니다. -->
+        <suppress checks="IllegalTokenText" 
+                          files=".*Entity\.java"/>
     
     <!-- 상수 클래스에서는 매직 넘버 허용 -->
     <suppress checks="MagicNumber"

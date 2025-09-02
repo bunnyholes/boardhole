@@ -7,6 +7,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
 import java.util.Set;
 
+/**
+ * 현재 인증된 사용자 정보 응답 DTO
+ * 로그인된 사용자의 현재 정보를 클라이언트에게 전달하기 위한 데이터 전송 객체입니다.
+ */
 @Schema(name = "CurrentUserResponse", description = "현재 인증된 사용자 정보 응답")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record CurrentUserResponse(

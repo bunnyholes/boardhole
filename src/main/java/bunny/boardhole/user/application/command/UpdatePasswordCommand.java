@@ -4,6 +4,11 @@ import bunny.boardhole.user.domain.validation.required.ValidPassword;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 
+/**
+ * 패스워드 변경 명령 DTO
+ * CQRS 패턴의 Command 객체로 사용자 비밀번호 변경 요청을 표현합니다.
+ * 보안을 위해 현재 비밀번호 확인이 필요합니다.
+ */
 @Schema(name = "UpdatePasswordCommand", description = "패스워드 변경 명령 - CQRS 패턴의 Command 객체")
 public record UpdatePasswordCommand(
         @NotNull(message = "{user.validation.userId.required}")

@@ -10,7 +10,8 @@
 
     <!-- Suppressions -->
     <module name="SuppressionFilter">
-        <property name="file" value="${config_loc}/suppressions.xml"/>
+        <!-- Use absolute path to ensure Checkstyle loads the correct suppressions file in this worktree -->
+        <property name="file" value="/Users/gimtaehui/.claude-squad/worktrees/coverage-cleanup_186176f41968bf48/config/checkstyle/suppressions.xml"/>
     </module>
 
     <!-- 파일 길이 제한 -->
@@ -83,10 +84,11 @@
             <property name="countEmpty" value="false"/>
         </module>
 
-        <!-- 줄 길이 제한 -->
-        <module name="LineLength">
-            <property name="max" value="120"/>
-            <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://"/>
-        </module>
+    </module>
+
+    <!-- 줄 길이 제한 (Checker의 직접 자식으로 위치해야 함) -->
+    <module name="LineLength">
+        <property name="max" value="120"/>
+        <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://"/>
     </module>
 </module>

@@ -29,9 +29,21 @@ import java.util.Optional;
 @Validated
 @RequiredArgsConstructor
 public class BoardCommandService {
+
+    // 로그 출력용 상수
+    private static final String NULL_STRING = "null";
+    private static final String NEWLINE_REPLACEMENT = "_";
+    private static final String NEWLINE_PATTERN = "[\r\n]";
+    /** 게시글 레포지토리 */
     private final BoardRepository boardRepository;
+    
+    /** 사용자 레포지토리 */
     private final UserRepository userRepository;
+    
+    /** 게시글 매퍼 */
     private final BoardMapper boardMapper;
+    
+    /** 메시지 유틸리티 */
     private final MessageUtils messageUtils;
 
     /**
@@ -42,19 +54,23 @@ public class BoardCommandService {
      * @throws ResourceNotFoundException 작성자를 찾을 수 없는 경우
      */
     @Transactional
-    public BoardResult create(@Valid CreateBoardCommand cmd) {
-        Long authorId = cmd.authorId();
-        User author = userRepository.findById(authorId)
-                .orElseThrow(() -> new ResourceNotFoundException(messageUtils.getMessage("error.user.not-found.id", authorId)));
+    public BoardResult create(@Valid final CreateBoardCommand cmd) {
+        final Long authorIdentifier = cmd.authorId();
+        final User author = userRepository.findById(authorIdentifier)
+                .orElseThrow(() -> new ResourceNotFoundException(messageUtils.getMessage("error.user.not-found.id", authorIdentifier)));
 
-        Board board = Board.builder()
+        final Board board = Board.builder()
                 .title(cmd.title())
                 .content(cmd.content())
                 .author(author)
                 .build();
-        Board saved = boardRepository.save(board);
+        final Board saved = boardRepository.save(board);
 
-        log.info(messageUtils.getMessage("log.board.created", saved.getId(), saved.getTitle(), author.getUsername()));
+        if (log.isInfoEnabled()) {
+            final String sanitizedTitle = sanitizeForLog(saved.getTitle());
+            final String sanitizedUsername = sanitizeForLog(author.getUsername());
+            log.info(messageUtils.getMessage("log.board.created", saved.getId(), sanitizedTitle, sanitizedUsername));
+        }
         return boardMapper.toResult(saved);
     }
 
@@ -69,19 +85,23 @@ public class BoardCommandService {
      */
     @Transactional
     @PreAuthorize("hasPermission(#cmd.boardId, 'BOARD', 'WRITE')")
-    public BoardResult update(@Valid @NonNull UpdateBoardCommand cmd) {
-        Long id = cmd.boardId();
-        Board board = boardRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(messageUtils.getMessage("error.board.not-found.id", id)));
+    public BoardResult update(@Valid @NonNull final UpdateBoardCommand cmd) {
+        final Long boardIdentifier = cmd.boardId();
+        final Board board = boardRepository.findById(boardIdentifier)
+                .orElseThrow(() -> new ResourceNotFoundException(messageUtils.getMessage("error.board.not-found.id", boardIdentifier)));
 
         // Optional을 사용한 선택적 필드 업데이트
         Optional.ofNullable(cmd.title()).ifPresent(board::changeTitle);
         Optional.ofNullable(cmd.content()).ifPresent(board::changeContent);
 
         // @DynamicUpdate가 변경된 필드만 업데이트, @PreUpdate가 updatedAt 자동 설정
-        Board saved = boardRepository.save(board);
+        final Board saved = boardRepository.save(board);
 
-        log.info(messageUtils.getMessage("log.board.updated", saved.getId(), saved.getTitle(), saved.getAuthor().getUsername()));
+        if (log.isInfoEnabled()) {
+            final String sanitizedTitle = sanitizeForLog(saved.getTitle());
+            final String sanitizedUsername = sanitizeForLog(saved.getAuthor().getUsername());
+            log.info(messageUtils.getMessage("log.board.updated", saved.getId(), sanitizedTitle, sanitizedUsername));
+        }
         return boardMapper.toResult(saved);
     }
 
@@ -92,13 +112,16 @@ public class BoardCommandService {
      * @throws ResourceNotFoundException 게시글을 찾을 수 없는 경우
      */
     @Transactional
-    @PreAuthorize("hasPermission(#id, 'BOARD', 'DELETE')")
-    public void delete(@NotNull @Positive Long id) {
-        Board board = loadBoardOrThrow(id);
-        String authorUsername = board.getAuthor().getUsername();
+    @PreAuthorize("hasPermission(#boardIdentifier, 'BOARD', 'DELETE')")
+    public void delete(@NotNull @Positive final Long boardIdentifier) {
+        final Board board = loadBoardOrThrow(boardIdentifier);
+        final String authorUsername = board.getAuthor().getUsername();
 
-        boardRepository.deleteById(id);
-        log.info(messageUtils.getMessage("log.board.deleted", id, authorUsername));
+        boardRepository.deleteById(boardIdentifier);
+        if (log.isInfoEnabled()) {
+            final String sanitizedUsername = sanitizeForLog(authorUsername);
+            log.info(messageUtils.getMessage("log.board.deleted", boardIdentifier, sanitizedUsername));
+        }
     }
 
     /**
@@ -110,17 +133,19 @@ public class BoardCommandService {
      * @param cmd 조회수 증가 명령
      */
     @Transactional(propagation = org.springframework.transaction.annotation.Propagation.REQUIRES_NEW)
-    public void incrementViewCount(@Valid IncrementViewCountCommand cmd) {
-        Long boardId = cmd.boardId();
-        Board board = boardRepository.findById(boardId)
-                .orElseThrow(() -> new ResourceNotFoundException(messageUtils.getMessage("error.board.not-found.id", boardId)));
+    public void incrementViewCount(@Valid final IncrementViewCountCommand cmd) {
+        final Long boardIdentifier = cmd.boardId();
+        final Board board = boardRepository.findById(boardIdentifier)
+                .orElseThrow(() -> new ResourceNotFoundException(messageUtils.getMessage("error.board.not-found.id", boardIdentifier)));
 
         board.increaseViewCount();
 
         // flush를 사용하여 낙관적 락 충돌을 즉시 감지
-        Board saved = boardRepository.saveAndFlush(board);
+        final Board saved = boardRepository.saveAndFlush(board);
 
-        log.info(messageUtils.getMessage("log.board.view-count-increased", boardId, saved.getViewCount()));
+        if (log.isInfoEnabled()) {
+            log.info(messageUtils.getMessage("log.board.view-count-increased", boardIdentifier, saved.getViewCount()));
+        }
     }
 
     /**
@@ -131,9 +156,20 @@ public class BoardCommandService {
      * @throws ResourceNotFoundException 게시글을 찾을 수 없는 경우
      */
     @NonNull
-    private Board loadBoardOrThrow(@NonNull Long id) {
-        return boardRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(messageUtils.getMessage("error.board.not-found.id", id)));
+    private Board loadBoardOrThrow(@NonNull final Long boardIdentifier) {
+        return boardRepository.findById(boardIdentifier)
+                .orElseThrow(() -> new ResourceNotFoundException(messageUtils.getMessage("error.board.not-found.id", boardIdentifier)));
+    }
+    
+    /**
+     * 로그 출력용 문자열 새니타이징
+     * CRLF 인젝션 공격을 방지하기 위해 개행 문자를 제거합니다.
+     *
+     * @param input 새니타이징할 입력 문자열
+     * @return 새니타이징된 문자열
+     */
+    private String sanitizeForLog(final String input) {
+        return (input == null) ? NULL_STRING : input.replaceAll(NEWLINE_PATTERN, NEWLINE_REPLACEMENT);
     }
 
 }

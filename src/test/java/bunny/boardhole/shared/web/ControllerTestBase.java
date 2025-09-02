@@ -55,7 +55,7 @@ public abstract class ControllerTestBase {
                 .password(rawPassword) // tests should not authenticate with this; used for data only
                 .name(name)
                 .email(email)
-                .roles(new java.util.HashSet<>(roles))
+                .userRoles(roles)
                 .build();
         return userRepository.save(user).getId();
     }

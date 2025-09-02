@@ -3,6 +3,10 @@ package bunny.boardhole.user.presentation.dto;
 import bunny.boardhole.user.domain.validation.required.*;
 import io.swagger.v3.oas.annotations.media.Schema;
 
+/**
+ * 사용자 생성 요청 DTO
+ * 새로운 사용자 계정 생성을 위한 필수 정보를 담고 있는 데이터 전송 객체입니다.
+ */
 @Schema(name = "UserCreateRequest", description = "사용자 생성 요청")
 public record UserCreateRequest(
         @ValidUsername

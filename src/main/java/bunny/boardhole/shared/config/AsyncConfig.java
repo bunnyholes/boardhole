@@ -15,46 +15,52 @@ import java.util.concurrent.ThreadPoolExecutor;
  */
 @Configuration
 @EnableAsync
+@SuppressWarnings("PMD.DoNotUseThreads") // 비동기 설정을 위한 정당한 스레드 사용
 public class AsyncConfig {
 
     /**
      * Spring Boot TaskExecutor 빈 설정
-     * - RejectedExecutionHandler: 큐가 가득 찼을 때 처리 방식
-     * - TaskDecorator: MDC 컨텍스트 전파
-     * application.yml의 spring.task.execution 설정과 함께 작동
      *
-     * @param properties Spring Boot TaskExecutionProperties
+     * @param taskProps Spring Boot TaskExecutionProperties  
      * @return 커스터마이징된 TaskExecutor
      */
     @Bean
-    public ThreadPoolTaskExecutor applicationTaskExecutor(TaskExecutionProperties properties) {
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+    public ThreadPoolTaskExecutor applicationTaskExecutor(final TaskExecutionProperties taskProps) {
+        final ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
 
-        // Spring Boot properties 적용
-        executor.setCorePoolSize(properties.getPool().getCoreSize());
-        executor.setMaxPoolSize(properties.getPool().getMaxSize());
-        executor.setQueueCapacity(properties.getPool().getQueueCapacity());
-        executor.setThreadNamePrefix("app-async-");
+        // 상수 선언
+        final String threadNamePrefix = "app-async-";
+        
+        // Spring Boot properties 적용 - Law of Demeter 준수
+        final TaskExecutionProperties.Pool pool = taskProps.getPool();
+        final int coreSize = pool.getCoreSize();
+        final int maxSize = pool.getMaxSize();
+        final int queueCapacity = pool.getQueueCapacity();
+        
+        taskExecutor.setCorePoolSize(coreSize);
+        taskExecutor.setMaxPoolSize(maxSize);
+        taskExecutor.setQueueCapacity(queueCapacity);
+        taskExecutor.setThreadNamePrefix(threadNamePrefix);
 
         // RejectedExecutionHandler 설정
-        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+        taskExecutor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
 
         // MDC 컨텍스트 전파를 위한 TaskDecorator
-        executor.setTaskDecorator(runnable -> {
-            Map<String, String> contextMap = MDC.getCopyOfContextMap();
+        taskExecutor.setTaskDecorator(originalRunnable -> {
+            final Map<String, String> contextMap = MDC.getCopyOfContextMap();
             return () -> {
                 if (contextMap != null) {
                     MDC.setContextMap(contextMap);
                 }
                 try {
-                    runnable.run();
+                    originalRunnable.run();
                 } finally {
                     MDC.clear();
                 }
             };
         });
 
-        executor.initialize();
-        return executor;
+        taskExecutor.initialize();
+        return taskExecutor;
     }
 }
