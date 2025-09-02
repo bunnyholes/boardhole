@@ -1,6 +1,9 @@
 package bunny.boardhole.shared.exception;
 
+import bunny.boardhole.board.domain.Board;
+import bunny.boardhole.board.infrastructure.BoardRepository;
 import bunny.boardhole.shared.config.TestUserConfig;
+import bunny.boardhole.user.infrastructure.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +12,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
+import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.web.servlet.*;
 
 import java.util.*;
@@ -32,6 +36,12 @@ public class ErrorHandlingIntegrationTest {
 
     @Autowired
     private TestUserConfig.TestUserProperties testUserProperties;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private BoardRepository boardRepository;
 
     @Test
     @DisplayName("E2E: 404 Not Found - 존재하지 않는 리소스")
@@ -58,6 +68,7 @@ public class ErrorHandlingIntegrationTest {
 
     @Test
     @DisplayName("E2E: 400 Bad Request - 유효성 검증 실패")
+    @WithUserDetails("user")
     void test_400_validation_error() throws Exception {
         // 로그인
         MockHttpSession session = loginAsUser();
@@ -162,19 +173,13 @@ public class ErrorHandlingIntegrationTest {
     @Test
     @DisplayName("E2E: 다른 사용자의 리소스 수정 시도")
     void test_403_forbidden_resource_owner() throws Exception {
-        // 첫 번째 사용자로 게시글 생성
-        MockHttpSession user1Session = loginAsUser();
-
-        MvcResult createResult = mockMvc.perform(post("/api/boards")
-                        .session(user1Session)
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("title", "User1's Board")
-                        .param("content", "User1's Content"))
-                .andExpect(status().isCreated())
-                .andReturn();
-
-        String responseContent = createResult.getResponse().getContentAsString();
-        Long boardId = extractBoardId(responseContent);
+        // 첫 번째 사용자로 게시글 데이터 시드
+        var user1 = userRepository.findByUsername(testUserProperties.regularUsername());
+        Long boardId = boardRepository.save(Board.builder()
+                .title("User1's Board")
+                .content("User1's Content")
+                .author(user1)
+                .build()).getId();
 
         // 두 번째 사용자 생성 및 로그인
         String user2Id = UUID.randomUUID().toString().substring(0, 8);
@@ -186,18 +191,10 @@ public class ErrorHandlingIntegrationTest {
                         .param("email", "other_" + user2Id + "@example.com"))
                 .andExpect(status().isNoContent());
 
-        MvcResult user2LoginResult = mockMvc.perform(post("/api/auth/login")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("username", "other_" + user2Id)
-                        .param("password", "password123"))
-                .andExpect(status().isNoContent())
-                .andReturn();
-
-        MockHttpSession user2Session = (MockHttpSession) user2LoginResult.getRequest().getSession();
-
-        // 다른 사용자가 수정 시도
+        // 다른 사용자가 수정 시도 (보안 주체 직접 주입)
+        var otherPrincipal = new bunny.boardhole.shared.security.AppUserPrincipal(userRepository.findByUsername("other_" + user2Id));
         mockMvc.perform(put("/api/boards/" + boardId)
-                        .session(user2Session)
+                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user(otherPrincipal))
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("title", "Hacked Title")
                         .param("content", "Hacked Content"))

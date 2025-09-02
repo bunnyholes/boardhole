@@ -2,19 +2,19 @@ spring:
   # 테스트 환경에서는 Redis 대신 기본 메모리 세션 사용
   session:
     store-type: none
-    
-  # Redis 자동 구성 비활성화
+
+  # Redis 자동 구성 비활성화 (RedisHttpSessionConfiguration 제거 - 자동 구성 클래스가 아님)
   autoconfigure:
     exclude:
       - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
-      - org.springframework.session.data.redis.config.annotation.web.http.RedisHttpSessionConfiguration
+      - org.springframework.boot.autoconfigure.session.SessionAutoConfiguration
 
   # H2 인메모리 데이터베이스
   datasource:
     url: jdbc:h2:mem:testdb;MODE=MySQL
     driver-class-name: org.h2.Driver
     username: sa
-    password: 
+    password:
 
   jpa:
     hibernate:
@@ -31,3 +31,20 @@ logging:
     bunny.boardhole: DEBUG
     org.springframework.security: DEBUG
     org.springframework.web: DEBUG
+
+# 테스트용 기본 사용자 설정
+boardhole:
+  # CORS 설정 (테스트용)
+  cors:
+    allowed-origins: "http://localhost:8080"
+    allowed-methods: "GET,POST,PUT,DELETE,OPTIONS"
+    allowed-headers: "Origin,Content-Type,Accept,Authorization,X-Requested-With"
+    allow-credentials: true
+    max-age: 3600
+  
+  # 기본 사용자 설정
+  default-users:
+    admin:
+      password: admin123
+    regular:
+      password: user123

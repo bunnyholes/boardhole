@@ -175,7 +175,7 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleMethodNotSupported(HttpRequestMethodNotSupportedException ex, HttpServletRequest request) {
         String supportedMethods = String.join(", ", ex.getSupportedMethods());
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.METHOD_NOT_ALLOWED,
-                messageSource.getMessage("error.method-not-allowed.detail", 
+                messageSource.getMessage("error.method-not-allowed.detail",
                         new Object[]{supportedMethods}, LocaleContextHolder.getLocale()));
         pd.setTitle(messageSource.getMessage("exception.title.method-not-allowed", null, LocaleContextHolder.getLocale()));
         pd.setProperty("code", "METHOD_NOT_ALLOWED");
@@ -199,7 +199,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public ProblemDetail handleMissingParameter(MissingServletRequestParameterException ex, HttpServletRequest request) {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST,
-                messageSource.getMessage("error.missing-parameter.detail", 
+                messageSource.getMessage("error.missing-parameter.detail",
                         new Object[]{ex.getParameterName()}, LocaleContextHolder.getLocale()));
         pd.setTitle(messageSource.getMessage("exception.title.missing-parameter", null, LocaleContextHolder.getLocale()));
         pd.setProperty("code", "MISSING_PARAMETER");
@@ -213,7 +213,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(TypeMismatchException.class)
     public ProblemDetail handleTypeMismatch(TypeMismatchException ex, HttpServletRequest request) {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST,
-                messageSource.getMessage("error.type-mismatch.detail", 
+                messageSource.getMessage("error.type-mismatch.detail",
                         new Object[]{ex.getPropertyName()}, LocaleContextHolder.getLocale()));
         pd.setTitle(messageSource.getMessage("exception.title.type-mismatch", null, LocaleContextHolder.getLocale()));
         pd.setProperty("code", "TYPE_MISMATCH");

@@ -4,12 +4,10 @@ import io.swagger.v3.oas.models.*;
 import io.swagger.v3.oas.models.info.*;
 import io.swagger.v3.oas.models.media.*;
 import io.swagger.v3.oas.models.responses.*;
-import io.swagger.v3.oas.models.security.*;
+import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springframework.context.annotation.*;
 import org.springframework.http.ProblemDetail;
-
-import java.util.*;
 
 @Configuration
 public class OpenApiConfig {

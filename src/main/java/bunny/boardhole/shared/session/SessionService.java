@@ -76,7 +76,7 @@ public class SessionService {
             }
         }
 
-        log.info(messageSource.getMessage("log.session.invalidated.user", 
+        log.info(messageSource.getMessage("log.session.invalidated.user",
                 new Object[]{username, count}, LocaleContextHolder.getLocale()));
         return count;
     }
@@ -92,7 +92,7 @@ public class SessionService {
         Boolean deleted = redisTemplate.delete(sessionKey);
 
         if (deleted) {
-            log.info(messageSource.getMessage("log.session.invalidated.single", 
+            log.info(messageSource.getMessage("log.session.invalidated.single",
                     new Object[]{sessionId}, LocaleContextHolder.getLocale()));
             return true;
         }
@@ -255,7 +255,7 @@ public class SessionService {
             Boolean result = redisTemplate.expire(sessionKey, newTtl, TimeUnit.SECONDS);
 
             if (result) {
-                log.info(messageSource.getMessage("log.session.ttl.extended", 
+                log.info(messageSource.getMessage("log.session.ttl.extended",
                         new Object[]{sessionId, additionalSeconds}, LocaleContextHolder.getLocale()));
                 return true;
             }

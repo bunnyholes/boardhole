@@ -4,22 +4,24 @@
         "https://checkstyle.org/dtds/suppressions_1_2.dtd">
 
 <suppressions>
-    <!-- Swagger 어노테이션의 한글 설명은 허용 -->
-    <suppress checks="RegexpSingleline"
-              files=".*Controller\.java"
-              lines="1-999"
-              message=".*@Tag.*|.*@Operation.*|.*@ApiResponse.*|.*@Parameter.*|.*@Schema.*"/>
+    <!-- Swagger 어노테이션이 있는 클래스의 한글 문자열 허용 -->
+    <suppress checks="RegexpSingleline" 
+              files=".*Command\.java|.*Query\.java|.*Response\.java|.*Request\.java|.*Dto\.java"/>
     
-    <!-- 테스트 파일의 @DisplayName 한글은 허용 -->
-    <suppress checks="RegexpSingleline"
-              files=".*Test\.java|.*Tests\.java"
-              lines="1-999999"/>
+    <!-- 테스트 파일에서 한글 문자열 허용 -->
+    <suppress checks="RegexpSingleline" 
+              files=".*Test\.java|.*Tests\.java|.*TestConfiguration\.java"/>
     
-    <!-- 마이그레이션 또는 스크립트 파일 제외 -->
-    <suppress checks="RegexpSingleline"
-              files=".*Migration.*\.java|.*Script.*\.java"/>
+    <!-- DataInitializer는 초기 데이터 설정이므로 예외 허용 -->
+    <suppress checks="IllegalTokenText" 
+              files="DataInitializer\.java"/>
     
-    <!-- 설정 파일 제외 -->
-    <suppress checks="RegexpSingleline"
-              files=".*Config\.java|.*Configuration\.java"/>
+    <!-- Configuration 클래스는 설정 값이므로 일부 하드코딩 허용 -->
+    <suppress checks="IllegalTokenText" 
+              files=".*Configuration\.java"/>
+    
+    <!-- 엔티티 클래스의 toString 메서드는 디버깅용이므로 허용 -->
+    <suppress checks="IllegalTokenText" 
+              files=".*Entity\.java"
+              lines="toString"/>
 </suppressions>

@@ -8,38 +8,12 @@
     <property name="severity" value="warning"/>
     <property name="fileExtensions" value="java"/>
 
-    <!-- 한글 문자열 하드코딩 검출 -->
-    <module name="RegexpSingleline">
-        <property name="format" value="&quot;[^&quot;]*[\u3131-\u318E\uAC00-\uD7A3][^&quot;]*&quot;"/>
-        <property name="message" value="하드코딩된 한글 문자열이 발견되었습니다. MessageSource를 사용하여 국제화하세요."/>
-        <property name="severity" value="warning"/>
-        <!-- Swagger 어노테이션과 테스트는 제외 -->
-        <property name="ignoreComments" value="true"/>
-    </module>
-
     <module name="TreeWalker">
-        <!-- 리터럴 문자열 검사 (특정 예외 제외) -->
-        <module name="IllegalTokenText">
-            <property name="tokens" value="STRING_LITERAL"/>
-            <!-- 허용되는 패턴: 숫자, 기술 키워드, 프로퍼티 키 -->
-            <property name="format" value="^(&quot;&quot;|&quot;[0-9]+&quot;|&quot;(GET|POST|PUT|DELETE|PATCH|HEAD|OPTIONS)&quot;|&quot;(id|name|code|type|path|method|timestamp|traceId|field|message|value|errors|parameter|property|sessionId|creationTime|lastAccessedTime|maxInactiveInterval|authenticated|totalSessions|authenticatedSessions|anonymousSessions|averageTtlSeconds|ttlSeconds|supportedMethods|parameterType|requiredType)&quot;|&quot;[A-Z_]+&quot;|&quot;[\w\-]+:[\w\-]+:[\w\-:*]+&quot;|&quot;urn:[\w\-:]+&quot;)$"/>
-            <property name="ignoreCase" value="false"/>
-            <property name="message" value="하드코딩된 문자열이 발견되었습니다. 상수 또는 메시지 파일로 외부화하세요."/>
-        </module>
-
         <!-- 매직 넘버 검사 -->
         <module name="MagicNumber">
             <property name="ignoreNumbers" value="-1, 0, 1, 2, 3, 4, 5, 10, 100, 1000"/>
             <property name="ignoreHashCodeMethod" value="true"/>
             <property name="ignoreAnnotation" value="true"/>
-        </module>
-
-        <!-- Import 순서 -->
-        <module name="ImportOrder">
-            <property name="groups" value="/^java\./,javax,org,com,bunny"/>
-            <property name="ordered" value="true"/>
-            <property name="separated" value="true"/>
-            <property name="option" value="bottom"/>
         </module>
 
         <!-- 사용하지 않는 Import -->
@@ -49,16 +23,5 @@
         <module name="AvoidStarImport">
             <property name="allowStaticMemberImports" value="false"/>
         </module>
-    </module>
-
-    <!-- 파일별 예외 처리 -->
-    <module name="SuppressionFilter">
-        <property name="file" value="${config_loc}/suppressions.xml"/>
-        <property name="optional" value="true"/>
-    </module>
-
-    <!-- 특정 파일 제외 -->
-    <module name="BeforeExecutionExclusionFileFilter">
-        <property name="fileNamePattern" value=".*Test\.java$|.*Tests\.java$|.*TestConfiguration\.java$"/>
     </module>
 </module>

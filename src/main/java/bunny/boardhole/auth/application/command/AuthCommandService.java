@@ -58,11 +58,7 @@ public class AuthCommandService {
             context.setAuthentication(authResult);
             SecurityContextHolder.setContext(context);
 
-            // 세션 생성 및 SecurityContext 저장
-            HttpSession session = request.getSession(true); // 세션이 없으면 생성
-            session.setAttribute("SPRING_SECURITY_CONTEXT", context);
-            
-            // SecurityContextRepository를 통한 추가 저장 (Spring Security 통합)
+            // SecurityContextRepository를 통한 저장 (Spring Security 통합)
             securityContextRepository.saveContext(context, request, response);
 
             // 사용자 정보 조회
