@@ -1,24 +1,45 @@
 package bunny.boardhole.shared.config;
 
-import io.swagger.v3.oas.models.Components;
-import io.swagger.v3.oas.models.OpenAPI;
-import io.swagger.v3.oas.models.info.Info;
-import io.swagger.v3.oas.models.security.SecurityScheme;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import lombok.Data;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@Configuration
+/**
+ * OpenAPI 설정 프로퍼티
+ * application.yml의 boardhole.api 설정값을 매핑
+ */
+@ConfigurationProperties(prefix = "boardhole.api")
+@Data
 public class OpenApiConfig {
-
-    @Bean
-    public OpenAPI boardHoleOpenAPI() {
-        return new OpenAPI()
-                .info(new Info().title("Board-Hole API").version("v1.0.0"))
-                .components(new Components()
-                        .addSecuritySchemes("session", new SecurityScheme()
-                                .type(SecurityScheme.Type.APIKEY)
-                                .in(SecurityScheme.In.COOKIE)
-                                .name("JSESSIONID")));
+    
+    private String title;
+    private String version;
+    private String description;
+    private String termsOfService;
+    private Contact contact = new Contact();
+    private License license = new License();
+    private Security security = new Security();
+    
+    @Data
+    public static class Contact {
+        private String name;
+        private String email;
+        private String url;
+    }
+    
+    @Data
+    public static class License {
+        private String name;
+        private String url;
+    }
+    
+    @Data
+    public static class Security {
+        private Session session = new Session();
+        
+        @Data
+        public static class Session {
+            private String name;
+            private String description;
+        }
     }
 }
-

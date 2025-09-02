@@ -13,6 +13,9 @@ group = 'bunny'
 version = '0.0.1-SNAPSHOT'
 description = 'board-hole'
 
+springBoot {
+    buildInfo()  // BuildProperties 빈 생성으로 버전 정보를 런타임에 사용 가능
+}
 
 java {
     toolchain {
