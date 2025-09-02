@@ -1,7 +1,6 @@
 package bunny.boardhole.board.domain;
 
-import bunny.boardhole.shared.constants.ValidationConstants;
-import bunny.boardhole.shared.constants.ValidationMessages;
+import bunny.boardhole.shared.constants.*;
 import bunny.boardhole.shared.util.EntityMessageProvider;
 import bunny.boardhole.user.domain.User;
 import io.swagger.v3.oas.annotations.media.Schema;

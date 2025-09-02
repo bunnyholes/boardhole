@@ -1,12 +1,10 @@
 package bunny.boardhole.user.domain;
 
-import bunny.boardhole.shared.constants.ValidationConstants;
-import bunny.boardhole.shared.constants.ValidationMessages;
+import bunny.boardhole.shared.constants.*;
 import bunny.boardhole.shared.test.EntityTestBase;
 import org.junit.jupiter.api.*;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.*;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.*;
@@ -346,7 +344,7 @@ class UserEntityTest extends EntityTestBase {
                     .email(createUniqueEmail())
                     .roles(Set.of(Role.USER))
                     .build();
-            
+
             User user2 = User.builder()
                     .username(createUniqueUsername())
                     .password("password456")
@@ -362,7 +360,7 @@ class UserEntityTest extends EntityTestBase {
             // then
             assertThat(user1).isNotEqualTo(user2);
             assertThat(user1.hashCode()).isNotEqualTo(user2.hashCode());
-            
+
             // 같은 ID를 가진 User는 동등
             User sameUser = entityManager.find(User.class, user1.getId());
             assertThat(user1).isEqualTo(sameUser);

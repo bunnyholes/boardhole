@@ -3,17 +3,13 @@ package bunny.boardhole.shared.test;
 import bunny.boardhole.shared.config.TestDataConfig;
 import bunny.boardhole.user.domain.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.boot.test.autoconfigure.orm.jpa.*;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Locale;
-import java.util.Set;
-import java.util.UUID;
+import java.time.*;
+import java.util.*;
 
 @DataJpaTest
 @ActiveProfiles("test")

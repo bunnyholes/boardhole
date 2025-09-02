@@ -49,5 +49,6 @@ public class TestDataConfig {
             String boardContent,
             String verificationCode,
             int expirationHours
-    ) {}
+    ) {
+    }
 }

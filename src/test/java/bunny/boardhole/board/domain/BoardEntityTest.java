@@ -1,14 +1,11 @@
 package bunny.boardhole.board.domain;
 
-import bunny.boardhole.shared.constants.ValidationConstants;
-import bunny.boardhole.shared.constants.ValidationMessages;
+import bunny.boardhole.shared.constants.*;
 import bunny.boardhole.shared.test.EntityTestBase;
-import bunny.boardhole.user.domain.*;
+import bunny.boardhole.user.domain.User;
 import org.junit.jupiter.api.*;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Set;
 
 import static org.assertj.core.api.Assertions.*;
 

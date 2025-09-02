@@ -26,8 +26,8 @@ spring:
   mail:
     host: localhost
     port: 3025
-    username: 
-    password: 
+    username:
+    password:
     properties:
       mail:
         smtp:
@@ -63,7 +63,7 @@ boardhole:
       password: admin123
     regular:
       password: user123
-      
+
   # Entity 테스트용 데이터
   test-data:
     user:

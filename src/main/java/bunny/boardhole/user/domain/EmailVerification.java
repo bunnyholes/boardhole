@@ -1,7 +1,6 @@
 package bunny.boardhole.user.domain;
 
-import bunny.boardhole.shared.constants.ValidationConstants;
-import bunny.boardhole.shared.constants.ValidationMessages;
+import bunny.boardhole.shared.constants.*;
 import bunny.boardhole.shared.util.EntityMessageProvider;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
@@ -54,8 +53,8 @@ public class EmailVerification {
     private LocalDateTime createdAt;
 
     @Builder
-    public EmailVerification(@NonNull String code, @NonNull Long userId, @NonNull String newEmail, 
-                           @NonNull LocalDateTime expiresAt, @NonNull EmailVerificationType verificationType) {
+    public EmailVerification(@NonNull String code, @NonNull Long userId, @NonNull String newEmail,
+                             @NonNull LocalDateTime expiresAt, @NonNull EmailVerificationType verificationType) {
         Assert.hasText(code, EntityMessageProvider.getMessage(ValidationMessages.EMAIL_VERIFICATION_CODE_REQUIRED, ValidationMessages.EMAIL_VERIFICATION_CODE_REQUIRED_FALLBACK));
         Assert.notNull(userId, EntityMessageProvider.getMessage(ValidationMessages.EMAIL_VERIFICATION_USER_ID_REQUIRED, ValidationMessages.EMAIL_VERIFICATION_USER_ID_REQUIRED_FALLBACK));
         Assert.hasText(newEmail, EntityMessageProvider.getMessage(ValidationMessages.EMAIL_VERIFICATION_NEW_EMAIL_REQUIRED, ValidationMessages.EMAIL_VERIFICATION_NEW_EMAIL_REQUIRED_FALLBACK));

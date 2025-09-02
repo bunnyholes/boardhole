@@ -1,12 +1,10 @@
 package bunny.boardhole.user.domain;
 
-import bunny.boardhole.shared.constants.ValidationConstants;
 import bunny.boardhole.shared.constants.ValidationMessages;
 import bunny.boardhole.shared.test.EntityTestBase;
 import org.junit.jupiter.api.*;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.*;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -16,6 +14,16 @@ import static org.assertj.core.api.Assertions.*;
 @Tag("entity")
 @Tag("jpa")
 class EmailVerificationEntityTest extends EntityTestBase {
+
+    private EmailVerification createEmailVerification() {
+        return EmailVerification.builder()
+                .code(createUniqueCode())
+                .userId(1L)
+                .newEmail(createUniqueEmail())
+                .expiresAt(getTestExpirationTime())
+                .verificationType(EmailVerificationType.SIGNUP)
+                .build();
+    }
 
     @Nested
     @DisplayName("생성자 및 빌더 테스트")
@@ -140,7 +148,7 @@ class EmailVerificationEntityTest extends EntityTestBase {
 
             // when & then
             String expectedMessage = "이미 사용된 검증 코드입니다";
-            assertThatThrownBy(() -> verification.markAsUsed())
+            assertThatThrownBy(verification::markAsUsed)
                     .isInstanceOf(IllegalStateException.class)
                     .hasMessage(expectedMessage);
         }
@@ -154,11 +162,12 @@ class EmailVerificationEntityTest extends EntityTestBase {
                     .userId(1L)
                     .newEmail(createUniqueEmail())
                     .expiresAt(LocalDateTime.now(ZoneId.systemDefault()).minusHours(1))
+                    .verificationType(EmailVerificationType.SIGNUP)
                     .build();
 
             // when & then
             String expectedMessage = "만료된 검증 코드입니다";
-            assertThatThrownBy(() -> verification.markAsUsed())
+            assertThatThrownBy(verification::markAsUsed)
                     .isInstanceOf(IllegalStateException.class)
                     .hasMessage(expectedMessage);
         }
@@ -263,15 +272,5 @@ class EmailVerificationEntityTest extends EntityTestBase {
             EmailVerification sameVerification = entityManager.find(EmailVerification.class, verification1.getCode());
             assertThat(verification1).isEqualTo(sameVerification);
         }
-    }
-
-    private EmailVerification createEmailVerification() {
-        return EmailVerification.builder()
-                .code(createUniqueCode())
-                .userId(1L)
-                .newEmail(createUniqueEmail())
-                .expiresAt(getTestExpirationTime())
-                .verificationType(EmailVerificationType.SIGNUP)
-                .build();
     }
 }

@@ -25,9 +25,6 @@ import java.util.Set;
 public class EmailVerificationFilter implements Filter {
 
 
-    private final UserRepository userRepository;
-    private final ObjectMapper objectMapper;
-
     private static final Set<String> EXCLUDED_PATHS = Set.of(
             ApiPaths.AUTH + "/verify-email",
             ApiPaths.AUTH + "/resend-verification",
@@ -37,16 +34,18 @@ public class EmailVerificationFilter implements Filter {
             "/v3/api-docs",
             "/swagger-ui"
     );
+    private final UserRepository userRepository;
+    private final ObjectMapper objectMapper;
 
     @Override
-    public void doFilter(final ServletRequest request, final ServletResponse response, final FilterChain chain) 
+    public void doFilter(final ServletRequest request, final ServletResponse response, final FilterChain chain)
             throws IOException, ServletException {
-        
+
         final HttpServletRequest httpRequest = (HttpServletRequest) request;
         final HttpServletResponse httpResponse = (HttpServletResponse) response;
-        
+
         final String requestPath = httpRequest.getRequestURI();
-        
+
         // 제외 경로이거나 정적 리소스인 경우 필터 통과
         if (shouldSkipFilter(requestPath)) {
             chain.doFilter(request, response);
@@ -54,14 +53,14 @@ public class EmailVerificationFilter implements Filter {
         }
 
         final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        
+
         // 인증된 사용자인 경우에만 이메일 인증 상태 체크
-        if (authentication != null && authentication.isAuthenticated() && 
-            !"anonymousUser".equals(authentication.getName())) {
-            
+        if (authentication != null && authentication.isAuthenticated() &&
+                !"anonymousUser".equals(authentication.getName())) {
+
             final String username = authentication.getName();
             final User user = userRepository.findOptionalByUsername(username).orElse(null);
-            
+
             if (user != null && !user.isEmailVerified()) {
                 // 이메일 미인증 사용자에 대한 응답
                 sendEmailVerificationRequiredResponse(httpResponse);
@@ -77,12 +76,12 @@ public class EmailVerificationFilter implements Filter {
         if (requestPath.matches(".*\\.(css|js|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf)$")) {
             return true;
         }
-        
+
         // HTML 파일들
         if (requestPath.endsWith(".html") || requestPath.equals("/")) {
             return true;
         }
-        
+
         // 제외 경로들
         return EXCLUDED_PATHS.stream().anyMatch(requestPath::startsWith);
     }
@@ -93,7 +92,7 @@ public class EmailVerificationFilter implements Filter {
         response.setCharacterEncoding("UTF-8");
 
         final ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
-                HttpStatus.FORBIDDEN, 
+                HttpStatus.FORBIDDEN,
                 "이메일 인증이 필요합니다. 가입 시 발송된 인증 이메일을 확인해 주세요."
         );
         problemDetail.setTitle("Email Verification Required");
@@ -102,7 +101,7 @@ public class EmailVerificationFilter implements Filter {
 
         final String jsonResponse = objectMapper.writeValueAsString(problemDetail);
         response.getWriter().write(jsonResponse);
-        
+
         log.warn("이메일 미인증 사용자 접근 차단: path={}", response);
     }
 }
