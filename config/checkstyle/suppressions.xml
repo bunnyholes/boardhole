@@ -17,10 +17,14 @@
     <suppress checks="IllegalTokenText" 
               files=".*Configuration\.java"/>
     
+    <!-- 엔티티 클래스의 toString 메서드는 디버깅용이므로 허용 -->
+    <suppress checks="IllegalTokenText"
+              files=".*Entity\.java"
+              message="toString"/>
     
     <!-- 상수 클래스에서는 매직 넘버 허용 -->
     <suppress checks="MagicNumber"
-              files="ValidationConstants\.java|ApiPaths\.java|ErrorCode\.java|PermissionType\.java"/>
+              files="ValidationConstants\.java|ApiPaths\.java|ErrorCode\.java|PermissionType\.java|LogConstants\.java|ColumnNames\.java|JsonKeys\.java"/>
     
     <!-- 테스트 파일에서 매직 넘버 허용 -->
     <suppress checks="MagicNumber"
@@ -28,9 +32,14 @@
     
     <!-- application.yml 경로에서 RegexpSinglelineJava 억제 -->
     <suppress checks="RegexpSinglelineJava"
-              files="ValidationConstants\.java|ApiPaths\.java"/>
+              files="ValidationConstants\.java|ApiPaths\.java|LogConstants\.java|ColumnNames\.java|JsonKeys\.java"/>
     
     <!-- Properties 클래스에서 매직 넘버 허용 -->
     <suppress checks="MagicNumber"
               files=".*Properties\.java"/>
+
+    <!-- 상수 클래스에서는 static final 허용 -->
+    <suppress checks="RegexpSinglelineJava"
+              message="static final 필드는 허용된 상수 클래스에서만 사용하세요"
+              files="ValidationConstants\.java|ApiPaths\.java|ErrorCode\.java|PermissionType\.java|LogConstants\.java|ColumnNames\.java|JsonKeys\.java"/>
 </suppressions>

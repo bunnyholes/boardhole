@@ -30,6 +30,13 @@
             <property name="constantWaiverParentToken" value="TYPECAST, METHOD_CALL, EXPR, ARRAY_INIT, UNARY_MINUS, UNARY_PLUS, ELIST, STAR, ASSIGN, PLUS, MINUS, DIV, LITERAL_NEW"/>
         </module>
 
+        <!-- static final 필드 금지 (상수 전용 클래스 제외) -->
+        <module name="RegexpSinglelineJava">
+            <property name="format" value="\bstatic\s+final\b"/>
+            <property name="ignoreComments" value="true"/>
+            <property name="message" value="static final 필드는 허용된 상수 클래스에서만 사용하세요"/>
+        </module>
+
         <!-- 하드코딩된 문자열 검사를 위한 정규표현식 -->
         <module name="RegexpSinglelineJava">
             <property name="format" value="(20|30|50|60|100|200|255|1000|10000|3600|86400)"/>
@@ -83,8 +90,8 @@
             <property name="max" value="50"/>
             <property name="countEmpty" value="false"/>
         </module>
-
     </module>
+
     <!-- 줄 길이 제한 -->
     <module name="LineLength">
         <property name="max" value="120"/>
