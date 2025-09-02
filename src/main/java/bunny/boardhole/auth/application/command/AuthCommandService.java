@@ -1,7 +1,7 @@
 package bunny.boardhole.auth.application.command;
 
 import bunny.boardhole.auth.application.result.AuthResult;
-import bunny.boardhole.auth.infrastructure.SessionAuthenticationProvider;
+import bunny.boardhole.auth.domain.AuthenticationService;
 import jakarta.servlet.http.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +14,7 @@ import org.springframework.validation.annotation.Validated;
 @RequiredArgsConstructor
 public class AuthCommandService {
 
-    private final SessionAuthenticationProvider authProvider;
+    private final AuthenticationService authProvider;
 
     public AuthResult login(@Valid @NonNull LoginCommand cmd, @NonNull HttpServletRequest request, @NonNull HttpServletResponse response) {
         return authProvider.login(cmd, request, response);

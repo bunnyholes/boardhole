@@ -3,6 +3,7 @@ package bunny.boardhole.auth.infrastructure;
 import bunny.boardhole.auth.application.result.AuthResult;
 import bunny.boardhole.auth.application.command.LoginCommand;
 import bunny.boardhole.auth.application.command.LogoutCommand;
+import bunny.boardhole.auth.domain.AuthenticationService;
 import bunny.boardhole.shared.exception.UnauthorizedException;
 import bunny.boardhole.shared.security.AppUserPrincipal;
 import bunny.boardhole.shared.util.MessageUtils;
@@ -31,7 +32,7 @@ import java.util.Optional;
 @Service
 @Validated
 @RequiredArgsConstructor
-public class SessionAuthenticationProvider {
+public class SessionAuthenticationProvider implements AuthenticationService {
 
     private final AuthenticationManager authenticationManager;
     private final SecurityContextRepository securityContextRepository;
@@ -47,6 +48,7 @@ public class SessionAuthenticationProvider {
      * @return 인증 결과
      * @throws UnauthorizedException 인증 실패 시
      */
+    @Override
     @Transactional(readOnly = true)
     @NonNull
     public AuthResult login(@Valid @NonNull LoginCommand cmd, @NonNull HttpServletRequest request, @NonNull HttpServletResponse response) {
@@ -78,7 +80,7 @@ public class SessionAuthenticationProvider {
                     user.getUsername(),
                     user.getEmail(),
                     user.getName(),
-                    user.getRoles().iterator().next().name(), // 첫 번째 Role 사용
+                    user.getRoles().iterator().next().name(), // 사용자는 항상 최소 하나의 Role을 가짐
                     true
             );
 
@@ -89,12 +91,13 @@ public class SessionAuthenticationProvider {
     }
 
     /**
-     * 사용자 로귳아웃 처리
+     * 사용자 로그아웃 처리
      *
-     * @param cmd      로귳아웃 명령
+     * @param cmd      로그아웃 명령
      * @param request  HTTP 요청
      * @param response HTTP 응답
      */
+    @Override
     public void logout(@Valid @NonNull LogoutCommand cmd, @NonNull HttpServletRequest request, @NonNull HttpServletResponse response) {
         // SecurityContext 정리
         SecurityContextHolder.clearContext();
