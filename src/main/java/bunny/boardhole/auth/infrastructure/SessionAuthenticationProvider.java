@@ -25,8 +25,8 @@ import org.springframework.validation.annotation.Validated;
 import java.util.Optional;
 
 /**
- * 인증 명령 서비스
- * CQRS 패턴의 Command 측면으로 로그인, 로그아웃 등 인증 상태 변경 작업을 담당합니다.
+ * Session-based authentication provider implementation.
+ * Handles user login and logout by managing authentication state using HTTP sessions and Spring Security context.
  */
 @Slf4j
 @Service
