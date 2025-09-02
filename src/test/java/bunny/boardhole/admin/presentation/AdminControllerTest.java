@@ -19,7 +19,7 @@ class AdminControllerTest extends ControllerTestBase {
     @DisplayName("GET /api/admin/stats - 관리자 통계 조회")
     @Tag("stats")
     class AdminStats {
-        
+
         @Test
         @DisplayName("✅ 관리자 - 통계 조회 성공")
         @WithUserDetails("admin")

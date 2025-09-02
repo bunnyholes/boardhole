@@ -1,8 +1,7 @@
 package bunny.boardhole.auth.application.command;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.*;
 
 /**
  * 로그아웃 명령

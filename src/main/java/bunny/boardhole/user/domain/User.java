@@ -76,7 +76,7 @@ public class User implements Serializable {
         Assert.isTrue(name.length() <= 50, "이름은 50자를 초과할 수 없습니다");
         Assert.hasText(email, "이메일은 필수입니다");
         Assert.isTrue(email.length() <= 255, "이메일은 255자를 초과할 수 없습니다");
-        
+
         this.username = username;
         this.password = password;
         this.name = name;

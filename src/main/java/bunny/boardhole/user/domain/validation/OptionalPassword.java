@@ -1,9 +1,7 @@
 package bunny.boardhole.user.domain.validation;
 
-import jakarta.validation.Constraint;
-import jakarta.validation.Payload;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.*;
+import jakarta.validation.constraints.*;
 
 import java.lang.annotation.*;
 
@@ -18,17 +16,17 @@ import java.lang.annotation.*;
 @Documented
 @Size(min = 8, max = 100, message = "{user.validation.password.size}")
 @Pattern(
-    regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$",
-    message = "{user.validation.password.pattern}"
+        regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$",
+        message = "{user.validation.password.pattern}"
 )
 @Constraint(validatedBy = {})
 public @interface OptionalPassword {
     String message() default "{user.validation.password.invalid}";
-    
+
     Class<?>[] groups() default {};
-    
+
     Class<? extends Payload>[] payload() default {};
-    
+
     @Target({ElementType.FIELD, ElementType.PARAMETER, ElementType.METHOD})
     @Retention(RetentionPolicy.RUNTIME)
     @Documented

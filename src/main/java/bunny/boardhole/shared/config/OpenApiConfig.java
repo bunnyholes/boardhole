@@ -10,7 +10,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "boardhole.api")
 @Data
 public class OpenApiConfig {
-    
+
     private String title;
     private String version;
     private String description;
@@ -18,24 +18,24 @@ public class OpenApiConfig {
     private Contact contact = new Contact();
     private License license = new License();
     private Security security = new Security();
-    
+
     @Data
     public static class Contact {
         private String name;
         private String email;
         private String url;
     }
-    
+
     @Data
     public static class License {
         private String name;
         private String url;
     }
-    
+
     @Data
     public static class Security {
         private Session session = new Session();
-        
+
         @Data
         public static class Session {
             private String name;

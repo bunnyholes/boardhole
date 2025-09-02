@@ -1,11 +1,8 @@
 package bunny.boardhole.shared.config.cors;
 
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.context.annotation.*;
+import org.springframework.web.cors.*;
 
 @Configuration
 @EnableConfigurationProperties(CorsProperties.class)

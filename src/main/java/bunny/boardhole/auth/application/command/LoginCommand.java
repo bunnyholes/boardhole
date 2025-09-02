@@ -1,8 +1,7 @@
 package bunny.boardhole.auth.application.command;
 
+import bunny.boardhole.user.domain.validation.*;
 import io.swagger.v3.oas.annotations.media.Schema;
-import bunny.boardhole.user.domain.validation.ValidUsername;
-import bunny.boardhole.user.domain.validation.ValidPassword;
 
 /**
  * 로그인 명령

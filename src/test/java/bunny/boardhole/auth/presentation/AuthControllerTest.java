@@ -3,8 +3,7 @@ package bunny.boardhole.auth.presentation;
 import bunny.boardhole.shared.web.ControllerTestBase;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.*;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithUserDetails;
 
@@ -26,7 +25,17 @@ class AuthControllerTest extends ControllerTestBase {
     @DisplayName("POST /api/auth/signup - 회원가입")
     @Tag("create")
     class Signup {
-        
+
+        static Stream<Arguments> provideInvalidSignupData() {
+            return Stream.of(
+                    Arguments.of("username 누락", "", "Password123!", "Test User", "test@example.com"),
+                    Arguments.of("password 누락", "testuser", "", "Test User", "test@example.com"),
+                    Arguments.of("name 누락", "testuser", "Password123!", "", "test@example.com"),
+                    Arguments.of("email 누락", "testuser", "Password123!", "Test User", ""),
+                    Arguments.of("잘못된 이메일 형식", "testuser", "Password123!", "Test User", "invalid-email-format")
+            );
+        }
+
         @Test
         @DisplayName("✅ 유효한 데이터로 회원가입 성공")
         void shouldCreateUserWithValidData() throws Exception {
@@ -60,21 +69,11 @@ class AuthControllerTest extends ControllerTestBase {
                     .andExpect(jsonPath("$.errors").isArray())
                     .andDo(print());
         }
-        
-        static Stream<Arguments> provideInvalidSignupData() {
-            return Stream.of(
-                Arguments.of("username 누락", "", "Password123!", "Test User", "test@example.com"),
-                Arguments.of("password 누락", "testuser", "", "Test User", "test@example.com"),
-                Arguments.of("name 누락", "testuser", "Password123!", "", "test@example.com"),
-                Arguments.of("email 누락", "testuser", "Password123!", "Test User", ""),
-                Arguments.of("잘못된 이메일 형식", "testuser", "Password123!", "Test User", "invalid-email-format")
-            );
-        }
 
         @Nested
         @DisplayName("중복 검증")
         class DuplicateValidation {
-            
+
             @Test
             @DisplayName("❌ 중복된 사용자명 → 409 Conflict")
             void shouldFailWhenUsernameDuplicated() throws Exception {
@@ -136,7 +135,17 @@ class AuthControllerTest extends ControllerTestBase {
     @DisplayName("POST /api/auth/login - 로그인")
     @Tag("auth")
     class Login {
-        
+
+        static Stream<Arguments> provideInvalidLoginData() {
+            String validUsername = "validuser";
+            String nonExistentUser = "nonexistent_" + UUID.randomUUID().toString().substring(0, 8);
+
+            return Stream.of(
+                    Arguments.of("잘못된 비밀번호", validUsername, "WrongPass123!"),
+                    Arguments.of("존재하지 않는 사용자", nonExistentUser, "AnyPass123!")
+            );
+        }
+
         @Test
         @DisplayName("✅ 유효한 자격증명으로 로그인 성공")
         void shouldLoginWithValidCredentials() throws Exception {
@@ -176,17 +185,7 @@ class AuthControllerTest extends ControllerTestBase {
                     .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
                     .andDo(print());
         }
-        
-        static Stream<Arguments> provideInvalidLoginData() {
-            String validUsername = "validuser";
-            String nonExistentUser = "nonexistent_" + UUID.randomUUID().toString().substring(0, 8);
-            
-            return Stream.of(
-                Arguments.of("잘못된 비밀번호", validUsername, "WrongPass123!"),
-                Arguments.of("존재하지 않는 사용자", nonExistentUser, "AnyPass123!")
-            );
-        }
-        
+
         @BeforeEach
         void setupValidUser() throws Exception {
             // 유효한 사용자 생성 (테스트용)
@@ -204,7 +203,7 @@ class AuthControllerTest extends ControllerTestBase {
     @DisplayName("GET /api/auth/check - 로그인 상태 확인")
     @Tag("auth")
     class AuthCheck {
-        
+
         @Test
         @DisplayName("❌ 인증되지 않은 사용자 → 401 Unauthorized")
         void shouldReturn401WhenNotAuthenticated() throws Exception {
@@ -220,7 +219,7 @@ class AuthControllerTest extends ControllerTestBase {
     @DisplayName("권한별 접근 제어")
     @Tag("security")
     class AccessControl {
-        
+
         @Test
         @DisplayName("✅ 공개 엔드포인트 - 인증 없이 접근 가능")
         void shouldAllowPublicAccess() throws Exception {
@@ -236,7 +235,7 @@ class AuthControllerTest extends ControllerTestBase {
                     .andExpect(status().isUnauthorized())
                     .andDo(print());
         }
-        
+
         @Test
         @DisplayName("✅ 사용자 전용 엔드포인트 - 일반 사용자 접근 성공")
         @WithUserDetails
@@ -258,7 +257,7 @@ class AuthControllerTest extends ControllerTestBase {
         @Nested
         @DisplayName("관리자 전용 엔드포인트")
         class AdminOnly {
-            
+
             @Test
             @DisplayName("❌ 인증 없이 접근 → 401 Unauthorized")
             void shouldReturn401WhenNotAuthenticated() throws Exception {
@@ -291,7 +290,7 @@ class AuthControllerTest extends ControllerTestBase {
     @DisplayName("POST /api/auth/logout - 로그아웃")
     @Tag("auth")
     class Logout {
-        
+
         @Test
         @DisplayName("✅ 로그인된 사용자 로그아웃 성공")
         @WithUserDetails

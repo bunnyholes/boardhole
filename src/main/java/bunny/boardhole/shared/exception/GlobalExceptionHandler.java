@@ -13,8 +13,7 @@ import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.*;
 import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.lang.NonNull;
-import org.springframework.lang.Nullable;
+import org.springframework.lang.*;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.BindException;
 import org.springframework.web.*;
@@ -41,7 +40,7 @@ public class GlobalExceptionHandler {
         Optional.ofNullable(MDC.get(RequestLoggingFilter.TRACE_ID))
                 .filter(traceId -> !traceId.isBlank())
                 .ifPresent(traceId -> pd.setProperty("traceId", traceId));
-        
+
         Optional.ofNullable(request)
                 .ifPresent(req -> {
                     pd.setProperty("path", req.getRequestURI());
@@ -51,7 +50,7 @@ public class GlobalExceptionHandler {
                     } catch (IllegalArgumentException ignored) {
                     }
                 });
-        
+
         pd.setProperty("timestamp", Instant.now().toString());
     }
 

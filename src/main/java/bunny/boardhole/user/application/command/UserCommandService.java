@@ -79,17 +79,17 @@ public class UserCommandService {
         Long id = cmd.userId();
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(messageUtils.getMessage("error.user.not-found.id", id)));
-        
+
         // Optional을 사용한 선택적 필드 업데이트
         Optional.ofNullable(cmd.name()).ifPresent(user::changeName);
         Optional.ofNullable(cmd.email()).ifPresent(user::changeEmail);
         Optional.ofNullable(cmd.password())
                 .map(passwordEncoder::encode)
                 .ifPresent(user::changePassword);
-        
+
         // @DynamicUpdate가 변경된 필드만 업데이트, @PreUpdate가 updatedAt 자동 설정
         User saved = userRepository.save(user);
-        
+
         log.info(messageUtils.getMessage("log.user.updated", saved.getUsername()));
         return userMapper.toResult(saved);
     }

@@ -1,7 +1,6 @@
 package bunny.boardhole.board.application.command;
 
-import bunny.boardhole.board.domain.validation.OptionalBoardContent;
-import bunny.boardhole.board.domain.validation.OptionalBoardTitle;
+import bunny.boardhole.board.domain.validation.*;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 
@@ -11,16 +10,16 @@ public record UpdateBoardCommand(
         @Positive(message = "{board.validation.boardId.positive}")
         @Schema(description = "수정할 게시글 ID", example = "1")
         Long boardId,
-        
+
         @NotNull(message = "{board.validation.authorId.required}")
         @Positive(message = "{board.validation.authorId.positive}")
         @Schema(description = "수정 요청자 ID (권한 검증용)", example = "1")
         Long authorId,
-        
+
         @OptionalBoardTitle
         @Schema(description = "수정할 게시글 제목 (선택적)", example = "수정된 게시글 제목", nullable = true)
         String title,
-        
+
         @OptionalBoardContent
         @Schema(description = "수정할 게시글 내용 (선택적)", example = "수정된 게시글 내용입니다.", nullable = true)
         String content

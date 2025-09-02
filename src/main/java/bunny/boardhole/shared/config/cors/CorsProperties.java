@@ -1,8 +1,8 @@
 package bunny.boardhole.shared.config.cors;
 
-import java.util.List;
-
 import org.springframework.boot.context.properties.ConfigurationProperties;
+
+import java.util.List;
 
 @ConfigurationProperties(prefix = "boardhole.cors")
 public record CorsProperties(
@@ -13,4 +13,5 @@ public record CorsProperties(
         List<String> exposedHeaders,
         boolean allowCredentials,
         long maxAge
-) {}
+) {
+}
