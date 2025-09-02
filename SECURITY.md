@@ -303,12 +303,14 @@ public class LoggingAspect {
 #### 환경 설정
 ```bash
 # 환경변수로 민감 정보 관리
-export JWT_SECRET=your-secret-key
+export SESSION_SECRET=your-session-secret
 export DB_PASSWORD=your-db-password
+export REDIS_PASSWORD=your-redis-password
 
 # application-prod.properties에서 사용
-jwt.secret=${JWT_SECRET}
+server.servlet.session.cookie.secure=${SESSION_SECURE:true}
 spring.datasource.password=${DB_PASSWORD}
+spring.data.redis.password=${REDIS_PASSWORD}
 ```
 
 #### 운영 권장사항
@@ -546,4 +548,4 @@ management:
 **📚 학습 참고자료**:
 - [OWASP Top 10](https://owasp.org/www-project-top-ten/)
 - [Spring Security Reference](https://docs.spring.io/spring-security/reference/)
-- [JWT Security Best Practices](https://tools.ietf.org/html/rfc8725)
+- [Session Management Best Practices](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html)
