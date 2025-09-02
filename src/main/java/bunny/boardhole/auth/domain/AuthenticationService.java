@@ -21,7 +21,7 @@ public interface AuthenticationService {
     AuthResult login(@Valid @NonNull LoginCommand cmd, @NonNull HttpServletRequest request, @NonNull HttpServletResponse response);
 
     /**
-     * 사용자 로그아웃 처리  
+     * 사용자 로그아웃 처리
      */
     void logout(@Valid @NonNull LogoutCommand cmd, @NonNull HttpServletRequest request, @NonNull HttpServletResponse response);
 }
