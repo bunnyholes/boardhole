@@ -1,7 +1,6 @@
 package bunny.boardhole.board.presentation.mapper;
 
 import bunny.boardhole.board.application.command.*;
-import bunny.boardhole.board.application.event.ViewedEvent;
 import bunny.boardhole.board.application.query.GetBoardQuery;
 import bunny.boardhole.board.application.result.BoardResult;
 import bunny.boardhole.board.presentation.dto.*;
@@ -57,12 +56,4 @@ public interface BoardWebMapper {
      */
     GetBoardQuery toGetBoardQuery(Long id);
 
-    /**
-     * 게시글 조회 이벤트 생성
-     *
-     * @param boardId  게시글 ID
-     * @param viewerId 조회자 ID
-     * @return 조회 이벤트
-     */
-    ViewedEvent toViewedEvent(Long boardId, Long viewerId);
 }

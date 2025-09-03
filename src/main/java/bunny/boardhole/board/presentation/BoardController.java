@@ -11,13 +11,12 @@ import bunny.boardhole.user.domain.User;
 import io.swagger.v3.oas.annotations.*;
 import io.swagger.v3.oas.annotations.media.*;
 import io.swagger.v3.oas.annotations.responses.*;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.annotation.Nullable;
 import jakarta.annotation.security.PermitAll;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springdoc.core.annotations.ParameterObject;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.*;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.*;
@@ -35,7 +34,6 @@ import org.springframework.web.bind.annotation.*;
 public class BoardController {
     private final BoardCommandService boardCommandService;
     private final BoardQueryService boardQueryService;
-    private final ApplicationEventPublisher eventPublisher;
     private final BoardWebMapper boardWebMapper;
 
     @PostMapping(consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE}, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -43,7 +41,7 @@ public class BoardController {
     @Operation(
             summary = "게시글 작성",
             description = "[AUTH] 새로운 게시글을 작성합니다. 인증된 사용자만 사용할 수 있습니다.",
-            
+
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     required = true,
                     content = @Content(
@@ -81,16 +79,14 @@ public class BoardController {
             @Parameter(name = "size", description = "페이지 크기", example = "10"),
             @Parameter(name = "sort", description = "정렬 (필드,방향)", example = "id,desc")
     })
-    @ApiResponses({
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "게시글 목록 조회 성공",
-                    content = @Content(schema = @Schema(implementation = Page.class))
-            )
-    })
+    @ApiResponses(@ApiResponse(
+            responseCode = "200",
+            description = "게시글 목록 조회 성공",
+            content = @Content(schema = @Schema(implementation = Page.class))
+    ))
     public Page<BoardResponse> list(
             @Parameter(description = "페이지네이션 정보 (기본: 페이지 크기 10, ID 내림차순 정렬)") @PageableDefault(sort = "id", direction = Sort.Direction.DESC) @ParameterObject Pageable pageable,
-            @Parameter(description = "검색어 (제목 또는 내용에서 검색)", example = "공지") @RequestParam(required = false) String search) {
+            @Parameter(description = "검색어 (제목 또는 내용에서 검색)", example = "공지") @RequestParam(required = false) @Nullable String search) {
         Page<BoardResult> page = search == null
                 ? boardQueryService.listWithPaging(pageable)
                 : boardQueryService.listWithPaging(pageable, search);
@@ -112,16 +108,8 @@ public class BoardController {
             @ApiResponse(responseCode = "404", description = "게시글을 찾을 수 없음")
     })
     public BoardResponse get(
-            @Parameter(description = "조회할 게시글 ID") @PathVariable Long id,
-            @AuthenticationPrincipal AppUserPrincipal principal) {
-        // 1) 순수 조회 (Query)
+            @Parameter(description = "조회할 게시글 ID") @PathVariable Long id) {
         BoardResult result = boardQueryService.handle(boardWebMapper.toGetBoardQuery(id));
-
-        // 2) 뷰 증가 이벤트 발행 (Command는 비동기 처리)
-        Long viewerId = principal != null && principal.user() != null ? principal.user().getId() : null;
-        eventPublisher.publishEvent(boardWebMapper.toViewedEvent(id, viewerId));
-
-        // 3) 결과를 Response로 매핑
         return boardWebMapper.toResponse(result);
     }
 
@@ -130,7 +118,7 @@ public class BoardController {
     @Operation(
             summary = "게시글 수정",
             description = "[OWNER] 기존 게시글을 수정합니다. 작성자 본인만 수정 가능합니다.",
-            
+
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     required = true,
                     content = @Content(
@@ -166,7 +154,7 @@ public class BoardController {
     @Operation(
             summary = "게시글 삭제",
             description = "[OWNER] 기존 게시글을 삭제합니다. 작성자 본인만 삭제 가능합니다."
-            
+
     )
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "게시글 삭제 성공"),

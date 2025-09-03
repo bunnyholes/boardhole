@@ -15,8 +15,8 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.*;
  * 컨트롤러 아키텍처 규칙 테스트
  * <p>
  * 컨트롤러에서 ResponseEntity 사용을 금지하고,
- *
- * @ResponseStatus 애노테이션과 ResponseBodyAdvice 패턴을 강제합니다.
+ * <p>
+ * ResponseStatus 애노테이션과 ResponseBodyAdvice 패턴을 강제합니다.
  */
 class ControllerArchitectureTest {
 

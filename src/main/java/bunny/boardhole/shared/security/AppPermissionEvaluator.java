@@ -18,7 +18,7 @@ import java.util.Locale;
 public class AppPermissionEvaluator implements PermissionEvaluator {
 
     private final BoardRepository boardRepository;
-    
+
     @Value("${boardhole.security.role-prefix}")
     private String rolePrefix;
 

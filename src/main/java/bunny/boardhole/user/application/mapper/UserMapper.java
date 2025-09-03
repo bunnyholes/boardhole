@@ -1,11 +1,59 @@
 package bunny.boardhole.user.application.mapper;
 
+import bunny.boardhole.email.application.event.*;
 import bunny.boardhole.shared.mapstruct.MapstructConfig;
+import bunny.boardhole.user.application.command.UpdateUserCommand;
+import bunny.boardhole.user.application.event.UserCreatedEvent;
 import bunny.boardhole.user.application.result.UserResult;
 import bunny.boardhole.user.domain.User;
 import org.mapstruct.Mapper;
 
+import java.time.LocalDateTime;
+
 @Mapper(config = MapstructConfig.class)
 public interface UserMapper {
     UserResult toResult(User user);
+
+    /**
+     * 사용자 업데이트 - null이 아닌 필드만 업데이트
+     *
+     * @param command 업데이트 명령
+     * @param user    업데이트할 사용자 엔티티
+     */
+    default void updateUserFromCommand(UpdateUserCommand command, User user) {
+        if (command.name() != null) user.changeName(command.name());
+        // 향후 다른 필드 업데이트가 필요할 때 여기에 추가
+    }
+
+    /**
+     * 사용자 생성 이벤트 생성 - MapStruct가 자동으로 record 생성자에 매핑
+     *
+     * @param user              생성된 사용자
+     * @param verificationToken 이메일 인증 토큰
+     * @param expiresAt         토큰 만료 시간
+     * @return UserCreatedEvent
+     */
+    UserCreatedEvent toUserCreatedEvent(User user, String verificationToken, LocalDateTime expiresAt);
+
+    /**
+     * 이메일 변경 요청 이벤트 생성 - MapStruct가 자동으로 record 생성자에 매핑
+     *
+     * @param user             사용자
+     * @param newEmail         새 이메일
+     * @param verificationCode 인증 코드
+     * @param expiresAt        인증 코드 만료 시간
+     * @return EmailVerificationRequestedEvent
+     */
+    EmailVerificationRequestedEvent toEmailVerificationRequestedEvent(
+            User user, String newEmail, String verificationCode, LocalDateTime expiresAt);
+
+    /**
+     * 이메일 변경 완료 이벤트 생성 - MapStruct가 자동으로 record 생성자에 매핑
+     *
+     * @param user     사용자
+     * @param oldEmail 기존 이메일
+     * @param newEmail 새 이메일
+     * @return EmailChangedEvent
+     */
+    EmailChangedEvent toEmailChangedEvent(User user, String oldEmail, String newEmail);
 }

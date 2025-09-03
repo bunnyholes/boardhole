@@ -12,13 +12,11 @@ import java.security.SecureRandom;
 @Component
 public class VerificationCodeGenerator {
 
+    private final SecureRandom random = new SecureRandom();
     @Value("${boardhole.security.verification-code.charset}")
     private String charset;
-
     @Value("${boardhole.security.verification-code.length}")
     private int length;
-
-    private final SecureRandom random = new SecureRandom();
 
     /**
      * 검증 코드 생성

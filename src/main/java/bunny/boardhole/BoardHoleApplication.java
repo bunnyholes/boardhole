@@ -6,9 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
 @SpringBootApplication
-@EnableConfigurationProperties({
-        LoggingProperties.class
-})
+@EnableConfigurationProperties(LoggingProperties.class)
 public class BoardHoleApplication {
 
     public static void main(String[] args) {
