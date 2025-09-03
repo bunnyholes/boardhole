@@ -74,13 +74,19 @@ public class BoardController {
     @PermitAll
     @Operation(
             summary = "게시글 목록 조회",
-            description = "[PUBLIC] 페이지네이션을 지원하는 게시글 목록을 조회합니다. 검색어를 포함할 수 있습니다."
+            description = "[PUBLIC] 게시글 목록을 페이지네이션으로 조회합니다. 제목과 내용에서 검색이 가능합니다."
     )
-    
     @Parameters({
             @Parameter(name = "page", description = "0부터 시작하는 페이지 인덱스", example = "0"),
             @Parameter(name = "size", description = "페이지 크기", example = "10"),
             @Parameter(name = "sort", description = "정렬 (필드,방향)", example = "id,desc")
+    })
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "게시글 목록 조회 성공",
+                    content = @Content(schema = @Schema(implementation = Page.class))
+            )
     })
     public Page<BoardResponse> list(
             @Parameter(description = "페이지네이션 정보 (기본: 페이지 크기 10, ID 내림차순 정렬)") @PageableDefault(sort = "id", direction = Sort.Direction.DESC) @ParameterObject Pageable pageable,
