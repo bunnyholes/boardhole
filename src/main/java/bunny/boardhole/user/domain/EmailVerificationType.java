@@ -1,6 +1,8 @@
 package bunny.boardhole.user.domain;
 
+import lombok.Getter;
 
+@Getter
 public enum EmailVerificationType {
 
     SIGNUP("회원가입 인증"),
@@ -11,9 +13,5 @@ public enum EmailVerificationType {
 
     EmailVerificationType(String description) {
         this.description = description;
-    }
-
-    public String getDescription() {
-        return description;
     }
 }

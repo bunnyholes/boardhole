@@ -178,7 +178,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ProblemDetail handleMethodNotSupported(HttpRequestMethodNotSupportedException ex, HttpServletRequest request) {
-        String supportedMethods = String.join(", ", ex.getSupportedMethods());
+        String[] methods = ex.getSupportedMethods();
+        String supportedMethods = methods != null ? String.join(", ", methods) : "None";
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.METHOD_NOT_ALLOWED,
                 messageSource.getMessage("error.method-not-allowed.detail",
                         new Object[]{supportedMethods}, LocaleContextHolder.getLocale()));

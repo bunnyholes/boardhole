@@ -1,9 +1,12 @@
 package bunny.boardhole.shared.constants;
 
+import lombok.Getter;
+
 /**
  * 에러 코드 열거형
  * GlobalExceptionHandler에서 사용
  */
+@Getter
 public enum ErrorCode {
     CONFLICT("CONFLICT"),
     UNAUTHORIZED("UNAUTHORIZED"),
@@ -23,9 +26,5 @@ public enum ErrorCode {
 
     ErrorCode(String code) {
         this.code = code;
-    }
-
-    public String getCode() {
-        return code;
     }
 }
