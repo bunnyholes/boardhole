@@ -77,7 +77,7 @@ public class LoggingAspect {
             // 메서드 종료 로깅은 DEBUG 레벨에서만 (로깅 포맷 오류가 있어도 비즈니스 흐름에 영향 주지 않도록 보호)
             if (log.isDebugEnabled() && tookMs > 10) { // 10ms 이상인 경우만 로깅
                 try {
-                    log.debug(logFormatter.formatMethodEnd(signature, result, tookMs));
+                    log.debug(logFormatter.formatMethodEnd(signature, tookMs));
                 } catch (Throwable formatEx) {
                     log.warn("Log formatting failed for {}: {}", signature, formatEx.toString());
                 }

@@ -34,7 +34,7 @@ public class BusinessLogAspect {
         try {
             Object result = pjp.proceed();
             long elapsed = System.currentTimeMillis() - start;
-            log.debug(messageUtils.getMessage("log.method.end", methodName, result, elapsed));
+            log.debug(messageUtils.getMessage("log.method.end", methodName, elapsed));
             logSuccess(signature, result);
             return result;
         } catch (Throwable t) {
