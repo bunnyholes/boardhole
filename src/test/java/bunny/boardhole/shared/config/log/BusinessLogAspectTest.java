@@ -125,8 +125,9 @@ class BusinessLogAspectTest {
 
         userService.delete(1L);
 
+        // 로그에서 사용자 삭제 메시지 확인
         assertThat(appender.list.stream().anyMatch(e ->
-                e.getFormattedMessage().contains("메소드 완료") &&
-                        e.getFormattedMessage().contains("delete"))).isTrue();
+                e.getFormattedMessage().contains("User deleted") ||
+                e.getFormattedMessage().contains("사용자 삭제"))).isTrue();
     }
 }

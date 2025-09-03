@@ -24,6 +24,7 @@ class BoardCommandServiceTest {
     @Mock
     private UserRepository userRepository;
 
+
     private BoardCommandService service;
 
     @BeforeEach
