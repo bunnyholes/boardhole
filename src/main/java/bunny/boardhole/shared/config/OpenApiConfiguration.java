@@ -2,6 +2,7 @@ package bunny.boardhole.shared.config;
 
 import io.swagger.v3.oas.models.*;
 import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.media.*;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.info.BuildProperties;
@@ -50,6 +51,28 @@ public class OpenApiConfiguration {
                                 .type(SecurityScheme.Type.APIKEY)
                                 .in(SecurityScheme.In.COOKIE)
                                 .name(openApiConfig.getSecurity().getSession().getName())
-                                .description(openApiConfig.getSecurity().getSession().getDescription())));
+                                .description(openApiConfig.getSecurity().getSession().getDescription()))
+                        // Page<BoardResponse> 스키마 정의
+                        .addSchemas("PageBoardResponse", new Schema<>()
+                                .type("object")
+                                .description("페이지네이션된 게시글 목록")
+                                .addProperty("content", new ArraySchema()
+                                        .items(new Schema<>().$ref("#/components/schemas/BoardResponse"))
+                                        .description("게시글 목록"))
+                                .addProperty("pageable", new Schema<>()
+                                        .type("object")
+                                        .description("페이지네이션 정보")
+                                        .addProperty("pageNumber", new Schema<>().type("integer").description("현재 페이지 번호"))
+                                        .addProperty("pageSize", new Schema<>().type("integer").description("페이지 크기"))
+                                        .addProperty("sort", new Schema<>()
+                                                .type("object")
+                                                .addProperty("sorted", new Schema<>().type("boolean"))
+                                                .addProperty("empty", new Schema<>().type("boolean"))))
+                                .addProperty("totalElements", new Schema<>().type("integer").description("전체 요소 수"))
+                                .addProperty("totalPages", new Schema<>().type("integer").description("전체 페이지 수"))
+                                .addProperty("last", new Schema<>().type("boolean").description("마지막 페이지 여부"))
+                                .addProperty("first", new Schema<>().type("boolean").description("첫 번째 페이지 여부"))
+                                .addProperty("numberOfElements", new Schema<>().type("integer").description("현재 페이지 요소 수"))
+                                .addProperty("empty", new Schema<>().type("boolean").description("빈 페이지 여부"))));
     }
 }
