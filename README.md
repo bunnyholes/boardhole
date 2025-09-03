@@ -48,43 +48,51 @@
 | 기술 | 버전 | 용도 |
 |------|------|------|
 | **Java** | 21 | 기본 언어 |
-| **Spring Boot** | 3.5.4 | 프레임워크 |
+| **Spring Boot** | 3.5.5 | 프레임워크 |
 | **Spring Web** | - | MVC 패턴 |
 | **MySQL** | 8.4 | 운영/로컬 DB (Compose)
 | **Testcontainers** | 1.20+ | 테스트용 컨테이너 DB |
 | **Lombok** | - | 코드 간소화 |
-| **SpringDoc OpenAPI** | 2.3.0 | API 문서화 |
+| **SpringDoc OpenAPI** | 2.8.11 | API 문서화 |
 | **Gradle** | 8.14.3 | 빌드 도구 |
 
 ## 프로젝트 구조
 
 ```
-src/main/java/bunny/boardhole/
-├── BoardHoleApplication.java           # Spring Boot 메인 클래스
-├── controller/                         # Controller 레이어
-│   ├── UserController.java             #   - 사용자 CRUD API
-│   ├── BoardController.java            #   - 게시판 CRUD API
-│   └── AuthController.java             #   - 로그인 API
-├── application/                        # CQRS(Application) 계층
-│   ├── command/                        #   - 쓰기용 서비스/커맨드/핸들러
-│   │   ├── BoardCommandService.java
-│   │   ├── UserCommandService.java
-│   │   └── ...Commands/Handlers
-│   ├── query/                          #   - 읽기용 서비스/쿼리
-│   │   ├── BoardQueryService.java
-│   │   ├── UserQueryService.java
-│   │   └── GetBoardQuery.java
-│   ├── result/                         #   - 서비스 반환 모델(Result)
-│   │   ├── BoardResult.java
-│   │   └── UserResult.java
-│   └── event/                          #   - 이벤트/리스너
-│       ├── ViewedEvent.java
-│       └── ViewedEventListener.java
-├── service/                            # 도메인 보조 서비스 (비동기/공통)
-│   └── ViewCountService.java
-├── repository/                         # Spring Data JPA Repositories (엔티티 반환)
-├── domain/                             # 엔티티/도메인 모델
-└── controller/                         # REST 컨트롤러(요청/응답 모델)
+src/main/
+├── java/bunny/boardhole/
+│   ├── BoardHoleApplication.java          # Spring Boot 메인 클래스
+│   ├── auth/                              # 인증/인가 도메인
+│   │   ├── application/                   #   - command/query/result
+│   │   ├── domain/
+│   │   ├── infrastructure/
+│   │   └── presentation/                  #   - controller/dto/mapper
+│   ├── board/                             # 게시판 도메인
+│   │   ├── application/                   #   - command/event/mapper/query/result
+│   │   ├── domain/                        #   - 엔티티 및 검증
+│   │   ├── infrastructure/
+│   │   └── presentation/
+│   ├── email/                             # 이메일 모듈
+│   │   ├── application/
+│   │   ├── domain/
+│   │   ├── infrastructure/
+│   │   └── presentation/
+│   ├── shared/                            # 공통 설정/유틸
+│   │   ├── bootstrap/
+│   │   ├── config/                        #   - cors/log/properties
+│   │   ├── constants/
+│   │   ├── exception/
+│   │   ├── mapstruct/
+│   │   ├── security/
+│   │   └── util/
+│   └── user/                              # 사용자 도메인
+│       ├── application/                   #   - command/mapper/query/result
+│       ├── domain/                        #   - 엔티티 및 검증
+│       ├── infrastructure/
+│       └── presentation/
+└── resources/
+    ├── static/assets/js/
+    └── templates/email/
 ```
 
 ### 레이어드 아키텍처

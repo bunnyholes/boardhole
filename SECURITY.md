@@ -34,6 +34,7 @@ Board-Hole은 교육용 프로젝트이지만, 실제 환경에서 사용할 수
 - **🔍 Input Validation**: Bean Validation과 custom validators
 - **🚫 CORS Protection**: Cross-Origin Resource Sharing 설정
 - **🔒 Password Security**: 안전한 비밀번호 저장 (BCrypt)
+- **📧 Email Verification Enforcement**: 이메일 미인증 사용자 차단 및 재발송 링크 제공
 
 ## 🔑 Authentication & Authorization
 
@@ -78,8 +79,11 @@ public class SecurityConfig {
                 .maximumSessions(1)  // 동시 세션 제한
                 .maxSessionsPreventsLogin(false))  // 기존 세션 만료 허용
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**").permitAll()  // 인증 엔드포인트 공개
-                .requestMatchers(HttpMethod.GET, "/api/boards/**").permitAll()  // 조회 공개
+                .requestMatchers("/api/auth/signup", "/api/auth/login").permitAll()
+                .requestMatchers("/api/auth/verify-email", "/api/auth/resend-verification").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/users/{id}/email/verify").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/users/{id}/email/resend").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/boards", "/api/boards/**").permitAll()
                 .anyRequest().authenticated())  // 나머지는 인증 필요
             .securityContext(securityContext -> securityContext
                 .securityContextRepository(httpSessionSecurityContextRepository()))
@@ -98,6 +102,8 @@ public class SecurityConfig {
 - `GET /api/boards/{id}` - 게시글 상세 조회
 - `POST /api/auth/login` - 로그인
 - `POST /api/users` - 사용자 회원가입
+- `GET /api/users/{id}/email/verify` - 이메일 인증 확인
+- `POST /api/users/{id}/email/resend` - 인증 이메일 재발송
 
 #### Authenticated Access (인증 필요)
 - `POST /api/boards` - 게시글 작성
