@@ -1,6 +1,6 @@
 package bunny.boardhole.auth.application.command;
 
-import bunny.boardhole.auth.application.domain.AuthCommandService;
+import bunny.boardhole.auth.application.AuthCommandService;
 import bunny.boardhole.auth.application.mapper.AuthMapper;
 import bunny.boardhole.auth.application.result.AuthResult;
 import bunny.boardhole.shared.exception.UnauthorizedException;

@@ -1,13 +1,10 @@
 package bunny.boardhole.shared.config.log;
 
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.*;
+import jakarta.servlet.http.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.MessageSource;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -24,13 +21,12 @@ import java.util.UUID;
 public class RequestLoggingFilter extends OncePerRequestFilter {
 
     public static final String TRACE_ID = LogConstants.TRACE_ID_KEY;
-    private final MessageSource messageSource;
     private final LogFormatter logFormatter;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
-            HttpServletResponse response,
-            FilterChain filterChain) throws ServletException, IOException {
+                                    HttpServletResponse response,
+                                    FilterChain filterChain) throws ServletException, IOException {
         String existing = request.getHeader("X-Request-Id");
         String traceId = (existing != null && !existing.isBlank()) ? existing : UUID.randomUUID().toString().replace("-", "");
         MDCUtil.setTraceId(traceId);

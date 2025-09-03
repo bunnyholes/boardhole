@@ -6,7 +6,6 @@ import bunny.boardhole.board.application.result.BoardResult;
 import bunny.boardhole.board.domain.Board;
 import bunny.boardhole.board.infrastructure.BoardRepository;
 import bunny.boardhole.email.application.EmailService;
-import bunny.boardhole.shared.config.properties.ValidationProperties;
 import bunny.boardhole.shared.util.*;
 import bunny.boardhole.user.application.command.UserCommandService;
 import bunny.boardhole.user.application.mapper.UserMapper;
@@ -63,11 +62,10 @@ class BusinessLogAspectTest {
         EmailVerificationRepository evRepo = Mockito.mock(EmailVerificationRepository.class);
         PasswordEncoder encoder = Mockito.mock(PasswordEncoder.class);
         UserMapper userMapper = Mockito.mock(UserMapper.class);
-        ValidationProperties validationProperties = new ValidationProperties();
         VerificationCodeGenerator codeGenerator = Mockito.mock(VerificationCodeGenerator.class);
         EmailService emailService = Mockito.mock(EmailService.class);
         UserCommandService targetUser = new UserCommandService(userRepository, evRepo, encoder, userMapper,
-                validationProperties, codeGenerator, emailService);
+                codeGenerator, emailService);
         AspectJProxyFactory userFactory = new AspectJProxyFactory(targetUser);
         userFactory.addAspect(aspect);
         userService = userFactory.getProxy();
@@ -128,6 +126,6 @@ class BusinessLogAspectTest {
         // 로그에서 사용자 삭제 메시지 확인
         assertThat(appender.list.stream().anyMatch(e ->
                 e.getFormattedMessage().contains("User deleted") ||
-                e.getFormattedMessage().contains("사용자 삭제"))).isTrue();
+                        e.getFormattedMessage().contains("사용자 삭제"))).isTrue();
     }
 }

@@ -1,7 +1,6 @@
 package bunny.boardhole.user.application;
 
 import bunny.boardhole.email.application.EmailService;
-import bunny.boardhole.shared.config.properties.ValidationProperties;
 import bunny.boardhole.shared.exception.*;
 import bunny.boardhole.shared.util.*;
 import bunny.boardhole.user.application.command.*;
@@ -99,13 +98,11 @@ class UserCommandServiceTest {
         ms.setUseCodeAsDefaultMessage(true);
         ReflectionTestUtils.setField(MessageUtils.class, "messageSource", ms);
 
-        ValidationProperties validationProperties = new ValidationProperties();
         userCommandService = new UserCommandService(
                 userRepository,
                 emailVerificationRepository,
                 passwordEncoder,
                 userMapper,
-                validationProperties,
                 verificationCodeGenerator,
                 emailService
         );

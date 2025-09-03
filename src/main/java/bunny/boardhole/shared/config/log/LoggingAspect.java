@@ -20,7 +20,6 @@ public class LoggingAspect {
 
     private final MessageSource messageSource;
     private final LogFormatter logFormatter;
-    private final LoggingProperties loggingProperties;
 
     /**
      * Controller 레이어 메소드 포인트컷

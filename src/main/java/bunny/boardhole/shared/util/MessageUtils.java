@@ -3,6 +3,7 @@ package bunny.boardhole.shared.util;
 import org.springframework.beans.BeansException;
 import org.springframework.context.*;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.stereotype.Component;
 
 /**
@@ -13,7 +14,14 @@ import org.springframework.stereotype.Component;
 @Component
 public class MessageUtils implements ApplicationContextAware {
 
-    private static MessageSource messageSource;
+    private static MessageSource messageSource = createDefaultMessageSource();
+
+    private static MessageSource createDefaultMessageSource() {
+        ResourceBundleMessageSource source = new ResourceBundleMessageSource();
+        source.setBasename("messages");
+        source.setDefaultEncoding("UTF-8");
+        return source;
+    }
 
     /**
      * 메시지 키와 파라미터로 메시지 조회
@@ -27,22 +35,6 @@ public class MessageUtils implements ApplicationContextAware {
      */
     public static String get(String key) {
         return messageSource.getMessage(key, null, LocaleContextHolder.getLocale());
-    }
-
-    /**
-     * 기존 호환성을 위한 인스턴스 메서드 (deprecated)
-     */
-    @Deprecated
-    public static String getMessage(String key, Object... args) {
-        return get(key, args);
-    }
-
-    /**
-     * 기존 호환성을 위한 인스턴스 메서드 (deprecated)
-     */
-    @Deprecated
-    public static String getMessage(String key) {
-        return get(key);
     }
 
     @Override

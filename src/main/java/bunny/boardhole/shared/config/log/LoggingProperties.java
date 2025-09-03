@@ -1,11 +1,11 @@
 package bunny.boardhole.shared.config.log;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.bind.*;
+import org.springframework.boot.context.properties.bind.ConstructorBinding;
 
 @ConfigurationProperties(prefix = "boardhole.logging")
 public record LoggingProperties(
-        @DefaultValue Performance performance
+        Performance performance
 ) {
 
     @ConstructorBinding
@@ -17,15 +17,15 @@ public record LoggingProperties(
         this(new Performance(100L, 500L));
     }
 
-    public boolean isFast(long ms) {
+    boolean isFast(long ms) {
         return ms < performance.fastThreshold();
     }
 
-    public boolean isNormal(long ms) {
+    boolean isNormal(long ms) {
         return ms < performance.normalThreshold();
     }
 
-    public boolean isSlow(long ms) {
+    boolean isSlow(long ms) {
         return ms >= performance.normalThreshold();
     }
 
