@@ -138,10 +138,6 @@ public class User implements Serializable {
         emailVerifiedAt = LocalDateTime.now(ZoneId.systemDefault());
     }
 
-    public boolean isEmailVerified() {
-        return emailVerified;
-    }
-
     public boolean canAccessService() {
         return emailVerified;
     }

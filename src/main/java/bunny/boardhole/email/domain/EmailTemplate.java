@@ -1,9 +1,11 @@
 package bunny.boardhole.email.domain;
 
+import lombok.Getter;
 
 /**
  * 이메일 템플릿 유형을 정의하는 열거형
  */
+@Getter
 public enum EmailTemplate {
 
     /**
@@ -42,27 +44,9 @@ public enum EmailTemplate {
      * @param templateName   템플릿 이름
      * @param defaultSubject 기본 제목
      */
-    EmailTemplate(final String templateName, final String defaultSubject) {
+    EmailTemplate(String templateName, String defaultSubject) {
         this.templateName = templateName;
         this.defaultSubject = defaultSubject;
-    }
-
-    /**
-     * 템플릿 이름을 반환합니다.
-     *
-     * @return 템플릿 이름
-     */
-    public String getTemplateName() {
-        return templateName;
-    }
-
-    /**
-     * 기본 제목을 반환합니다.
-     *
-     * @return 기본 제목
-     */
-    public String getDefaultSubject() {
-        return defaultSubject;
     }
 
     /**
