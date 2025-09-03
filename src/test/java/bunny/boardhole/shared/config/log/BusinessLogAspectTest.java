@@ -1,36 +1,29 @@
 package bunny.boardhole.shared.config.log;
 
-import bunny.boardhole.board.application.command.BoardCommandService;
-import bunny.boardhole.board.application.command.CreateBoardCommand;
-import bunny.boardhole.board.application.result.BoardResult;
+import bunny.boardhole.board.application.command.*;
 import bunny.boardhole.board.application.mapper.BoardMapper;
+import bunny.boardhole.board.application.result.BoardResult;
 import bunny.boardhole.board.domain.Board;
 import bunny.boardhole.board.infrastructure.BoardRepository;
-import bunny.boardhole.shared.util.MessageUtils;
-import bunny.boardhole.user.domain.User;
-import bunny.boardhole.user.infrastructure.UserRepository;
-import bunny.boardhole.user.domain.Role;
-import bunny.boardhole.user.application.command.UserCommandService;
-import bunny.boardhole.user.application.result.UserResult;
-import bunny.boardhole.user.application.mapper.UserMapper;
 import bunny.boardhole.email.application.EmailService;
-import bunny.boardhole.user.infrastructure.EmailVerificationRepository;
 import bunny.boardhole.shared.config.properties.ValidationProperties;
-import bunny.boardhole.shared.util.VerificationCodeGenerator;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import bunny.boardhole.shared.util.*;
+import bunny.boardhole.user.application.command.UserCommandService;
+import bunny.boardhole.user.application.mapper.UserMapper;
+import bunny.boardhole.user.application.result.UserResult;
+import bunny.boardhole.user.domain.*;
+import bunny.boardhole.user.infrastructure.*;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
+import org.junit.jupiter.api.*;
 import org.mockito.Mockito;
+import org.springframework.aop.aspectj.annotation.AspectJProxyFactory;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.aop.aspectj.annotation.AspectJProxyFactory;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;

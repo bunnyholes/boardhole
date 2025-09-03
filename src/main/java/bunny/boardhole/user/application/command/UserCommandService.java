@@ -19,8 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.*;
 import java.util.Optional;
 
 /**
@@ -52,12 +51,10 @@ public class UserCommandService {
      */
     @Transactional
     public UserResult create(@Valid CreateUserCommand cmd) {
-        if (userRepository.existsByUsername(cmd.username())) {
-            throw new bunny.boardhole.shared.exception.DuplicateUsernameException(messageUtils.getMessage("error.user.username.already-exists"));
-        }
-        if (userRepository.existsByEmail(cmd.email())) {
-            throw new bunny.boardhole.shared.exception.DuplicateEmailException(messageUtils.getMessage("error.user.email.already-exists"));
-        }
+        if (userRepository.existsByUsername(cmd.username()))
+            throw new DuplicateUsernameException(messageUtils.getMessage("error.user.username.already-exists"));
+        if (userRepository.existsByEmail(cmd.email()))
+            throw new DuplicateEmailException(messageUtils.getMessage("error.user.email.already-exists"));
         User user = User.builder()
                 .username(cmd.username())
                 .password(passwordEncoder.encode(cmd.password()))
@@ -187,9 +184,8 @@ public class UserCommandService {
         }
 
         // 새 이메일 중복 확인
-        if (userRepository.existsByEmail(cmd.newEmail())) {
+        if (userRepository.existsByEmail(cmd.newEmail()))
             throw new DuplicateEmailException(messageUtils.getMessage("error.user.email.already-exists"));
-        }
 
         // 기존 미사용 검증 정보 무효화
         emailVerificationRepository.invalidateUserVerifications(cmd.userId());

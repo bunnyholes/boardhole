@@ -69,7 +69,7 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("isAuthenticated() and (hasRole('ADMIN') or #id == authentication.principal.user.id)")
+    @PreAuthorize("isAuthenticated()")
     @Operation(
             summary = "사용자 상세 조회",
             description = "[AUTH] 특정 사용자의 상세 정보를 조회합니다. 관리자이거나 본인만 조회 가능합니다.",

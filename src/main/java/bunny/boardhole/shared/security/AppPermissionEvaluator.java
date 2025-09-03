@@ -31,9 +31,7 @@ public class AppPermissionEvaluator implements PermissionEvaluator {
         String perm = permission == null ? "" : permission.toString().toUpperCase(Locale.ROOT);
 
         // Admin shortcut
-        if (hasRole(auth, securityProperties.getRolePrefix() + "ADMIN")) {
-            return true;
-        }
+        if (hasRole(auth, securityProperties.getRolePrefix() + "ADMIN")) return true;
 
         if (!(targetId instanceof Long id)) return false;
 
@@ -43,7 +41,7 @@ public class AppPermissionEvaluator implements PermissionEvaluator {
                 default -> false;
             };
             case PermissionType.TARGET_USER -> switch (perm) {
-                case PermissionType.WRITE, PermissionType.DELETE -> isSameUser(auth, id);
+                case PermissionType.READ, PermissionType.WRITE, PermissionType.DELETE -> isSameUser(auth, id);
                 default -> false;
             };
             default -> false;
@@ -71,16 +69,13 @@ public class AppPermissionEvaluator implements PermissionEvaluator {
 
     private Long extractUserId(Authentication auth) {
         Object principal = auth.getPrincipal();
-        if (principal instanceof AppUserPrincipal(bunny.boardhole.user.domain.User user) && user != null) {
+        if (principal instanceof AppUserPrincipal(bunny.boardhole.user.domain.User user) && user != null)
             return user.getId();
-        }
         return null;
     }
 
-    private boolean hasRole(Authentication auth, String role) {
-        if (auth == null || !auth.isAuthenticated()) {
-            return false;
-        }
+    private static boolean hasRole(Authentication auth, String role) {
+        if (auth == null || !auth.isAuthenticated()) return false;
         return auth.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .anyMatch(role::equals);

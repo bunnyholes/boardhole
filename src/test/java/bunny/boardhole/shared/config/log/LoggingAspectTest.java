@@ -1,11 +1,9 @@
 package bunny.boardhole.shared.config.log;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.*;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.aop.aspectj.annotation.AspectJProxyFactory;
 import org.springframework.context.support.ResourceBundleMessageSource;
 
@@ -25,13 +23,6 @@ class LoggingAspectTest {
         loggingAspect = new LoggingAspect(ms, formatter, properties);
     }
 
-    static class DummyService {
-        public String doWork() throws InterruptedException {
-            Thread.sleep(20); // ensure tookMs > 10 for logging
-            return "sensitive";
-        }
-    }
-
     @Test
     void methodEndDoesNotLogReturnValue() throws Throwable {
         DummyService target = new DummyService();
@@ -45,9 +36,16 @@ class LoggingAspectTest {
         appender.start();
         logger.addAppender(appender);
 
-        proxy.doWork();
+        DummyService.doWork();
 
         assertThat(appender.list.stream().anyMatch(e -> e.getFormattedMessage().contains("sensitive"))).isFalse();
+    }
+
+    static class DummyService {
+        static String doWork() throws InterruptedException {
+            Thread.sleep(20); // ensure tookMs > 10 for logging
+            return "sensitive";
+        }
     }
 }
 

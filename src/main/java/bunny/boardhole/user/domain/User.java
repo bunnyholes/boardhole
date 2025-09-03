@@ -8,9 +8,8 @@ import org.hibernate.annotations.DynamicUpdate;
 import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
 
-import java.io.Serializable;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.io.*;
+import java.time.*;
 
 @Getter
 @NoArgsConstructor
@@ -26,6 +25,8 @@ import java.time.ZoneId;
 })
 public class User implements Serializable {
 
+    @Serial
+    private static final long serialVersionUID = -8110205350586224981L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @EqualsAndHashCode.Include
@@ -116,27 +117,25 @@ public class User implements Serializable {
     }
 
     public void grantAdminRole() {
-        this.roles.add(Role.ADMIN);
+        roles.add(Role.ADMIN);
     }
 
     public boolean revokeAdminRole() {
-        if (this.roles.contains(Role.ADMIN)) {
-            if (this.roles.size() <= 1) {
-                return false; // 마지막 역할이 ADMIN인 경우 제거 불가
-            }
-            this.roles.remove(Role.ADMIN);
+        if (roles.contains(Role.ADMIN)) {
+            if (roles.size() <= 1) return false; // 마지막 역할이 ADMIN인 경우 제거 불가
+            roles.remove(Role.ADMIN);
             return true;
         }
         return false; // ADMIN 역할이 없음
     }
 
     public boolean hasAdminRole() {
-        return this.roles.contains(Role.ADMIN);
+        return roles.contains(Role.ADMIN);
     }
 
     public void verifyEmail() {
-        this.emailVerified = true;
-        this.emailVerifiedAt = LocalDateTime.now(ZoneId.systemDefault());
+        emailVerified = true;
+        emailVerifiedAt = LocalDateTime.now(ZoneId.systemDefault());
     }
 
     public boolean isEmailVerified() {

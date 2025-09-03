@@ -9,8 +9,7 @@ import org.hibernate.annotations.DynamicUpdate;
 import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.*;
 
 @Getter
 @NoArgsConstructor
@@ -91,7 +90,7 @@ public class Board {
     }
 
     public void increaseViewCount() {
-        int current = this.viewCount == null ? 0 : this.viewCount;
-        this.viewCount = current + 1;
+        int current = viewCount == null ? 0 : viewCount;
+        viewCount = current + 1;
     }
 }

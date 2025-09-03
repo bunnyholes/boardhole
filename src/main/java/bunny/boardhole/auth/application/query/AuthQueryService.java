@@ -50,9 +50,8 @@ public class AuthQueryService {
     public AuthenticationResult getCurrentAuthentication(@Valid @NonNull GetCurrentAuthenticationQuery query) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        if (authentication == null || !authentication.isAuthenticated()) {
+        if (authentication == null || !authentication.isAuthenticated())
             throw new UnauthorizedException(messageUtils.getMessage("error.auth.not-authenticated"));
-        }
 
         // 사용자 정보 조회
         User user = userRepository.findById(query.userId())
@@ -90,19 +89,15 @@ public class AuthQueryService {
             // 현재 Spring Security 컨텍스트에서 인증 정보 확인
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-            if (authentication == null || !authentication.isAuthenticated()) {
+            if (authentication == null || !authentication.isAuthenticated())
                 return new TokenValidationResult(false, null, null, "Not authenticated");
-            }
 
-            if (authentication.getPrincipal() instanceof AppUserPrincipal(User user)) {
-
-                return new TokenValidationResult(
-                        true,
-                        user.getId(),
-                        user.getUsername(),
-                        null
-                );
-            }
+            if (authentication.getPrincipal() instanceof AppUserPrincipal(User user)) return new TokenValidationResult(
+                    true,
+                    user.getId(),
+                    user.getUsername(),
+                    null
+            );
 
             return new TokenValidationResult(false, null, null, "Invalid principal type");
 
@@ -130,7 +125,7 @@ public class AuthQueryService {
 
         // 현재 구현에서는 모의 이력 데이터 반환
         // 실제 환경에서는 AuthenticationHistory 엔티티와 Repository가 필요
-        List<AuthenticationHistoryResult> mockHistory = mockDataProvider.generateMockHistory(user);
+        List<AuthenticationHistoryResult> mockHistory = AuthHistoryMockDataProvider.generateMockHistory(user);
 
         return new PageImpl<>(mockHistory, query.pageable(), mockHistory.size());
     }

@@ -8,6 +8,7 @@ import bunny.boardhole.user.infrastructure.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +33,7 @@ public class UserQueryService {
      * @throws ResourceNotFoundException 사용자를 찾을 수 없는 경우
      */
     @Transactional(readOnly = true)
+    @PreAuthorize("hasPermission(#id, 'USER', 'READ')")
     public UserResult get(Long id) {
         return userRepository.findById(id)
                 .map(userMapper::toResult)
