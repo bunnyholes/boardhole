@@ -1,6 +1,6 @@
 package bunny.boardhole.auth.presentation;
 
-import bunny.boardhole.auth.application.command.AuthCommandService;
+import bunny.boardhole.auth.application.domain.AuthCommandService;
 import bunny.boardhole.auth.application.mapper.AuthMapper;
 import bunny.boardhole.auth.presentation.dto.LoginRequest;
 import bunny.boardhole.auth.presentation.mapper.AuthWebMapper;
