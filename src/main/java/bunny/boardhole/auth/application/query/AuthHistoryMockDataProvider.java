@@ -5,6 +5,7 @@ import bunny.boardhole.user.domain.User;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 /**
@@ -27,7 +28,7 @@ public class AuthHistoryMockDataProvider {
                         user.getId(),
                         user.getUsername(),
                         "LOGIN",
-                        LocalDateTime.now().minusHours(2),
+                        LocalDateTime.now(ZoneId.systemDefault()).minusHours(2),
                         "192.168.1.100",
                         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
                 ),
@@ -36,7 +37,7 @@ public class AuthHistoryMockDataProvider {
                         user.getId(),
                         user.getUsername(),
                         "LOGOUT",
-                        LocalDateTime.now().minusHours(1),
+                        LocalDateTime.now(ZoneId.systemDefault()).minusHours(1),
                         "192.168.1.100",
                         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
                 )

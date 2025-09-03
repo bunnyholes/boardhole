@@ -2,13 +2,13 @@ package bunny.boardhole.user.domain;
 
 import bunny.boardhole.shared.constants.*;
 import bunny.boardhole.shared.util.EntityMessageProvider;
-import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Getter
 @NoArgsConstructor
@@ -19,37 +19,29 @@ import java.time.LocalDateTime;
         @Index(name = "idx_email_verification_user_id", columnList = "user_id"),
         @Index(name = "idx_email_verification_expires_at", columnList = "expires_at")
 })
-@Schema(name = "EmailVerification", description = "이메일 변경 검증 도메인 엔티티")
 public class EmailVerification {
 
     @Id
     @EqualsAndHashCode.Include
-    @Schema(description = "검증 코드 (고유값)", example = "ABC123")
     private String code;
 
     @Column(name = "user_id", nullable = false)
-    @Schema(description = "사용자 ID", example = "1")
     private Long userId;
 
     @Column(name = "new_email", nullable = false, length = ValidationConstants.USER_EMAIL_MAX_LENGTH)
-    @Schema(description = "변경할 새 이메일 주소", example = "newemail@example.com")
     private String newEmail;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "verification_type", nullable = false)
-    @Schema(description = "인증 타입 (SIGNUP, CHANGE_EMAIL)", example = "SIGNUP")
     private EmailVerificationType verificationType;
 
     @Column(name = "expires_at", nullable = false)
-    @Schema(description = "만료 시간", example = "2024-01-15T10:30:00")
     private LocalDateTime expiresAt;
 
     @Column(nullable = false)
-    @Schema(description = "사용 여부", example = "false")
     private boolean used;
 
     @Column(name = "created_at")
-    @Schema(description = "생성 일시", example = "2024-01-15T10:00:00")
     private LocalDateTime createdAt;
 
     @Builder
@@ -71,17 +63,17 @@ public class EmailVerification {
 
     @PrePersist
     public void prePersist() {
-        if (createdAt == null) createdAt = LocalDateTime.now();
+        if (createdAt == null) createdAt = LocalDateTime.now(ZoneId.systemDefault());
     }
 
     public void markAsUsed() {
         Assert.state(!this.used, "이미 사용된 검증 코드입니다");
-        Assert.state(LocalDateTime.now().isBefore(expiresAt), "만료된 검증 코드입니다");
+        Assert.state(LocalDateTime.now(ZoneId.systemDefault()).isBefore(expiresAt), "만료된 검증 코드입니다");
         this.used = true;
     }
 
     public boolean isExpired() {
-        return LocalDateTime.now().isAfter(expiresAt);
+        return LocalDateTime.now(ZoneId.systemDefault()).isAfter(expiresAt);
     }
 
     public boolean isValid() {

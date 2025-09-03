@@ -1,6 +1,5 @@
 package bunny.boardhole.email.domain;
 
-import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
@@ -18,14 +17,13 @@ import java.util.*;
  * @param templateVariables 이메일 템플릿 변수들
  */
 @Builder
-@Schema(name = "EmailMessage", description = "이메일 메시지 도메인 객체")
 public record EmailMessage(
-        @NonNull @Schema(description = "받는 사람 이메일 주소", example = "user@example.com") String recipientEmail,
-        @NonNull @Schema(description = "이메일 제목", example = "이메일 인증 안내") String subject,
-        @NonNull @Schema(description = "이메일 내용 (HTML)", example = "<h1>환영합니다!</h1>") String content,
-        @Schema(description = "참조 수신자 목록") List<String> carbonCopy,
-        @Schema(description = "숨은 참조 수신자 목록") List<String> blindCarbonCopy,
-        @Schema(description = "이메일 템플릿 변수들") Map<String, Object> templateVariables) {
+        @NonNull String recipientEmail,
+        @NonNull String subject,
+        @NonNull String content,
+        List<String> carbonCopy,
+        List<String> blindCarbonCopy,
+        Map<String, Object> templateVariables) {
 
     /**
      * 기본 이메일 메시지를 생성합니다.
