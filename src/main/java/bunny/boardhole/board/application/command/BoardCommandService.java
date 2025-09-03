@@ -113,8 +113,8 @@ public class BoardCommandService {
 
         board.increaseViewCount();
 
-        // flush를 사용하여 낙관적 락 충돌을 즉시 감지
-        boardRepository.saveAndFlush(board);
+        // 커밋 시 flush가 진행되어 낙관적 락 충돌이 감지됨
+        boardRepository.save(board);
     }
 
     /**
