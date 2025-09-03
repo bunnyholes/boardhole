@@ -3,20 +3,19 @@ package bunny.boardhole.shared.security;
 import bunny.boardhole.board.infrastructure.BoardRepository;
 import bunny.boardhole.shared.config.properties.SecurityProperties;
 import bunny.boardhole.shared.constants.PermissionType;
-import bunny.boardhole.user.infrastructure.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.*;
 import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
+import java.util.Locale;
 
 @Component
 @RequiredArgsConstructor
 public class AppPermissionEvaluator implements PermissionEvaluator {
 
     private final BoardRepository boardRepository;
-    private final UserRepository userRepository;
     private final SecurityProperties securityProperties;
 
     @Override
@@ -28,8 +27,8 @@ public class AppPermissionEvaluator implements PermissionEvaluator {
     @Override
     public boolean hasPermission(Authentication auth, Serializable targetId, String targetType, Object permission) {
         if (auth == null || !auth.isAuthenticated()) return false;
-        String type = targetType == null ? "" : targetType.toUpperCase();
-        String perm = (permission == null ? "" : permission.toString().toUpperCase());
+        String type = targetType == null ? "" : targetType.toUpperCase(Locale.ROOT);
+        String perm = permission == null ? "" : permission.toString().toUpperCase(Locale.ROOT);
 
         // Admin shortcut
         if (hasRole(auth, securityProperties.getRolePrefix() + "ADMIN")) {

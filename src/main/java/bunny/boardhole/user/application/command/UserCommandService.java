@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Optional;
 
 /**
@@ -68,7 +69,7 @@ public class UserCommandService {
 
         // 회원가입 이메일 인증 토큰 생성 및 발송
         String verificationToken = java.util.UUID.randomUUID().toString();
-        LocalDateTime expiresAt = LocalDateTime.now()
+        LocalDateTime expiresAt = LocalDateTime.now(ZoneId.systemDefault())
                 .plusHours(validationProperties.getEmailVerification().getSignupExpirationHours());
 
         EmailVerification verification = EmailVerification.builder()
@@ -139,7 +140,7 @@ public class UserCommandService {
     public void updateLastLogin(@NotNull @Positive Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException(messageUtils.getMessage("error.user.not-found.id", userId)));
-        user.recordLastLogin(LocalDateTime.now());
+        user.recordLastLogin(LocalDateTime.now(ZoneId.systemDefault()));
         User saved = userRepository.save(user);
 
         log.info(messageUtils.getMessage("log.user.last-login-updated", saved.getUsername()));
@@ -208,7 +209,8 @@ public class UserCommandService {
                 .code(verificationCode)
                 .userId(cmd.userId())
                 .newEmail(cmd.newEmail())
-                .expiresAt(LocalDateTime.now().plusMinutes(validationProperties.getEmailVerification().getExpirationMinutes()))
+                .expiresAt(LocalDateTime.now(ZoneId.systemDefault())
+                        .plusMinutes(validationProperties.getEmailVerification().getExpirationMinutes()))
                 .build();
         emailVerificationRepository.save(verification);
 
@@ -238,7 +240,7 @@ public class UserCommandService {
 
         // 검증 코드 확인
         EmailVerification verification = emailVerificationRepository
-                .findValidVerification(cmd.userId(), cmd.verificationCode(), LocalDateTime.now())
+                .findValidVerification(cmd.userId(), cmd.verificationCode(), LocalDateTime.now(ZoneId.systemDefault()))
                 .orElseThrow(() -> new ValidationException(messageUtils.getMessage("error.user.email.verification.invalid")));
 
         // 이메일 변경

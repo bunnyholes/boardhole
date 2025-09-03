@@ -2,7 +2,6 @@ package bunny.boardhole.email.infrastructure;
 
 import bunny.boardhole.email.application.*;
 import bunny.boardhole.email.domain.*;
-import bunny.boardhole.shared.util.MessageUtils;
 import bunny.boardhole.user.domain.User;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -26,7 +25,6 @@ public class SmtpEmailService implements EmailService {
 
     private final JavaMailSender mailSender;
     private final EmailTemplateService templateService;
-    private final MessageUtils messageUtils;
     /**
      * 인증 토큰 만료 시간 (시간)
      */
