@@ -335,7 +335,7 @@ src/main/java/bunny/boardhole/
 ├── auth/                                 # 인증 도메인
 │   └── [동일한 패키지 구조]
 │
-├── admin/                                # 관리 도메인
+├── email/                                # 이메일 도메인
 │   └── [동일한 패키지 구조]
 │
 └── shared/                               # 공유 모듈 (이전 common)
@@ -375,19 +375,18 @@ src/main/java/bunny/boardhole/
 graph TD
     A[board] --> B[user]
     C[auth] --> B[user]
-    D[admin] --> B[user]
-    D[admin] --> A[board]
-    
-    A --> E[common]
-    B --> E[common]
-    C --> E[common]
-    D --> E[common]
+    D[email] --> B[user]
+
+    A --> E[shared]
+    B --> E[shared]
+    C --> E[shared]
+    D --> E[shared]
 ```
 
 - `board` 도메인은 `user` 도메인에 의존 (작성자 정보)
 - `auth` 도메인은 `user` 도메인에 의존 (인증 대상)
-- `admin` 도메인은 `user`, `board` 도메인에 의존 (관리 대상)
-- 모든 도메인은 `common` 모듈 사용
+- `email` 도메인은 `user` 도메인에 의존 (이메일 인증)
+- 모든 도메인은 `shared` 모듈 사용
 
 ### Layer Dependencies
 
