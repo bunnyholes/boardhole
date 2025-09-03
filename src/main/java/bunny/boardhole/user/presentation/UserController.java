@@ -9,6 +9,7 @@ import bunny.boardhole.shared.util.MessageUtils;
 import bunny.boardhole.user.application.command.UserCommandService;
 import bunny.boardhole.user.application.query.UserQueryService;
 import bunny.boardhole.user.application.result.UserResult;
+import bunny.boardhole.email.presentation.dto.*;
 import bunny.boardhole.user.presentation.dto.*;
 import bunny.boardhole.user.presentation.mapper.UserWebMapper;
 import io.swagger.v3.oas.annotations.*;
