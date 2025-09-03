@@ -54,7 +54,6 @@ public class BoardCommandService {
                 .build();
         Board saved = boardRepository.save(board);
 
-        log.info(messageUtils.getMessage("log.board.created", saved.getId(), saved.getTitle(), author.getUsername()));
         return boardMapper.toResult(saved);
     }
 
@@ -81,7 +80,6 @@ public class BoardCommandService {
         // @DynamicUpdate가 변경된 필드만 업데이트, @PreUpdate가 updatedAt 자동 설정
         Board saved = boardRepository.save(board);
 
-        log.info(messageUtils.getMessage("log.board.updated", saved.getId(), saved.getTitle(), saved.getAuthor().getUsername()));
         return boardMapper.toResult(saved);
     }
 
@@ -94,11 +92,8 @@ public class BoardCommandService {
     @Transactional
     @PreAuthorize("hasPermission(#id, 'BOARD', 'DELETE')")
     public void delete(@NotNull @Positive Long id) {
-        Board board = loadBoardOrThrow(id);
-        String authorUsername = board.getAuthor().getUsername();
-
+        loadBoardOrThrow(id);
         boardRepository.deleteById(id);
-        log.info(messageUtils.getMessage("log.board.deleted", id, authorUsername));
     }
 
     /**
@@ -118,9 +113,7 @@ public class BoardCommandService {
         board.increaseViewCount();
 
         // flush를 사용하여 낙관적 락 충돌을 즉시 감지
-        Board saved = boardRepository.saveAndFlush(board);
-
-        log.info(messageUtils.getMessage("log.board.view-count-increased", boardId, saved.getViewCount()));
+        boardRepository.saveAndFlush(board);
     }
 
     /**

@@ -83,7 +83,6 @@ public class UserCommandService {
         emailVerificationRepository.save(verification);
         emailService.sendSignupVerificationEmail(saved, verificationToken);
 
-        log.info(messageUtils.getMessage("log.user.created", saved.getUsername(), saved.getEmail()));
         return userMapper.toResult(saved);
     }
 
@@ -109,7 +108,6 @@ public class UserCommandService {
         // @DynamicUpdate가 변경된 필드만 업데이트, @PreUpdate가 updatedAt 자동 설정
         User saved = userRepository.save(user);
 
-        log.info(messageUtils.getMessage("log.user.updated", saved.getUsername()));
         return userMapper.toResult(saved);
     }
 
@@ -125,9 +123,7 @@ public class UserCommandService {
         User existing = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(messageUtils.getMessage("error.user.not-found.id", id)));
 
-        String username = existing.getUsername();
         userRepository.delete(existing);
-        log.info(messageUtils.getMessage("log.user.deleted", username));
     }
 
     /**
@@ -141,9 +137,7 @@ public class UserCommandService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException(messageUtils.getMessage("error.user.not-found.id", userId)));
         user.recordLastLogin(LocalDateTime.now(ZoneId.systemDefault()));
-        User saved = userRepository.save(user);
-
-        log.info(messageUtils.getMessage("log.user.last-login-updated", saved.getUsername()));
+        userRepository.save(user);
     }
 
     /**
@@ -168,8 +162,6 @@ public class UserCommandService {
         // 새 패스워드 설정
         user.changePassword(passwordEncoder.encode(cmd.newPassword()));
         userRepository.save(user);
-
-        log.info(messageUtils.getMessage("log.user.password.changed", user.getId(), user.getUsername()));
     }
 
     /**
@@ -217,9 +209,6 @@ public class UserCommandService {
         // TODO: 실제 환경에서는 이메일 발송 서비스 호출
         // emailService.sendVerificationEmail(user.getEmail(), cmd.newEmail(), verificationCode);
 
-        log.info(messageUtils.getMessage("log.user.email.verification.requested",
-                user.getId(), user.getEmail(), cmd.newEmail()));
-
         // 개발/테스트 환경에서만 코드 반환, 프로덕션에서는 null 반환
         return verificationCode;
     }
@@ -244,19 +233,12 @@ public class UserCommandService {
                 .orElseThrow(() -> new ValidationException(messageUtils.getMessage("error.user.email.verification.invalid")));
 
         // 이메일 변경
-        String oldEmail = user.getEmail();
         user.changeEmail(verification.getNewEmail());
         User saved = userRepository.save(user);
 
         // 검증 정보 사용 처리
         verification.markAsUsed();
         emailVerificationRepository.save(verification);
-
-        // TODO: 실제 환경에서는 이메일 변경 알림 발송
-        // emailService.sendEmailChangeNotification(oldEmail, verification.getNewEmail());
-
-        log.info(messageUtils.getMessage("log.user.email.changed",
-                user.getId(), oldEmail, verification.getNewEmail()));
 
         return userMapper.toResult(saved);
     }

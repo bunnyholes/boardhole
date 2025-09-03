@@ -73,17 +73,10 @@ public class EmailVerificationController {
             user.changeEmail(verification.getNewEmail());
             emailService.sendWelcomeEmail(user);
 
-            log.info("회원가입 이메일 인증 완료: userId={}, email={}",
-                    user.getId(), user.getEmail());
-
         } else if (verification.getVerificationType() == EmailVerificationType.CHANGE_EMAIL) {
             // 이메일 변경 인증
-            final String oldEmail = user.getEmail();
             user.changeEmail(verification.getNewEmail());
             emailService.sendEmailChangedNotification(user, verification.getNewEmail());
-
-            log.info("이메일 변경 인증 완료: userId={}, oldEmail={}, newEmail={}",
-                    user.getId(), oldEmail, verification.getNewEmail());
         }
 
         verification.markAsUsed();
@@ -138,7 +131,6 @@ public class EmailVerificationController {
         emailVerificationRepository.save(newVerification);
         emailService.sendSignupVerificationEmail(user, newToken);
 
-        log.info("인증 이메일 재발송: userId={}, email={}", user.getId(), user.getEmail());
         return ResponseEntity.ok(messageUtils.getMessage("success.email-verification.resent"));
     }
 }
