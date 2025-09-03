@@ -1,26 +1,21 @@
 package bunny.boardhole.auth.application.command;
 
-import bunny.boardhole.auth.domain.AuthenticationService;
-import jakarta.servlet.http.*;
+import bunny.boardhole.auth.application.result.AuthResult;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.validation.annotation.Validated;
 
-@Slf4j
-@Service
-@Validated
-@RequiredArgsConstructor
-public class AuthCommandService {
+/**
+ * 인증 서비스 도메인 인터페이스
+ * 구현 세부사항과 독립적인 인증 처리 추상화
+ */
+public interface AuthCommandService {
 
-    private final AuthenticationService authProvider;
+    /**
+     * 사용자 로그인 처리
+     */
+    AuthResult login(@Valid LoginCommand cmd);
 
-    public void login(@Valid LoginCommand cmd, HttpServletRequest request, HttpServletResponse response) {
-        authProvider.login(cmd, request, response);
-    }
-
-    public void logout(@Valid LogoutCommand cmd, HttpServletRequest request, HttpServletResponse response) {
-        authProvider.logout(cmd, request, response);
-    }
+    /**
+     * 사용자 로그아웃 처리
+     */
+    void logout(@Valid LogoutCommand cmd);
 }

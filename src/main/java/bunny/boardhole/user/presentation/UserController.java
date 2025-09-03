@@ -1,7 +1,5 @@
 package bunny.boardhole.user.presentation;
 
-import bunny.boardhole.auth.presentation.dto.CurrentUserResponse;
-import bunny.boardhole.auth.presentation.mapper.AuthWebMapper;
 import bunny.boardhole.email.presentation.dto.*;
 import bunny.boardhole.shared.constants.ApiPaths;
 import bunny.boardhole.shared.exception.*;
@@ -38,7 +36,6 @@ public class UserController {
     private final UserCommandService userCommandService;
     private final UserQueryService userQueryService;
     private final UserWebMapper userWebMapper;
-    private final AuthWebMapper authWebMapper;
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
@@ -235,12 +232,13 @@ public class UserController {
             @ApiResponse(
                     responseCode = "200",
                     description = "현재 사용자 정보 조회 성공",
-                    content = @Content(schema = @Schema(implementation = CurrentUserResponse.class))
+                    content = @Content(schema = @Schema(implementation = UserResponse.class))
             ),
             @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
     })
-    public CurrentUserResponse me(@AuthenticationPrincipal AppUserPrincipal principal) {
+    public UserResponse me(@AuthenticationPrincipal AppUserPrincipal principal) {
         if (principal == null) throw new UnauthorizedException(MessageUtils.get("error.auth.not-logged-in"));
-        return authWebMapper.toCurrentUser(principal.user());
+        UserResult result = userQueryService.get(principal.user().getId());
+        return userWebMapper.toResponse(result);
     }
 }

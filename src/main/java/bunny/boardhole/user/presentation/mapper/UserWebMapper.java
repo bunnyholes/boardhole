@@ -79,4 +79,5 @@ public interface UserWebMapper {
     @Mapping(target = "userId", source = "id")
     @Mapping(target = "verificationCode", source = "req.verificationCode")
     UpdateEmailCommand toUpdateEmailCommand(Long id, EmailUpdateRequest req);
+
 }

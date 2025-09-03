@@ -9,7 +9,4 @@ import jakarta.validation.constraints.*;
 public record LogoutCommand(
         @NotNull(message = "{user.validation.userId.required}") @Positive(message = "{user.validation.userId.positive}") Long userId
 ) {
-    public static LogoutCommand of(Long userId) {
-        return new LogoutCommand(userId);
-    }
 }

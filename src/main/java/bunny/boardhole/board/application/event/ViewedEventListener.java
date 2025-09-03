@@ -1,6 +1,7 @@
 package bunny.boardhole.board.application.event;
 
 import bunny.boardhole.board.application.command.*;
+import bunny.boardhole.board.application.mapper.BoardCommandMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -22,6 +23,7 @@ import org.springframework.transaction.annotation.*;
 public class ViewedEventListener {
 
     private final BoardCommandService boardCommandService;
+    private final BoardCommandMapper boardCommandMapper;
 
     /**
      * 게시글 조회 이벤트 처리
@@ -34,7 +36,8 @@ public class ViewedEventListener {
         log.debug("Processing ViewedEvent for boardId: {}", event.boardId());
 
         // CQRS 패턴과 일관성을 유지하면서 Command를 통해 처리
-        boardCommandService.incrementViewCount(new IncrementViewCountCommand(event.boardId()));
+        IncrementViewCountCommand command = boardCommandMapper.toIncrementViewCountCommand(event.boardId());
+        boardCommandService.incrementViewCount(command);
     }
 }
 
