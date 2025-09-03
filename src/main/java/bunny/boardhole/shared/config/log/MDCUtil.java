@@ -28,13 +28,6 @@ public final class MDCUtil {
         MDC.put("layer", layer);
     }
 
-    public static void setOperation(String operation) {
-        MDC.put("operation", operation);
-    }
-
-    public static void clearAll() {
-        MDC.clear();
-    }
 
     public static void clearRequest() {
         MDC.remove(LogConstants.TRACE_ID_KEY);
@@ -48,16 +41,8 @@ public final class MDCUtil {
         MDC.remove("operation");
     }
 
-    public static String getTraceId() {
-        return MDC.get(LogConstants.TRACE_ID_KEY);
-    }
-
     public static void setTraceId(String traceId) {
         MDC.put(LogConstants.TRACE_ID_KEY, traceId);
-    }
-
-    public static String getUserId() {
-        return MDC.get("userId");
     }
 
     public static String getClientIp() {

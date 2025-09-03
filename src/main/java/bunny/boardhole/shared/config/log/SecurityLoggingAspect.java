@@ -15,7 +15,8 @@ import org.springframework.stereotype.Component;
 @Aspect
 @Component
 @ConditionalOnProperty(name = "boardhole.logging.enabled", havingValue = "true", matchIfMissing = true)
-@Order(-1000) // 보안 로깅은 높은 우선순위
+@Order(-1000)
+// 보안 로깅은 높은 우선순위
 @RequiredArgsConstructor
 public class SecurityLoggingAspect {
 

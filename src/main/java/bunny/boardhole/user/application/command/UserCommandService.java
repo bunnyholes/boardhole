@@ -12,7 +12,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.lang.NonNull;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -93,7 +92,7 @@ public class UserCommandService {
      */
     @Transactional
     @PreAuthorize("hasPermission(#cmd.userId, 'USER', 'WRITE')")
-    public UserResult update(@Valid @NonNull UpdateUserCommand cmd) {
+    public UserResult update(@Valid UpdateUserCommand cmd) {
         Long id = cmd.userId();
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.user.not-found.id", id)));
@@ -145,7 +144,7 @@ public class UserCommandService {
      */
     @Transactional
     @PreAuthorize("hasPermission(#cmd.userId, 'USER', 'WRITE')")
-    public void updatePassword(@Valid @NonNull UpdatePasswordCommand cmd) {
+    public void updatePassword(@Valid UpdatePasswordCommand cmd) {
         User user = userRepository.findById(cmd.userId())
                 .orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.user.not-found.id", cmd.userId())));
 
@@ -171,7 +170,7 @@ public class UserCommandService {
      */
     @Transactional
     @PreAuthorize("hasPermission(#cmd.userId, 'USER', 'WRITE')")
-    public String requestEmailVerification(@Valid @NonNull RequestEmailVerificationCommand cmd) {
+    public String requestEmailVerification(@Valid RequestEmailVerificationCommand cmd) {
         User user = userRepository.findById(cmd.userId())
                 .orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.user.not-found.id", cmd.userId())));
 
@@ -218,7 +217,7 @@ public class UserCommandService {
      */
     @Transactional
     @PreAuthorize("hasPermission(#cmd.userId, 'USER', 'WRITE')")
-    public UserResult updateEmail(@Valid @NonNull UpdateEmailCommand cmd) {
+    public UserResult updateEmail(@Valid UpdateEmailCommand cmd) {
         User user = userRepository.findById(cmd.userId())
                 .orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.user.not-found.id", cmd.userId())));
 

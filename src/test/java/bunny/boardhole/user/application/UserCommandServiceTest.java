@@ -57,7 +57,6 @@ class UserCommandServiceTest {
     private VerificationCodeGenerator verificationCodeGenerator;
     @Mock
     private EmailService emailService;
-    private ValidationProperties validationProperties;
     private UserCommandService userCommandService;
 
     private static User user() {
@@ -100,7 +99,7 @@ class UserCommandServiceTest {
         ms.setUseCodeAsDefaultMessage(true);
         ReflectionTestUtils.setField(MessageUtils.class, "messageSource", ms);
 
-        validationProperties = new ValidationProperties();
+        ValidationProperties validationProperties = new ValidationProperties();
         userCommandService = new UserCommandService(
                 userRepository,
                 emailVerificationRepository,

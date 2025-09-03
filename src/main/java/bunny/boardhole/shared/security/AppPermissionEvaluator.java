@@ -27,6 +27,17 @@ public class AppPermissionEvaluator implements PermissionEvaluator {
                 .anyMatch(role::equals);
     }
 
+    private static boolean isSameUser(Authentication auth, Long userId) {
+        Long current = extractUserId(auth);
+        return current != null && current.equals(userId);
+    }
+
+    private static @Nullable Long extractUserId(Authentication auth) {
+        Object principal = auth.getPrincipal();
+        if (principal instanceof AppUserPrincipal(User user)) return user.getId();
+        return null;
+    }
+
     @Override
     public boolean hasPermission(Authentication authentication, Object targetDomainObject, Object permission) {
         // Not used in this project; rely on id + type form
@@ -69,17 +80,6 @@ public class AppPermissionEvaluator implements PermissionEvaluator {
         return boardRepository.findAuthorIdById(boardId)
                 .map(ownerId -> isSameUser(auth, ownerId))
                 .orElse(false);
-    }
-
-    private static boolean isSameUser(Authentication auth, Long userId) {
-        Long current = extractUserId(auth);
-        return current != null && current.equals(userId);
-    }
-
-    private static @Nullable Long extractUserId(Authentication auth) {
-        Object principal = auth.getPrincipal();
-        if (principal instanceof AppUserPrincipal(User user)) return user.getId();
-        return null;
     }
 }
 

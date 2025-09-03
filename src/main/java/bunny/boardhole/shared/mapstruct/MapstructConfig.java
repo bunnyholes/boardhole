@@ -5,7 +5,9 @@ import org.mapstruct.*;
 @MapperConfig(
         componentModel = "spring",
         unmappedTargetPolicy = ReportingPolicy.ERROR,
-        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.SET_TO_NULL
+        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
+        nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS,
+        builder = @Builder(disableBuilder = true)
 )
 public interface MapstructConfig {
 }

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <FindBugsFilter>
-    <!-- 테스트 클래스는 일부 규칙 완화 (교과서적으로 허용되는 패턴) -->
+    <!-- 테스트 클래스는 일부 규칙 완화 (테스트 환경에서 허용되는 패턴) -->
     <Match>
         <Class name="~.*Test"/>
         <Bug pattern="DMI_HARDCODED_ABSOLUTE_FILENAME"/>

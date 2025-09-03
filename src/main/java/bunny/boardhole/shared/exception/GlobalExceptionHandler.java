@@ -14,9 +14,9 @@ import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.*;
 import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.lang.*;
+import org.springframework.lang.Nullable;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.validation.BindException;
+import org.springframework.validation.*;
 import org.springframework.web.*;
 import org.springframework.web.bind.*;
 import org.springframework.web.bind.annotation.*;
@@ -36,7 +36,7 @@ public class GlobalExceptionHandler {
     @Value("${boardhole.problem.base-uri:}")
     private String problemBaseUri;
 
-    private static void addCommon(@NonNull ProblemDetail pd, @Nullable HttpServletRequest request) {
+    private static void addCommon(ProblemDetail pd, @Nullable HttpServletRequest request) {
         // Optional을 사용한 null 체크 제거
         Optional.ofNullable(MDC.get(RequestLoggingFilter.TRACE_ID))
                 .filter(traceId -> !traceId.isBlank())
@@ -118,41 +118,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<ProblemDetail> handleInvalid(MethodArgumentNotValidException ex, HttpServletRequest request) {
-        ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
-        pd.setTitle(messageSource.getMessage("exception.title.validation-failed", null, LocaleContextHolder.getLocale()));
-        pd.setDetail(messageSource.getMessage("error.validation-failed", null, LocaleContextHolder.getLocale()));
-        List<Map<String, Object>> errors = ex.getBindingResult().getFieldErrors().stream()
-                .map(fe -> Map.of(
-                        "field", fe.getField(),
-                        "message", Optional.ofNullable(fe.getDefaultMessage()).orElse("Invalid value"),
-                        "rejectedValue", Optional.ofNullable(fe.getRejectedValue()).orElse("")
-                ))
-                .collect(Collectors.toList());
-        pd.setProperty("errors", errors);
-        pd.setProperty("code", ErrorCode.VALIDATION_ERROR.getCode());
-        pd.setType(buildType("validation-error"));
-        addCommon(pd, request);
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(pd);
+        return handleValidationException(ex.getBindingResult(), request);
     }
 
     @ExceptionHandler(BindException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<ProblemDetail> handleBindException(BindException ex, HttpServletRequest request) {
-        ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
-        pd.setTitle(messageSource.getMessage("exception.title.validation-failed", null, LocaleContextHolder.getLocale()));
-        pd.setDetail(messageSource.getMessage("error.validation-failed", null, LocaleContextHolder.getLocale()));
-        List<Map<String, Object>> errors = ex.getBindingResult().getFieldErrors().stream()
-                .map(fe -> Map.of(
-                        "field", fe.getField(),
-                        "message", Optional.ofNullable(fe.getDefaultMessage()).orElse("Invalid value"),
-                        "rejectedValue", Optional.ofNullable(fe.getRejectedValue()).orElse("")
-                ))
-                .collect(Collectors.toList());
-        pd.setProperty("errors", errors);
-        pd.setProperty("code", ErrorCode.VALIDATION_ERROR.getCode());
-        pd.setType(buildType("validation-error"));
-        addCommon(pd, request);
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(pd);
+        return handleValidationException(ex.getBindingResult(), request);
     }
 
     @ExceptionHandler({ConstraintViolationException.class, IllegalArgumentException.class})
@@ -243,8 +215,7 @@ public class GlobalExceptionHandler {
         return pd;
     }
 
-    @NonNull
-    private URI buildType(@NonNull String slug) {
+    private URI buildType(String slug) {
         return Optional.ofNullable(problemBaseUri)
                 .filter(base -> !base.isBlank())
                 .map(base -> base.endsWith("/") ? base : base + "/")
@@ -256,5 +227,23 @@ public class GlobalExceptionHandler {
                     }
                 })
                 .orElse(URI.create("urn:problem-type:" + slug));
+    }
+
+    private ResponseEntity<ProblemDetail> handleValidationException(BindingResult bindingResult, HttpServletRequest request) {
+        ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
+        pd.setTitle(messageSource.getMessage("exception.title.validation-failed", null, LocaleContextHolder.getLocale()));
+        pd.setDetail(messageSource.getMessage("error.validation-failed", null, LocaleContextHolder.getLocale()));
+        List<Map<String, Object>> errors = bindingResult.getFieldErrors().stream()
+                .map(fe -> Map.of(
+                        "field", fe.getField(),
+                        "message", Optional.ofNullable(fe.getDefaultMessage()).orElse("Invalid value"),
+                        "rejectedValue", Optional.ofNullable(fe.getRejectedValue()).orElse("")
+                ))
+                .collect(Collectors.toList());
+        pd.setProperty("errors", errors);
+        pd.setProperty("code", ErrorCode.VALIDATION_ERROR.getCode());
+        pd.setType(buildType("validation-error"));
+        addCommon(pd, request);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(pd);
     }
 }

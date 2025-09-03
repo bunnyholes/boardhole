@@ -57,8 +57,7 @@ public class UserController {
             @ApiResponse(responseCode = "403", description = "관리자 권한 없음")
     })
     public Page<UserResponse> list(
-            @Parameter(description = "검색어 (사용자명, 이름, 이메일)")
-            @RequestParam(required = false) String search,
+            @Parameter(description = "검색어 (사용자명, 이름, 이메일)") @RequestParam(required = false) String search,
             @ParameterObject @PageableDefault(size = 20) Pageable pageable) {
 
         Page<UserResult> results = (search != null && !search.trim().isEmpty())
@@ -84,8 +83,7 @@ public class UserController {
             @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음")
     })
     public UserResponse get(
-            @Parameter(description = "조회할 사용자 ID")
-            @PathVariable Long id) {
+            @Parameter(description = "조회할 사용자 ID") @PathVariable Long id) {
         var userResult = userQueryService.get(id);
         return userWebMapper.toResponse(userResult);
     }
@@ -115,8 +113,7 @@ public class UserController {
             @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음")
     })
     public UserResponse update(
-            @Parameter(description = "수정할 사용자 ID")
-            @PathVariable Long id,
+            @Parameter(description = "수정할 사용자 ID") @PathVariable Long id,
             @Validated @ModelAttribute UserUpdateRequest req) {
         var cmd = userWebMapper.toUpdateCommand(id, req);
         var updated = userCommandService.update(cmd);
@@ -137,8 +134,7 @@ public class UserController {
             @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음")
     })
     public void delete(
-            @Parameter(description = "삭제할 사용자 ID")
-            @PathVariable Long id) {
+            @Parameter(description = "삭제할 사용자 ID") @PathVariable Long id) {
         userCommandService.delete(id);
     }
 
@@ -157,8 +153,7 @@ public class UserController {
             @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음")
     })
     public void updatePassword(
-            @Parameter(description = "사용자 ID")
-            @PathVariable Long id,
+            @Parameter(description = "사용자 ID") @PathVariable Long id,
             @Validated @RequestBody PasswordUpdateRequest req,
             @AuthenticationPrincipal AppUserPrincipal principal) {
 
@@ -190,8 +185,7 @@ public class UserController {
     })
     @ResponseStatus(HttpStatus.OK)
     public java.util.Map<String, String> requestEmailVerification(
-            @Parameter(description = "사용자 ID")
-            @PathVariable Long id,
+            @Parameter(description = "사용자 ID") @PathVariable Long id,
             @Validated @RequestBody EmailVerificationRequest req) {
 
         var cmd = userWebMapper.toRequestEmailVerificationCommand(id, req);
@@ -222,8 +216,7 @@ public class UserController {
             @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음")
     })
     public UserResponse updateEmail(
-            @Parameter(description = "사용자 ID")
-            @PathVariable Long id,
+            @Parameter(description = "사용자 ID") @PathVariable Long id,
             @Validated @RequestBody EmailUpdateRequest req) {
 
         var cmd = userWebMapper.toUpdateEmailCommand(id, req);

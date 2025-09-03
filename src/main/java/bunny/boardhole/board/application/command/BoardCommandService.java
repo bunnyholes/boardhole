@@ -12,7 +12,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.lang.NonNull;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -67,7 +66,7 @@ public class BoardCommandService {
      */
     @Transactional
     @PreAuthorize("hasPermission(#cmd.boardId, 'BOARD', 'WRITE')")
-    public BoardResult update(@Valid @NonNull UpdateBoardCommand cmd) {
+    public BoardResult update(@Valid UpdateBoardCommand cmd) {
         Long id = cmd.boardId();
         Board board = boardRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.board.not-found.id", id)));
@@ -122,8 +121,7 @@ public class BoardCommandService {
      * @return 게시글 엔티티
      * @throws ResourceNotFoundException 게시글을 찾을 수 없는 경우
      */
-    @NonNull
-    private Board loadBoardOrThrow(@NonNull Long id) {
+    private Board loadBoardOrThrow(Long id) {
         return boardRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.board.not-found.id", id)));
     }

@@ -3,17 +3,13 @@ package bunny.boardhole.user.application.command;
 import bunny.boardhole.user.domain.validation.required.*;
 
 public record CreateUserCommand(
-        @ValidUsername
-        String username,
+        @ValidUsername String username,
 
-        @ValidPassword
-        String password,
+        @ValidPassword String password,
 
-        @ValidName
-        String name,
+        @ValidName String name,
 
-        @ValidEmail
-        String email
+        @ValidEmail String email
 ) {
 }
 

@@ -70,7 +70,7 @@ public class LogFormatter {
     }
 
     // 레이어별 색상
-    public String getLayerColor(String signature) {
+    private String getLayerColor(String signature) {
         if (signature.contains("Controller")) return LogConstants.BLUE;
         else if (signature.contains("Service")) return LogConstants.CYAN;
         else if (signature.contains("Repository")) return LogConstants.PURPLE;
@@ -78,7 +78,7 @@ public class LogFormatter {
     }
 
     // 레이어별 아이콘
-    public String getLayerIcon(String signature) {
+    private String getLayerIcon(String signature) {
         if (signature.contains("Controller")) return LogConstants.CONTROLLER_ICON;
         else if (signature.contains("Service")) return LogConstants.SERVICE_ICON;
         else if (signature.contains("Repository")) return LogConstants.REPOSITORY_ICON;
@@ -86,14 +86,14 @@ public class LogFormatter {
     }
 
     // 성능 기반 색상 (설정 값 활용)
-    public String getPerformanceColor(long ms) {
+    private String getPerformanceColor(long ms) {
         if (loggingProperties.isFast(ms)) return LogConstants.GREEN;
         else if (loggingProperties.isNormal(ms)) return LogConstants.YELLOW;
         else return LogConstants.RED;
     }
 
     // 성능 기반 아이콘 (설정 값 활용)
-    public String getPerformanceIcon(long ms) {
+    private String getPerformanceIcon(long ms) {
         if (loggingProperties.isFast(ms)) return LogConstants.FAST_ICON;
         else if (loggingProperties.isNormal(ms)) return LogConstants.NORMAL_ICON;
         else return LogConstants.SLOW_ICON;
@@ -105,7 +105,7 @@ public class LogFormatter {
     }
 
     // HTTP 상태별 색상
-    public String getStatusColor(int status) {
+    private String getStatusColor(int status) {
         if (status >= 200 && status < 300) return LogConstants.GREEN;
         else if (status >= 300 && status < 400) return LogConstants.YELLOW;
         else if (status >= 400 && status < 500) return LogConstants.RED;
@@ -114,7 +114,7 @@ public class LogFormatter {
     }
 
     // 안전한 객체 문자열 변환
-    public String safeToString(Object arg) {
+    private String safeToString(Object arg) {
         if (arg == null) return "null";
         if (isProblematicType(arg)) return arg.getClass().getName();
         try {
@@ -124,17 +124,6 @@ public class LogFormatter {
         }
     }
 
-    // 안전한 결과 문자열 변환
-    public String safeResultToString(Object result) {
-        if (result == null) return "null";
-        String className = result.getClass().getName();
-        if (isProblematicType(result)) return className;
-        try {
-            return sanitizeObject(result);
-        } catch (Exception e) {
-            return className;
-        }
-    }
 
     // 문제가 될 수 있는 타입 체크
     private boolean isProblematicType(Object o) {
@@ -223,19 +212,4 @@ public class LogFormatter {
         }
     }
 
-    // 로깅 예외 안전 처리
-    public String safeLog(String message, Object... args) {
-        try {
-            if (args == null || args.length == 0) {
-                return message;
-            }
-            Object[] sanitizedArgs = Arrays.stream(args)
-                    .map(this::safeToString)
-                    .toArray();
-            return String.format(message, sanitizedArgs);
-        } catch (Exception e) {
-            log.warn(messageSource.getMessage("log.format.error", new Object[]{e.getMessage()}, LocaleContextHolder.getLocale()));
-            return message + " [LOG_FORMAT_ERROR]";
-        }
-    }
 }

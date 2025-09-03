@@ -88,10 +88,8 @@ public class BoardController {
             @Parameter(name = "sort", description = "정렬 (필드,방향)", example = "id,desc")
     })
     public Page<BoardResponse> list(
-            @Parameter(description = "페이지네이션 정보 (기본: 페이지 크기 10, ID 내림차순 정렬)")
-            @PageableDefault(sort = "id", direction = Sort.Direction.DESC) @ParameterObject Pageable pageable,
-            @Parameter(description = "검색어 (제목 또는 내용에서 검색)", example = "공지")
-            @RequestParam(required = false) String search) {
+            @Parameter(description = "페이지네이션 정보 (기본: 페이지 크기 10, ID 내림차순 정렬)") @PageableDefault(sort = "id", direction = Sort.Direction.DESC) @ParameterObject Pageable pageable,
+            @Parameter(description = "검색어 (제목 또는 내용에서 검색)", example = "공지") @RequestParam(required = false) String search) {
         Page<BoardResult> page = search == null
                 ? boardQueryService.listWithPaging(pageable)
                 : boardQueryService.listWithPaging(pageable, search);
@@ -113,8 +111,7 @@ public class BoardController {
             @ApiResponse(responseCode = "404", description = "게시글을 찾을 수 없음")
     })
     public BoardResponse get(
-            @Parameter(description = "조회할 게시글 ID")
-            @PathVariable Long id,
+            @Parameter(description = "조회할 게시글 ID") @PathVariable Long id,
             @AuthenticationPrincipal AppUserPrincipal principal) {
         // 1) 순수 조회 (Query)
         BoardResult result = boardQueryService.handle(GetBoardQuery.of(id));
@@ -153,8 +150,7 @@ public class BoardController {
             @ApiResponse(responseCode = "404", description = "게시글을 찾을 수 없음")
     })
     public BoardResponse update(
-            @Parameter(description = "수정할 게시글 ID")
-            @PathVariable Long id,
+            @Parameter(description = "수정할 게시글 ID") @PathVariable Long id,
             @ModelAttribute BoardUpdateRequest req,
             @AuthenticationPrincipal AppUserPrincipal principal) {
         // 권한 검증은 서비스 @PreAuthorize가 처리
@@ -178,8 +174,7 @@ public class BoardController {
             @ApiResponse(responseCode = "404", description = "게시글을 찾을 수 없음")
     })
     public void delete(
-            @Parameter(description = "삭제할 게시글 ID")
-            @PathVariable Long id) {
+            @Parameter(description = "삭제할 게시글 ID") @PathVariable Long id) {
         // 권한 검증은 서비스 @PreAuthorize가 처리
         boardCommandService.delete(id);
     }

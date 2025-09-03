@@ -1,7 +1,6 @@
 package bunny.boardhole.email.domain;
 
 import lombok.Builder;
-import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
 
 import java.util.*;
@@ -18,9 +17,9 @@ import java.util.*;
  */
 @Builder
 public record EmailMessage(
-        @NonNull String recipientEmail,
-        @NonNull String subject,
-        @NonNull String content,
+        String recipientEmail,
+        String subject,
+        String content,
         List<String> carbonCopy,
         List<String> blindCarbonCopy,
         Map<String, Object> templateVariables) {
@@ -33,7 +32,7 @@ public record EmailMessage(
      * @param emailContent   이메일 내용
      * @return 생성된 이메일 메시지
      */
-    public static EmailMessage create(@NonNull final String recipientEmail, @NonNull final String emailSubject, @NonNull final String emailContent) {
+    public static EmailMessage create(final String recipientEmail, final String emailSubject, final String emailContent) {
         Assert.hasText(recipientEmail, "받는 사람 이메일은 필수입니다");
         Assert.hasText(emailSubject, "이메일 제목은 필수입니다");
         Assert.hasText(emailContent, "이메일 내용은 필수입니다");
@@ -54,8 +53,8 @@ public record EmailMessage(
      * @param templateVariables 템플릿 변수들
      * @return 생성된 이메일 메시지
      */
-    public static EmailMessage createFromTemplate(@NonNull final String recipientEmail, @NonNull final String emailSubject,
-                                                  @NonNull final String emailTemplate, @NonNull final Map<String, Object> templateVariables) {
+    public static EmailMessage createFromTemplate(final String recipientEmail, final String emailSubject,
+                                                  final String emailTemplate, final Map<String, Object> templateVariables) {
         Assert.hasText(recipientEmail, "받는 사람 이메일은 필수입니다");
         Assert.hasText(emailSubject, "이메일 제목은 필수입니다");
         Assert.hasText(emailTemplate, "템플릿은 필수입니다");

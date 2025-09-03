@@ -47,10 +47,8 @@ public class EmailVerificationController {
     @Transactional
     @ResponseStatus(HttpStatus.OK)
     public String verifyEmail(
-            @Parameter(description = "사용자 ID")
-            @PathVariable Long id,
-            @Parameter(description = "인증 토큰", example = "abc123def456")
-            @RequestParam String token) {
+            @Parameter(description = "사용자 ID") @PathVariable Long id,
+            @Parameter(description = "인증 토큰", example = "abc123def456") @RequestParam String token) {
 
         EmailVerification verification = emailVerificationRepository.findByCodeAndUsedFalse(token)
                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -94,8 +92,7 @@ public class EmailVerificationController {
     @Transactional
     @ResponseStatus(HttpStatus.OK)
     public String resendVerificationEmail(
-            @Parameter(description = "사용자 ID")
-            @PathVariable Long id) {
+            @Parameter(description = "사용자 ID") @PathVariable Long id) {
 
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
