@@ -20,7 +20,7 @@ class LoggingAspectTest {
         ms.setDefaultEncoding("UTF-8");
         LoggingProperties properties = new LoggingProperties();
         LogFormatter formatter = new LogFormatter(ms, properties);
-        loggingAspect = new LoggingAspect(ms, formatter, properties);
+        loggingAspect = new LoggingAspect(ms, formatter);
     }
 
     @Test
