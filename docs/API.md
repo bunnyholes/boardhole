@@ -10,6 +10,7 @@ Board-Hole REST API 완전 명세서
 - [Boards API](#boards-api)
 - [Users API](#users-api)
 - [Auth API](#auth-api)
+- [Email API](#email-api)
 - [Admin API](#admin-api)
 - [Error Handling](#error-handling)
 - [Examples](#examples)
@@ -424,6 +425,26 @@ Cookie: JSESSIONID=...
   "roles": ["ADMIN"],
   "lastLogin": "2024-12-22T16:00:00"
 }
+```
+
+## ✉️ Email API
+
+이메일 인증 관련 엔드포인트
+
+### Verify Email
+
+사용자 이메일을 토큰으로 검증합니다.
+
+```http
+GET /api/users/{id}/email/verify?token=abc123
+```
+
+### Resend Verification Email
+
+미인증 사용자에게 인증 이메일을 다시 보냅니다.
+
+```http
+POST /api/users/{id}/email/resend
 ```
 
 ## 👑 Admin API
