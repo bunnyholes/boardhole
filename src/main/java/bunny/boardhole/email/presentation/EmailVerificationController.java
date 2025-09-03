@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 /**
@@ -123,7 +124,8 @@ public class EmailVerificationController {
 
         // 새 인증 토큰 생성 및 이메일 발송
         final String newToken = java.util.UUID.randomUUID().toString();
-        final LocalDateTime expiresAt = LocalDateTime.now().plusHours(verificationExpirationHours);
+        final LocalDateTime expiresAt = LocalDateTime.now(ZoneId.systemDefault())
+                .plusHours(verificationExpirationHours);
 
         final EmailVerification newVerification = EmailVerification.builder()
                 .code(newToken)

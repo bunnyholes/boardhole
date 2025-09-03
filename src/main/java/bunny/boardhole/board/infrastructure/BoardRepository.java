@@ -18,9 +18,11 @@ import java.util.*;
 @Validated
 public interface BoardRepository extends JpaRepository<Board, Long> {
 
+    @Override
     @EntityGraph(attributePaths = {"author"})
     Optional<Board> findById(Long id);
 
+    @Override
     @EntityGraph(attributePaths = {"author"})
     Page<Board> findAll(Pageable pageable);
 

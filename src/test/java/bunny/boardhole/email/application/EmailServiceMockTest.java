@@ -2,7 +2,6 @@ package bunny.boardhole.email.application;
 
 import bunny.boardhole.email.domain.EmailTemplate;
 import bunny.boardhole.email.infrastructure.SmtpEmailService;
-import bunny.boardhole.shared.util.MessageUtils;
 import bunny.boardhole.user.domain.*;
 import jakarta.mail.internet.MimeMessage;
 import org.junit.jupiter.api.*;
@@ -26,8 +25,6 @@ class EmailServiceMockTest {
     @Mock
     private EmailTemplateService templateService;
 
-    @Mock
-    private MessageUtils messageUtils;
 
     @Mock
     private MimeMessage mimeMessage;

@@ -3,9 +3,9 @@ package bunny.boardhole.shared.security;
 import bunny.boardhole.shared.config.log.RequestLoggingFilter;
 import bunny.boardhole.shared.constants.ErrorCode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.servlet.http.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
@@ -24,7 +24,7 @@ import java.util.Optional;
  * 접근 거부 처리 핸들러
  * Spring Security에서 접근 거부 시 ProblemDetail 형식으로 응답합니다.
  */
-@Schema(name = "ProblemDetailsAccessDeniedHandler", description = "Spring Security 접근 거부 핸들러 - ProblemDetail 형식 에러 응답")
+@Slf4j
 @RequiredArgsConstructor
 public class ProblemDetailsAccessDeniedHandler implements AccessDeniedHandler {
 
@@ -41,7 +41,8 @@ public class ProblemDetailsAccessDeniedHandler implements AccessDeniedHandler {
         pd.setType(buildType("forbidden"));
         try {
             pd.setInstance(URI.create(request.getRequestURI()));
-        } catch (IllegalArgumentException ignored) {
+        } catch (IllegalArgumentException e) {
+            log.warn("Invalid request URI: {}", request.getRequestURI(), e);
         }
         // Optional을 사용한 null 체크 제거
         Optional.ofNullable(MDC.get(RequestLoggingFilter.TRACE_ID))
@@ -65,7 +66,8 @@ public class ProblemDetailsAccessDeniedHandler implements AccessDeniedHandler {
                 .map(base -> {
                     try {
                         return URI.create(base + slug);
-                    } catch (IllegalArgumentException ignored) {
+                    } catch (IllegalArgumentException e) {
+                        log.warn("Invalid problem type URI: {}{}", base, slug, e);
                         return null;
                     }
                 })

@@ -7,7 +7,6 @@ import bunny.boardhole.shared.exception.UnauthorizedException;
 import bunny.boardhole.shared.security.AppUserPrincipal;
 import bunny.boardhole.shared.util.MessageUtils;
 import bunny.boardhole.user.domain.User;
-import bunny.boardhole.user.infrastructure.UserRepository;
 import jakarta.servlet.http.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +34,6 @@ public class SessionAuthenticationProvider implements AuthenticationService {
 
     private final AuthenticationManager authenticationManager;
     private final SecurityContextRepository securityContextRepository;
-    private final UserRepository userRepository;
     private final MessageUtils messageUtils;
 
     /**
