@@ -2,6 +2,7 @@ package bunny.boardhole.shared.exception;
 
 import bunny.boardhole.board.domain.Board;
 import bunny.boardhole.shared.web.ControllerTestBase;
+import com.fasterxml.jackson.core.type.TypeReference;
 import org.junit.jupiter.api.*;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithUserDetails;
@@ -15,7 +16,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @DisplayName("에러 처리 통합 테스트")
-public class ErrorHandlingIntegrationTest extends ControllerTestBase {
+class ErrorHandlingIntegrationTest extends ControllerTestBase {
 
     @Test
     @DisplayName("E2E: 404 Not Found - 존재하지 않는 리소스")
@@ -36,7 +37,8 @@ public class ErrorHandlingIntegrationTest extends ControllerTestBase {
 
         // Verify traceId is included when available
         String responseBody = result.getResponse().getContentAsString();
-        Map<String, Object> problemDetail = objectMapper.readValue(responseBody, Map.class);
+        Map<String, Object> problemDetail = objectMapper.readValue(responseBody, new TypeReference<>() {
+        });
         assertThat(problemDetail).containsKey("timestamp");
     }
 
@@ -130,7 +132,8 @@ public class ErrorHandlingIntegrationTest extends ControllerTestBase {
                 .andReturn();
 
         String responseBody1 = result1.getResponse().getContentAsString();
-        Map<String, Object> problemDetail1 = objectMapper.readValue(responseBody1, Map.class);
+        Map<String, Object> problemDetail1 = objectMapper.readValue(responseBody1, new TypeReference<>() {
+        });
 
         // traceId는 요청마다 다를 수 있으므로 존재 여부만 확인
         // (RequestLoggingFilter가 활성화된 경우에만 포함됨)

@@ -16,7 +16,6 @@ import org.springframework.web.method.support.*;
 @RequiredArgsConstructor
 public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolver {
 
-    private final MessageUtils messageUtils;
 
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
@@ -33,11 +32,11 @@ public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolve
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
         if (auth == null || !auth.isAuthenticated()) {
-            throw new AccessDeniedException(messageUtils.getMessage("error.auth.required"));
+            throw new AccessDeniedException(MessageUtils.get("error.auth.required"));
         }
 
         if (!(auth.getPrincipal() instanceof AppUserPrincipal(User user))) {
-            throw new AccessDeniedException(messageUtils.getMessage("error.auth.invalid-principal"));
+            throw new AccessDeniedException(MessageUtils.get("error.auth.invalid-principal"));
         }
 
         return user;

@@ -22,16 +22,31 @@ public class LoggingAspect {
     private final LogFormatter logFormatter;
     private final LoggingProperties loggingProperties;
 
+    /**
+     * Controller 레이어 메소드 포인트컷
+     * 모든 Controller 클래스의 public 메소드를 대상으로 합니다.
+     */
     @Pointcut("execution(public * bunny.boardhole..controller..*(..))")
     void anyController() {
+        // AOP 포인트컷 정의용 빈 메소드
     }
 
+    /**
+     * Service 레이어 메소드 포인트컷
+     * 모든 Service 클래스의 public 메소드를 대상으로 합니다.
+     */
     @Pointcut("execution(public * bunny.boardhole..service..*(..))")
     void anyService() {
+        // AOP 포인트컷 정의용 빈 메소드
     }
 
+    /**
+     * Repository 레이어 메소드 포인트컷
+     * 모든 Repository 클래스의 public 메소드를 대상으로 합니다.
+     */
     @Pointcut("execution(public * bunny.boardhole..repository..*(..))")
     void anyRepository() {
+        // AOP 포인트컷 정의용 빈 메소드
     }
 
     @Around("anyController() || anyService() || anyRepository()")
@@ -96,9 +111,9 @@ public class LoggingAspect {
 
     private String extractLayer(String signature) {
         if (signature.contains("Controller")) return "controller";
-        else if (signature.contains("Service")) return "service";
-        else if (signature.contains("Repository")) return "repository";
-        else return "unknown";
+        if (signature.contains("Service")) return "service";
+        if (signature.contains("Repository")) return "repository";
+        return "unknown";
     }
 
 }

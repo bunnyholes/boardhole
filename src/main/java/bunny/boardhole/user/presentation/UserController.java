@@ -2,6 +2,7 @@ package bunny.boardhole.user.presentation;
 
 import bunny.boardhole.auth.presentation.dto.CurrentUserResponse;
 import bunny.boardhole.auth.presentation.mapper.AuthWebMapper;
+import bunny.boardhole.email.presentation.dto.*;
 import bunny.boardhole.shared.constants.ApiPaths;
 import bunny.boardhole.shared.exception.*;
 import bunny.boardhole.shared.security.AppUserPrincipal;
@@ -9,7 +10,6 @@ import bunny.boardhole.shared.util.MessageUtils;
 import bunny.boardhole.user.application.command.UserCommandService;
 import bunny.boardhole.user.application.query.UserQueryService;
 import bunny.boardhole.user.application.result.UserResult;
-import bunny.boardhole.email.presentation.dto.*;
 import bunny.boardhole.user.presentation.dto.*;
 import bunny.boardhole.user.presentation.mapper.UserWebMapper;
 import io.swagger.v3.oas.annotations.*;
@@ -39,7 +39,6 @@ public class UserController {
     private final UserQueryService userQueryService;
     private final UserWebMapper userWebMapper;
     private final AuthWebMapper authWebMapper;
-    private final MessageUtils messageUtils;
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
@@ -164,9 +163,8 @@ public class UserController {
             @AuthenticationPrincipal AppUserPrincipal principal) {
 
         // 패스워드 확인 불일치 처리
-        if (!req.newPassword().equals(req.confirmPassword())) {
-            throw new ValidationException(messageUtils.getMessage("error.user.password.confirm.mismatch"));
-        }
+        if (!req.newPassword().equals(req.confirmPassword()))
+            throw new ValidationException(MessageUtils.get("error.user.password.confirm.mismatch"));
 
         var cmd = userWebMapper.toUpdatePasswordCommand(id, req);
         userCommandService.updatePassword(cmd);
@@ -190,7 +188,8 @@ public class UserController {
             @ApiResponse(responseCode = "401", description = "현재 패스워드 불일치"),
             @ApiResponse(responseCode = "409", description = "이메일 중복")
     })
-    public ResponseEntity<java.util.Map<String, String>> requestEmailVerification(
+    @ResponseStatus(HttpStatus.OK)
+    public java.util.Map<String, String> requestEmailVerification(
             @Parameter(description = "사용자 ID")
             @PathVariable Long id,
             @Validated @RequestBody EmailVerificationRequest req) {
@@ -200,12 +199,10 @@ public class UserController {
 
         // 개발 환경에서만 코드 반환, 프로덕션에서는 메시지만
         java.util.Map<String, String> response = new java.util.HashMap<>();
-        response.put("message", messageUtils.getMessage("info.user.email.verification.sent"));
+        response.put("message", MessageUtils.get("info.user.email.verification.sent"));
         // TODO: 개발 환경 체크 후 코드 포함 여부 결정
-        if (code != null) {
-            response.put("code", code); // 테스트용
-        }
-        return ResponseEntity.ok(response);
+        if (code != null) response.put("code", code); // 테스트용
+        return response;
     }
 
     @PatchMapping("/{id}/email")
@@ -250,9 +247,7 @@ public class UserController {
             @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
     })
     public CurrentUserResponse me(@AuthenticationPrincipal AppUserPrincipal principal) {
-        if (principal == null) {
-            throw new UnauthorizedException(messageUtils.getMessage("error.auth.not-logged-in"));
-        }
+        if (principal == null) throw new UnauthorizedException(MessageUtils.get("error.auth.not-logged-in"));
         return authWebMapper.toCurrentUser(principal.user());
     }
 }

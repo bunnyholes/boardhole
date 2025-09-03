@@ -1,7 +1,7 @@
 package bunny.boardhole.user.domain;
 
-import bunny.boardhole.shared.constants.ValidationMessages;
 import bunny.boardhole.shared.test.EntityTestBase;
+import bunny.boardhole.shared.util.MessageUtils;
 import org.junit.jupiter.api.*;
 
 import java.time.*;
@@ -67,7 +67,7 @@ class EmailVerificationEntityTest extends EntityTestBase {
         @DisplayName("❌ 빈 검증 코드로 생성 시 예외 발생")
         void createEmailVerification_WithEmptyCode_ThrowsException() {
             // given
-            String expectedMessage = ValidationMessages.EMAIL_VERIFICATION_CODE_REQUIRED_FALLBACK;
+            String expectedMessage = MessageUtils.get("validation.email-verification.code.required");
 
             // when & then
             assertThatThrownBy(() -> EmailVerification.builder()
@@ -86,7 +86,7 @@ class EmailVerificationEntityTest extends EntityTestBase {
         @DisplayName("❌ 빈 새 이메일로 생성 시 예외 발생")
         void createEmailVerification_WithEmptyNewEmail_ThrowsException() {
             // given
-            String expectedMessage = ValidationMessages.EMAIL_VERIFICATION_NEW_EMAIL_REQUIRED_FALLBACK;
+            String expectedMessage = MessageUtils.get("validation.email-verification.new-email.required");
 
             // when & then
             assertThatThrownBy(() -> EmailVerification.builder()

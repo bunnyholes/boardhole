@@ -1,12 +1,16 @@
 package bunny.boardhole.shared.test;
 
 import bunny.boardhole.shared.config.TestDataConfig;
+import bunny.boardhole.shared.util.MessageUtils;
 import bunny.boardhole.user.domain.*;
+import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.*;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.*;
 import java.util.*;
@@ -24,6 +28,15 @@ public abstract class EntityTestBase {
 
     @Autowired
     protected MessageSource messageSource;
+
+    @BeforeEach
+    void initializeMessageUtils() {
+        ResourceBundleMessageSource ms = new ResourceBundleMessageSource();
+        ms.setBasename("messages");
+        ms.setDefaultEncoding("UTF-8");
+        ms.setUseCodeAsDefaultMessage(true);
+        ReflectionTestUtils.setField(MessageUtils.class, "messageSource", ms);
+    }
 
     protected String createUniqueUsername() {
         return testData.username() + "_" + UUID.randomUUID().toString().substring(0, 8);

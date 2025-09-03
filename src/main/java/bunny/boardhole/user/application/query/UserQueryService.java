@@ -23,7 +23,6 @@ public class UserQueryService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
-    private final MessageUtils messageUtils;
 
     /**
      * 사용자 ID로 단일 사용자 조회
@@ -37,7 +36,7 @@ public class UserQueryService {
     public UserResult get(Long id) {
         return userRepository.findById(id)
                 .map(userMapper::toResult)
-                .orElseThrow(() -> new ResourceNotFoundException(messageUtils.getMessage("error.user.not-found.id", id)));
+                .orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.user.not-found.id", id)));
     }
 
     /**

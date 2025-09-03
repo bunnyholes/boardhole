@@ -88,9 +88,7 @@ public class AuthController {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             if (authentication != null && authentication.getPrincipal() instanceof AppUserPrincipal(
                     bunny.boardhole.user.domain.User user
-            )) {
-                userCommandService.updateLastLogin(user.getId());
-            }
+            )) userCommandService.updateLastLogin(user.getId());
         } catch (UnsupportedOperationException ignored) {
             // 일부 테스트/환경에서 보조 로직 미구현으로 인한 예외는 로그인 성공 흐름에 영향 주지 않도록 무시
         }
@@ -119,9 +117,7 @@ public class AuthController {
             // 인증 정보가 없는 경우 기본 로그아웃 처리
             SecurityContextHolder.clearContext();
             HttpSession session = request.getSession(false);
-            if (session != null) {
-                session.invalidate();
-            }
+            if (session != null) session.invalidate();
         }
     }
 
@@ -166,9 +162,7 @@ public class AuthController {
             summary = "공개 엔드포인트",
             description = "[PUBLIC] 인증 없이 모든 사용자가 접근할 수 있는 공개 테스트 엔드포인트입니다."
     )
-    @ApiResponses({
-            @ApiResponse(responseCode = "204", description = "공개 엔드포인트 접근 성공")
-    })
+    @ApiResponses(@ApiResponse(responseCode = "204", description = "공개 엔드포인트 접근 성공"))
     public void publicAccess() {
         // Test endpoint - no response body needed
     }

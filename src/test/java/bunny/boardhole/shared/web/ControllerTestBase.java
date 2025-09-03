@@ -14,6 +14,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
@@ -38,7 +40,8 @@ public abstract class ControllerTestBase {
 
 
     protected Long seedBoardOwnedBy(String username, String title, String content) {
-        User owner = userRepository.findByUsername(username);
+        User owner = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalStateException("User not found: " + username));
         Board board = Board.builder()
                 .title(title)
                 .content(content)
@@ -48,8 +51,8 @@ public abstract class ControllerTestBase {
     }
 
     protected Long seedUser(String username, String name, String email, String rawPassword, java.util.Set<Role> roles) {
-        User existing = userRepository.findByUsername(username);
-        if (existing != null) return existing.getId();
+        Optional<User> existing = userRepository.findByUsername(username);
+        if (existing.isPresent()) return existing.get().getId();
         User user = User.builder()
                 .username(username)
                 .password(rawPassword) // tests should not authenticate with this; used for data only
@@ -62,8 +65,9 @@ public abstract class ControllerTestBase {
     }
 
     protected Long findUserIdByUsername(String username) {
-        User u = userRepository.findByUsername(username);
-        return u != null ? u.getId() : null;
+        return userRepository.findByUsername(username)
+                .map(User::getId)
+                .orElse(null);
     }
 
 }

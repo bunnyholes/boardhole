@@ -1,7 +1,6 @@
 package bunny.boardhole.user.domain;
 
-import bunny.boardhole.shared.constants.*;
-import bunny.boardhole.shared.util.EntityMessageProvider;
+import bunny.boardhole.shared.util.MessageUtils;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.lang.NonNull;
@@ -27,7 +26,7 @@ public class EmailVerification {
     @Column(name = "user_id", nullable = false)
     private Long userId;
 
-    @Column(name = "new_email", nullable = false, length = ValidationConstants.USER_EMAIL_MAX_LENGTH)
+    @Column(name = "new_email", nullable = false)
     private String newEmail;
 
     @Enumerated(EnumType.STRING)
@@ -46,11 +45,11 @@ public class EmailVerification {
     @Builder
     public EmailVerification(@NonNull String code, @NonNull Long userId, @NonNull String newEmail,
                              @NonNull LocalDateTime expiresAt, @NonNull EmailVerificationType verificationType) {
-        Assert.hasText(code, EntityMessageProvider.getMessage(ValidationMessages.EMAIL_VERIFICATION_CODE_REQUIRED, ValidationMessages.EMAIL_VERIFICATION_CODE_REQUIRED_FALLBACK));
-        Assert.notNull(userId, EntityMessageProvider.getMessage(ValidationMessages.EMAIL_VERIFICATION_USER_ID_REQUIRED, ValidationMessages.EMAIL_VERIFICATION_USER_ID_REQUIRED_FALLBACK));
-        Assert.hasText(newEmail, EntityMessageProvider.getMessage(ValidationMessages.EMAIL_VERIFICATION_NEW_EMAIL_REQUIRED, ValidationMessages.EMAIL_VERIFICATION_NEW_EMAIL_REQUIRED_FALLBACK));
-        Assert.notNull(expiresAt, EntityMessageProvider.getMessage(ValidationMessages.EMAIL_VERIFICATION_EXPIRES_AT_REQUIRED, ValidationMessages.EMAIL_VERIFICATION_EXPIRES_AT_REQUIRED_FALLBACK));
-        Assert.notNull(verificationType, EntityMessageProvider.getMessage(ValidationMessages.EMAIL_VERIFICATION_TYPE_REQUIRED, ValidationMessages.EMAIL_VERIFICATION_TYPE_REQUIRED_FALLBACK));
+        Assert.hasText(code, MessageUtils.get("validation.email-verification.code.required"));
+        Assert.notNull(userId, MessageUtils.get("validation.email-verification.user-id.required"));
+        Assert.hasText(newEmail, MessageUtils.get("validation.email-verification.new-email.required"));
+        Assert.notNull(expiresAt, MessageUtils.get("validation.email-verification.expires-at.required"));
+        Assert.notNull(verificationType, MessageUtils.get("validation.email-verification.type.required"));
 
         this.code = code;
         this.userId = userId;

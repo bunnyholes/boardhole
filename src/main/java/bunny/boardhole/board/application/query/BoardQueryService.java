@@ -23,7 +23,6 @@ public class BoardQueryService {
 
     private final BoardRepository boardRepository;
     private final BoardMapper boardMapper;
-    private final MessageUtils messageUtils;
 
     /**
      * 게시글 단일 조회 쿼리 처리
@@ -35,7 +34,7 @@ public class BoardQueryService {
     @Transactional(readOnly = true)
     public BoardResult handle(GetBoardQuery query) {
         Board board = boardRepository.findById(query.id())
-                .orElseThrow(() -> new ResourceNotFoundException(messageUtils.getMessage("error.board.not-found.id", query.id())));
+                .orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.board.not-found.id", query.id())));
         return boardMapper.toResult(board);
     }
 

@@ -1,9 +1,9 @@
 package bunny.boardhole.user.presentation.mapper;
 
+import bunny.boardhole.email.presentation.dto.*;
 import bunny.boardhole.shared.mapstruct.MapstructConfig;
 import bunny.boardhole.user.application.command.*;
 import bunny.boardhole.user.application.result.UserResult;
-import bunny.boardhole.email.presentation.dto.*;
 import bunny.boardhole.user.presentation.dto.*;
 import org.mapstruct.*;
 

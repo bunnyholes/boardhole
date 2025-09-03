@@ -7,10 +7,10 @@ plugins {
     id 'checkstyle'
     id 'jacoco'
     id 'pmd'
-    id 'net.ltgt.errorprone' version '4.1.0'
+    id 'net.ltgt.errorprone' version '4.3.0'
     id 'org.sonarqube' version '6.3.1.5724'
-    id 'com.github.spotbugs' version '6.2.6'
-    id 'net.researchgate.release' version '3.0.2'
+    id 'com.github.spotbugs' version '6.2.7'
+    id 'net.researchgate.release' version '3.1.0'
     id 'org.hildan.github.changelog' version '2.2.0'
 }
 
@@ -32,6 +32,7 @@ configurations {
     compileOnly {
         extendsFrom annotationProcessor
     }
+    
 }
 
 repositories {
@@ -43,7 +44,7 @@ dependencies {
     spotbugsPlugins 'com.h3xstream.findsecbugs:findsecbugs-plugin:1.14.0'
     
     // -- ErrorProne --
-    errorprone 'com.google.errorprone:error_prone_core:2.36.0'
+    errorprone 'com.google.errorprone:error_prone_core:2.41.0'
     
     // -- Core Spring Boot Starters --
     implementation 'org.springframework.boot:spring-boot-starter-web'
@@ -59,8 +60,11 @@ dependencies {
     implementation 'org.springframework.session:spring-session-data-redis'
 
     // -- API Documentation (SpringDoc) --
-    implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.11"
-    implementation "org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.11"
+    // noinspection VulnerableLibrariesLocal
+    implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.12"
+    
+    // -- Null Safety (JSpecify) --
+    implementation "org.jspecify:jspecify:1.0.0"
 
     // -- Mapping (MapStruct) --
     implementation "org.mapstruct:mapstruct:1.6.3"
@@ -88,7 +92,7 @@ dependencies {
     
     // -- TestContainers for real SMTP testing --
     testImplementation 'org.testcontainers:junit-jupiter'
-    testImplementation 'com.icegreen:greenmail-junit5:2.0.0'
+    testImplementation 'com.icegreen:greenmail-junit5:2.1.5'
     
     // -- ArchUnit for architecture testing --
     testImplementation 'com.tngtech.archunit:archunit-junit5:1.4.1'

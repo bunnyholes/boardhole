@@ -21,5 +21,5 @@ public interface AuthenticationService {
     /**
      * 사용자 로그아웃 처리
      */
-    void logout(@Valid @NonNull LogoutCommand cmd, @NonNull HttpServletRequest request, @NonNull HttpServletResponse response);
+    void logout(@SuppressWarnings("unused") @Valid @NonNull LogoutCommand cmd, @NonNull HttpServletRequest request, @NonNull HttpServletResponse response);
 }

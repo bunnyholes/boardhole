@@ -20,7 +20,6 @@ import java.net.URI;
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -71,9 +70,11 @@ class GlobalExceptionHandlerTest {
         assertThat(result.getType()).isEqualTo(URI.create("urn:problem-type:not-found"));
         assertThat(result.getInstance()).isEqualTo(URI.create(REQUEST_PATH));
         assertThat(result.getProperties()).containsKeys("path", "method", "timestamp", "traceId");
-        assertThat(result.getProperties().get("traceId")).isEqualTo(TRACE_ID);
-        assertThat(result.getProperties().get("path")).isEqualTo(REQUEST_PATH);
-        assertThat(result.getProperties().get("method")).isEqualTo(REQUEST_METHOD);
+        Map<String, Object> properties = result.getProperties();
+        assertThat(properties).isNotNull();
+        assertThat(properties.get("traceId")).isEqualTo(TRACE_ID);
+        assertThat(properties.get("path")).isEqualTo(REQUEST_PATH);
+        assertThat(properties.get("method")).isEqualTo(REQUEST_METHOD);
     }
 
     @Test
@@ -94,7 +95,9 @@ class GlobalExceptionHandlerTest {
         assertThat(result.getTitle()).isEqualTo("데이터 충돌");
         assertThat(result.getDetail()).isEqualTo(errorMessage);
         assertThat(result.getType()).isEqualTo(URI.create("urn:problem-type:conflict"));
-        assertThat(result.getProperties().get("code")).isEqualTo("CONFLICT");
+        Map<String, Object> conflictProperties = result.getProperties();
+        assertThat(conflictProperties).isNotNull();
+        assertThat(conflictProperties.get("code")).isEqualTo("CONFLICT");
     }
 
     @Test
@@ -115,7 +118,9 @@ class GlobalExceptionHandlerTest {
         assertThat(result.getTitle()).isEqualTo("중복된 사용자명");
         assertThat(result.getDetail()).isEqualTo(errorMessage);
         assertThat(result.getType()).isEqualTo(URI.create("urn:problem-type:duplicate-username"));
-        assertThat(result.getProperties().get("code")).isEqualTo("USER_DUPLICATE_USERNAME");
+        Map<String, Object> usernameProperties = result.getProperties();
+        assertThat(usernameProperties).isNotNull();
+        assertThat(usernameProperties.get("code")).isEqualTo("USER_DUPLICATE_USERNAME");
     }
 
     @Test
@@ -136,7 +141,9 @@ class GlobalExceptionHandlerTest {
         assertThat(result.getTitle()).isEqualTo("중복된 이메일");
         assertThat(result.getDetail()).isEqualTo(errorMessage);
         assertThat(result.getType()).isEqualTo(URI.create("urn:problem-type:duplicate-email"));
-        assertThat(result.getProperties().get("code")).isEqualTo("USER_DUPLICATE_EMAIL");
+        Map<String, Object> emailProperties = result.getProperties();
+        assertThat(emailProperties).isNotNull();
+        assertThat(emailProperties.get("code")).isEqualTo("USER_DUPLICATE_EMAIL");
     }
 
     @Test
@@ -157,7 +164,9 @@ class GlobalExceptionHandlerTest {
         assertThat(result.getTitle()).isEqualTo("인증 실패");
         assertThat(result.getDetail()).isEqualTo(errorMessage);
         assertThat(result.getType()).isEqualTo(URI.create("urn:problem-type:unauthorized"));
-        assertThat(result.getProperties().get("code")).isEqualTo("UNAUTHORIZED");
+        Map<String, Object> unauthorizedProperties = result.getProperties();
+        assertThat(unauthorizedProperties).isNotNull();
+        assertThat(unauthorizedProperties.get("code")).isEqualTo("UNAUTHORIZED");
     }
 
     @Test
@@ -178,7 +187,9 @@ class GlobalExceptionHandlerTest {
         assertThat(result.getTitle()).isEqualTo("접근 거부");
         assertThat(result.getDetail()).isEqualTo(errorMessage);
         assertThat(result.getType()).isEqualTo(URI.create("urn:problem-type:forbidden"));
-        assertThat(result.getProperties().get("code")).isEqualTo("FORBIDDEN");
+        Map<String, Object> forbiddenProperties = result.getProperties();
+        assertThat(forbiddenProperties).isNotNull();
+        assertThat(forbiddenProperties.get("code")).isEqualTo("FORBIDDEN");
     }
 
     @Test
@@ -207,10 +218,12 @@ class GlobalExceptionHandlerTest {
         assertThat(result.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
         assertThat(result.getTitle()).isEqualTo("유효성 검증 실패");
         assertThat(result.getType()).isEqualTo(URI.create("urn:problem-type:validation-error"));
-        assertThat(result.getProperties().get("code")).isEqualTo("VALIDATION_ERROR");
+        Map<String, Object> validationProperties = result.getProperties();
+        assertThat(validationProperties).isNotNull();
+        assertThat(validationProperties.get("code")).isEqualTo("VALIDATION_ERROR");
 
         @SuppressWarnings("unchecked")
-        List<Map<String, Object>> errors = (List<Map<String, Object>>) result.getProperties().get("errors");
+        List<Map<String, Object>> errors = (List<Map<String, Object>>) validationProperties.get("errors");
         assertThat(errors).hasSize(2);
         assertThat(errors.get(0))
                 .containsEntry("field", "title")
@@ -240,7 +253,9 @@ class GlobalExceptionHandlerTest {
         assertThat(result.getTitle()).isEqualTo("잘못된 요청");
         assertThat(result.getDetail()).isEqualTo(errorMessage);
         assertThat(result.getType()).isEqualTo(URI.create("urn:problem-type:bad-request"));
-        assertThat(result.getProperties().get("code")).isEqualTo("BAD_REQUEST");
+        Map<String, Object> badRequestProperties = result.getProperties();
+        assertThat(badRequestProperties).isNotNull();
+        assertThat(badRequestProperties.get("code")).isEqualTo("BAD_REQUEST");
     }
 
     @Test
@@ -261,7 +276,9 @@ class GlobalExceptionHandlerTest {
         assertThat(result.getTitle()).isEqualTo("데이터 충돌");
         assertThat(result.getDetail()).isEqualTo(errorMessage);
         assertThat(result.getType()).isEqualTo(URI.create("urn:problem-type:conflict"));
-        assertThat(result.getProperties().get("code")).isEqualTo("CONFLICT");
+        Map<String, Object> dataIntegrityProperties = result.getProperties();
+        assertThat(dataIntegrityProperties).isNotNull();
+        assertThat(dataIntegrityProperties.get("code")).isEqualTo("CONFLICT");
     }
 
     @Test
@@ -283,7 +300,9 @@ class GlobalExceptionHandlerTest {
         assertThat(result.getTitle()).isEqualTo("내부 서버 오류");
         assertThat(result.getDetail()).isEqualTo("서버 내부 오류가 발생했습니다");
         assertThat(result.getType()).isEqualTo(URI.create("urn:problem-type:internal-error"));
-        assertThat(result.getProperties().get("code")).isEqualTo("INTERNAL_ERROR");
+        Map<String, Object> internalErrorProperties = result.getProperties();
+        assertThat(internalErrorProperties).isNotNull();
+        assertThat(internalErrorProperties.get("code")).isEqualTo("INTERNAL_ERROR");
     }
 
     @Test

@@ -16,7 +16,6 @@ public record AppUserPrincipal(
         Set<Role> roles = user.getRoles();
         if (roles == null) return Set.of();
         return roles.stream()
-                .filter(Objects::nonNull)
                 .map(r -> new SimpleGrantedAuthority("ROLE_" + r.name()))
                 .collect(Collectors.toSet());
     }
@@ -31,24 +30,6 @@ public record AppUserPrincipal(
         return user.getUsername();
     }
 
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
 
-    @Override
-    public boolean isAccountNonLocked() {
-        return true;
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return true;
-    }
 }
 

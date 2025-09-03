@@ -145,8 +145,10 @@ class UserControllerTest extends ControllerTestBase {
             String uniqueId = UUID.randomUUID().toString().substring(0, 8);
             String username = "delete_" + uniqueId;
             Long userId = seedUser(username, "To Delete", "delete_" + uniqueId + "@example.com", "plain", Set.of(bunny.boardhole.user.domain.Role.USER));
-            var principal = new AppUserPrincipal(userRepository.findByUsername(username));
-            var adminPrincipal = new AppUserPrincipal(userRepository.findByUsername(testUserProperties.adminUsername()));
+            var principal = new AppUserPrincipal(userRepository.findByUsername(username)
+                    .orElseThrow(() -> new IllegalStateException("User not found: " + username)));
+            var adminPrincipal = new AppUserPrincipal(userRepository.findByUsername(testUserProperties.adminUsername())
+                    .orElseThrow(() -> new IllegalStateException("Admin user not found")));
 
             mockMvc.perform(delete("/api/users/" + userId).with(user(principal)))
                     .andExpect(status().isNoContent())
@@ -184,7 +186,8 @@ class UserControllerTest extends ControllerTestBase {
             void shouldDenyOtherUserToDelete() throws Exception {
                 String uniqueId = UUID.randomUUID().toString().substring(0, 8);
                 Long userId = seedUser("del_" + uniqueId, "Delete Test User", "del_" + uniqueId + "@example.com", "plain", Set.of(bunny.boardhole.user.domain.Role.USER));
-                var otherPrincipal = new AppUserPrincipal(userRepository.findByUsername(testUserProperties.regularUsername()));
+                var otherPrincipal = new AppUserPrincipal(userRepository.findByUsername(testUserProperties.regularUsername())
+                        .orElseThrow(() -> new IllegalStateException("Regular user not found")));
 
                 mockMvc.perform(delete("/api/users/" + userId).with(user(otherPrincipal)))
                         .andExpect(status().isForbidden())

@@ -40,6 +40,7 @@ public class TestDataConfig {
         );
     }
 
+
     public record TestDataProperties(
             String username,
             String password,

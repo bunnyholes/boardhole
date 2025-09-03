@@ -22,28 +22,32 @@ import java.util.Locale;
 @RequiredArgsConstructor
 public class BusinessLogAspect {
 
-    private final MessageUtils messageUtils;
+    private static Object[] extractArgs(Object result) {
+        if (result instanceof UserResult user) return new Object[]{user.username(), user.email()};
+        if (result instanceof BoardResult board) return new Object[]{board.id(), board.title(), board.authorName()};
+        return new Object[0];
+    }
 
     @Around("execution(* bunny.boardhole..application.command.*.*(..))")
-    public Object logCommands(ProceedingJoinPoint pjp) throws Throwable {
+    public static Object logCommands(ProceedingJoinPoint pjp) throws Throwable {
         MethodSignature signature = (MethodSignature) pjp.getSignature();
         String methodName = signature.getName();
         long start = System.currentTimeMillis();
-        log.debug(messageUtils.getMessage("log.method.start", methodName));
+        log.debug(MessageUtils.get("log.method.start", methodName));
         try {
             Object result = pjp.proceed();
             long elapsed = System.currentTimeMillis() - start;
-            log.debug(messageUtils.getMessage("log.method.end", methodName, elapsed));
+            log.debug(MessageUtils.get("log.method.end", methodName, elapsed));
             logSuccess(signature, result);
             return result;
         } catch (Throwable t) {
             long elapsed = System.currentTimeMillis() - start;
-            log.warn(messageUtils.getMessage("log.method.error", methodName, elapsed, t.getMessage()), t);
+            log.warn(MessageUtils.get("log.method.error", methodName, elapsed, t.getMessage()), t);
             throw t;
         }
     }
 
-    private void logSuccess(MethodSignature signature, Object result) {
+    private static void logSuccess(MethodSignature signature, Object result) {
         String entity = signature.getDeclaringType().getSimpleName()
                 .replace("CommandService", "").toLowerCase(Locale.ROOT);
         String action = switch (signature.getName()) {
@@ -55,12 +59,6 @@ public class BusinessLogAspect {
         if (action == null) return;
         String key = "log." + entity + "." + action;
         Object[] logArgs = extractArgs(result);
-        log.info(messageUtils.getMessage(key, logArgs));
-    }
-
-    private static Object[] extractArgs(Object result) {
-        if (result instanceof UserResult user) return new Object[]{user.username(), user.email()};
-        if (result instanceof BoardResult board) return new Object[]{board.id(), board.title(), board.authorName()};
-        return new Object[0];
+        log.info(MessageUtils.get(key, logArgs));
     }
 }

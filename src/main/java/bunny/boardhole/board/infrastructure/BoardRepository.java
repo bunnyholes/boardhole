@@ -1,7 +1,6 @@
 package bunny.boardhole.board.infrastructure;
 
 import bunny.boardhole.board.domain.Board;
-import jakarta.validation.constraints.NotNull;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
@@ -19,14 +18,14 @@ import java.util.*;
 public interface BoardRepository extends JpaRepository<Board, Long> {
 
     @Override
-    @EntityGraph(attributePaths = {"author"})
+    @EntityGraph(attributePaths = "author")
     Optional<Board> findById(Long id);
 
     @Override
-    @EntityGraph(attributePaths = {"author"})
+    @EntityGraph(attributePaths = "author")
     Page<Board> findAll(Pageable pageable);
 
-    @EntityGraph(attributePaths = {"author"})
+    @EntityGraph(attributePaths = "author")
     List<Board> findAllByOrderByCreatedAtDesc();
 
     /**
@@ -37,8 +36,8 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
      * @param pageable 페이지네이션 정보
      * @return 검색된 게시글 페이지
      */
-    @EntityGraph(attributePaths = {"author"})
-    Page<Board> findByTitleContainingIgnoreCaseOrContentContainingIgnoreCase(@NotNull String title, @NotNull String content, @NotNull Pageable pageable);
+    @EntityGraph(attributePaths = "author")
+    Page<Board> findByTitleContainingIgnoreCaseOrContentContainingIgnoreCase(String title, String content, Pageable pageable);
 
     /**
      * 키워드로 게시글 검색 (JPQL 사용)
@@ -47,9 +46,9 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
      * @param pageable 페이지네이션 정보
      * @return 검색된 게시글 페이지
      */
-    @EntityGraph(attributePaths = {"author"})
+    @EntityGraph(attributePaths = "author")
     @Query("SELECT b FROM Board b WHERE LOWER(b.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(b.content) LIKE LOWER(CONCAT('%', :keyword, '%'))")
-    Page<Board> searchByKeyword(@Param("keyword") @NotNull String keyword, @NotNull Pageable pageable);
+    Page<Board> searchByKeyword(@Param("keyword") String keyword, Pageable pageable);
 
     /**
      * 전체 게시글 조회수 합계

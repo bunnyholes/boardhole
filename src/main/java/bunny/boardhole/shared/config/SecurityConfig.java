@@ -28,7 +28,7 @@ import org.springframework.security.web.context.*;
  * 인증, 인가, 세션 관리 및 CORS 설정을 담당합니다.
  */
 @Configuration
-@EnableMethodSecurity(prePostEnabled = true, securedEnabled = true, jsr250Enabled = true)
+@EnableMethodSecurity(securedEnabled = true, jsr250Enabled = true)
 @RequiredArgsConstructor
 public class SecurityConfig {
 

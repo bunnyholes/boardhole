@@ -34,7 +34,6 @@ public class SessionAuthenticationProvider implements AuthenticationService {
 
     private final AuthenticationManager authenticationManager;
     private final SecurityContextRepository securityContextRepository;
-    private final MessageUtils messageUtils;
 
     /**
      * 사용자 로그인 처리
@@ -80,8 +79,8 @@ public class SessionAuthenticationProvider implements AuthenticationService {
             );
 
         } catch (BadCredentialsException e) {
-            log.warn(messageUtils.getMessage("log.auth.login-failed", cmd.username()));
-            throw new UnauthorizedException(messageUtils.getMessage("error.auth.invalid-credentials"));
+            log.warn(MessageUtils.get("log.auth.login-failed", cmd.username()));
+            throw new UnauthorizedException(MessageUtils.get("error.auth.invalid-credentials"));
         }
     }
 

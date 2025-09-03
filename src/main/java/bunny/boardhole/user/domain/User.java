@@ -1,7 +1,7 @@
 package bunny.boardhole.user.domain;
 
-import bunny.boardhole.shared.constants.*;
-import bunny.boardhole.shared.util.EntityMessageProvider;
+import bunny.boardhole.shared.constants.ValidationConstants;
+import bunny.boardhole.shared.util.MessageUtils;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.DynamicUpdate;
@@ -41,7 +41,7 @@ public class User implements Serializable {
     @Column(nullable = false, length = ValidationConstants.USER_NAME_MAX_LENGTH)
     private String name;
 
-    @Column(nullable = false, unique = true, length = ValidationConstants.USER_EMAIL_MAX_LENGTH)
+    @Column(nullable = false, unique = true)
     private String email;
 
     @Column(name = "created_at")
@@ -68,13 +68,13 @@ public class User implements Serializable {
     // 필요한 필드만 받는 생성자에 @Builder 적용
     @Builder
     public User(@NonNull String username, @NonNull String password, @NonNull String name, @NonNull String email, java.util.Set<Role> roles) {
-        Assert.hasText(username, EntityMessageProvider.getMessage(ValidationMessages.USER_USERNAME_REQUIRED, ValidationMessages.USER_USERNAME_REQUIRED_FALLBACK));
-        Assert.isTrue(username.length() <= ValidationConstants.USER_USERNAME_MAX_LENGTH, EntityMessageProvider.getMessage(ValidationMessages.USER_USERNAME_TOO_LONG, ValidationMessages.USER_USERNAME_TOO_LONG_FALLBACK, ValidationConstants.USER_USERNAME_MAX_LENGTH));
-        Assert.hasText(password, EntityMessageProvider.getMessage(ValidationMessages.USER_PASSWORD_REQUIRED, ValidationMessages.USER_PASSWORD_REQUIRED_FALLBACK));
-        Assert.hasText(name, EntityMessageProvider.getMessage(ValidationMessages.USER_NAME_REQUIRED, ValidationMessages.USER_NAME_REQUIRED_FALLBACK));
-        Assert.isTrue(name.length() <= ValidationConstants.USER_NAME_MAX_LENGTH, EntityMessageProvider.getMessage(ValidationMessages.USER_NAME_TOO_LONG, ValidationMessages.USER_NAME_TOO_LONG_FALLBACK, ValidationConstants.USER_NAME_MAX_LENGTH));
-        Assert.hasText(email, EntityMessageProvider.getMessage(ValidationMessages.USER_EMAIL_REQUIRED, ValidationMessages.USER_EMAIL_REQUIRED_FALLBACK));
-        Assert.isTrue(email.length() <= ValidationConstants.USER_EMAIL_MAX_LENGTH, EntityMessageProvider.getMessage(ValidationMessages.USER_EMAIL_TOO_LONG, ValidationMessages.USER_EMAIL_TOO_LONG_FALLBACK, ValidationConstants.USER_EMAIL_MAX_LENGTH));
+        Assert.hasText(username, MessageUtils.get("validation.user.username.required"));
+        Assert.isTrue(username.length() <= ValidationConstants.USER_USERNAME_MAX_LENGTH, MessageUtils.get("validation.user.username.too-long", ValidationConstants.USER_USERNAME_MAX_LENGTH));
+        Assert.hasText(password, MessageUtils.get("validation.user.password.required"));
+        Assert.hasText(name, MessageUtils.get("validation.user.name.required"));
+        Assert.isTrue(name.length() <= ValidationConstants.USER_NAME_MAX_LENGTH, MessageUtils.get("validation.user.name.too-long", ValidationConstants.USER_NAME_MAX_LENGTH));
+        Assert.hasText(email, MessageUtils.get("validation.user.email.required"));
+        Assert.isTrue(email.length() <= ValidationConstants.USER_EMAIL_MAX_LENGTH, MessageUtils.get("validation.user.email.too-long", ValidationConstants.USER_EMAIL_MAX_LENGTH));
 
         this.username = username;
         this.password = password;
@@ -96,19 +96,19 @@ public class User implements Serializable {
     }
 
     public void changeName(@NonNull String name) {
-        Assert.hasText(name, EntityMessageProvider.getMessage(ValidationMessages.USER_NAME_REQUIRED, ValidationMessages.USER_NAME_REQUIRED_FALLBACK));
-        Assert.isTrue(name.length() <= ValidationConstants.USER_NAME_MAX_LENGTH, EntityMessageProvider.getMessage(ValidationMessages.USER_NAME_TOO_LONG, ValidationMessages.USER_NAME_TOO_LONG_FALLBACK, ValidationConstants.USER_NAME_MAX_LENGTH));
+        Assert.hasText(name, MessageUtils.get("validation.user.name.required"));
+        Assert.isTrue(name.length() <= ValidationConstants.USER_NAME_MAX_LENGTH, MessageUtils.get("validation.user.name.too-long", ValidationConstants.USER_NAME_MAX_LENGTH));
         this.name = name;
     }
 
     public void changeEmail(@NonNull String email) {
-        Assert.hasText(email, EntityMessageProvider.getMessage(ValidationMessages.USER_EMAIL_REQUIRED, ValidationMessages.USER_EMAIL_REQUIRED_FALLBACK));
-        Assert.isTrue(email.length() <= ValidationConstants.USER_EMAIL_MAX_LENGTH, EntityMessageProvider.getMessage(ValidationMessages.USER_EMAIL_TOO_LONG, ValidationMessages.USER_EMAIL_TOO_LONG_FALLBACK, ValidationConstants.USER_EMAIL_MAX_LENGTH));
+        Assert.hasText(email, MessageUtils.get("validation.user.email.required"));
+        Assert.isTrue(email.length() <= ValidationConstants.USER_EMAIL_MAX_LENGTH, MessageUtils.get("validation.user.email.too-long", ValidationConstants.USER_EMAIL_MAX_LENGTH));
         this.email = email;
     }
 
     public void changePassword(@NonNull String password) {
-        Assert.hasText(password, EntityMessageProvider.getMessage(ValidationMessages.USER_PASSWORD_REQUIRED, ValidationMessages.USER_PASSWORD_REQUIRED_FALLBACK));
+        Assert.hasText(password, MessageUtils.get("validation.user.password.required"));
         this.password = password;
     }
 
@@ -116,29 +116,9 @@ public class User implements Serializable {
         this.lastLogin = lastLogin;
     }
 
-    public void grantAdminRole() {
-        roles.add(Role.ADMIN);
-    }
-
-    public boolean revokeAdminRole() {
-        if (roles.contains(Role.ADMIN)) {
-            if (roles.size() <= 1) return false; // 마지막 역할이 ADMIN인 경우 제거 불가
-            roles.remove(Role.ADMIN);
-            return true;
-        }
-        return false; // ADMIN 역할이 없음
-    }
-
-    public boolean hasAdminRole() {
-        return roles.contains(Role.ADMIN);
-    }
-
     public void verifyEmail() {
         emailVerified = true;
         emailVerifiedAt = LocalDateTime.now(ZoneId.systemDefault());
     }
 
-    public boolean canAccessService() {
-        return emailVerified;
-    }
 }

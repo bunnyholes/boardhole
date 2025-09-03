@@ -12,7 +12,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,7 +32,6 @@ public class EmailVerificationController {
     private final UserRepository userRepository;
     private final EmailVerificationRepository emailVerificationRepository;
     private final EmailService emailService;
-    private final MessageUtils messageUtils;
 
     @Value("${boardhole.email.verification-expiration-hours:24}")
     private int verificationExpirationHours;
@@ -46,7 +45,8 @@ public class EmailVerificationController {
     @ApiResponse(responseCode = "400", description = "잘못된 토큰 또는 만료된 토큰")
     @ApiResponse(responseCode = "404", description = "토큰을 찾을 수 없음")
     @Transactional
-    public ResponseEntity<String> verifyEmail(
+    @ResponseStatus(HttpStatus.OK)
+    public String verifyEmail(
             @Parameter(description = "사용자 ID")
             @PathVariable Long id,
             @Parameter(description = "인증 토큰", example = "abc123def456")
@@ -54,14 +54,14 @@ public class EmailVerificationController {
 
         EmailVerification verification = emailVerificationRepository.findByCodeAndUsedFalse(token)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        messageUtils.getMessage("error.email-verification.invalid-token")));
+                        MessageUtils.get("error.email-verification.invalid-token")));
 
         if (verification.isExpired()) throw new IllegalArgumentException(
-                messageUtils.getMessage("error.email-verification.expired"));
+                MessageUtils.get("error.email-verification.expired"));
 
         User user = userRepository.findById(verification.getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        messageUtils.getMessage("error.user.not-found.id", verification.getUserId())));
+                        MessageUtils.get("error.user.not-found.id", verification.getUserId())));
 
         // 인증 타입에 따른 처리
         if (verification.getVerificationType() == EmailVerificationType.SIGNUP) {
@@ -80,7 +80,7 @@ public class EmailVerificationController {
         userRepository.save(user);
         emailVerificationRepository.save(verification);
 
-        return ResponseEntity.ok(messageUtils.getMessage("success.email-verification.completed"));
+        return MessageUtils.get("success.email-verification.completed");
     }
 
     @PostMapping("/{id}/email/resend")
@@ -92,16 +92,17 @@ public class EmailVerificationController {
     @ApiResponse(responseCode = "400", description = "이미 인증된 사용자 또는 잘못된 요청")
     @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음")
     @Transactional
-    public ResponseEntity<String> resendVerificationEmail(
+    @ResponseStatus(HttpStatus.OK)
+    public String resendVerificationEmail(
             @Parameter(description = "사용자 ID")
             @PathVariable Long id) {
 
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        messageUtils.getMessage("error.user.not-found.id", id)));
+                        MessageUtils.get("error.user.not-found.id", id)));
 
         if (user.isEmailVerified()) throw new IllegalArgumentException(
-                messageUtils.getMessage("error.email-verification.already-verified"));
+                MessageUtils.get("error.email-verification.already-verified"));
 
         // 기존 미사용 토큰들을 만료 처리
         List<EmailVerification> existingVerifications = emailVerificationRepository.findByUserIdAndUsedFalse(user.getId());
@@ -126,6 +127,6 @@ public class EmailVerificationController {
         emailVerificationRepository.save(newVerification);
         emailService.sendSignupVerificationEmail(user, newToken);
 
-        return ResponseEntity.ok(messageUtils.getMessage("success.email-verification.resent"));
+        return MessageUtils.get("success.email-verification.resent");
     }
 }

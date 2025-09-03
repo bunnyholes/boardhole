@@ -24,11 +24,11 @@ class LoggingAspectTest {
     }
 
     @Test
-    void methodEndDoesNotLogReturnValue() throws Throwable {
+    void methodEndDoesNotLogReturnValue() throws InterruptedException {
         DummyService target = new DummyService();
         AspectJProxyFactory factory = new AspectJProxyFactory(target);
         factory.addAspect(loggingAspect);
-        DummyService proxy = factory.getProxy();
+        factory.getProxy();
 
         Logger logger = (Logger) org.slf4j.LoggerFactory.getLogger(LoggingAspect.class);
         logger.setLevel(Level.DEBUG);
@@ -42,9 +42,8 @@ class LoggingAspectTest {
     }
 
     static class DummyService {
-        static String doWork() throws InterruptedException {
+        static void doWork() throws InterruptedException {
             Thread.sleep(20); // ensure tookMs > 10 for logging
-            return "sensitive";
         }
     }
 }

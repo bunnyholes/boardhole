@@ -13,7 +13,6 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
@@ -29,12 +28,16 @@ class BoardCommandServiceTest {
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
-        ResourceBundleMessageSource ms = new ResourceBundleMessageSource();
-        ms.setBasename("messages");
-        ms.setDefaultEncoding("UTF-8");
-        MessageUtils messageUtils = new MessageUtils(ms);
-        service = new BoardCommandService(boardRepository, userRepository, null, messageUtils);
+        try (var mocks = MockitoAnnotations.openMocks(this)) {
+            ResourceBundleMessageSource ms = new ResourceBundleMessageSource();
+            ms.setBasename("messages");
+            ms.setDefaultEncoding("UTF-8");
+            ms.setUseCodeAsDefaultMessage(true);
+            ReflectionTestUtils.setField(MessageUtils.class, "messageSource", ms);
+            service = new BoardCommandService(boardRepository, userRepository, null);
+        } catch (Exception e) {
+            throw new RuntimeException("Mock setup failed", e);
+        }
     }
 
     @Test

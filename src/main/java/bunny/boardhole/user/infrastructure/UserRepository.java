@@ -1,7 +1,6 @@
 package bunny.boardhole.user.infrastructure;
 
 import bunny.boardhole.user.domain.User;
-import jakarta.validation.constraints.NotNull;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.stereotype.Repository;
@@ -22,7 +21,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
      * @param username 확인할 사용자명
      * @return 사용자명 존재 여부
      */
-    boolean existsByUsername(@NotNull String username);
+    boolean existsByUsername(String username);
 
     /**
      * 이메일 중복 확인
@@ -30,7 +29,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
      * @param email 확인할 이메일 주소
      * @return 이메일 존재 여부
      */
-    boolean existsByEmail(@NotNull String email);
+    boolean existsByEmail(String email);
 
     /**
      * 사용자명으로 사용자 조회 (권한 정보 포함)
@@ -38,8 +37,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
      * @param username 조회할 사용자명
      * @return 사용자 엔티티 (권한 정보 포함)
      */
-    @EntityGraph(attributePaths = {"roles"})
-    User findByUsername(@NotNull String username);
+    @EntityGraph(attributePaths = "roles")
+    Optional<User> findByUsername(String username);
 
     /**
      * 사용자명으로 사용자 조회 (Optional)
@@ -47,8 +46,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
      * @param username 조회할 사용자명
      * @return 사용자 엔티티 Optional
      */
-    @EntityGraph(attributePaths = {"roles"})
-    Optional<User> findOptionalByUsername(@NotNull String username);
+    @EntityGraph(attributePaths = "roles")
+    Optional<User> findOptionalByUsername(String username);
 
     /**
      * 이메일로 사용자 조회
@@ -56,11 +55,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
      * @param email 조회할 이메일
      * @return 사용자 엔티티 Optional
      */
-    @EntityGraph(attributePaths = {"roles"})
-    Optional<User> findByEmail(@NotNull String email);
+    @EntityGraph(attributePaths = "roles")
+    Optional<User> findByEmail(String email);
 
     @Override
-    @EntityGraph(attributePaths = {"roles"})
+    @EntityGraph(attributePaths = "roles")
     Optional<User> findById(Long id);
 
     /**
@@ -73,5 +72,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
      * @return 검색된 사용자 페이지
      */
     Page<User> findByUsernameContainingIgnoreCaseOrNameContainingIgnoreCaseOrEmailContainingIgnoreCase(
-            @NotNull String username, @NotNull String name, @NotNull String email, @NotNull Pageable pageable);
+            String username, String name, String email, Pageable pageable);
 }
