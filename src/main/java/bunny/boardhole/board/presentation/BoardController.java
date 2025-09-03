@@ -78,9 +78,9 @@ public class BoardController {
             description = "[PUBLIC] 페이지네이션을 지원하는 게시글 목록을 조회합니다. 검색어를 포함할 수 있습니다."
     )
     @ApiResponses(@ApiResponse(
-            responseCode = "200",
+            responseCode = "200", 
             description = "게시글 목록 조회 성공",
-            content = @Content(schema = @Schema(implementation = Page.class))
+            content = @Content(schema = @Schema(ref = "#/components/schemas/PageBoardResponse"))
     ))
     @Parameters({
             @Parameter(name = "page", description = "0부터 시작하는 페이지 인덱스", example = "0"),
