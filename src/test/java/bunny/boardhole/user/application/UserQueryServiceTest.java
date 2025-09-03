@@ -11,13 +11,13 @@ import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.data.domain.*;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -34,13 +34,10 @@ class UserQueryServiceTest {
     private static final String NAME = "name";
     private static final String NEW_NAME = "new";
     private static final String EMAIL = "john@example.com";
-    private static final String MESSAGE = "msg";
     @Mock
     private UserRepository userRepository;
     @Mock
     private UserMapper userMapper;
-    @Mock
-    private MessageUtils messageUtils;
     private UserQueryService userQueryService;
 
     private static User user() {
@@ -67,7 +64,13 @@ class UserQueryServiceTest {
 
     @BeforeEach
     void setUp() {
-        userQueryService = new UserQueryService(userRepository, userMapper, messageUtils);
+        ResourceBundleMessageSource ms = new ResourceBundleMessageSource();
+        ms.setBasename("messages");
+        ms.setDefaultEncoding("UTF-8");
+        ms.setUseCodeAsDefaultMessage(true);
+        ReflectionTestUtils.setField(MessageUtils.class, "messageSource", ms);
+
+        userQueryService = new UserQueryService(userRepository, userMapper);
     }
 
     @Nested
@@ -99,7 +102,6 @@ class UserQueryServiceTest {
         void shouldThrowWhenUserNotFound() {
             // given
             when(userRepository.findById(UserQueryServiceTest.USER_ID)).thenReturn(Optional.empty());
-            when(messageUtils.getMessage(anyString(), any())).thenReturn(UserQueryServiceTest.MESSAGE);
 
             // when & then
             assertThatThrownBy(() -> userQueryService.get(UserQueryServiceTest.USER_ID))

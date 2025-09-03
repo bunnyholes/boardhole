@@ -1,7 +1,7 @@
 package bunny.boardhole.board.domain;
 
-import bunny.boardhole.shared.constants.*;
-import bunny.boardhole.shared.util.EntityMessageProvider;
+import bunny.boardhole.shared.constants.ValidationConstants;
+import bunny.boardhole.shared.util.MessageUtils;
 import bunny.boardhole.user.domain.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -15,7 +15,7 @@ import java.time.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-@ToString(exclude = {"author"})
+@ToString(exclude = "author")
 @Entity
 @DynamicUpdate
 @Table(name = "boards", indexes = {
@@ -53,11 +53,11 @@ public class Board {
     // 필요한 필드만 받는 생성자에 @Builder 적용
     @Builder
     public Board(@NonNull String title, @NonNull String content, @NonNull User author) {
-        Assert.hasText(title, EntityMessageProvider.getMessage(ValidationMessages.BOARD_TITLE_REQUIRED, ValidationMessages.BOARD_TITLE_REQUIRED_FALLBACK));
-        Assert.isTrue(title.length() <= ValidationConstants.BOARD_TITLE_MAX_LENGTH, EntityMessageProvider.getMessage(ValidationMessages.BOARD_TITLE_TOO_LONG, ValidationMessages.BOARD_TITLE_TOO_LONG_FALLBACK, ValidationConstants.BOARD_TITLE_MAX_LENGTH));
-        Assert.hasText(content, EntityMessageProvider.getMessage(ValidationMessages.BOARD_CONTENT_REQUIRED, ValidationMessages.BOARD_CONTENT_REQUIRED_FALLBACK));
-        Assert.isTrue(content.length() <= ValidationConstants.BOARD_CONTENT_MAX_LENGTH, EntityMessageProvider.getMessage(ValidationMessages.BOARD_CONTENT_TOO_LONG, ValidationMessages.BOARD_CONTENT_TOO_LONG_FALLBACK, ValidationConstants.BOARD_CONTENT_MAX_LENGTH));
-        Assert.notNull(author, EntityMessageProvider.getMessage(ValidationMessages.BOARD_AUTHOR_REQUIRED, ValidationMessages.BOARD_AUTHOR_REQUIRED_FALLBACK));
+        Assert.hasText(title, MessageUtils.get("validation.board.title.required"));
+        Assert.isTrue(title.length() <= ValidationConstants.BOARD_TITLE_MAX_LENGTH, MessageUtils.get("validation.board.title.too-long", ValidationConstants.BOARD_TITLE_MAX_LENGTH));
+        Assert.hasText(content, MessageUtils.get("validation.board.content.required"));
+        Assert.isTrue(content.length() <= ValidationConstants.BOARD_CONTENT_MAX_LENGTH, MessageUtils.get("validation.board.content.too-long", ValidationConstants.BOARD_CONTENT_MAX_LENGTH));
+        Assert.notNull(author, MessageUtils.get("validation.board.author.required"));
 
         this.title = title;
         this.content = content;
@@ -78,14 +78,14 @@ public class Board {
     }
 
     public void changeTitle(@NonNull String title) {
-        Assert.hasText(title, EntityMessageProvider.getMessage(ValidationMessages.BOARD_TITLE_REQUIRED, ValidationMessages.BOARD_TITLE_REQUIRED_FALLBACK));
-        Assert.isTrue(title.length() <= ValidationConstants.BOARD_TITLE_MAX_LENGTH, EntityMessageProvider.getMessage(ValidationMessages.BOARD_TITLE_TOO_LONG, ValidationMessages.BOARD_TITLE_TOO_LONG_FALLBACK, ValidationConstants.BOARD_TITLE_MAX_LENGTH));
+        Assert.hasText(title, MessageUtils.get("validation.board.title.required"));
+        Assert.isTrue(title.length() <= ValidationConstants.BOARD_TITLE_MAX_LENGTH, MessageUtils.get("validation.board.title.too-long", ValidationConstants.BOARD_TITLE_MAX_LENGTH));
         this.title = title;
     }
 
     public void changeContent(@NonNull String content) {
-        Assert.hasText(content, EntityMessageProvider.getMessage(ValidationMessages.BOARD_CONTENT_REQUIRED, ValidationMessages.BOARD_CONTENT_REQUIRED_FALLBACK));
-        Assert.isTrue(content.length() <= ValidationConstants.BOARD_CONTENT_MAX_LENGTH, EntityMessageProvider.getMessage(ValidationMessages.BOARD_CONTENT_TOO_LONG, ValidationMessages.BOARD_CONTENT_TOO_LONG_FALLBACK, ValidationConstants.BOARD_CONTENT_MAX_LENGTH));
+        Assert.hasText(content, MessageUtils.get("validation.board.content.required"));
+        Assert.isTrue(content.length() <= ValidationConstants.BOARD_CONTENT_MAX_LENGTH, MessageUtils.get("validation.board.content.too-long", ValidationConstants.BOARD_CONTENT_MAX_LENGTH));
         this.content = content;
     }
 

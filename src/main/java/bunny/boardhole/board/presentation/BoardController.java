@@ -62,13 +62,13 @@ public class BoardController {
             @ApiResponse(responseCode = "400", description = "잘못된 요청 데이터"),
             @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
     })
-    public ResponseEntity<BoardResponse> create(@Validated @ModelAttribute BoardCreateRequest req, @AuthenticationPrincipal AppUserPrincipal principal) {
+    @ResponseStatus(HttpStatus.CREATED)
+    public BoardResponse create(@Validated @ModelAttribute BoardCreateRequest req, @AuthenticationPrincipal AppUserPrincipal principal) {
         // 요청의 userId를 무시하고 인증된 사용자로 고정
         User current = principal.user();
         var cmd = boardWebMapper.toCreateCommand(req, current.getId());
         var result = boardCommandService.create(cmd);
-        var body = boardWebMapper.toResponse(result);
-        return ResponseEntity.created(java.net.URI.create(ApiPaths.BOARDS + "/" + result.id())).body(body);
+        return boardWebMapper.toResponse(result);
     }
 
     @GetMapping
@@ -77,13 +77,11 @@ public class BoardController {
             summary = "게시글 목록 조회",
             description = "[PUBLIC] 페이지네이션을 지원하는 게시글 목록을 조회합니다. 검색어를 포함할 수 있습니다."
     )
-    @ApiResponses({
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "게시글 목록 조회 성공",
-                    content = @Content(schema = @Schema(implementation = Page.class))
-            )
-    })
+    @ApiResponses(@ApiResponse(
+            responseCode = "200",
+            description = "게시글 목록 조회 성공",
+            content = @Content(schema = @Schema(implementation = Page.class))
+    ))
     @Parameters({
             @Parameter(name = "page", description = "0부터 시작하는 페이지 인덱스", example = "0"),
             @Parameter(name = "size", description = "페이지 크기", example = "10"),
@@ -91,7 +89,7 @@ public class BoardController {
     })
     public Page<BoardResponse> list(
             @Parameter(description = "페이지네이션 정보 (기본: 페이지 크기 10, ID 내림차순 정렬)")
-            @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.DESC) @ParameterObject Pageable pageable,
+            @PageableDefault(sort = "id", direction = Sort.Direction.DESC) @ParameterObject Pageable pageable,
             @Parameter(description = "검색어 (제목 또는 내용에서 검색)", example = "공지")
             @RequestParam(required = false) String search) {
         Page<BoardResult> page = search == null

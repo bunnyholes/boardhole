@@ -74,7 +74,7 @@ public class GlobalExceptionHandler {
         return pd;
     }
 
-    @ExceptionHandler({DuplicateUsernameException.class})
+    @ExceptionHandler(DuplicateUsernameException.class)
     public ProblemDetail handleDuplicateUsername(DuplicateUsernameException ex, HttpServletRequest request) {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
         pd.setTitle(messageSource.getMessage("exception.title.duplicate-username", null, LocaleContextHolder.getLocale()));
@@ -84,7 +84,7 @@ public class GlobalExceptionHandler {
         return pd;
     }
 
-    @ExceptionHandler({DuplicateEmailException.class})
+    @ExceptionHandler(DuplicateEmailException.class)
     public ProblemDetail handleDuplicateEmail(DuplicateEmailException ex, HttpServletRequest request) {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
         pd.setTitle(messageSource.getMessage("exception.title.duplicate-email", null, LocaleContextHolder.getLocale()));

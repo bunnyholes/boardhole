@@ -87,4 +87,15 @@
         </properties>
     </rule>
 
+    <!-- 컨트롤러에서 ResponseEntity 사용 금지 -->
+    <rule name="NoResponseEntityInController"
+          message="컨트롤러에서 ResponseEntity를 직접 반환하지 마세요. @ResponseStatus나 ResponseBodyAdvice를 사용하세요."
+          language="java"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <properties>
+            <property name="xpath" value="//ClassDeclaration[.//Annotation[@SimpleName='Controller' or @SimpleName='RestController']]//MethodDeclaration//Type//ClassType[@SimpleName='ResponseEntity']"/>
+        </properties>
+        <priority>1</priority>
+    </rule>
+
 </ruleset>

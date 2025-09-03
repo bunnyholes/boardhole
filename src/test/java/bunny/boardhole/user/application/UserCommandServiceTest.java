@@ -14,6 +14,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.*;
 import org.mockito.quality.Strictness;
+import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -21,7 +22,6 @@ import java.time.*;
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -45,7 +45,6 @@ class UserCommandServiceTest {
     private static final String WRONG_PASSWORD = "wrong";
     private static final String NEW_PASSWORD = "newPass123";
     private static final String VERIFICATION_CODE = "verify";
-    private static final String MESSAGE = "msg";
     @Mock
     private UserRepository userRepository;
     @Mock
@@ -54,8 +53,6 @@ class UserCommandServiceTest {
     private PasswordEncoder passwordEncoder;
     @Mock
     private UserMapper userMapper;
-    @Mock
-    private MessageUtils messageUtils;
     @Mock
     private VerificationCodeGenerator verificationCodeGenerator;
     @Mock
@@ -97,19 +94,22 @@ class UserCommandServiceTest {
 
     @BeforeEach
     void setUp() {
+        ResourceBundleMessageSource ms = new ResourceBundleMessageSource();
+        ms.setBasename("messages");
+        ms.setDefaultEncoding("UTF-8");
+        ms.setUseCodeAsDefaultMessage(true);
+        ReflectionTestUtils.setField(MessageUtils.class, "messageSource", ms);
+
         validationProperties = new ValidationProperties();
         userCommandService = new UserCommandService(
                 userRepository,
                 emailVerificationRepository,
                 passwordEncoder,
                 userMapper,
-                messageUtils,
                 validationProperties,
                 verificationCodeGenerator,
                 emailService
         );
-
-        when(messageUtils.getMessage(anyString(), any())).thenReturn(MESSAGE);
     }
 
     @Nested

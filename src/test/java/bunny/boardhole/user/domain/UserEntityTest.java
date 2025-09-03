@@ -1,7 +1,8 @@
 package bunny.boardhole.user.domain;
 
-import bunny.boardhole.shared.constants.*;
+import bunny.boardhole.shared.constants.ValidationConstants;
 import bunny.boardhole.shared.test.EntityTestBase;
+import bunny.boardhole.shared.util.MessageUtils;
 import org.junit.jupiter.api.*;
 
 import java.time.*;
@@ -58,7 +59,7 @@ class UserEntityTest extends EntityTestBase {
         @DisplayName("❌ 빈 사용자명으로 User 생성 시 예외 발생")
         void createUser_WithEmptyUsername_ThrowsException() {
             // given
-            String expectedMessage = ValidationMessages.USER_USERNAME_REQUIRED_FALLBACK;
+            String expectedMessage = MessageUtils.get("validation.user.username.required");
 
             // when & then
             assertThatThrownBy(() -> User.builder()
@@ -76,7 +77,7 @@ class UserEntityTest extends EntityTestBase {
         @DisplayName("❌ 빈 비밀번호로 User 생성 시 예외 발생")
         void createUser_WithEmptyPassword_ThrowsException() {
             // given
-            String expectedMessage = ValidationMessages.USER_PASSWORD_REQUIRED_FALLBACK;
+            String expectedMessage = MessageUtils.get("validation.user.password.required");
 
             // when & then
             assertThatThrownBy(() -> User.builder()
@@ -94,7 +95,7 @@ class UserEntityTest extends EntityTestBase {
         @DisplayName("❌ 빈 이름으로 User 생성 시 예외 발생")
         void createUser_WithEmptyName_ThrowsException() {
             // given
-            String expectedMessage = ValidationMessages.USER_NAME_REQUIRED_FALLBACK;
+            String expectedMessage = MessageUtils.get("validation.user.name.required");
 
             // when & then
             assertThatThrownBy(() -> User.builder()
@@ -112,7 +113,7 @@ class UserEntityTest extends EntityTestBase {
         @DisplayName("❌ 빈 이메일로 User 생성 시 예외 발생")
         void createUser_WithEmptyEmail_ThrowsException() {
             // given
-            String expectedMessage = ValidationMessages.USER_EMAIL_REQUIRED_FALLBACK;
+            String expectedMessage = MessageUtils.get("validation.user.email.required");
 
             // when & then
             assertThatThrownBy(() -> User.builder()
@@ -137,7 +138,7 @@ class UserEntityTest extends EntityTestBase {
         void createUser_WithUsernameTooLong_ThrowsException() {
             // given
             String longUsername = "a".repeat(ValidationConstants.USER_USERNAME_MAX_LENGTH + 1);
-            String expectedMessage = String.format(ValidationMessages.USER_USERNAME_TOO_LONG_FALLBACK, ValidationConstants.USER_USERNAME_MAX_LENGTH);
+            String expectedMessage = MessageUtils.get("validation.user.username.too-long", ValidationConstants.USER_USERNAME_MAX_LENGTH);
 
             // when & then
             assertThatThrownBy(() -> User.builder()
@@ -156,7 +157,7 @@ class UserEntityTest extends EntityTestBase {
         void createUser_WithNameTooLong_ThrowsException() {
             // given
             String longName = "a".repeat(ValidationConstants.USER_NAME_MAX_LENGTH + 1);
-            String expectedMessage = String.format(ValidationMessages.USER_NAME_TOO_LONG_FALLBACK, ValidationConstants.USER_NAME_MAX_LENGTH);
+            String expectedMessage = MessageUtils.get("validation.user.name.too-long", ValidationConstants.USER_NAME_MAX_LENGTH);
 
             // when & then
             assertThatThrownBy(() -> User.builder()
@@ -175,7 +176,7 @@ class UserEntityTest extends EntityTestBase {
         void createUser_WithEmailTooLong_ThrowsException() {
             // given
             String longEmail = "a".repeat(ValidationConstants.USER_EMAIL_MAX_LENGTH) + "@example.com";
-            String expectedMessage = String.format(ValidationMessages.USER_EMAIL_TOO_LONG_FALLBACK, ValidationConstants.USER_EMAIL_MAX_LENGTH);
+            String expectedMessage = MessageUtils.get("validation.user.email.too-long", ValidationConstants.USER_EMAIL_MAX_LENGTH);
 
             // when & then
             assertThatThrownBy(() -> User.builder()
@@ -236,7 +237,7 @@ class UserEntityTest extends EntityTestBase {
         void changeName_WithValidName_Success() {
             // given
             User user = createTestUser();
-            String newName = "새로운 이름";
+            final String newName = "새로운 이름";
 
             // when
             user.changeName(newName);
@@ -250,7 +251,7 @@ class UserEntityTest extends EntityTestBase {
         void changeName_WithEmptyName_ThrowsException() {
             // given
             User user = createTestUser();
-            String expectedMessage = ValidationMessages.USER_NAME_REQUIRED_FALLBACK;
+            String expectedMessage = MessageUtils.get("validation.user.name.required");
 
             // when & then
             assertThatThrownBy(() -> user.changeName(""))
@@ -277,7 +278,7 @@ class UserEntityTest extends EntityTestBase {
         void changePassword_WithValidPassword_Success() {
             // given
             User user = createTestUser();
-            String newPassword = "newpassword123";
+            final String newPassword = "newpassword123";
 
             // when
             user.changePassword(newPassword);

@@ -11,9 +11,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.util.*;
+import java.util.Set;
 
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -56,10 +55,10 @@ class EmailServiceMockTest {
     @DisplayName("회원가입 인증 이메일 발송 - Mock 테스트")
     void sendSignupVerificationEmail_Mock() {
         // given
-        String verificationToken = "test-token-123";
-        String processedTemplate = "<html>인증 이메일 내용</html>";
+        final String verificationToken = "test-token-123";
+        final String processedTemplate = "<html>인증 이메일 내용</html>";
 
-        when(templateService.processTemplate(eq(EmailTemplate.SIGNUP_VERIFICATION), any(Map.class)))
+        when(templateService.processTemplate(eq(EmailTemplate.SIGNUP_VERIFICATION), ArgumentMatchers.any()))
                 .thenReturn(processedTemplate);
 
         // when
@@ -67,16 +66,16 @@ class EmailServiceMockTest {
 
         // then
         verify(mailSender).send(mimeMessage);
-        verify(templateService).processTemplate(eq(EmailTemplate.SIGNUP_VERIFICATION), any(Map.class));
+        verify(templateService).processTemplate(eq(EmailTemplate.SIGNUP_VERIFICATION), ArgumentMatchers.any());
     }
 
     @Test
     @DisplayName("환영 이메일 발송 - Mock 테스트")
     void sendWelcomeEmail_Mock() {
         // given
-        String processedTemplate = "<html>환영 이메일 내용</html>";
+        final String processedTemplate = "<html>환영 이메일 내용</html>";
 
-        when(templateService.processTemplate(eq(EmailTemplate.WELCOME), any(Map.class)))
+        when(templateService.processTemplate(eq(EmailTemplate.WELCOME), ArgumentMatchers.any()))
                 .thenReturn(processedTemplate);
 
         // when
@@ -84,18 +83,18 @@ class EmailServiceMockTest {
 
         // then
         verify(mailSender).send(mimeMessage);
-        verify(templateService).processTemplate(eq(EmailTemplate.WELCOME), any(Map.class));
+        verify(templateService).processTemplate(eq(EmailTemplate.WELCOME), ArgumentMatchers.any());
     }
 
     @Test
     @DisplayName("이메일 변경 인증 발송 - Mock 테스트")
     void sendEmailChangeVerificationEmail_Mock() {
         // given
-        String newEmail = "newemail@example.com";
-        String verificationToken = "change-token-123";
-        String processedTemplate = "<html>이메일 변경 인증 내용</html>";
+        final String newEmail = "newemail@example.com";
+        final String verificationToken = "change-token-123";
+        final String processedTemplate = "<html>이메일 변경 인증 내용</html>";
 
-        when(templateService.processTemplate(eq(EmailTemplate.EMAIL_CHANGE_VERIFICATION), any(Map.class)))
+        when(templateService.processTemplate(eq(EmailTemplate.EMAIL_CHANGE_VERIFICATION), ArgumentMatchers.any()))
                 .thenReturn(processedTemplate);
 
         // when
@@ -103,6 +102,6 @@ class EmailServiceMockTest {
 
         // then
         verify(mailSender).send(mimeMessage);
-        verify(templateService).processTemplate(eq(EmailTemplate.EMAIL_CHANGE_VERIFICATION), any(Map.class));
+        verify(templateService).processTemplate(eq(EmailTemplate.EMAIL_CHANGE_VERIFICATION), ArgumentMatchers.any());
     }
 }

@@ -32,7 +32,6 @@ public class BoardCommandService {
     private final BoardRepository boardRepository;
     private final UserRepository userRepository;
     private final BoardMapper boardMapper;
-    private final MessageUtils messageUtils;
 
     /**
      * 게시글 생성
@@ -45,7 +44,7 @@ public class BoardCommandService {
     public BoardResult create(@Valid CreateBoardCommand cmd) {
         Long authorId = cmd.authorId();
         User author = userRepository.findById(authorId)
-                .orElseThrow(() -> new ResourceNotFoundException(messageUtils.getMessage("error.user.not-found.id", authorId)));
+                .orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.user.not-found.id", authorId)));
 
         Board board = Board.builder()
                 .title(cmd.title())
@@ -71,7 +70,7 @@ public class BoardCommandService {
     public BoardResult update(@Valid @NonNull UpdateBoardCommand cmd) {
         Long id = cmd.boardId();
         Board board = boardRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(messageUtils.getMessage("error.board.not-found.id", id)));
+                .orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.board.not-found.id", id)));
 
         // Optional을 사용한 선택적 필드 업데이트
         Optional.ofNullable(cmd.title()).ifPresent(board::changeTitle);
@@ -91,10 +90,9 @@ public class BoardCommandService {
      */
     @Transactional
     @PreAuthorize("hasPermission(#id, 'BOARD', 'DELETE')")
-    public BoardResult delete(@NotNull @Positive Long id) {
+    public void delete(@NotNull @Positive Long id) {
         Board board = loadBoardOrThrow(id);
         boardRepository.delete(board);
-        return boardMapper.toResult(board);
     }
 
     /**
@@ -109,7 +107,7 @@ public class BoardCommandService {
     public void incrementViewCount(@Valid IncrementViewCountCommand cmd) {
         Long boardId = cmd.boardId();
         Board board = boardRepository.findById(boardId)
-                .orElseThrow(() -> new ResourceNotFoundException(messageUtils.getMessage("error.board.not-found.id", boardId)));
+                .orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.board.not-found.id", boardId)));
 
         board.increaseViewCount();
 
@@ -127,7 +125,7 @@ public class BoardCommandService {
     @NonNull
     private Board loadBoardOrThrow(@NonNull Long id) {
         return boardRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(messageUtils.getMessage("error.board.not-found.id", id)));
+                .orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.board.not-found.id", id)));
     }
 
 }

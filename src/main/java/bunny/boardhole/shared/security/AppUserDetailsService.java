@@ -17,13 +17,11 @@ import org.springframework.validation.annotation.Validated;
 @RequiredArgsConstructor
 public class AppUserDetailsService implements UserDetailsService {
     private final UserRepository userRepository;
-    private final MessageUtils messageUtils;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findByUsername(username);
-        if (user == null)
-            throw new UsernameNotFoundException(messageUtils.getMessage("error.user.not-found.username", username));
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException(MessageUtils.get("error.user.not-found.username", username)));
         return new AppUserPrincipal(user);
     }
 }

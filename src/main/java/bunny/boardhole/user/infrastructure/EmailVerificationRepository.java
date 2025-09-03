@@ -37,12 +37,11 @@ public interface EmailVerificationRepository extends JpaRepository<EmailVerifica
      * 특정 사용자의 미사용 검증 정보 무효화
      *
      * @param userId 사용자 ID
-     * @return 업데이트된 행 수
      */
     @Modifying
     @Transactional
     @Query("UPDATE EmailVerification ev SET ev.used = true WHERE ev.userId = :userId AND ev.used = false")
-    int invalidateUserVerifications(@Param("userId") Long userId);
+    void invalidateUserVerifications(@Param("userId") Long userId);
 
     /**
      * 코드로 미사용 검증 정보 조회

@@ -1,6 +1,5 @@
 package bunny.boardhole.auth.application.command;
 
-import bunny.boardhole.auth.application.result.AuthResult;
 import bunny.boardhole.auth.domain.AuthenticationService;
 import jakarta.servlet.http.*;
 import jakarta.validation.Valid;
@@ -16,8 +15,8 @@ public class AuthCommandService {
 
     private final AuthenticationService authProvider;
 
-    public AuthResult login(@Valid @NonNull LoginCommand cmd, @NonNull HttpServletRequest request, @NonNull HttpServletResponse response) {
-        return authProvider.login(cmd, request, response);
+    public void login(@Valid @NonNull LoginCommand cmd, @NonNull HttpServletRequest request, @NonNull HttpServletResponse response) {
+        authProvider.login(cmd, request, response);
     }
 
     public void logout(@Valid @NonNull LogoutCommand cmd, @NonNull HttpServletRequest request, @NonNull HttpServletResponse response) {

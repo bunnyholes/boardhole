@@ -3,7 +3,9 @@ package bunny.boardhole.shared.security;
 import bunny.boardhole.board.infrastructure.BoardRepository;
 import bunny.boardhole.shared.config.properties.SecurityProperties;
 import bunny.boardhole.shared.constants.PermissionType;
+import bunny.boardhole.user.domain.User;
 import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.Nullable;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.*;
 import org.springframework.stereotype.Component;
@@ -18,6 +20,13 @@ public class AppPermissionEvaluator implements PermissionEvaluator {
     private final BoardRepository boardRepository;
     private final SecurityProperties securityProperties;
 
+    private static boolean hasRole(Authentication auth, String role) {
+        if (!auth.isAuthenticated()) return false;
+        return auth.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(role::equals);
+    }
+
     @Override
     public boolean hasPermission(Authentication authentication, Object targetDomainObject, Object permission) {
         // Not used in this project; rely on id + type form
@@ -26,9 +35,9 @@ public class AppPermissionEvaluator implements PermissionEvaluator {
 
     @Override
     public boolean hasPermission(Authentication auth, Serializable targetId, String targetType, Object permission) {
-        if (auth == null || !auth.isAuthenticated()) return false;
-        String type = targetType == null ? "" : targetType.toUpperCase(Locale.ROOT);
-        String perm = permission == null ? "" : permission.toString().toUpperCase(Locale.ROOT);
+        if (!auth.isAuthenticated()) return false;
+        String type = targetType.toUpperCase(Locale.ROOT);
+        String perm = permission.toString().toUpperCase(Locale.ROOT);
 
         // Admin shortcut
         if (hasRole(auth, securityProperties.getRolePrefix() + "ADMIN")) return true;
@@ -62,23 +71,15 @@ public class AppPermissionEvaluator implements PermissionEvaluator {
                 .orElse(false);
     }
 
-    private boolean isSameUser(Authentication auth, Long userId) {
+    private static boolean isSameUser(Authentication auth, Long userId) {
         Long current = extractUserId(auth);
         return current != null && current.equals(userId);
     }
 
-    private Long extractUserId(Authentication auth) {
+    private static @Nullable Long extractUserId(Authentication auth) {
         Object principal = auth.getPrincipal();
-        if (principal instanceof AppUserPrincipal(bunny.boardhole.user.domain.User user) && user != null)
-            return user.getId();
+        if (principal instanceof AppUserPrincipal(User user)) return user.getId();
         return null;
-    }
-
-    private static boolean hasRole(Authentication auth, String role) {
-        if (auth == null || !auth.isAuthenticated()) return false;
-        return auth.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .anyMatch(role::equals);
     }
 }
 

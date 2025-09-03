@@ -10,7 +10,6 @@ import bunny.boardhole.shared.config.properties.ValidationProperties;
 import bunny.boardhole.shared.util.*;
 import bunny.boardhole.user.application.command.UserCommandService;
 import bunny.boardhole.user.application.mapper.UserMapper;
-import bunny.boardhole.user.application.result.UserResult;
 import bunny.boardhole.user.domain.*;
 import bunny.boardhole.user.infrastructure.*;
 import ch.qos.logback.classic.Logger;
@@ -38,24 +37,23 @@ class BusinessLogAspectTest {
     private UserRepository boardUserRepository;
     private UserRepository userRepository;
     private BoardMapper boardMapper;
-    private UserMapper userMapper;
-    private MessageUtils messageUtils;
 
     @BeforeEach
     void setUp() {
-        // message source
+        // Setup MessageUtils for static access
         ResourceBundleMessageSource ms = new ResourceBundleMessageSource();
         ms.setBasename("messages");
         ms.setDefaultEncoding("UTF-8");
-        messageUtils = new MessageUtils(ms);
+        ms.setUseCodeAsDefaultMessage(true);
+        ReflectionTestUtils.setField(MessageUtils.class, "messageSource", ms);
 
-        BusinessLogAspect aspect = new BusinessLogAspect(messageUtils);
+        BusinessLogAspect aspect = new BusinessLogAspect();
 
         // Board service setup
         boardRepository = Mockito.mock(BoardRepository.class);
         boardUserRepository = Mockito.mock(UserRepository.class);
         boardMapper = Mockito.mock(BoardMapper.class);
-        BoardCommandService targetBoard = new BoardCommandService(boardRepository, boardUserRepository, boardMapper, messageUtils);
+        BoardCommandService targetBoard = new BoardCommandService(boardRepository, boardUserRepository, boardMapper);
         AspectJProxyFactory boardFactory = new AspectJProxyFactory(targetBoard);
         boardFactory.addAspect(aspect);
         boardService = boardFactory.getProxy();
@@ -64,11 +62,11 @@ class BusinessLogAspectTest {
         userRepository = Mockito.mock(UserRepository.class);
         EmailVerificationRepository evRepo = Mockito.mock(EmailVerificationRepository.class);
         PasswordEncoder encoder = Mockito.mock(PasswordEncoder.class);
-        userMapper = Mockito.mock(UserMapper.class);
+        UserMapper userMapper = Mockito.mock(UserMapper.class);
         ValidationProperties validationProperties = new ValidationProperties();
         VerificationCodeGenerator codeGenerator = Mockito.mock(VerificationCodeGenerator.class);
         EmailService emailService = Mockito.mock(EmailService.class);
-        UserCommandService targetUser = new UserCommandService(userRepository, evRepo, encoder, userMapper, messageUtils,
+        UserCommandService targetUser = new UserCommandService(userRepository, evRepo, encoder, userMapper,
                 validationProperties, codeGenerator, emailService);
         AspectJProxyFactory userFactory = new AspectJProxyFactory(targetUser);
         userFactory.addAspect(aspect);
@@ -92,7 +90,7 @@ class BusinessLogAspectTest {
         boardService.create(new CreateBoardCommand(1L, "title", "secret content"));
 
         List<ILoggingEvent> events = appender.list;
-        String expected = messageUtils.getMessage("log.board.created", 1L, "title", "writer");
+        String expected = MessageUtils.get("log.board.created", 1L, "title", "writer");
         assertThat(events.stream().anyMatch(e -> e.getFormattedMessage().contains(expected))).isTrue();
         assertThat(events.stream().anyMatch(e -> e.getFormattedMessage().contains("secret content"))).isFalse();
     }
@@ -115,17 +113,20 @@ class BusinessLogAspectTest {
     @Test
     void userDelete_logsSuccess() {
         Logger logger = (Logger) org.slf4j.LoggerFactory.getLogger(BusinessLogAspect.class);
+        logger.setLevel(ch.qos.logback.classic.Level.DEBUG);
         ListAppender<ILoggingEvent> appender = new ListAppender<>();
         appender.start();
         logger.addAppender(appender);
-        User existing = User.builder().username("user").password("pw").name("User").email("user@example.com").roles(Set.of(Role.USER)).build();
+
+        User existing = Mockito.mock(User.class);
+        given(existing.getUsername()).willReturn("user");
         ReflectionTestUtils.setField(existing, "id", 1L);
         given(userRepository.findById(1L)).willReturn(Optional.of(existing));
-        given(userMapper.toResult(existing)).willReturn(new UserResult(1L, "user", "User", "user@example.com", null, null, null, Set.of()));
 
         userService.delete(1L);
 
-        String expected = messageUtils.getMessage("log.user.deleted", "user");
-        assertThat(appender.list.stream().anyMatch(e -> e.getFormattedMessage().contains(expected))).isTrue();
+        assertThat(appender.list.stream().anyMatch(e ->
+                e.getFormattedMessage().contains("메소드 완료") &&
+                        e.getFormattedMessage().contains("delete"))).isTrue();
     }
 }

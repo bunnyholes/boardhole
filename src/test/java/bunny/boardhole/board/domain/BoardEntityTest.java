@@ -1,7 +1,8 @@
 package bunny.boardhole.board.domain;
 
-import bunny.boardhole.shared.constants.*;
+import bunny.boardhole.shared.constants.ValidationConstants;
 import bunny.boardhole.shared.test.EntityTestBase;
+import bunny.boardhole.shared.util.MessageUtils;
 import bunny.boardhole.user.domain.User;
 import org.junit.jupiter.api.*;
 
@@ -56,7 +57,7 @@ class BoardEntityTest extends EntityTestBase {
         void createBoard_WithEmptyTitle_ThrowsException() {
             // given
             User author = createAndPersistUser();
-            String expectedMessage = ValidationMessages.BOARD_TITLE_REQUIRED_FALLBACK;
+            String expectedMessage = MessageUtils.get("validation.board.title.required");
 
             // when & then
             assertThatThrownBy(() -> Board.builder()
@@ -73,7 +74,7 @@ class BoardEntityTest extends EntityTestBase {
         void createBoard_WithEmptyContent_ThrowsException() {
             // given
             User author = createAndPersistUser();
-            String expectedMessage = ValidationMessages.BOARD_CONTENT_REQUIRED_FALLBACK;
+            String expectedMessage = MessageUtils.get("validation.board.content.required");
 
             // when & then
             assertThatThrownBy(() -> Board.builder()
@@ -98,7 +99,7 @@ class BoardEntityTest extends EntityTestBase {
             // given
             User author = createAndPersistUser();
             String longTitle = "a".repeat(ValidationConstants.BOARD_TITLE_MAX_LENGTH + 1);
-            String expectedMessage = String.format(ValidationMessages.BOARD_TITLE_TOO_LONG_FALLBACK, ValidationConstants.BOARD_TITLE_MAX_LENGTH);
+            String expectedMessage = MessageUtils.get("validation.board.title.too-long", ValidationConstants.BOARD_TITLE_MAX_LENGTH);
 
             // when & then
             assertThatThrownBy(() -> Board.builder()
@@ -116,7 +117,7 @@ class BoardEntityTest extends EntityTestBase {
             // given
             User author = createAndPersistUser();
             String longContent = "a".repeat(ValidationConstants.BOARD_CONTENT_MAX_LENGTH + 1);
-            String expectedMessage = String.format(ValidationMessages.BOARD_CONTENT_TOO_LONG_FALLBACK, ValidationConstants.BOARD_CONTENT_MAX_LENGTH);
+            String expectedMessage = MessageUtils.get("validation.board.content.too-long", ValidationConstants.BOARD_CONTENT_MAX_LENGTH);
 
             // when & then
             assertThatThrownBy(() -> Board.builder()
@@ -191,7 +192,7 @@ class BoardEntityTest extends EntityTestBase {
                     .content(testData.boardContent())
                     .author(author)
                     .build();
-            String newTitle = "새로운 제목";
+            final String newTitle = "새로운 제목";
 
             // when
             board.changeTitle(newTitle);
@@ -210,7 +211,7 @@ class BoardEntityTest extends EntityTestBase {
                     .content(testData.boardContent())
                     .author(author)
                     .build();
-            String expectedMessage = ValidationMessages.BOARD_TITLE_REQUIRED_FALLBACK;
+            String expectedMessage = MessageUtils.get("validation.board.title.required");
 
             // when & then
             assertThatThrownBy(() -> board.changeTitle(""))
@@ -228,7 +229,7 @@ class BoardEntityTest extends EntityTestBase {
                     .content(testData.boardContent())
                     .author(author)
                     .build();
-            String newContent = "새로운 내용";
+            final String newContent = "새로운 내용";
 
             // when
             board.changeContent(newContent);
@@ -247,7 +248,7 @@ class BoardEntityTest extends EntityTestBase {
                     .content(testData.boardContent())
                     .author(author)
                     .build();
-            String expectedMessage = ValidationMessages.BOARD_CONTENT_REQUIRED_FALLBACK;
+            String expectedMessage = MessageUtils.get("validation.board.content.required");
 
             // when & then
             assertThatThrownBy(() -> board.changeContent(""))

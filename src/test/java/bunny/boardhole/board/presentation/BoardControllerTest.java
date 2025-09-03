@@ -299,7 +299,8 @@ class BoardControllerTest extends ControllerTestBase {
             @Test
             @DisplayName("✅ 작성자 본인 → 수정 성공")
             void shouldAllowAuthorToUpdate() throws Exception {
-                var principal = new AppUserPrincipal(userRepository.findByUsername(boardOwner));
+                var principal = new AppUserPrincipal(userRepository.findByUsername(boardOwner)
+                        .orElseThrow(() -> new IllegalStateException("Board owner not found: " + boardOwner)));
 
                 mockMvc.perform(put("/api/boards/" + boardId)
                                 .with(user(principal))
@@ -353,7 +354,8 @@ class BoardControllerTest extends ControllerTestBase {
                         seedUser(owner, "Deleter", owner + "@test.com", "password",
                                 java.util.Set.of(bunny.boardhole.user.domain.Role.USER));
                         Long boardId = seedBoardOwnedBy(owner, "To Delete", "Content");
-                        var principal = new AppUserPrincipal(userRepository.findByUsername(owner));
+                        var principal = new AppUserPrincipal(userRepository.findByUsername(owner)
+                                .orElseThrow(() -> new IllegalStateException("Owner not found: " + owner)));
 
                         mockMvc.perform(delete("/api/boards/" + boardId).with(user(principal)))
                                 .andExpect(status().isNoContent())
