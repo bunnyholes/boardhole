@@ -6,7 +6,6 @@ import bunny.boardhole.user.domain.User;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.DynamicUpdate;
-import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
 
 import java.time.*;
@@ -52,7 +51,7 @@ public class Board {
 
     // 필요한 필드만 받는 생성자에 @Builder 적용
     @Builder
-    public Board(@NonNull String title, @NonNull String content, @NonNull User author) {
+    public Board(String title, String content, User author) {
         Assert.hasText(title, MessageUtils.get("validation.board.title.required"));
         Assert.isTrue(title.length() <= ValidationConstants.BOARD_TITLE_MAX_LENGTH, MessageUtils.get("validation.board.title.too-long", ValidationConstants.BOARD_TITLE_MAX_LENGTH));
         Assert.hasText(content, MessageUtils.get("validation.board.content.required"));
@@ -77,13 +76,13 @@ public class Board {
         updatedAt = LocalDateTime.now(ZoneId.systemDefault());
     }
 
-    public void changeTitle(@NonNull String title) {
+    public void changeTitle(String title) {
         Assert.hasText(title, MessageUtils.get("validation.board.title.required"));
         Assert.isTrue(title.length() <= ValidationConstants.BOARD_TITLE_MAX_LENGTH, MessageUtils.get("validation.board.title.too-long", ValidationConstants.BOARD_TITLE_MAX_LENGTH));
         this.title = title;
     }
 
-    public void changeContent(@NonNull String content) {
+    public void changeContent(String content) {
         Assert.hasText(content, MessageUtils.get("validation.board.content.required"));
         Assert.isTrue(content.length() <= ValidationConstants.BOARD_CONTENT_MAX_LENGTH, MessageUtils.get("validation.board.content.too-long", ValidationConstants.BOARD_CONTENT_MAX_LENGTH));
         this.content = content;

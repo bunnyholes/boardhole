@@ -6,21 +6,13 @@ import java.time.LocalDateTime;
 
 @Schema(name = "BoardResponse", description = "게시글 응답")
 public record BoardResponse(
-        @Schema(description = "게시글 ID", example = "1")
-        Long id,
-        @Schema(description = "게시글 제목", example = "안녕하세요, 반갑습니다!")
-        String title,
-        @Schema(description = "게시글 내용", example = "이것은 게시글의 내용입니다.")
-        String content,
-        @Schema(description = "작성자 ID", example = "1")
-        Long authorId,
-        @Schema(description = "작성자 이름", example = "홍길동")
-        String authorName,
-        @Schema(description = "조회수", example = "42")
-        Integer viewCount,
-        @Schema(description = "작성 일시", example = "2024-01-15T10:30:00")
-        LocalDateTime createdAt,
-        @Schema(description = "수정 일시", example = "2024-01-15T15:45:30")
-        LocalDateTime updatedAt
+        @Schema(description = "게시글 ID", example = "1") Long id,
+        @Schema(description = "게시글 제목", example = "안녕하세요, 반갑습니다!") String title,
+        @Schema(description = "게시글 내용", example = "이것은 게시글의 내용입니다.") String content,
+        @Schema(description = "작성자 ID", example = "1") Long authorId,
+        @Schema(description = "작성자 이름", example = "홍길동") String authorName,
+        @Schema(description = "조회수", example = "42") Integer viewCount,
+        @Schema(description = "작성 일시", example = "2024-01-15T10:30:00") LocalDateTime createdAt,
+        @Schema(description = "수정 일시", example = "2024-01-15T15:45:30") LocalDateTime updatedAt
 ) {
 }

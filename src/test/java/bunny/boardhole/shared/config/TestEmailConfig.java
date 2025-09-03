@@ -1,11 +1,12 @@
 package bunny.boardhole.shared.config;
 
 import bunny.boardhole.email.application.EmailService;
-import bunny.boardhole.email.domain.*;
+import bunny.boardhole.email.domain.EmailMessage;
+import bunny.boardhole.email.domain.EmailTemplate;
 import bunny.boardhole.user.domain.User;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.*;
-import org.springframework.lang.NonNull;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 
 import java.util.Map;
 
@@ -29,37 +30,37 @@ public class TestEmailConfig {
     static class MockEmailService implements EmailService {
 
         @Override
-        public void sendEmail(@NonNull EmailMessage emailMessage) {
+        public void sendEmail(EmailMessage emailMessage) {
             // 실제 이메일 발송 대신 로그만 출력
             System.out.println("Mock Email Service: 이메일 발송 - to: " + emailMessage.recipientEmail() + ", subject: " + emailMessage.subject());
         }
 
         @Override
-        public void sendTemplatedEmail(@NonNull String recipientEmail, @NonNull EmailTemplate emailTemplate, @NonNull Map<String, Object> templateVariables) {
+        public void sendTemplatedEmail(String recipientEmail, EmailTemplate emailTemplate, Map<String, Object> templateVariables) {
             // 실제 템플릿 이메일 발송 대신 로그만 출력
             System.out.println("Mock Email Service: 템플릿 이메일 발송 - to: " + recipientEmail + ", template: " + emailTemplate);
         }
 
         @Override
-        public void sendSignupVerificationEmail(@NonNull User user, @NonNull String verificationToken) {
+        public void sendSignupVerificationEmail(User user, String verificationToken) {
             // 실제 회원가입 인증 이메일 발송 대신 로그만 출력
             System.out.println("Mock Email Service: 회원가입 인증 이메일 발송 - to: " + user.getEmail() + ", token: " + verificationToken);
         }
 
         @Override
-        public void sendEmailChangeVerificationEmail(@NonNull User user, @NonNull String newEmail, @NonNull String verificationToken) {
+        public void sendEmailChangeVerificationEmail(User user, String newEmail, String verificationToken) {
             // 실제 이메일 변경 인증 이메일 발송 대신 로그만 출력
             System.out.println("Mock Email Service: 이메일 변경 인증 이메일 발송 - to: " + newEmail + ", token: " + verificationToken);
         }
 
         @Override
-        public void sendWelcomeEmail(@NonNull User user) {
+        public void sendWelcomeEmail(User user) {
             // 실제 환영 이메일 발송 대신 로그만 출력
             System.out.println("Mock Email Service: 환영 이메일 발송 - to: " + user.getEmail());
         }
 
         @Override
-        public void sendEmailChangedNotification(@NonNull User user, @NonNull String newEmail) {
+        public void sendEmailChangedNotification(User user, String newEmail) {
             // 실제 이메일 변경 완료 알림 발송 대신 로그만 출력
             System.out.println("Mock Email Service: 이메일 변경 완료 알림 발송 - to: " + newEmail);
         }

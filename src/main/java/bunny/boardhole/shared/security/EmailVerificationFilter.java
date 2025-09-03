@@ -99,8 +99,12 @@ public class EmailVerificationFilter implements Filter {
         problemDetail.setProperty("errorCode", "EMAIL_VERIFICATION_REQUIRED");
         problemDetail.setProperty("resendUrl", ApiPaths.AUTH + "/resend-verification");
 
-        final String jsonResponse = objectMapper.writeValueAsString(problemDetail);
-        response.getWriter().write(jsonResponse);
+        try {
+            final String jsonResponse = objectMapper.writeValueAsString(problemDetail);
+            response.getWriter().write(jsonResponse);
+        } catch (Exception e) {
+            response.getWriter().write("{\"error\":\"Email verification required\"}");
+        }
 
         log.warn("이메일 미인증 사용자 접근 차단: path={}", response);
     }

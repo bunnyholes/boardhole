@@ -5,7 +5,6 @@ import bunny.boardhole.shared.util.MessageUtils;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.DynamicUpdate;
-import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
 
 import java.io.*;
@@ -67,7 +66,7 @@ public class User implements Serializable {
 
     // 필요한 필드만 받는 생성자에 @Builder 적용
     @Builder
-    public User(@NonNull String username, @NonNull String password, @NonNull String name, @NonNull String email, java.util.Set<Role> roles) {
+    public User(String username, String password, String name, String email, java.util.Set<Role> roles) {
         Assert.hasText(username, MessageUtils.get("validation.user.username.required"));
         Assert.isTrue(username.length() <= ValidationConstants.USER_USERNAME_MAX_LENGTH, MessageUtils.get("validation.user.username.too-long", ValidationConstants.USER_USERNAME_MAX_LENGTH));
         Assert.hasText(password, MessageUtils.get("validation.user.password.required"));
@@ -95,19 +94,19 @@ public class User implements Serializable {
         updatedAt = LocalDateTime.now(ZoneId.systemDefault());
     }
 
-    public void changeName(@NonNull String name) {
+    public void changeName(String name) {
         Assert.hasText(name, MessageUtils.get("validation.user.name.required"));
         Assert.isTrue(name.length() <= ValidationConstants.USER_NAME_MAX_LENGTH, MessageUtils.get("validation.user.name.too-long", ValidationConstants.USER_NAME_MAX_LENGTH));
         this.name = name;
     }
 
-    public void changeEmail(@NonNull String email) {
+    public void changeEmail(String email) {
         Assert.hasText(email, MessageUtils.get("validation.user.email.required"));
         Assert.isTrue(email.length() <= ValidationConstants.USER_EMAIL_MAX_LENGTH, MessageUtils.get("validation.user.email.too-long", ValidationConstants.USER_EMAIL_MAX_LENGTH));
         this.email = email;
     }
 
-    public void changePassword(@NonNull String password) {
+    public void changePassword(String password) {
         Assert.hasText(password, MessageUtils.get("validation.user.password.required"));
         this.password = password;
     }

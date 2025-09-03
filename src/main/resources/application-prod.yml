@@ -82,13 +82,14 @@ spring:
 
 # 운영 서버 보안 설정
 server:
-  # 세션 보안 설정
-  session:
-    timeout: 30m
-    cookie:
-      secure: true      # HTTPS 전용
-      http-only: true   # JavaScript 접근 차단
-      same-site: strict # CSRF 공격 방지
+  # 세션 보안 설정 (Spring Boot 3.x 경로)
+  servlet:
+    session:
+      timeout: 30m
+      cookie:
+        secure: true      # HTTPS 전용
+        http-only: true   # JavaScript 접근 차단
+        same-site: strict # CSRF 공격 방지
   
   # 에러 페이지 설정
   error:

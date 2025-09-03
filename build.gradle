@@ -116,7 +116,11 @@ tasks.named('test') {
 
 
 rewrite {
-    activeRecipe('bunny.boardhole.refactor.main')
+    activeRecipe(
+        'org.openrewrite.java.RemoveUnusedImports',
+        'org.openrewrite.java.format.AutoFormat',
+        'org.openrewrite.java.logging.slf4j.ParameterizedLogging'
+    )
     exportDatatables = true
 }
 
@@ -526,7 +530,7 @@ tasks.withType(JavaCompile).configureEach {
     options.errorprone {
         disableWarningsInGeneratedCode = true
         
-        // 교과서적 필수 검사 - 경고 수준
+        // 핵심 품질 검사 - 경고 수준
         warn(
             'MissingOverride',
             'DefaultCharset',
@@ -542,20 +546,25 @@ tasks.withType(JavaCompile).configureEach {
             'JavaTimeDefaultTimeZone'
         )
         
-        // 교과서적 필수 검사 - 오류 수준 (빌드 실패)
+        // Null Safety 강화 - JSpecify 관련 체크
+        warn(
+            'DoNotCall'
+        )
+        
+        // 심각한 결함 검사 - 오류 수준 (빌드 실패)
         error(
             'DeadException',
             'LockNotBeforeTry', 
             'SynchronizeOnNonFinalField'
         )
         
-        // 모든 경고를 오류로 처리 (교과서적 엄격함)
+        // 모든 경고를 오류로 처리 (엄격한 품질 기준)
         allErrorsAsWarnings = false
         allDisabledChecksAsWarnings = false
     }
 }
 
-// 통합 품질 검사 태스크 - 교과서적 엄격 모드
+// 통합 품질 검사 태스크 - 엄격한 품질 검사
 task qualityCheck {
     group = 'verification'
     description = 'Run all quality check tools with strict standards'
@@ -564,7 +573,7 @@ task qualityCheck {
     doFirst {
         println """
         ========================================
-        🔍 교과서적 품질 검사 시작
+        🔍 엄격한 품질 검사 시작
         ========================================
         📋 검사 항목:
         - Checkstyle: 코딩 컨벤션 (경고=0, 오류=0)
@@ -579,9 +588,9 @@ task qualityCheck {
     doLast {
         println """
         ========================================
-        ✅ 교과서적 품질 기준 통과
+        ✅ 엄격한 품질 기준 통과
         ========================================
-        모든 품질 검사가 엄격한 기준을 만족했습니다.
+        모든 품질 검사가 정의된 기준을 통과했습니다.
         리포트 위치:
         - HTML: build/reports/jacoco/test/html/index.html
         - PMD: build/reports/pmd/main.html
@@ -591,6 +600,51 @@ task qualityCheck {
         """
     }
 }
+
+// =======================================
+// Null Safety 자동화 (자동 package-info.java 생성)
+// =======================================
+
+task ensureNullMarked {
+    group = 'build setup'
+    description = 'Ensure all packages have @NullMarked package-info.java files'
+    
+    doLast {
+        def srcDir = file('src/main/java')
+        def packages = [:]
+        
+        // 모든 .java 파일이 있는 패키지 수집
+        fileTree(srcDir) {
+            include '**/*.java'
+            exclude '**/package-info.java'
+        }.each { javaFile ->
+            def packageDir = javaFile.parentFile
+            def packageName = packageDir.path
+                .replace(srcDir.path + File.separator, '')
+                .replace(File.separator, '.')
+            packages[packageDir] = packageName
+        }
+        
+        // package-info.java가 없는 패키지에 자동 생성
+        packages.each { packageDir, packageName ->
+            def packageInfoFile = new File(packageDir, 'package-info.java')
+            if (!packageInfoFile.exists()) {
+                packageInfoFile.text = """/**
+ * ${packageName} package
+ */
+@NullMarked
+package ${packageName};
+
+import org.jspecify.annotations.NullMarked;
+"""
+                println "✅ Generated package-info.java for: ${packageName}"
+            }
+        }
+    }
+}
+
+// 컴파일 전에 자동으로 package-info.java 생성
+compileJava.dependsOn ensureNullMarked
 
 // build 태스크가 품질 검사를 포함하도록 설정
 build {

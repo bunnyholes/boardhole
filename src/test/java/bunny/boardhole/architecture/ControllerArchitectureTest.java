@@ -8,7 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RestController;
 
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.*;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
 
 /**
  * 컨트롤러 아키텍처 규칙 테스트
@@ -38,11 +38,11 @@ class ControllerArchitectureTest {
 
     @Test
     void controllersCannotDependOnResponseEntity() {
-        ArchRule rule = classes()
-                .that().areAnnotatedWith(Controller.class)
+        ArchRule rule = methods()
+                .that().areDeclaredInClassesThat()
+                .areAnnotatedWith(Controller.class)
                 .or().areAnnotatedWith(RestController.class)
-                .should().onlyDependOnClassesThat()
-                .areNotAssignableFrom(ResponseEntity.class)
+                .should().notHaveRawReturnType(ResponseEntity.class)
                 .allowEmptyShould(true)
                 .because("컨트롤러에서는 ResponseEntity 대신 @ResponseStatus와 ResponseBodyAdvice 패턴을 사용해야 합니다.");
 

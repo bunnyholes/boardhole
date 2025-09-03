@@ -4,7 +4,6 @@ import bunny.boardhole.auth.application.command.*;
 import bunny.boardhole.auth.application.result.AuthResult;
 import jakarta.servlet.http.*;
 import jakarta.validation.Valid;
-import org.springframework.lang.NonNull;
 
 /**
  * 인증 서비스 도메인 인터페이스
@@ -15,11 +14,10 @@ public interface AuthenticationService {
     /**
      * 사용자 로그인 처리
      */
-    @NonNull
-    AuthResult login(@Valid @NonNull LoginCommand cmd, @NonNull HttpServletRequest request, @NonNull HttpServletResponse response);
+    AuthResult login(@Valid LoginCommand cmd, HttpServletRequest request, HttpServletResponse response);
 
     /**
      * 사용자 로그아웃 처리
      */
-    void logout(@SuppressWarnings("unused") @Valid @NonNull LogoutCommand cmd, @NonNull HttpServletRequest request, @NonNull HttpServletResponse response);
+    void logout(@SuppressWarnings("unused") @Valid LogoutCommand cmd, HttpServletRequest request, HttpServletResponse response);
 }

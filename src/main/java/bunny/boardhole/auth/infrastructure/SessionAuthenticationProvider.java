@@ -11,7 +11,6 @@ import jakarta.servlet.http.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.*;
@@ -46,8 +45,7 @@ public class SessionAuthenticationProvider implements AuthenticationService {
      */
     @Override
     @Transactional(readOnly = true)
-    @NonNull
-    public AuthResult login(@Valid @NonNull LoginCommand cmd, @NonNull HttpServletRequest request, @NonNull HttpServletResponse response) {
+    public AuthResult login(@Valid LoginCommand cmd, HttpServletRequest request, HttpServletResponse response) {
         try {
             // Spring Security를 통한 인증 처리
             Authentication authRequest = new UsernamePasswordAuthenticationToken(
@@ -92,7 +90,7 @@ public class SessionAuthenticationProvider implements AuthenticationService {
      * @param response HTTP 응답
      */
     @Override
-    public void logout(@Valid @NonNull LogoutCommand cmd, @NonNull HttpServletRequest request, @NonNull HttpServletResponse response) {
+    public void logout(@Valid LogoutCommand cmd, HttpServletRequest request, HttpServletResponse response) {
         // SecurityContext 정리
         SecurityContextHolder.clearContext();
 

@@ -3,7 +3,6 @@ package bunny.boardhole.user.domain;
 import bunny.boardhole.shared.util.MessageUtils;
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
 
 import java.time.*;
@@ -43,8 +42,8 @@ public class EmailVerification {
     private LocalDateTime createdAt;
 
     @Builder
-    public EmailVerification(@NonNull String code, @NonNull Long userId, @NonNull String newEmail,
-                             @NonNull LocalDateTime expiresAt, @NonNull EmailVerificationType verificationType) {
+    public EmailVerification(String code, Long userId, String newEmail,
+                             LocalDateTime expiresAt, EmailVerificationType verificationType) {
         Assert.hasText(code, MessageUtils.get("validation.email-verification.code.required"));
         Assert.notNull(userId, MessageUtils.get("validation.email-verification.user-id.required"));
         Assert.hasText(newEmail, MessageUtils.get("validation.email-verification.new-email.required"));

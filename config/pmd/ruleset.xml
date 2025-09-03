@@ -4,7 +4,7 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd">
 
-    <description>엄격한 PMD 룰셋 for Board Hole 프로젝트 - 교과서적 품질 표준</description>
+    <description>엄격한 PMD 룰셋 for Board Hole 프로젝트 - 업계 표준 품질 기준</description>
 
     <!-- Best Practices - 엄격한 모범 사례 적용 -->
     <rule ref="category/java/bestpractices.xml"/>
@@ -40,36 +40,36 @@
     <!-- 엄격한 복잡도 제한 -->
     <rule ref="category/java/design.xml/CyclomaticComplexity">
         <properties>
-            <property name="methodReportLevel" value="7"/>   <!-- 교과서 표준: 7 이하 -->
-            <property name="classReportLevel" value="25"/>   <!-- 교과서 표준: 25 이하 -->
+            <property name="methodReportLevel" value="7"/>   <!-- 업계 표준: 7 이하 -->
+            <property name="classReportLevel" value="25"/>   <!-- 업계 표준: 25 이하 -->
         </properties>
     </rule>
 
     <!-- 인지 복잡도 제한 -->
     <rule ref="category/java/design.xml/CognitiveComplexity">
         <properties>
-            <property name="reportLevel" value="10"/>  <!-- 교과서 표준: 10 이하 -->
+            <property name="reportLevel" value="10"/>  <!-- 업계 표준: 10 이하 -->
         </properties>
     </rule>
 
     <!-- 메서드 개수 제한 -->
     <rule ref="category/java/design.xml/TooManyMethods">
         <properties>
-            <property name="maxmethods" value="15"/>  <!-- 교과서 표준: 15개 이하 -->
+            <property name="maxmethods" value="15"/>  <!-- 업계 표준: 15개 이하 -->
         </properties>
     </rule>
 
     <!-- 필드 개수 제한 -->
     <rule ref="category/java/design.xml/TooManyFields">
         <properties>
-            <property name="maxfields" value="10"/>  <!-- 교과서 표준: 10개 이하 -->
+            <property name="maxfields" value="10"/>  <!-- 업계 표준: 10개 이하 -->
         </properties>
     </rule>
 
     <!-- 매개변수 개수 제한 -->
     <rule ref="category/java/design.xml/ExcessiveParameterList">
         <properties>
-            <property name="minimum" value="5"/>  <!-- 교과서 표준: 5개 이하 -->
+            <property name="minimum" value="5"/>  <!-- 업계 표준: 5개 이하 -->
         </properties>
     </rule>
 

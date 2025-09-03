@@ -7,10 +7,8 @@ import bunny.boardhole.user.domain.validation.required.*;
  * CQRS 패턴의 Command 객체로 로그인 요청을 나타냅니다.
  */
 public record LoginCommand(
-        @ValidUsername
-        String username,
+        @ValidUsername String username,
 
-        @ValidPassword
-        String password
+        @ValidPassword String password
 ) {
 }
