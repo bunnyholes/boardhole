@@ -5,8 +5,7 @@ import bunny.boardhole.shared.util.MessageUtils;
 import bunny.boardhole.user.application.mapper.UserMapper;
 import bunny.boardhole.user.application.query.UserQueryService;
 import bunny.boardhole.user.application.result.UserResult;
-import bunny.boardhole.user.domain.User;
-import bunny.boardhole.user.domain.Role;
+import bunny.boardhole.user.domain.*;
 import bunny.boardhole.user.infrastructure.UserRepository;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,9 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.*;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -38,6 +35,13 @@ class UserQueryServiceTest {
     private static final String NEW_NAME = "new";
     private static final String EMAIL = "john@example.com";
     private static final String MESSAGE = "msg";
+    @Mock
+    private UserRepository userRepository;
+    @Mock
+    private UserMapper userMapper;
+    @Mock
+    private MessageUtils messageUtils;
+    private UserQueryService userQueryService;
 
     private static User user() {
         return userWithName(NAME);
@@ -61,15 +65,6 @@ class UserQueryServiceTest {
         return new UserResult(USER_ID, USERNAME, name, EMAIL, null, null, null, Set.of(Role.USER));
     }
 
-    @Mock
-    private UserRepository userRepository;
-    @Mock
-    private UserMapper userMapper;
-    @Mock
-    private MessageUtils messageUtils;
-
-    private UserQueryService userQueryService;
-
     @BeforeEach
     void setUp() {
         userQueryService = new UserQueryService(userRepository, userMapper, messageUtils);
@@ -84,30 +79,30 @@ class UserQueryServiceTest {
         @DisplayName("✅ ID로 사용자 조회 성공")
         void shouldGetUserById() {
             // given
-            User user = user();
-            ReflectionTestUtils.setField(user, "id", USER_ID);
+            User user = UserQueryServiceTest.user();
+            ReflectionTestUtils.setField(user, "id", UserQueryServiceTest.USER_ID);
 
-            when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
-            UserResult expected = userResult();
+            when(userRepository.findById(UserQueryServiceTest.USER_ID)).thenReturn(Optional.of(user));
+            UserResult expected = UserQueryServiceTest.userResult();
             when(userMapper.toResult(user)).thenReturn(expected);
 
             // when
-            UserResult result = userQueryService.get(USER_ID);
+            UserResult result = userQueryService.get(UserQueryServiceTest.USER_ID);
 
             // then
             assertThat(result).isEqualTo(expected);
-            verify(userRepository).findById(USER_ID);
+            verify(userRepository).findById(UserQueryServiceTest.USER_ID);
         }
 
         @Test
         @DisplayName("❌ 사용자 미존재 → ResourceNotFoundException")
         void shouldThrowWhenUserNotFound() {
             // given
-            when(userRepository.findById(USER_ID)).thenReturn(Optional.empty());
-            when(messageUtils.getMessage(anyString(), any())).thenReturn(MESSAGE);
+            when(userRepository.findById(UserQueryServiceTest.USER_ID)).thenReturn(Optional.empty());
+            when(messageUtils.getMessage(anyString(), any())).thenReturn(UserQueryServiceTest.MESSAGE);
 
             // when & then
-            assertThatThrownBy(() -> userQueryService.get(USER_ID))
+            assertThatThrownBy(() -> userQueryService.get(UserQueryServiceTest.USER_ID))
                     .isInstanceOf(ResourceNotFoundException.class);
         }
     }
@@ -122,15 +117,15 @@ class UserQueryServiceTest {
         void shouldListUsersWithPaging() {
             // given
             Pageable pageable = PageRequest.of(0, 10);
-            User user = user();
-            ReflectionTestUtils.setField(user, "id", USER_ID);
-            User another = userWithName(NEW_NAME);
-            ReflectionTestUtils.setField(another, "id", USER_ID + 1);
+            User user = UserQueryServiceTest.user();
+            ReflectionTestUtils.setField(user, "id", UserQueryServiceTest.USER_ID);
+            User another = UserQueryServiceTest.userWithName(UserQueryServiceTest.NEW_NAME);
+            ReflectionTestUtils.setField(another, "id", UserQueryServiceTest.USER_ID + 1);
 
             Page<User> page = new PageImpl<>(List.of(user, another));
             when(userRepository.findAll(pageable)).thenReturn(page);
-            when(userMapper.toResult(user)).thenReturn(userResult());
-            when(userMapper.toResult(another)).thenReturn(userResultWithName(NEW_NAME));
+            when(userMapper.toResult(user)).thenReturn(UserQueryServiceTest.userResult());
+            when(userMapper.toResult(another)).thenReturn(UserQueryServiceTest.userResultWithName(UserQueryServiceTest.NEW_NAME));
 
             // when
             Page<UserResult> result = userQueryService.listWithPaging(pageable);
@@ -166,22 +161,22 @@ class UserQueryServiceTest {
         void shouldSearchUsersWithPaging() {
             // given
             Pageable pageable = PageRequest.of(0, 10);
-            User user = user();
-            ReflectionTestUtils.setField(user, "id", USER_ID);
+            User user = UserQueryServiceTest.user();
+            ReflectionTestUtils.setField(user, "id", UserQueryServiceTest.USER_ID);
 
             Page<User> page = new PageImpl<>(List.of(user));
             when(userRepository.findByUsernameContainingIgnoreCaseOrNameContainingIgnoreCaseOrEmailContainingIgnoreCase(
-                    USERNAME, USERNAME, USERNAME, pageable)).thenReturn(page);
-            UserResult mapped = userResult();
+                    UserQueryServiceTest.USERNAME, UserQueryServiceTest.USERNAME, UserQueryServiceTest.USERNAME, pageable)).thenReturn(page);
+            UserResult mapped = UserQueryServiceTest.userResult();
             when(userMapper.toResult(user)).thenReturn(mapped);
 
             // when
-            Page<UserResult> result = userQueryService.listWithPaging(pageable, USERNAME);
+            Page<UserResult> result = userQueryService.listWithPaging(pageable, UserQueryServiceTest.USERNAME);
 
             // then
             assertThat(result.getContent()).containsExactly(mapped);
             verify(userRepository).findByUsernameContainingIgnoreCaseOrNameContainingIgnoreCaseOrEmailContainingIgnoreCase(
-                    USERNAME, USERNAME, USERNAME, pageable);
+                    UserQueryServiceTest.USERNAME, UserQueryServiceTest.USERNAME, UserQueryServiceTest.USERNAME, pageable);
         }
 
         @Test
@@ -190,15 +185,15 @@ class UserQueryServiceTest {
             // given
             Pageable pageable = PageRequest.of(0, 10);
             when(userRepository.findByUsernameContainingIgnoreCaseOrNameContainingIgnoreCaseOrEmailContainingIgnoreCase(
-                    USERNAME, USERNAME, USERNAME, pageable)).thenReturn(Page.empty(pageable));
+                    UserQueryServiceTest.USERNAME, UserQueryServiceTest.USERNAME, UserQueryServiceTest.USERNAME, pageable)).thenReturn(Page.empty(pageable));
 
             // when
-            Page<UserResult> result = userQueryService.listWithPaging(pageable, USERNAME);
+            Page<UserResult> result = userQueryService.listWithPaging(pageable, UserQueryServiceTest.USERNAME);
 
             // then
             assertThat(result).isEmpty();
             verify(userRepository).findByUsernameContainingIgnoreCaseOrNameContainingIgnoreCaseOrEmailContainingIgnoreCase(
-                    USERNAME, USERNAME, USERNAME, pageable);
+                    UserQueryServiceTest.USERNAME, UserQueryServiceTest.USERNAME, UserQueryServiceTest.USERNAME, pageable);
         }
     }
 }

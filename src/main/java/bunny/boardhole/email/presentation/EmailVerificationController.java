@@ -16,8 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.*;
 import java.util.List;
 
 /**
@@ -51,18 +50,16 @@ public class EmailVerificationController {
             @Parameter(description = "사용자 ID")
             @PathVariable Long id,
             @Parameter(description = "인증 토큰", example = "abc123def456")
-            @RequestParam final String token) {
+            @RequestParam String token) {
 
-        final EmailVerification verification = emailVerificationRepository.findByCodeAndUsedFalse(token)
+        EmailVerification verification = emailVerificationRepository.findByCodeAndUsedFalse(token)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         messageUtils.getMessage("error.email-verification.invalid-token")));
 
-        if (verification.isExpired()) {
-            throw new IllegalArgumentException(
-                    messageUtils.getMessage("error.email-verification.expired"));
-        }
+        if (verification.isExpired()) throw new IllegalArgumentException(
+                messageUtils.getMessage("error.email-verification.expired"));
 
-        final User user = userRepository.findById(verification.getUserId())
+        User user = userRepository.findById(verification.getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException(
                         messageUtils.getMessage("error.user.not-found.id", verification.getUserId())));
 
@@ -99,14 +96,12 @@ public class EmailVerificationController {
             @Parameter(description = "사용자 ID")
             @PathVariable Long id) {
 
-        final User user = userRepository.findById(id)
+        User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         messageUtils.getMessage("error.user.not-found.id", id)));
 
-        if (user.isEmailVerified()) {
-            throw new IllegalArgumentException(
-                    messageUtils.getMessage("error.email-verification.already-verified"));
-        }
+        if (user.isEmailVerified()) throw new IllegalArgumentException(
+                messageUtils.getMessage("error.email-verification.already-verified"));
 
         // 기존 미사용 토큰들을 만료 처리
         List<EmailVerification> existingVerifications = emailVerificationRepository.findByUserIdAndUsedFalse(user.getId());
@@ -116,11 +111,11 @@ public class EmailVerificationController {
         });
 
         // 새 인증 토큰 생성 및 이메일 발송
-        final String newToken = java.util.UUID.randomUUID().toString();
-        final LocalDateTime expiresAt = LocalDateTime.now(ZoneId.systemDefault())
+        String newToken = java.util.UUID.randomUUID().toString();
+        LocalDateTime expiresAt = LocalDateTime.now(ZoneId.systemDefault())
                 .plusHours(verificationExpirationHours);
 
-        final EmailVerification newVerification = EmailVerification.builder()
+        EmailVerification newVerification = EmailVerification.builder()
                 .code(newToken)
                 .userId(user.getId())
                 .newEmail(user.getEmail())

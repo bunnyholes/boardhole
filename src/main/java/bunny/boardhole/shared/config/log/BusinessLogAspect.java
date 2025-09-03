@@ -6,8 +6,7 @@ import bunny.boardhole.user.application.result.UserResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
-import org.aspectj.lang.annotation.Around;
-import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.*;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.stereotype.Component;
 
@@ -53,21 +52,15 @@ public class BusinessLogAspect {
             case "delete" -> "deleted";
             default -> null;
         };
-        if (action == null) {
-            return;
-        }
+        if (action == null) return;
         String key = "log." + entity + "." + action;
         Object[] logArgs = extractArgs(result);
         log.info(messageUtils.getMessage(key, logArgs));
     }
 
-    private Object[] extractArgs(Object result) {
-        if (result instanceof UserResult user) {
-            return new Object[]{user.username(), user.email()};
-        }
-        if (result instanceof BoardResult board) {
-            return new Object[]{board.id(), board.title(), board.authorName()};
-        }
+    private static Object[] extractArgs(Object result) {
+        if (result instanceof UserResult user) return new Object[]{user.username(), user.email()};
+        if (result instanceof BoardResult board) return new Object[]{board.id(), board.title(), board.authorName()};
         return new Object[0];
     }
 }

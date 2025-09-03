@@ -7,8 +7,7 @@ import lombok.*;
 import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.*;
 
 @Getter
 @NoArgsConstructor
@@ -58,7 +57,7 @@ public class EmailVerification {
         this.newEmail = newEmail;
         this.expiresAt = expiresAt;
         this.verificationType = verificationType;
-        this.used = false;
+        used = false;
     }
 
     @PrePersist
@@ -67,9 +66,9 @@ public class EmailVerification {
     }
 
     public void markAsUsed() {
-        Assert.state(!this.used, "이미 사용된 검증 코드입니다");
+        Assert.state(!used, "이미 사용된 검증 코드입니다");
         Assert.state(LocalDateTime.now(ZoneId.systemDefault()).isBefore(expiresAt), "만료된 검증 코드입니다");
-        this.used = true;
+        used = true;
     }
 
     public boolean isExpired() {
