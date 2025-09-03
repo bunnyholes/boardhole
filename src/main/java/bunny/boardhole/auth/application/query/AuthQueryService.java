@@ -62,8 +62,6 @@ public class AuthQueryService {
         String sessionId = authentication.getDetails() != null ?
                 authentication.getDetails().toString() : "N/A";
 
-        log.info(messageUtils.getMessage("log.auth.query-current", user.getUsername(), user.getId()));
-
         // 안전한 Role 접근
         String roleName = user.getRoles().isEmpty() ?
                 defaultRole : user.getRoles().iterator().next().name();
@@ -97,8 +95,6 @@ public class AuthQueryService {
             }
 
             if (authentication.getPrincipal() instanceof AppUserPrincipal(User user)) {
-
-                log.info(messageUtils.getMessage("log.auth.token-validated", user.getUsername()));
 
                 return new TokenValidationResult(
                         true,
@@ -135,8 +131,6 @@ public class AuthQueryService {
         // 현재 구현에서는 모의 이력 데이터 반환
         // 실제 환경에서는 AuthenticationHistory 엔티티와 Repository가 필요
         List<AuthenticationHistoryResult> mockHistory = mockDataProvider.generateMockHistory(user);
-
-        log.info(messageUtils.getMessage("log.auth.history-queried", user.getUsername(), mockHistory.size()));
 
         return new PageImpl<>(mockHistory, query.pageable(), mockHistory.size());
     }
