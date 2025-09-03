@@ -1,7 +1,6 @@
 package bunny.boardhole.user.application.command;
 
 import bunny.boardhole.email.application.EmailService;
-import bunny.boardhole.shared.config.properties.ValidationProperties;
 import bunny.boardhole.shared.exception.*;
 import bunny.boardhole.shared.util.*;
 import bunny.boardhole.user.application.mapper.UserMapper;
@@ -12,6 +11,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -35,9 +35,14 @@ public class UserCommandService {
     private final EmailVerificationRepository emailVerificationRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
-    private final ValidationProperties validationProperties;
     private final VerificationCodeGenerator verificationCodeGenerator;
     private final EmailService emailService;
+    
+    @Value("${boardhole.validation.email-verification.signup-expiration-hours}")
+    private int signupExpirationHours;
+    
+    @Value("${boardhole.validation.email-verification.expiration-minutes}")
+    private int expirationMinutes;
 
     /**
      * 사용자 생성
@@ -65,7 +70,7 @@ public class UserCommandService {
         // 회원가입 이메일 인증 토큰 생성 및 발송
         String verificationToken = java.util.UUID.randomUUID().toString();
         LocalDateTime expiresAt = LocalDateTime.now(ZoneId.systemDefault())
-                .plusHours(validationProperties.getEmailVerification().getSignupExpirationHours());
+                .plusHours(signupExpirationHours);
 
         EmailVerification verification = EmailVerification.builder()
                 .code(verificationToken)
@@ -196,7 +201,7 @@ public class UserCommandService {
                 .userId(cmd.userId())
                 .newEmail(cmd.newEmail())
                 .expiresAt(LocalDateTime.now(ZoneId.systemDefault())
-                        .plusMinutes(validationProperties.getEmailVerification().getExpirationMinutes()))
+                        .plusMinutes(expirationMinutes))
                 .build();
         emailVerificationRepository.save(verification);
 

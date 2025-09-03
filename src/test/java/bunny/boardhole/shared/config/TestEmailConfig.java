@@ -1,12 +1,10 @@
 package bunny.boardhole.shared.config;
 
 import bunny.boardhole.email.application.EmailService;
-import bunny.boardhole.email.domain.EmailMessage;
-import bunny.boardhole.email.domain.EmailTemplate;
+import bunny.boardhole.email.domain.*;
 import bunny.boardhole.user.domain.User;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.*;
 
 import java.util.Map;
 

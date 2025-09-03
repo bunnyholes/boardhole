@@ -1,6 +1,6 @@
 package bunny.boardhole.auth.presentation;
 
-import bunny.boardhole.auth.application.domain.AuthCommandService;
+import bunny.boardhole.auth.application.AuthCommandService;
 import bunny.boardhole.auth.application.mapper.AuthMapper;
 import bunny.boardhole.auth.presentation.dto.LoginRequest;
 import bunny.boardhole.auth.presentation.mapper.AuthWebMapper;
@@ -96,8 +96,9 @@ public class AuthController {
 
         // 마지막 로그인 시간 업데이트 (기존 로직 유지)
         try {
-            if (authentication != null && authentication.getPrincipal() instanceof AppUserPrincipal principal1)
-                userCommandService.updateLastLogin(principal1.user().getId());
+            if (authentication != null && authentication.getPrincipal() instanceof AppUserPrincipal(
+                    bunny.boardhole.user.domain.User user
+            )) userCommandService.updateLastLogin(user.getId());
         } catch (UnsupportedOperationException ignored) {
             // 일부 테스트/환경에서 보조 로직 미구현으로 인한 예외는 로그인 성공 흐름에 영향 주지 않도록 무시
         }
@@ -108,8 +109,8 @@ public class AuthController {
     @PreAuthorize("isAuthenticated()")
     @Operation(
             summary = "로그아웃",
-            description = "[AUTH] 현재 사용자의 세션을 종료하고 로그아웃합니다.",
-            security = @SecurityRequirement(name = "session")
+            description = "[AUTH] 현재 사용자의 세션을 종료하고 로그아웃합니다."
+
     )
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "로그아웃 성공"),

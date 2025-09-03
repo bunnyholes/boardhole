@@ -83,15 +83,18 @@
             <property name="countEmpty" value="false"/>
         </module>
 
-        <!-- 줄 길이 제한 -->
-        <module name="LineLength">
-            <property name="max" value="120"/>
-            <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://"/>
-        </module>
+        
 
         <!-- ResponseEntity import 금지 -->
         <module name="IllegalImport">
             <property name="illegalClasses" value="org.springframework.http.ResponseEntity"/>
         </module>
+
+    </module>
+
+    <!-- 줄 길이 제한 -->
+    <module name="LineLength">
+        <property name="max" value="120"/>
+        <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://"/>
     </module>
 </module>

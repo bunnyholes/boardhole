@@ -1,8 +1,7 @@
 package bunny.boardhole.board.presentation;
 
 import bunny.boardhole.board.application.command.BoardCommandService;
-import bunny.boardhole.board.application.event.ViewedEvent;
-import bunny.boardhole.board.application.query.*;
+import bunny.boardhole.board.application.query.BoardQueryService;
 import bunny.boardhole.board.application.result.BoardResult;
 import bunny.boardhole.board.presentation.dto.*;
 import bunny.boardhole.board.presentation.mapper.BoardWebMapper;
@@ -44,7 +43,7 @@ public class BoardController {
     @Operation(
             summary = "게시글 작성",
             description = "[AUTH] 새로운 게시글을 작성합니다. 인증된 사용자만 사용할 수 있습니다.",
-            security = @SecurityRequirement(name = "session"),
+            
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     required = true,
                     content = @Content(
@@ -77,11 +76,7 @@ public class BoardController {
             summary = "게시글 목록 조회",
             description = "[PUBLIC] 페이지네이션을 지원하는 게시글 목록을 조회합니다. 검색어를 포함할 수 있습니다."
     )
-    @ApiResponses(@ApiResponse(
-            responseCode = "200", 
-            description = "게시글 목록 조회 성공",
-            content = @Content(schema = @Schema(ref = "#/components/schemas/PageBoardResponse"))
-    ))
+    
     @Parameters({
             @Parameter(name = "page", description = "0부터 시작하는 페이지 인덱스", example = "0"),
             @Parameter(name = "size", description = "페이지 크기", example = "10"),
@@ -129,7 +124,7 @@ public class BoardController {
     @Operation(
             summary = "게시글 수정",
             description = "[OWNER] 기존 게시글을 수정합니다. 작성자 본인만 수정 가능합니다.",
-            security = @SecurityRequirement(name = "session"),
+            
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     required = true,
                     content = @Content(
@@ -164,8 +159,8 @@ public class BoardController {
     @PreAuthorize("isAuthenticated()")
     @Operation(
             summary = "게시글 삭제",
-            description = "[OWNER] 기존 게시글을 삭제합니다. 작성자 본인만 삭제 가능합니다.",
-            security = @SecurityRequirement(name = "session")
+            description = "[OWNER] 기존 게시글을 삭제합니다. 작성자 본인만 삭제 가능합니다."
+            
     )
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "게시글 삭제 성공"),

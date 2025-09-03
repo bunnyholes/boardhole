@@ -11,6 +11,5 @@ public record UserCreateRequest(
 
         @ValidName @Schema(description = "이름 (1-50자)", example = "홍길동", minLength = 1, maxLength = 50, requiredMode = Schema.RequiredMode.REQUIRED) String name,
 
-        @ValidEmail @Schema(description = "이메일 주소", example = "user@example.com", requiredMode = Schema.RequiredMode.REQUIRED) String email
-) {
+        @ValidEmail @Schema(description = "이메일 주소", example = "user@example.com", requiredMode = Schema.RequiredMode.REQUIRED) String email) {
 }

@@ -5,9 +5,9 @@ import bunny.boardhole.shared.web.ControllerTestBase;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.*;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithUserDetails;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -23,7 +23,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Tag("auth")
 class AuthControllerTest extends ControllerTestBase {
 
-    @MockBean
+    @MockitoBean
     private EmailService emailService;
 
     @Nested
@@ -142,7 +142,7 @@ class AuthControllerTest extends ControllerTestBase {
     class Login {
 
         static Stream<Arguments> provideInvalidLoginData() {
-            String validUsername = "validuser";
+            final String validUsername = "validuser";
             String nonExistentUser = "nonexistent_" + UUID.randomUUID().toString().substring(0, 8);
 
             return Stream.of(
@@ -156,7 +156,7 @@ class AuthControllerTest extends ControllerTestBase {
         void shouldLoginWithValidCredentials() throws Exception {
             String uniqueId = UUID.randomUUID().toString().substring(0, 8);
             String username = "usr_" + uniqueId;
-            String password = "Password123!";
+            final String password = "Password123!";
 
             // 먼저 회원가입
             mockMvc.perform(post("/api/auth/signup")

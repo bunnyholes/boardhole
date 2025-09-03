@@ -1,6 +1,6 @@
 package bunny.boardhole.email.presentation;
 
-import bunny.boardhole.email.application.*;
+import bunny.boardhole.email.application.EmailVerificationService;
 import bunny.boardhole.shared.constants.ApiPaths;
 import io.swagger.v3.oas.annotations.*;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

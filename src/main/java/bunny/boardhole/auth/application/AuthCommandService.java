@@ -1,4 +1,4 @@
-package bunny.boardhole.auth.application.domain;
+package bunny.boardhole.auth.application;
 
 import bunny.boardhole.auth.application.command.*;
 import bunny.boardhole.auth.application.result.AuthResult;

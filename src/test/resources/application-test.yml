@@ -56,18 +56,32 @@ boardhole:
 
   # CORS 설정 (테스트용)
   cors:
+    path-patterns: "/api/**"
     allowed-origins: "http://localhost:8080"
     allowed-methods: "GET,POST,PUT,DELETE,OPTIONS"
     allowed-headers: "Origin,Content-Type,Accept,Authorization,X-Requested-With"
+    exposed-headers: ""
     allow-credentials: true
     max-age: 3600
+
+  # 검증 설정 (테스트용)
+  validation:
+    email-verification:
+      signup-expiration-hours: 24
+      expiration-minutes: 30
   
   # 기본 사용자 설정
   default-users:
     admin:
+      username: admin
       password: admin123
+      name: Admin
+      email: admin@boardhole.com
     regular:
+      username: user
       password: user123
+      name: User
+      email: user@boardhole.com
 
   # Entity 테스트용 데이터
   test-data:
