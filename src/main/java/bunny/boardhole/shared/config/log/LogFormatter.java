@@ -36,7 +36,7 @@ public class LogFormatter {
                 LocaleContextHolder.getLocale());
     }
 
-    public String formatMethodEnd(String signature, Object result, long tookMs) {
+    public String formatMethodEnd(String signature, long tookMs) {
         String layerColor = getLayerColor(signature);
         String layerIcon = getLayerIcon(signature);
         String perfColor = getPerformanceColor(tookMs);
@@ -44,7 +44,7 @@ public class LogFormatter {
 
         return messageSource.getMessage("log.method.end",
                 new Object[]{layerColor + layerIcon + signature + LogConstants.RESET,
-                        safeResultToString(result), perfColor + perfIcon + tookMs + LogConstants.RESET},
+                        perfColor + perfIcon + tookMs + LogConstants.RESET},
                 LocaleContextHolder.getLocale());
     }
 
