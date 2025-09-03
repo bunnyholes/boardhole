@@ -1,5 +1,6 @@
-package bunny.boardhole.auth.application.command;
+package bunny.boardhole.auth.application.domain;
 
+import bunny.boardhole.auth.application.command.*;
 import bunny.boardhole.auth.application.result.AuthResult;
 import jakarta.validation.Valid;
 
