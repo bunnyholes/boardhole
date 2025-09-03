@@ -70,8 +70,6 @@ public class SessionAuthenticationProvider implements AuthenticationService {
             AppUserPrincipal principal = (AppUserPrincipal) authResult.getPrincipal();
             User user = principal.user();
 
-            log.info(messageUtils.getMessage("log.auth.login-success", user.getUsername(), user.getId()));
-
             return new AuthResult(
                     user.getId(),
                     user.getUsername(),
@@ -105,7 +103,5 @@ public class SessionAuthenticationProvider implements AuthenticationService {
 
         // SecurityContext 저장소에서도 제거
         securityContextRepository.saveContext(SecurityContextHolder.createEmptyContext(), request, response);
-
-        log.info(messageUtils.getMessage("log.auth.logout-success", cmd.userId()));
     }
 }
