@@ -1,4 +1,46 @@
-문서화/테스팅 정리 (2025-09-03)
+# Validation Message Migration Tasks (2025-09-03)
+
+## Completed ✅
+- [x] Analysis of current validation message files
+- [x] Identified all 11 custom validation annotation files
+- [x] Update ValidationMessages.properties with consistent key format (validation.*)
+- [x] Update all 11 validation annotation files with new message keys
+- [x] Remove validation messages from messages.properties (keep business/exception messages)
+- [x] Create ValidationMessages_en.properties with English translations
+- [x] Clean up messages_en.properties by removing validation messages
+- [x] Test validation message changes - compilation and tests passing
+
+## Migration Complete ✅
+
+All validation messages have been successfully migrated to use consistent keys with the format:
+- validation.user.* (for user-related validation)
+- validation.board.* (for board-related validation)
+- validation.email.verification.* (for email verification validation)
+
+## Summary of Changes
+
+## Validation Files to Update (11 total)
+1. ValidUsername.java - user.validation.* → validation.user.*
+2. ValidEmail.java - user.validation.* → validation.user.*
+3. ValidName.java - user.validation.* → validation.user.*
+4. ValidPassword.java - user.validation.* → validation.user.*
+5. OptionalName.java - user.validation.* → validation.user.*
+6. OptionalEmail.java - user.validation.* → validation.user.*
+7. OptionalPassword.java - user.validation.* → validation.user.*
+8. ValidBoardTitle.java - board.validation.* → validation.board.*
+9. ValidBoardContent.java - board.validation.* → validation.board.*
+10. OptionalBoardTitle.java - board.validation.* → validation.board.*
+11. OptionalBoardContent.java - board.validation.* → validation.board.*
+
+## Key Format Changes
+- Current: {user.validation.username.required}
+- New: {validation.user.username.required}
+- Current: {board.validation.title.required} 
+- New: {validation.board.title.required}
+
+---
+
+문서화/테스팅 정리 (이전 노트)
 
 결론
 - Spring REST Docs 및 restdocs-api-spec 제거. 문서 자동화는 springdoc-openapi(Runtime) 중심으로 운영.

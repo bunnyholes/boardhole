@@ -14,11 +14,11 @@ import java.lang.annotation.*;
 @Target({ElementType.FIELD, ElementType.PARAMETER, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-@NotBlank(message = "{board.validation.title.required}")
-@Size(max = ValidationConstants.BOARD_TITLE_MAX_LENGTH, message = "{board.validation.title.size}")
+@NotBlank(message = "{validation.board.title.required}")
+@Size(max = ValidationConstants.BOARD_TITLE_MAX_LENGTH, message = "{validation.board.title.size}")
 @Constraint(validatedBy = {})
 public @interface ValidBoardTitle {
-    String message() default "{board.validation.title.invalid}";
+    String message() default "{validation.board.title.invalid}";
 
     Class<?>[] groups() default {};
 

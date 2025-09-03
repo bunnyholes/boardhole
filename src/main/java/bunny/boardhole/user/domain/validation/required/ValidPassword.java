@@ -15,15 +15,15 @@ import java.lang.annotation.*;
 @Target({ElementType.FIELD, ElementType.PARAMETER, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-@NotBlank(message = "{user.validation.password.required}")
-@Size(min = ValidationConstants.USER_PASSWORD_MIN_LENGTH, max = ValidationConstants.USER_PASSWORD_MAX_LENGTH, message = "{user.validation.password.size}")
+@NotBlank(message = "{validation.user.password.required}")
+@Size(min = ValidationConstants.USER_PASSWORD_MIN_LENGTH, max = ValidationConstants.USER_PASSWORD_MAX_LENGTH, message = "{validation.user.password.size}")
 @Pattern(
         regexp = ValidationConstants.PASSWORD_PATTERN,
-        message = "{user.validation.password.pattern}"
+        message = "{validation.user.password.pattern}"
 )
 @Constraint(validatedBy = {})
 public @interface ValidPassword {
-    String message() default "{user.validation.password.invalid}";
+    String message() default "{validation.user.password.invalid}";
 
     Class<?>[] groups() default {};
 
