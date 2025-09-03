@@ -14,10 +14,10 @@ import java.lang.annotation.*;
 @Target({ElementType.FIELD, ElementType.PARAMETER, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-@Size(max = ValidationConstants.BOARD_CONTENT_MAX_LENGTH, message = "{board.validation.content.size}")
+@Size(max = ValidationConstants.BOARD_CONTENT_MAX_LENGTH, message = "{validation.board.content.size}")
 @Constraint(validatedBy = {})
 public @interface OptionalBoardContent {
-    String message() default "{board.validation.content.invalid}";
+    String message() default "{validation.board.content.invalid}";
 
     Class<?>[] groups() default {};
 

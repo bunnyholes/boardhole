@@ -15,12 +15,12 @@ import java.lang.annotation.*;
 @Target({ElementType.FIELD, ElementType.PARAMETER, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-@NotBlank(message = "{user.validation.email.required}")
-@Email(message = "{user.validation.email.format}")
-@Size(max = ValidationConstants.USER_EMAIL_MAX_LENGTH, message = "{user.validation.email.size}")
+@NotBlank(message = "{validation.user.email.required}")
+@Email(message = "{validation.user.email.format}")
+@Size(max = ValidationConstants.USER_EMAIL_MAX_LENGTH, message = "{validation.user.email.size}")
 @Constraint(validatedBy = {})
 public @interface ValidEmail {
-    String message() default "{user.validation.email.invalid}";
+    String message() default "{validation.user.email.invalid}";
 
     Class<?>[] groups() default {};
 

@@ -14,10 +14,10 @@ import java.lang.annotation.*;
 @Target({ElementType.FIELD, ElementType.PARAMETER, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-@Size(min = ValidationConstants.USER_NAME_MIN_LENGTH, max = ValidationConstants.USER_NAME_MAX_LENGTH, message = "{user.validation.name.size}")
+@Size(min = ValidationConstants.USER_NAME_MIN_LENGTH, max = ValidationConstants.USER_NAME_MAX_LENGTH, message = "{validation.user.name.size}")
 @Constraint(validatedBy = {})
 public @interface OptionalName {
-    String message() default "{user.validation.name.invalid}";
+    String message() default "{validation.user.name.invalid}";
 
     Class<?>[] groups() default {};
 
