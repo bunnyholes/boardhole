@@ -1,0 +1,138 @@
+package bunny.boardhole.shared.config.log;
+
+import bunny.boardhole.board.application.command.BoardCommandService;
+import bunny.boardhole.board.application.command.CreateBoardCommand;
+import bunny.boardhole.board.application.result.BoardResult;
+import bunny.boardhole.board.application.mapper.BoardMapper;
+import bunny.boardhole.board.domain.Board;
+import bunny.boardhole.board.infrastructure.BoardRepository;
+import bunny.boardhole.shared.util.MessageUtils;
+import bunny.boardhole.user.domain.User;
+import bunny.boardhole.user.infrastructure.UserRepository;
+import bunny.boardhole.user.domain.Role;
+import bunny.boardhole.user.application.command.UserCommandService;
+import bunny.boardhole.user.application.result.UserResult;
+import bunny.boardhole.user.application.mapper.UserMapper;
+import bunny.boardhole.email.application.EmailService;
+import bunny.boardhole.user.infrastructure.EmailVerificationRepository;
+import bunny.boardhole.shared.config.properties.ValidationProperties;
+import bunny.boardhole.shared.util.VerificationCodeGenerator;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
+import org.mockito.Mockito;
+import org.springframework.context.support.ResourceBundleMessageSource;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.aop.aspectj.annotation.AspectJProxyFactory;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+
+class BusinessLogAspectTest {
+
+    private BoardCommandService boardService;
+    private UserCommandService userService;
+    private BoardRepository boardRepository;
+    private UserRepository boardUserRepository;
+    private UserRepository userRepository;
+    private BoardMapper boardMapper;
+    private UserMapper userMapper;
+    private MessageUtils messageUtils;
+
+    @BeforeEach
+    void setUp() {
+        // message source
+        ResourceBundleMessageSource ms = new ResourceBundleMessageSource();
+        ms.setBasename("messages");
+        ms.setDefaultEncoding("UTF-8");
+        messageUtils = new MessageUtils(ms);
+
+        BusinessLogAspect aspect = new BusinessLogAspect(messageUtils);
+
+        // Board service setup
+        boardRepository = Mockito.mock(BoardRepository.class);
+        boardUserRepository = Mockito.mock(UserRepository.class);
+        boardMapper = Mockito.mock(BoardMapper.class);
+        BoardCommandService targetBoard = new BoardCommandService(boardRepository, boardUserRepository, boardMapper, messageUtils);
+        AspectJProxyFactory boardFactory = new AspectJProxyFactory(targetBoard);
+        boardFactory.addAspect(aspect);
+        boardService = boardFactory.getProxy();
+
+        // User service setup
+        userRepository = Mockito.mock(UserRepository.class);
+        EmailVerificationRepository evRepo = Mockito.mock(EmailVerificationRepository.class);
+        PasswordEncoder encoder = Mockito.mock(PasswordEncoder.class);
+        userMapper = Mockito.mock(UserMapper.class);
+        ValidationProperties validationProperties = new ValidationProperties();
+        VerificationCodeGenerator codeGenerator = Mockito.mock(VerificationCodeGenerator.class);
+        EmailService emailService = Mockito.mock(EmailService.class);
+        UserCommandService targetUser = new UserCommandService(userRepository, evRepo, encoder, userMapper, messageUtils,
+                validationProperties, codeGenerator, emailService);
+        AspectJProxyFactory userFactory = new AspectJProxyFactory(targetUser);
+        userFactory.addAspect(aspect);
+        userService = userFactory.getProxy();
+    }
+
+    @Test
+    void boardCreate_logsSuccess_withoutArguments() {
+        Logger logger = (Logger) org.slf4j.LoggerFactory.getLogger(BusinessLogAspect.class);
+        ListAppender<ILoggingEvent> appender = new ListAppender<>();
+        appender.start();
+        logger.addAppender(appender);
+        User author = User.builder().username("writer").password("pw").name("Writer").email("writer@example.com").roles(Set.of(Role.USER)).build();
+        ReflectionTestUtils.setField(author, "id", 1L);
+        given(boardUserRepository.findById(1L)).willReturn(Optional.of(author));
+        Board board = Board.builder().title("title").content("secret content").author(author).build();
+        ReflectionTestUtils.setField(board, "id", 1L);
+        given(boardRepository.save(any(Board.class))).willReturn(board);
+        given(boardMapper.toResult(board)).willReturn(new BoardResult(1L, "title", "secret content", 1L, "writer", 0, null, null));
+
+        boardService.create(new CreateBoardCommand(1L, "title", "secret content"));
+
+        List<ILoggingEvent> events = appender.list;
+        String expected = messageUtils.getMessage("log.board.created", 1L, "title", "writer");
+        assertThat(events.stream().anyMatch(e -> e.getFormattedMessage().contains(expected))).isTrue();
+        assertThat(events.stream().anyMatch(e -> e.getFormattedMessage().contains("secret content"))).isFalse();
+    }
+
+    @Test
+    void boardCreate_logsWarning_onError() {
+        Logger logger = (Logger) org.slf4j.LoggerFactory.getLogger(BusinessLogAspect.class);
+        ListAppender<ILoggingEvent> appender = new ListAppender<>();
+        appender.start();
+        logger.addAppender(appender);
+        User author = User.builder().username("writer").password("pw").name("Writer").email("writer@example.com").roles(Set.of(Role.USER)).build();
+        ReflectionTestUtils.setField(author, "id", 1L);
+        given(boardUserRepository.findById(1L)).willReturn(Optional.of(author));
+        given(boardRepository.save(any(Board.class))).willThrow(new RuntimeException("db error"));
+
+        assertThrows(RuntimeException.class, () -> boardService.create(new CreateBoardCommand(1L, "t", "c")));
+        assertThat(appender.list.stream().anyMatch(e -> e.getFormattedMessage().contains("Method failed") || e.getFormattedMessage().contains("메소드 실패"))).isTrue();
+    }
+
+    @Test
+    void userDelete_logsSuccess() {
+        Logger logger = (Logger) org.slf4j.LoggerFactory.getLogger(BusinessLogAspect.class);
+        ListAppender<ILoggingEvent> appender = new ListAppender<>();
+        appender.start();
+        logger.addAppender(appender);
+        User existing = User.builder().username("user").password("pw").name("User").email("user@example.com").roles(Set.of(Role.USER)).build();
+        ReflectionTestUtils.setField(existing, "id", 1L);
+        given(userRepository.findById(1L)).willReturn(Optional.of(existing));
+        given(userMapper.toResult(existing)).willReturn(new UserResult(1L, "user", "User", "user@example.com", null, null, null, Set.of()));
+
+        userService.delete(1L);
+
+        String expected = messageUtils.getMessage("log.user.deleted", "user");
+        assertThat(appender.list.stream().anyMatch(e -> e.getFormattedMessage().contains(expected))).isTrue();
+    }
+}
