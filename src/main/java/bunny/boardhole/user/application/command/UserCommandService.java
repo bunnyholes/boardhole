@@ -1,8 +1,9 @@
 package bunny.boardhole.user.application.command;
 
-import bunny.boardhole.email.application.EmailService;
+import bunny.boardhole.email.application.event.*;
 import bunny.boardhole.shared.exception.*;
 import bunny.boardhole.shared.util.*;
+import bunny.boardhole.user.application.event.UserCreatedEvent;
 import bunny.boardhole.user.application.mapper.UserMapper;
 import bunny.boardhole.user.application.result.UserResult;
 import bunny.boardhole.user.domain.*;
@@ -12,6 +13,7 @@ import jakarta.validation.constraints.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -19,7 +21,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import java.time.*;
-import java.util.Optional;
 
 /**
  * 사용자 명령 서비스
@@ -36,11 +37,11 @@ public class UserCommandService {
     private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
     private final VerificationCodeGenerator verificationCodeGenerator;
-    private final EmailService emailService;
-    
+    private final ApplicationEventPublisher eventPublisher;
+
     @Value("${boardhole.validation.email-verification.signup-expiration-hours}")
     private int signupExpirationHours;
-    
+
     @Value("${boardhole.validation.email-verification.expiration-minutes}")
     private int expirationMinutes;
 
@@ -81,7 +82,9 @@ public class UserCommandService {
                 .build();
 
         emailVerificationRepository.save(verification);
-        emailService.sendSignupVerificationEmail(saved, verificationToken);
+
+        // 이메일 발송을 위한 이벤트 발행 (비동기 처리)
+        eventPublisher.publishEvent(userMapper.toUserCreatedEvent(saved, verificationToken, expiresAt));
 
         return userMapper.toResult(saved);
     }
@@ -102,10 +105,9 @@ public class UserCommandService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.user.not-found.id", id)));
 
-        // Optional을 사용한 선택적 필드 업데이트 (이름만 변경 가능)
-        Optional.ofNullable(cmd.name()).ifPresent(user::changeName);
+        // MapStruct가 null이 아닌 필드만 업데이트 (@DynamicUpdate가 변경된 필드만 SQL 업데이트)
+        userMapper.updateUserFromCommand(cmd, user);
 
-        // @DynamicUpdate가 변경된 필드만 업데이트, @PreUpdate가 updatedAt 자동 설정
         User saved = userRepository.save(user);
 
         return userMapper.toResult(saved);
@@ -205,8 +207,9 @@ public class UserCommandService {
                 .build();
         emailVerificationRepository.save(verification);
 
-        // TODO: 실제 환경에서는 이메일 발송 서비스 호출
-        // emailService.sendVerificationEmail(user.getEmail(), cmd.newEmail(), verificationCode);
+        // 이메일 발송을 위한 이벤트 발행 (비동기 처리)
+        eventPublisher.publishEvent(userMapper.toEmailVerificationRequestedEvent(
+                user, cmd.newEmail(), verificationCode, verification.getExpiresAt()));
 
         // 개발/테스트 환경에서만 코드 반환, 프로덕션에서는 null 반환
         return verificationCode;
@@ -231,6 +234,9 @@ public class UserCommandService {
                 .findValidVerification(cmd.userId(), cmd.verificationCode(), LocalDateTime.now(ZoneId.systemDefault()))
                 .orElseThrow(() -> new ValidationException(MessageUtils.get("error.user.email.verification.invalid")));
 
+        // 변경 전 이메일 저장 (이벤트 발행용)
+        String oldEmail = user.getEmail();
+
         // 이메일 변경
         user.changeEmail(verification.getNewEmail());
         User saved = userRepository.save(user);
@@ -238,6 +244,9 @@ public class UserCommandService {
         // 검증 정보 사용 처리
         verification.markAsUsed();
         emailVerificationRepository.save(verification);
+
+        // 이메일 변경 완료 알림 이벤트 발행 (비동기 처리)
+        eventPublisher.publishEvent(userMapper.toEmailChangedEvent(saved, oldEmail, saved.getEmail()));
 
         return userMapper.toResult(saved);
     }

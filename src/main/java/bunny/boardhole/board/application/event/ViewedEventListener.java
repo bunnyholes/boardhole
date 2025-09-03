@@ -7,7 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.*;
 
 /**
  * 게시글 조회 이벤트 처리기
@@ -28,14 +27,11 @@ public class ViewedEventListener {
     /**
      * 게시글 조회 이벤트 처리
      * 비동기로 ViewCount 증가를 처리하여 조회 성능을 보장합니다.
+     * 트랜잭션은 BoardCommandService.incrementViewCount에서 관리됩니다.
      */
-    @Async("taskExecutor")
+    @Async
     @EventListener
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void onViewed(ViewedEvent event) {
-        log.debug("Processing ViewedEvent for boardId: {}", event.boardId());
-
-        // CQRS 패턴과 일관성을 유지하면서 Command를 통해 처리
         IncrementViewCountCommand command = boardCommandMapper.toIncrementViewCountCommand(event.boardId());
         boardCommandService.incrementViewCount(command);
     }

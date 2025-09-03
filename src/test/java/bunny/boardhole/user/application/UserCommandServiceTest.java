@@ -1,18 +1,19 @@
 package bunny.boardhole.user.application;
 
-import bunny.boardhole.email.application.EmailService;
 import bunny.boardhole.shared.exception.*;
 import bunny.boardhole.shared.util.*;
 import bunny.boardhole.user.application.command.*;
+import bunny.boardhole.user.application.event.UserCreatedEvent;
 import bunny.boardhole.user.application.mapper.UserMapper;
 import bunny.boardhole.user.application.result.UserResult;
 import bunny.boardhole.user.domain.*;
 import bunny.boardhole.user.infrastructure.*;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
+import org.mockito.*;
 import org.mockito.junit.jupiter.*;
 import org.mockito.quality.Strictness;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -55,7 +56,7 @@ class UserCommandServiceTest {
     @Mock
     private VerificationCodeGenerator verificationCodeGenerator;
     @Mock
-    private EmailService emailService;
+    private ApplicationEventPublisher eventPublisher;
     private UserCommandService userCommandService;
 
     private static User user() {
@@ -104,7 +105,7 @@ class UserCommandServiceTest {
                 passwordEncoder,
                 userMapper,
                 verificationCodeGenerator,
-                emailService
+                eventPublisher
         );
     }
 
@@ -130,6 +131,11 @@ class UserCommandServiceTest {
 
             UserResult expected = UserCommandServiceTest.userResult();
             lenient().when(userMapper.toResult(saved)).thenReturn(expected);
+            
+            // 이벤트 생성 메서드 mock 설정
+            UserCreatedEvent mockEvent = new UserCreatedEvent(saved, "test-token", java.time.LocalDateTime.now());
+            lenient().when(userMapper.toUserCreatedEvent(any(User.class), anyString(), any(java.time.LocalDateTime.class)))
+                    .thenReturn(mockEvent);
 
             // when
             UserResult result = userCommandService.create(cmd);
@@ -138,9 +144,15 @@ class UserCommandServiceTest {
             assertThat(result).isEqualTo(expected);
             verify(userRepository).existsByUsername(UserCommandServiceTest.USERNAME);
             verify(userRepository).existsByEmail(UserCommandServiceTest.EMAIL);
+
+            // 이벤트 발행 검증
+            ArgumentCaptor<UserCreatedEvent> eventCaptor = ArgumentCaptor.forClass(UserCreatedEvent.class);
+            verify(eventPublisher).publishEvent(eventCaptor.capture());
+            UserCreatedEvent publishedEvent = eventCaptor.getValue();
+            assertThat(publishedEvent.user()).isEqualTo(saved);
+            assertThat(publishedEvent.verificationToken()).isNotNull();
             verify(userRepository).save(any(User.class));
             verify(emailVerificationRepository).save(any(EmailVerification.class));
-            verify(emailService).sendSignupVerificationEmail(eq(saved), anyString());
         }
 
         @Test

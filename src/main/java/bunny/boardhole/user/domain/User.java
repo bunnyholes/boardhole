@@ -9,6 +9,7 @@ import org.springframework.util.Assert;
 
 import java.io.*;
 import java.time.*;
+import java.util.Set;
 
 @Getter
 @NoArgsConstructor
@@ -62,7 +63,7 @@ public class User implements Serializable {
     @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"))
     @Enumerated(EnumType.STRING)
     @Column(name = "role")
-    private java.util.Set<Role> roles;
+    private Set<Role> roles;
 
     // 필요한 필드만 받는 생성자에 @Builder 적용
     @Builder
