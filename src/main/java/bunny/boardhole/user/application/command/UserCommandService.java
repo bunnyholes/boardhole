@@ -1,9 +1,7 @@
 package bunny.boardhole.user.application.command;
 
-import bunny.boardhole.email.application.event.*;
 import bunny.boardhole.shared.exception.*;
 import bunny.boardhole.shared.util.*;
-import bunny.boardhole.user.application.event.UserCreatedEvent;
 import bunny.boardhole.user.application.mapper.UserMapper;
 import bunny.boardhole.user.application.result.UserResult;
 import bunny.boardhole.user.domain.*;

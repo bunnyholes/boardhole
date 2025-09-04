@@ -1,6 +1,7 @@
 package bunny.boardhole.board.domain;
 
 import bunny.boardhole.shared.constants.ValidationConstants;
+import bunny.boardhole.shared.domain.BaseEntity;
 import bunny.boardhole.shared.util.MessageUtils;
 import bunny.boardhole.user.domain.User;
 import jakarta.persistence.*;
@@ -8,12 +9,10 @@ import lombok.*;
 import org.hibernate.annotations.DynamicUpdate;
 import org.springframework.util.Assert;
 
-import java.time.*;
-
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 @ToString(exclude = "author")
 @Entity
 @DynamicUpdate
@@ -21,7 +20,7 @@ import java.time.*;
         @Index(name = "idx_board_title", columnList = "title"),
         @Index(name = "idx_board_created_at", columnList = "created_at")
 })
-public class Board {
+public class Board extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @EqualsAndHashCode.Include
@@ -34,20 +33,14 @@ public class Board {
     private String content;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "author_id", nullable = false)
+    @JoinColumn(name = "author_id", nullable = false, foreignKey = @ForeignKey(name = "fk_board_author"))
     private User author;
 
-    @Column(name = "view_count")
-    private Integer viewCount;
+    @Column(name = "view_count", nullable = false)
+    private int viewCount = 0;
 
     @Version
     private Long version;
-
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
 
     // 필요한 필드만 받는 생성자에 @Builder 적용
     @Builder
@@ -63,19 +56,6 @@ public class Board {
         this.author = author;
     }
 
-    @PrePersist
-    public void prePersist() {
-        LocalDateTime now = LocalDateTime.now(ZoneId.systemDefault());
-        if (createdAt == null) createdAt = now;
-        if (updatedAt == null) updatedAt = now;
-        if (viewCount == null) viewCount = 0;
-    }
-
-    @PreUpdate
-    public void preUpdate() {
-        updatedAt = LocalDateTime.now(ZoneId.systemDefault());
-    }
-
     public void changeTitle(String title) {
         Assert.hasText(title, MessageUtils.get("validation.board.title.required"));
         Assert.isTrue(title.length() <= ValidationConstants.BOARD_TITLE_MAX_LENGTH, MessageUtils.get("validation.board.title.too-long", ValidationConstants.BOARD_TITLE_MAX_LENGTH));
@@ -89,7 +69,14 @@ public class Board {
     }
 
     public void increaseViewCount() {
-        int current = viewCount == null ? 0 : viewCount;
-        viewCount = current + 1;
+        viewCount++;
+    }
+
+    public boolean isAuthor(User user) {
+        return user != null && user.equals(author);
+    }
+
+    public boolean isAuthor(Long userId) {
+        return userId != null && userId.equals(author.getId());
     }
 }

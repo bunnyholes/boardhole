@@ -1,6 +1,7 @@
 package bunny.boardhole.user.domain;
 
 import bunny.boardhole.shared.constants.ValidationConstants;
+import bunny.boardhole.shared.domain.BaseEntity;
 import bunny.boardhole.shared.util.MessageUtils;
 import jakarta.persistence.*;
 import lombok.*;
@@ -14,7 +15,7 @@ import java.util.Set;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 @ToString(exclude = {"password", "roles"})
 @Entity
 @DynamicUpdate
@@ -23,7 +24,7 @@ import java.util.Set;
         @Index(name = "idx_user_email", columnList = "email"),
         @Index(name = "idx_user_name", columnList = "name")
 })
-public class User implements Serializable {
+public class User extends BaseEntity implements Serializable {
 
     @Serial
     private static final long serialVersionUID = -8110205350586224981L;
@@ -43,12 +44,6 @@ public class User implements Serializable {
 
     @Column(nullable = false, unique = true)
     private String email;
-
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
 
     @Column(name = "last_login")
     private LocalDateTime lastLogin;
@@ -83,17 +78,6 @@ public class User implements Serializable {
         this.roles = roles;
     }
 
-    @PrePersist
-    public void prePersist() {
-        LocalDateTime now = LocalDateTime.now(ZoneId.systemDefault());
-        if (createdAt == null) createdAt = now;
-        if (updatedAt == null) updatedAt = now;
-    }
-
-    @PreUpdate
-    public void preUpdate() {
-        updatedAt = LocalDateTime.now(ZoneId.systemDefault());
-    }
 
     public void changeName(String name) {
         Assert.hasText(name, MessageUtils.get("validation.user.name.required"));
@@ -119,6 +103,18 @@ public class User implements Serializable {
     public void verifyEmail() {
         emailVerified = true;
         emailVerifiedAt = LocalDateTime.now(ZoneId.systemDefault());
+    }
+
+    public void updateLastLogin() {
+        lastLogin = LocalDateTime.now(ZoneId.systemDefault());
+    }
+
+    private boolean hasRole(Role role) {
+        return roles != null && roles.contains(role);
+    }
+
+    public boolean isAdmin() {
+        return hasRole(Role.ADMIN);
     }
 
 }

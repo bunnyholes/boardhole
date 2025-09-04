@@ -1,6 +1,6 @@
 package bunny.boardhole.shared.test;
 
-import bunny.boardhole.shared.config.TestDataConfig;
+import bunny.boardhole.shared.config.*;
 import bunny.boardhole.shared.util.MessageUtils;
 import bunny.boardhole.user.domain.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,7 +17,7 @@ import java.util.*;
 
 @DataJpaTest
 @ActiveProfiles("test")
-@Import(TestDataConfig.class)
+@Import({TestDataConfig.class, TestJpaConfig.class})
 public abstract class EntityTestBase {
 
     @Autowired
@@ -28,6 +28,10 @@ public abstract class EntityTestBase {
 
     @Autowired
     protected MessageSource messageSource;
+
+    protected static String createUniqueEmail() {
+        return UUID.randomUUID().toString().substring(0, 8) + "@example.com";
+    }
 
     @BeforeEach
     void initializeMessageUtils() {
@@ -40,10 +44,6 @@ public abstract class EntityTestBase {
 
     protected String createUniqueUsername() {
         return testData.username() + "_" + UUID.randomUUID().toString().substring(0, 8);
-    }
-
-    protected String createUniqueEmail() {
-        return UUID.randomUUID().toString().substring(0, 8) + "@example.com";
     }
 
     protected String createUniqueCode() {
