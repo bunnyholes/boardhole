@@ -41,9 +41,9 @@ class BoardEntityTest extends EntityTestBase {
             assertThat(board.getTitle()).isEqualTo(title);
             assertThat(board.getContent()).isEqualTo(content);
             assertThat(board.getAuthor()).isEqualTo(author);
-            assertThat(board.getViewCount()).isNull();
-            assertThat(board.getCreatedAt()).isNull();
-            assertThat(board.getUpdatedAt()).isNull();
+            assertThat(board.getViewCount()).isEqualTo(0);
+            assertThat(board.getCreatedAt()).isNull();  // BaseEntity의 필드는 persist 전까지 null
+            assertThat(board.getUpdatedAt()).isNull();  // BaseEntity의 필드는 persist 전까지 null
         }
     }
 

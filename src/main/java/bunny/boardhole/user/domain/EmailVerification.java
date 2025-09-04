@@ -1,5 +1,6 @@
 package bunny.boardhole.user.domain;
 
+import bunny.boardhole.shared.domain.BaseTimeEntity;
 import bunny.boardhole.shared.util.MessageUtils;
 import jakarta.persistence.*;
 import lombok.*;
@@ -10,13 +11,13 @@ import java.time.*;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 @Entity
 @Table(name = "email_verifications", indexes = {
         @Index(name = "idx_email_verification_user_id", columnList = "user_id"),
         @Index(name = "idx_email_verification_expires_at", columnList = "expires_at")
 })
-public class EmailVerification {
+public class EmailVerification extends BaseTimeEntity {
 
     @Id
     @EqualsAndHashCode.Include
@@ -38,9 +39,6 @@ public class EmailVerification {
     @Column(nullable = false)
     private boolean used;
 
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
-
     @Builder
     public EmailVerification(String code, Long userId, String newEmail,
                              LocalDateTime expiresAt, EmailVerificationType verificationType) {
@@ -58,10 +56,6 @@ public class EmailVerification {
         used = false;
     }
 
-    @PrePersist
-    public void prePersist() {
-        if (createdAt == null) createdAt = LocalDateTime.now(ZoneId.systemDefault());
-    }
 
     public void markAsUsed() {
         Assert.state(!used, "이미 사용된 검증 코드입니다");

@@ -131,7 +131,7 @@ class UserCommandServiceTest {
 
             UserResult expected = UserCommandServiceTest.userResult();
             lenient().when(userMapper.toResult(saved)).thenReturn(expected);
-            
+
             // 이벤트 생성 메서드 mock 설정
             UserCreatedEvent mockEvent = new UserCreatedEvent(saved, "test-token", java.time.LocalDateTime.now());
             lenient().when(userMapper.toUserCreatedEvent(any(User.class), anyString(), any(java.time.LocalDateTime.class)))
