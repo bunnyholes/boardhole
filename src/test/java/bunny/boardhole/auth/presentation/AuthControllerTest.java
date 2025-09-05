@@ -3,6 +3,9 @@ package bunny.boardhole.auth.presentation;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static bunny.boardhole.testsupport.mvc.MatchersUtil.all;
+import static bunny.boardhole.testsupport.mvc.ProblemDetailsMatchers.*;
+import static bunny.boardhole.testsupport.mvc.ProblemDetailsMatchers.*;
 
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -14,14 +17,14 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithUserDetails;
 
 import bunny.boardhole.shared.util.MessageUtils;
-import bunny.boardhole.shared.web.ControllerTestBase;
+import bunny.boardhole.testsupport.mvc.MvcTestBase;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.DisplayName.class)
 @DisplayName("인증 API 통합 테스트")
 @Tag("integration")
 @Tag("auth")
-class AuthControllerTest extends ControllerTestBase {
+class AuthControllerTest extends MvcTestBase {
 
     @Nested
     @DisplayName("POST /api/auth/signup - 회원가입")
@@ -187,10 +190,7 @@ class AuthControllerTest extends ControllerTestBase {
                             .param("username", username)
                             .param("password", password))
                     .andExpect(status().isUnauthorized())
-                    .andExpect(jsonPath("$.title").value(MessageUtils.get("exception.title.unauthorized")))
-                    .andExpect(jsonPath("$.type").value("urn:problem-type:unauthorized"))
-                    .andExpect(jsonPath("$.status").value(401))
-                    .andExpect(jsonPath("$.code").value(bunny.boardhole.shared.constants.ErrorCode.UNAUTHORIZED.getCode()))
+                    .andExpect(all(unauthorized()))
                     .andDo(print());
         }
 
@@ -242,7 +242,7 @@ class AuthControllerTest extends ControllerTestBase {
         void shouldDenyUserAccessWithoutAuth() throws Exception {
             mockMvc.perform(get("/api/auth/user-access"))
                     .andExpect(status().isUnauthorized())
-                    .andExpect(jsonPath("$.title").value(MessageUtils.get("exception.title.unauthorized")))
+                    .andExpect(all(unauthorized()))
                     .andDo(print());
         }
 

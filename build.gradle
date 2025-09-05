@@ -99,7 +99,7 @@ dependencies {
     // -- TestContainers for real SMTP testing --
     testImplementation 'org.testcontainers:testcontainers'
     testImplementation 'org.testcontainers:junit-jupiter'
-    
+
     // -- ArchUnit for architecture testing --
     testImplementation 'com.tngtech.archunit:archunit-junit5:1.4.1'
 
@@ -107,14 +107,15 @@ dependencies {
     rewrite 'org.openrewrite.recipe:rewrite-spring:6.13.0'
     rewrite 'org.openrewrite.recipe:rewrite-static-analysis:2.16.0'
 
-    // (Removed) REST Docs and restdocs-api-spec
-
     // -- Resilience / Retry --
     implementation 'org.springframework.retry:spring-retry'
 }
 
 tasks.named('test') {
-    useJUnitPlatform()
+    // Default: run only unit tests (exclude slower suites)
+    useJUnitPlatform {
+        excludeTags 'integration', 'e2e'
+    }
 
     testLogging {
         events "passed", "skipped", "failed"
@@ -169,8 +170,8 @@ sonarqube {
         property "sonar.java.test.binaries", "build/test-results/test"
         property "sonar.exclusions", "**/*Test.java, **/*Tests.java, **/test/**"
 
-        // Jacoco 커버리지 리포트 경로
-        property "sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/test/jacocoTestReport.xml"
+        // Jacoco 커버리지 리포트 경로 (집계 리포트)
+        property "sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/all/jacocoAllTestReport.xml"
 
         // PMD 리포트 경로
         property "sonar.java.pmd.reportPaths", "build/reports/pmd/main.xml"
@@ -517,6 +518,90 @@ jacocoTestCoverageVerification {
             }
         }
     }
+}
+
+// Jacoco coverage for additional suites and aggregate report
+tasks.register('jacocoIntegrationTestReport', JacocoReport) {
+    dependsOn tasks.named('integrationTest')
+    reports {
+        xml.required = true
+        html.required = true
+    }
+    executionData file("$buildDir/jacoco/integrationTest.exec")
+    sourceDirectories.from = files(sourceSets.main.allSource.srcDirs)
+    classDirectories.from = files(sourceSets.main.output)
+}
+
+tasks.register('jacocoE2ETestReport', JacocoReport) {
+    dependsOn tasks.named('e2eTest')
+    reports {
+        xml.required = true
+        html.required = true
+    }
+    executionData file("$buildDir/jacoco/e2eTest.exec")
+    sourceDirectories.from = files(sourceSets.main.allSource.srcDirs)
+    classDirectories.from = files(sourceSets.main.output)
+}
+
+tasks.register('jacocoAllTestReport', JacocoReport) {
+    description = 'Aggregated coverage for unit, integration, e2e tests'
+    group = 'verification'
+    dependsOn tasks.named('test'), tasks.named('integrationTest'), tasks.named('e2eTest')
+    reports {
+        xml.required = true
+        html.required = true
+        xml.outputLocation = file("$buildDir/reports/jacoco/all/jacocoAllTestReport.xml")
+        html.outputLocation = file("$buildDir/reports/jacoco/all/html")
+    }
+    executionData = files(
+            "$buildDir/jacoco/test.exec",
+            "$buildDir/jacoco/integrationTest.exec",
+            "$buildDir/jacoco/e2eTest.exec"
+    ).filter { it.exists() }
+    sourceDirectories.from = files(sourceSets.main.allSource.srcDirs)
+    classDirectories.from = files(sourceSets.main.output)
+}
+
+// -------------------------------------------------
+// Additional JUnit tag-based test tasks
+// -------------------------------------------------
+tasks.register('integrationTest', Test) {
+    description = 'Runs @Tag("integration") tests'
+    group = 'verification'
+
+    useJUnitPlatform {
+        includeTags 'integration'
+    }
+
+    testLogging {
+        events "passed", "skipped", "failed"
+        exceptionFormat = "short"
+    }
+
+    shouldRunAfter tasks.named('test')
+}
+
+tasks.register('e2eTest', Test) {
+    description = 'Runs @Tag("e2e") tests'
+    group = 'verification'
+
+    useJUnitPlatform {
+        includeTags 'e2e'
+    }
+
+    testLogging {
+        events "passed", "skipped", "failed"
+        exceptionFormat = "short"
+    }
+
+    shouldRunAfter tasks.named('integrationTest')
+}
+
+// Convenience aggregator to run all suites in order without redefining a Test task
+tasks.register('allTests') {
+    description = 'Runs unit, integration, and e2e tests'
+    group = 'verification'
+    dependsOn tasks.named('test'), tasks.named('integrationTest'), tasks.named('e2eTest')
 }
 
 // PMD 설정 (코드 품질 규칙) - 경고 모드

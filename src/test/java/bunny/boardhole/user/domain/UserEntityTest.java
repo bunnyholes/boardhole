@@ -8,7 +8,7 @@ import java.util.Set;
 import org.junit.jupiter.api.*;
 
 import bunny.boardhole.shared.constants.ValidationConstants;
-import bunny.boardhole.shared.test.EntityTestBase;
+import bunny.boardhole.testsupport.jpa.EntityTestBase;
 import bunny.boardhole.shared.util.MessageUtils;
 
 @DisplayName("User 엔티티 테스트")

@@ -79,10 +79,16 @@ jobs:
         
       - name: Run tests
         run: ./gradlew test
-        
+
+      - name: Run integration tests
+        run: ./gradlew integrationTest
+
+      - name: Run e2e tests
+        run: ./gradlew e2eTest
+
       - name: Generate test report
         if: always()
-        run: ./gradlew jacocoTestReport
+        run: ./gradlew jacocoAllTestReport jacocoTestReport
         
       - name: Upload test results
         if: always()
@@ -90,6 +96,20 @@ jobs:
         with:
           name: test-results
           path: build/reports/tests/test/
+
+      - name: Upload integration test results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: integration-test-results
+          path: build/reports/tests/integrationTest/
+
+      - name: Upload e2e test results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: e2e-test-results
+          path: build/reports/tests/e2eTest/
           
   code-quality:
     runs-on: ubuntu-latest

@@ -1,4 +1,4 @@
-package bunny.boardhole.shared.web;
+package bunny.boardhole.testsupport.mvc;
 
 import java.util.Optional;
 
@@ -15,7 +15,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import bunny.boardhole.board.domain.Board;
 import bunny.boardhole.board.infrastructure.BoardRepository;
-import bunny.boardhole.shared.config.*;
+import bunny.boardhole.testsupport.config.*;
 import bunny.boardhole.user.domain.*;
 import bunny.boardhole.user.infrastructure.UserRepository;
 
@@ -24,7 +24,7 @@ import bunny.boardhole.user.infrastructure.UserRepository;
 @ActiveProfiles("test")
 @Transactional
 @Import({TestEmailConfig.class})
-public abstract class ControllerTestBase {
+public abstract class MvcTestBase {
 
     @Autowired
     protected MockMvc mockMvc;
@@ -77,12 +77,12 @@ public abstract class ControllerTestBase {
         if (existing.isPresent()) return existing.get().getId();
         User user = User.builder()
                 .username(username)
-                .password(rawPassword) // tests should not authenticate with this; used for data only
+                .password(rawPassword)
                 .name(name)
                 .email(email)
                 .roles(new java.util.HashSet<>(roles))
                 .build();
-        user.verifyEmail(); // 테스트용 사용자는 이메일 인증 완료 상태로 생성
+        user.verifyEmail();
         return userRepository.save(user).getId();
     }
 
@@ -91,7 +91,4 @@ public abstract class ControllerTestBase {
                 .map(User::getId)
                 .orElse(null);
     }
-
-    // 기본 사용자 속성은 @Value 주입된 필드(regularUsername 등)를 직접 사용합니다.
-
 }

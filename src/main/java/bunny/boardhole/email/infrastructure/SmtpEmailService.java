@@ -9,6 +9,8 @@ import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import bunny.boardhole.email.application.*;
@@ -25,6 +27,8 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Service
+@Primary
+@Profile("smtp")
 @RequiredArgsConstructor
 public class SmtpEmailService implements EmailService {
 

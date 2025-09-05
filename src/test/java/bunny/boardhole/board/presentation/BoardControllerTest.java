@@ -5,6 +5,8 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static bunny.boardhole.testsupport.mvc.ProblemDetailsMatchers.*;
+import static bunny.boardhole.testsupport.mvc.MatchersUtil.all;
 
 import java.util.UUID;
 import java.util.concurrent.Executor;
@@ -24,7 +26,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 import bunny.boardhole.shared.security.AppUserPrincipal;
-import bunny.boardhole.shared.web.ControllerTestBase;
+import bunny.boardhole.testsupport.mvc.MvcTestBase;
 
 @DisplayName("게시판 API 통합 테스트")
 @TestMethodOrder(MethodOrderer.DisplayName.class)
@@ -32,7 +34,7 @@ import bunny.boardhole.shared.web.ControllerTestBase;
 @Tag("integration")
 @Tag("board")
 @Import(BoardControllerTest.TestAsyncConfig.class)
-class BoardControllerTest extends ControllerTestBase {
+class BoardControllerTest extends MvcTestBase {
 
     /**
      * 테스트용 비동기 설정
@@ -94,9 +96,8 @@ class BoardControllerTest extends ControllerTestBase {
                                 .param("title", titleValue)
                                 .param("content", contentValue))
                         .andExpect(status().isBadRequest())
-                        .andExpect(jsonPath("$.title").value(bunny.boardhole.shared.util.MessageUtils.get("exception.title.validation-failed")))
-                        .andExpect(jsonPath("$.type").value("urn:problem-type:validation-error"))
-                        .andExpect(jsonPath("$.errors[?(@.field == '" + expectedMissingField + "')]").exists())
+                        .andExpect(all(validationError()))
+                        .andExpect(fieldErrorExists(expectedMissingField))
                         .andDo(print());
             }
 
@@ -123,14 +124,13 @@ class BoardControllerTest extends ControllerTestBase {
             @DisplayName("❌ 인증 없이 게시글 생성 시도 → 401 Unauthorized")
             @Tag("security")
             void shouldReturn401WhenNotAuthenticated() throws Exception {
-                mockMvc.perform(post("/api/boards")
-                                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                                .param("title", "Test Title")
-                                .param("content", "Test Content"))
-                        .andExpect(status().isUnauthorized())
-                        .andExpect(jsonPath("$.type").value("urn:problem-type:unauthorized"))
-                        .andExpect(jsonPath("$.status").value(401))
-                        .andDo(print());
+            mockMvc.perform(post("/api/boards")
+                            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                            .param("title", "Test Title")
+                            .param("content", "Test Content"))
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(all(unauthorized()))
+                    .andDo(print());
             }
         }
     }

@@ -6,6 +6,7 @@ import java.util.*;
 
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.junit.jupiter.api.Tag;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.*;
@@ -29,6 +30,7 @@ import jakarta.mail.internet.MimeUtility;
 @Testcontainers
 @TestMethodOrder(MethodOrderer.DisplayName.class)
 @DisplayName("📮 SMTP 이메일 E2E 테스트")
+@Tag("e2e")
 class EmailSmtpE2ETest {
 
   @Container

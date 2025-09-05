@@ -15,10 +15,12 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import bunny.boardhole.email.application.*;
 import bunny.boardhole.email.domain.*;
+import org.junit.jupiter.api.Tag;
 
 @DisplayName("EmailRetryScheduler 테스트")
 @ExtendWith(MockitoExtension.class)
 @TestMethodOrder(MethodOrderer.DisplayName.class)
+@Tag("unit")
 @Tag("scheduler")
 @Tag("email")
 class EmailRetrySchedulerTest {

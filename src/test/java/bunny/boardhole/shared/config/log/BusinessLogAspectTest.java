@@ -28,7 +28,9 @@ import bunny.boardhole.user.infrastructure.*;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
+import org.junit.jupiter.api.Tag;
 
+@Tag("unit")
 class BusinessLogAspectTest {
 
     private BoardCommandService boardService;

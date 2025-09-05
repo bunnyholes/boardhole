@@ -9,6 +9,7 @@ import java.util.*;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
+import org.junit.jupiter.api.Tag;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.MDC;
 import org.springframework.context.MessageSource;
@@ -26,6 +27,7 @@ import jakarta.servlet.http.HttpServletRequest;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("GlobalExceptionHandler 테스트")
+@Tag("unit")
 class GlobalExceptionHandlerTest {
 
     private static final String TRACE_ID = "test-trace-id-123";

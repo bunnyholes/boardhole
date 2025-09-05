@@ -8,6 +8,7 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.*;
 import org.mockito.*;
+import org.junit.jupiter.api.Tag;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -17,6 +18,7 @@ import bunny.boardhole.shared.util.MessageUtils;
 import bunny.boardhole.user.domain.User;
 import bunny.boardhole.user.infrastructure.UserRepository;
 
+@Tag("unit")
 class BoardCommandServiceTest {
 
     @Mock
