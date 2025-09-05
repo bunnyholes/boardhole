@@ -4,6 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static bunny.boardhole.testsupport.mvc.ProblemDetailsMatchers.*;
+import static bunny.boardhole.testsupport.mvc.MatchersUtil.all;
 
 import java.util.*;
 
@@ -15,10 +17,12 @@ import org.springframework.test.web.servlet.MvcResult;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import bunny.boardhole.board.domain.Board;
-import bunny.boardhole.shared.web.ControllerTestBase;
+import bunny.boardhole.testsupport.mvc.MvcTestBase;
+import org.junit.jupiter.api.Tag;
 
 @DisplayName("에러 처리 통합 테스트")
-class ErrorHandlingIntegrationTest extends ControllerTestBase {
+@Tag("integration")
+class ErrorHandlingIntegrationTest extends MvcTestBase {
 
     @Test
     @DisplayName("E2E: 404 Not Found - 존재하지 않는 리소스")
@@ -26,9 +30,7 @@ class ErrorHandlingIntegrationTest extends ControllerTestBase {
         MvcResult result = mockMvc.perform(get("/api/boards/999999"))
                 .andExpect(status().isNotFound())
                 .andExpect(content().contentType("application/problem+json"))
-                .andExpect(jsonPath("$.type").value("urn:problem-type:not-found"))
-                .andExpect(jsonPath("$.title").value(bunny.boardhole.shared.util.MessageUtils.get("exception.title.not-found")))
-                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(all(notFound()))
                 .andExpect(jsonPath("$.detail").exists())
                 .andExpect(jsonPath("$.instance").value("/api/boards/999999"))
                 .andExpect(jsonPath("$.path").value("/api/boards/999999"))
@@ -54,12 +56,8 @@ class ErrorHandlingIntegrationTest extends ControllerTestBase {
                         .param("content", "Content without title"))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().contentType("application/problem+json"))
-                .andExpect(jsonPath("$.type").value("urn:problem-type:validation-error"))
-                .andExpect(jsonPath("$.title").value(bunny.boardhole.shared.util.MessageUtils.get("exception.title.validation-failed")))
-                .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.code").value(bunny.boardhole.shared.constants.ErrorCode.VALIDATION_ERROR.getCode()))
-                .andExpect(jsonPath("$.errors").isArray())
-                .andExpect(jsonPath("$.errors[?(@.field == 'title')]").exists())
+                .andExpect(all(validationError()))
+                .andExpect(fieldErrorExists("title"))
                 .andExpect(jsonPath("$.errors[?(@.field == 'title')].message").exists())
                 .andExpect(jsonPath("$.path").value("/api/boards"))
                 .andExpect(jsonPath("$.method").value("POST"))
@@ -77,9 +75,7 @@ class ErrorHandlingIntegrationTest extends ControllerTestBase {
                         .param("content", "Test Content"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(content().contentType("application/problem+json"))
-                .andExpect(jsonPath("$.type").value("urn:problem-type:unauthorized"))
-                .andExpect(jsonPath("$.title").value(bunny.boardhole.shared.util.MessageUtils.get("exception.title.unauthorized")))
-                .andExpect(jsonPath("$.status").value(401))
+                .andExpect(all(unauthorized()))
                 .andExpect(jsonPath("$.detail").exists())
                 .andExpect(jsonPath("$.path").value("/api/boards"))
                 .andExpect(jsonPath("$.method").value("POST"))

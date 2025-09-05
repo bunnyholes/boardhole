@@ -9,7 +9,9 @@ import org.springframework.context.support.ResourceBundleMessageSource;
 import ch.qos.logback.classic.*;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
+import org.junit.jupiter.api.Tag;
 
+@Tag("unit")
 class LoggingAspectTest {
 
     private LoggingAspect loggingAspect;

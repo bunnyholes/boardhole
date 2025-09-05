@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 import org.junit.jupiter.api.*;
 
 import bunny.boardhole.shared.constants.ValidationConstants;
-import bunny.boardhole.shared.test.EntityTestBase;
+import bunny.boardhole.testsupport.jpa.EntityTestBase;
 import bunny.boardhole.shared.util.MessageUtils;
 import bunny.boardhole.user.domain.User;
 

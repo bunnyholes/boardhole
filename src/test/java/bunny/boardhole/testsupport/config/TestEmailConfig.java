@@ -1,4 +1,4 @@
-package bunny.boardhole.shared.config;
+package bunny.boardhole.testsupport.config;
 
 import java.util.Map;
 

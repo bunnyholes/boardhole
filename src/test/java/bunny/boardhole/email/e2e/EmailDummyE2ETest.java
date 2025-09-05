@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.junit.jupiter.api.Tag;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
 
@@ -17,6 +18,7 @@ import bunny.boardhole.user.domain.User;
 @TestPropertySource(properties = "boardhole.security.require-email-verification=false")
 @TestMethodOrder(MethodOrderer.DisplayName.class)
 @DisplayName("📧 더미 이메일 E2E 테스트")
+@Tag("e2e")
 class EmailDummyE2ETest {
 
   @Autowired private EmailService emailService;

@@ -44,6 +44,9 @@ jobs:
       continue-on-error: true  # 경고만 표시
     
     # SonarCloud 분석
+    - name: Run all test suites for coverage
+      run: ./gradlew test integrationTest e2eTest jacocoAllTestReport --no-daemon
+
     - name: SonarCloud Analysis
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

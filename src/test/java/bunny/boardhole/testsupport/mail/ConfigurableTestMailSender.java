@@ -1,4 +1,4 @@
-package bunny.boardhole.shared.test;
+package bunny.boardhole.testsupport.mail;
 
 import java.io.InputStream;
 import java.util.concurrent.atomic.AtomicInteger;

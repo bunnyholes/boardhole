@@ -4,6 +4,8 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static bunny.boardhole.testsupport.mvc.ProblemDetailsMatchers.*;
+import static bunny.boardhole.testsupport.mvc.MatchersUtil.all;
 
 import java.util.*;
 
@@ -14,14 +16,14 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithUserDetails;
 
 import bunny.boardhole.shared.security.AppUserPrincipal;
-import bunny.boardhole.shared.web.ControllerTestBase;
+import bunny.boardhole.testsupport.mvc.MvcTestBase;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.DisplayName.class)
 @DisplayName("사용자 API 통합 테스트")
 @Tag("integration")
 @Tag("user")
-class UserControllerTest extends ControllerTestBase {
+class UserControllerTest extends MvcTestBase {
 
     @Nested
     @DisplayName("GET /api/users - 사용자 목록 조회")
@@ -89,7 +91,7 @@ class UserControllerTest extends ControllerTestBase {
         void shouldReturn404WhenUserNotFound() throws Exception {
             mockMvc.perform(get("/api/users/999999"))
                     .andExpect(status().isNotFound())
-                    .andExpect(jsonPath("$.title").value(bunny.boardhole.shared.util.MessageUtils.get("exception.title.not-found")))
+                    .andExpect(all(notFound()))
                     .andDo(print());
         }
     }
@@ -123,7 +125,7 @@ class UserControllerTest extends ControllerTestBase {
                             .param("name", "Hacked Name")
                             .param("email", "hacked@example.com"))
                     .andExpect(status().isUnauthorized())
-                    .andExpect(jsonPath("$.title").value(bunny.boardhole.shared.util.MessageUtils.get("exception.title.unauthorized")))
+                    .andExpect(all(unauthorized()))
                     .andDo(print());
         }
 
@@ -136,7 +138,7 @@ class UserControllerTest extends ControllerTestBase {
                             .param("name", "New Name")
                             .param("email", "new@example.com"))
                     .andExpect(status().isForbidden())
-                    .andExpect(jsonPath("$.title").value(bunny.boardhole.shared.util.MessageUtils.get("exception.title.access-denied")))
+                    .andExpect(all(forbidden()))
                     .andDo(print());
         }
     }
@@ -174,7 +176,7 @@ class UserControllerTest extends ControllerTestBase {
         void shouldReturn401WhenNotAuthenticated() throws Exception {
             mockMvc.perform(delete("/api/users/1"))
                     .andExpect(status().isUnauthorized())
-                    .andExpect(jsonPath("$.title").value(bunny.boardhole.shared.util.MessageUtils.get("exception.title.unauthorized")))
+                    .andExpect(all(unauthorized()))
                     .andDo(print());
         }
 
@@ -184,7 +186,7 @@ class UserControllerTest extends ControllerTestBase {
         void shouldReturn403WhenUserNotFound() throws Exception {
             mockMvc.perform(delete("/api/users/999999"))
                     .andExpect(status().isForbidden())
-                    .andExpect(jsonPath("$.title").value(bunny.boardhole.shared.util.MessageUtils.get("exception.title.access-denied")))
+                    .andExpect(all(forbidden()))
                     .andDo(print());
         }
 
@@ -201,6 +203,7 @@ class UserControllerTest extends ControllerTestBase {
 
                 mockMvc.perform(delete("/api/users/" + userId).with(user(otherPrincipal)))
                         .andExpect(status().isForbidden())
+                        .andExpect(all(forbidden()))
                         .andDo(print());
             }
         }
@@ -227,6 +230,7 @@ class UserControllerTest extends ControllerTestBase {
         void shouldReturn401WhenNotAuthenticated() throws Exception {
             mockMvc.perform(get("/api/users/me"))
                     .andExpect(status().isUnauthorized())
+                    .andExpect(all(unauthorized()))
                     .andDo(print());
         }
     }

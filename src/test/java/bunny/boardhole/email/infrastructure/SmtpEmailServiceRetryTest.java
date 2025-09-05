@@ -8,18 +8,20 @@ import org.junit.jupiter.api.*;
 import org.springframework.boot.test.context.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.mail.MailSendException;
+import org.junit.jupiter.api.Tag;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.test.context.ActiveProfiles;
+import org.junit.jupiter.api.Tag;
 
 import bunny.boardhole.email.application.EmailService;
+import bunny.boardhole.testsupport.integration.IntegrationTestBase;
 import bunny.boardhole.email.domain.EmailMessage;
 
 import jakarta.mail.*;
 import jakarta.mail.internet.MimeMessage;
 
-@SpringBootTest
-@ActiveProfiles("test")
-class SmtpEmailServiceRetryTest {
+@Tag("integration")
+@Tag("email")
+class SmtpEmailServiceRetryTest extends IntegrationTestBase {
 
   @org.springframework.beans.factory.annotation.Autowired EmailService emailService;
   @org.springframework.beans.factory.annotation.Autowired AtomicInteger attemptCounter;

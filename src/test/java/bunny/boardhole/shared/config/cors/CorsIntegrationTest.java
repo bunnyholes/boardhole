@@ -5,11 +5,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import org.junit.jupiter.api.*;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
+import org.junit.jupiter.api.Tag;
 
-import bunny.boardhole.shared.web.ControllerTestBase;
+import bunny.boardhole.testsupport.mvc.MvcTestBase;
 
 /**
  * CORS (Cross-Origin Resource Sharing) 통합 테스트
@@ -21,12 +19,10 @@ import bunny.boardhole.shared.web.ControllerTestBase;
  * - 크레덴셜 포함 요청
  * - 커스텀 헤더 처리
  */
-@SpringBootTest
-@AutoConfigureMockMvc
-@ActiveProfiles("test")
 @DisplayName("CORS 통합 테스트")
+@Tag("integration")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class CorsIntegrationTest extends ControllerTestBase {
+public class CorsIntegrationTest extends MvcTestBase {
 
     private static final String ALLOWED_ORIGIN = "http://localhost:8080";
     private static final String DISALLOWED_ORIGIN = "http://evil.com";

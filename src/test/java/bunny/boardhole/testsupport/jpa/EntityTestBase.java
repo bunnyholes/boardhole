@@ -1,4 +1,4 @@
-package bunny.boardhole.shared.test;
+package bunny.boardhole.testsupport.jpa;
 
 import java.time.*;
 import java.util.*;
@@ -13,7 +13,8 @@ import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import bunny.boardhole.shared.config.*;
+import bunny.boardhole.shared.config.TestDataConfig;
+import bunny.boardhole.shared.config.TestJpaConfig;
 import bunny.boardhole.shared.util.MessageUtils;
 import bunny.boardhole.user.domain.*;
 

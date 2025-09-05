@@ -6,7 +6,7 @@ import java.time.*;
 
 import org.junit.jupiter.api.*;
 
-import bunny.boardhole.shared.test.EntityTestBase;
+import bunny.boardhole.testsupport.jpa.EntityTestBase;
 
 @DisplayName("EmailOutbox 엔티티 테스트")
 @TestMethodOrder(MethodOrderer.DisplayName.class)

@@ -9,7 +9,7 @@ import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import bunny.boardhole.email.domain.*;
-import bunny.boardhole.shared.test.EntityTestBase;
+import bunny.boardhole.testsupport.jpa.EntityTestBase;
 
 @DisplayName("EmailOutboxRepository 테스트")
 @TestMethodOrder(MethodOrderer.DisplayName.class)

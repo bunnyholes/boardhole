@@ -1,4 +1,4 @@
-package bunny.boardhole.e2e;
+package bunny.boardhole.auth.e2e;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.anyOf;
@@ -24,31 +24,26 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ActiveProfiles;
 
-import bunny.boardhole.shared.config.TestEmailConfig;
-import bunny.boardhole.shared.config.TestSecurityOverrides;
+import bunny.boardhole.testsupport.config.TestEmailConfig;
+import bunny.boardhole.testsupport.config.TestSecurityOverrides;
+import bunny.boardhole.testsupport.e2e.E2ETestBase;
 
 import io.restassured.RestAssured;
 import io.restassured.filter.log.RequestLoggingFilter;
 import io.restassured.filter.log.ResponseLoggingFilter;
 import io.restassured.http.ContentType;
+import bunny.boardhole.testsupport.e2e.AuthSteps;
+import bunny.boardhole.testsupport.e2e.SessionCookie;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ActiveProfiles("test")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @DisplayName("🔐 AuthController E2E 테스트")
 @Tag("e2e")
 @Tag("auth")
 @Import({TestEmailConfig.class, TestSecurityOverrides.class})
-class AuthControllerE2ETest {
-
-    @LocalServerPort
-    private int port;
+class AuthControllerE2ETest extends E2ETestBase {
 
     private String testUsername;
     private String testPassword;
@@ -78,42 +73,13 @@ class AuthControllerE2ETest {
     private record CookieKV(String name, String value) {}
 
     private CookieKV loginAndGetCookieKV(String username, String password, String name, String email) {
-        // Ensure user exists (idempotent signup)
-        Map<String, String> signupData = new HashMap<>();
-        signupData.put("username", username);
-        signupData.put("password", password);
-        signupData.put("name", name);
-        signupData.put("email", email);
-
-        given()
-                .contentType(ContentType.URLENC)
-                .formParams(signupData)
-                .when()
-                .post("/auth/signup")
-                .then()
-                .statusCode(anyOf(is(204), is(409)));
-
-        io.restassured.response.Response loginRes = given()
-                .contentType(ContentType.URLENC)
-                .formParams(Map.of("username", username, "password", password))
-                .when()
-                .post("/auth/login");
-        Assertions.assertEquals(204, loginRes.getStatusCode());
-        String nameOut = "SESSION";
-        String valueOut = loginRes.getCookie(nameOut);
-        if (valueOut == null) {
-            nameOut = "JSESSIONID";
-            valueOut = loginRes.getCookie(nameOut);
-        }
-        return new CookieKV(nameOut, valueOut);
+        AuthSteps.signup(username, password, name, email);
+        SessionCookie sc = AuthSteps.login(username, password);
+        return new CookieKV(sc.name(), sc.value());
     }
 
     @BeforeAll
     void setUp() {
-        RestAssured.port = port;
-        RestAssured.baseURI = "http://localhost";
-        RestAssured.basePath = "/api";
-
         // 회원가입 테스트용 사용자 선택 (고유성 보장을 위해 UUID 추가)
         String uniqueId = java.util.UUID.randomUUID().toString().substring(0, 8);
         testUsername = "e2e_user_" + uniqueId;
@@ -135,7 +101,7 @@ class AuthControllerE2ETest {
         void shouldAllowPublicAccess() {
             given()
                     .when()
-                    .get("/auth/public-access")
+                    .get("auth/public-access")
                     .then()
                     .statusCode(204); // No Content
         }
@@ -169,7 +135,7 @@ class AuthControllerE2ETest {
                     .contentType(ContentType.URLENC)
                     .formParams(signupData)
                     .when()
-                    .post("/auth/signup")
+                    .post("auth/signup")
                     .then()
                     .statusCode(anyOf(is(204), is(409))); // 이미 생성된 경우 멱등성 허용
         }
@@ -188,7 +154,7 @@ class AuthControllerE2ETest {
                 .contentType(ContentType.URLENC)
                 .formParams(invalidSignupData)
             .when()
-                .post("/auth/signup")
+                .post("auth/signup")
             .then()
                 .statusCode(400)
                 .body("status", equalTo(400))
@@ -215,7 +181,7 @@ class AuthControllerE2ETest {
                 .contentType(ContentType.URLENC)
                 .formParams(duplicateSignupData)
             .when()
-                .post("/auth/signup")
+                .post("auth/signup")
             .then()
                 .statusCode(409)
                 .body("status", equalTo(409))
@@ -237,7 +203,7 @@ class AuthControllerE2ETest {
                 .contentType(ContentType.URLENC)
                 .formParams(duplicateEmailData)
             .when()
-                .post("/auth/signup")
+                .post("auth/signup")
             .then()
                 .statusCode(409)
                 .body("status", equalTo(409))
@@ -278,7 +244,7 @@ class AuthControllerE2ETest {
                     .contentType(ContentType.URLENC)
                     .formParams(signupData)
                     .when()
-                    .post("/auth/signup")
+                    .post("auth/signup")
                     .then()
                     .statusCode(anyOf(is(204), is(409)));
             Map<String, String> loginData = new HashMap<>();
@@ -289,7 +255,7 @@ class AuthControllerE2ETest {
                     .contentType(ContentType.URLENC)
                     .formParams(loginData)
                     .when()
-                    .post("/auth/login")
+                    .post("auth/login")
                     .then()
                     .statusCode(204)
                     .extract().response();
@@ -314,7 +280,7 @@ class AuthControllerE2ETest {
                     .contentType(ContentType.URLENC)
                     .formParams(adminLoginData)
                     .when()
-                    .post("/auth/login")
+                    .post("auth/login")
                     .then()
                     .statusCode(204)
                     .extract().response();
@@ -359,7 +325,7 @@ class AuthControllerE2ETest {
         void shouldDenyUserAccessWithoutAuth() {
             given()
                     .when()
-                    .get("/auth/user-access")
+                        .get("auth/user-access")
                     .then()
                     .statusCode(401)
                     .body("status", equalTo(401))
@@ -375,7 +341,7 @@ class AuthControllerE2ETest {
             io.restassured.response.Response res = given()
                     .cookie(userSessionCookieName, userSessionCookie)
                     .when()
-                    .get("/auth/user-access");
+                        .get("auth/user-access");
             System.out.println("[E2E] user-access status=" + res.getStatusCode() + ", body=" + res.getBody().asString());
             Assertions.assertEquals(204, res.getStatusCode());
         }
@@ -388,7 +354,7 @@ class AuthControllerE2ETest {
             given()
                     .cookie(adminSessionCookieName, adminSessionCookie)
                     .when()
-                    .get("/auth/user-access")
+                        .get("auth/user-access")
                     .then()
                     .statusCode(204);
         }
@@ -402,7 +368,7 @@ class AuthControllerE2ETest {
             void shouldReturn401WhenNotAuthenticated() {
                 given()
                         .when()
-                        .get("/auth/admin-only")
+                        .get("auth/admin-only")
                         .then()
                         .statusCode(401)
                         .body("status", equalTo(401))
@@ -418,7 +384,7 @@ class AuthControllerE2ETest {
                 given()
                         .cookie(userSessionCookieName, userSessionCookie)
                         .when()
-                        .get("/auth/admin-only")
+                        .get("auth/admin-only")
                         .then()
                         .statusCode(403)
                         .body("status", equalTo(403))
@@ -434,7 +400,7 @@ class AuthControllerE2ETest {
                 given()
                         .cookie(adminSessionCookieName, adminSessionCookie)
                         .when()
-                        .get("/auth/admin-only")
+                        .get("auth/admin-only")
                         .then()
                         .statusCode(204);
             }
@@ -453,7 +419,7 @@ class AuthControllerE2ETest {
             given()
                     .cookie(userSessionCookieName, userSessionCookie)
                     .when()
-                    .post("/auth/logout")
+                    .post("auth/logout")
                     .then()
                     .statusCode(204);
 
@@ -461,7 +427,7 @@ class AuthControllerE2ETest {
             given()
                     .cookie(userSessionCookieName, userSessionCookie)
                     .when()
-                    .get("/auth/user-access")
+                    .get("auth/user-access")
                     .then()
                     .statusCode(401)
                     .body("status", equalTo(401))
@@ -475,7 +441,7 @@ class AuthControllerE2ETest {
         void shouldReturn401WhenNotAuthenticated() {
             given()
                     .when()
-                    .post("/auth/logout")
+                    .post("auth/logout")
                     .then()
                     .statusCode(401)
                     .body("status", equalTo(401))
@@ -495,7 +461,7 @@ class AuthControllerE2ETest {
         void shouldReturn401WhenNotAuthenticated() {
             given()
                     .when()
-                    .get("/users/me")
+                    .get("users/me")
                     .then()
                     .statusCode(401)
                     .body("status", equalTo(401))
@@ -511,7 +477,7 @@ class AuthControllerE2ETest {
             given()
                     .cookie(userSessionCookieName, userSessionCookie)
                     .when()
-                    .get("/users/me")
+                    .get("users/me")
                     .then()
                     .statusCode(200)
                     .body("username", equalTo(regularUsername))
@@ -546,7 +512,7 @@ class AuthControllerE2ETest {
                 .contentType(ContentType.URLENC)
                 .formParams(loginData)
                 .when()
-                .post("/auth/login");
+                .post("auth/login");
         System.out.println("[E2E] ensureUserLoggedIn login status=" + loginRes.getStatusCode() + ", cookies=" + loginRes.getCookies());
         Assertions.assertEquals(204, loginRes.getStatusCode(), "Seed user login should succeed");
         String cookieName = loginRes.getCookie("SESSION") != null ? "SESSION" : "JSESSIONID";
