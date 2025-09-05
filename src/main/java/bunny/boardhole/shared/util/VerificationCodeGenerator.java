@@ -1,9 +1,9 @@
 package bunny.boardhole.shared.util;
 
-import java.security.SecureRandom;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
+import java.security.SecureRandom;
 
 /**
  * 검증 코드 생성 유틸리티

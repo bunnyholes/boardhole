@@ -1,13 +1,11 @@
 package bunny.boardhole.shared.config.cors;
 
+import bunny.boardhole.testsupport.mvc.MvcTestBase;
+import org.junit.jupiter.api.*;
+
 import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
-import org.junit.jupiter.api.*;
-import org.junit.jupiter.api.Tag;
-
-import bunny.boardhole.testsupport.mvc.MvcTestBase;
 
 /**
  * CORS (Cross-Origin Resource Sharing) 통합 테스트

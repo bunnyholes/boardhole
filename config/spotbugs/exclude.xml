@@ -5,18 +5,18 @@
         <Class name="~.*Test"/>
         <Bug pattern="DMI_HARDCODED_ABSOLUTE_FILENAME"/>
     </Match>
-    
+
     <Match>
         <Class name="~.*Test"/>
         <Bug pattern="PATH_TRAVERSAL_IN"/>
     </Match>
-    
+
     <!-- Spring Boot 자동 구성 클래스 제외 -->
     <Match>
         <Class name="~.*Application"/>
         <Bug pattern="UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR"/>
     </Match>
-    
+
     <!-- DTO/Entity 클래스의 불가피한 패턴 제외 -->
     <Match>
         <Class name="~.*\.(dto|entity|domain)\..*"/>

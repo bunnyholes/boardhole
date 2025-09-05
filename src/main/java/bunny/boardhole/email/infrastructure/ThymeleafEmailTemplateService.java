@@ -1,16 +1,14 @@
 package bunny.boardhole.email.infrastructure;
 
-import java.util.Map;
-
+import bunny.boardhole.email.application.EmailTemplateService;
+import bunny.boardhole.email.domain.EmailTemplate;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
-import bunny.boardhole.email.application.EmailTemplateService;
-import bunny.boardhole.email.domain.EmailTemplate;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.util.Map;
 
 /**
  * Thymeleaf 기반 이메일 템플릿 처리 서비스

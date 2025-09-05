@@ -1,7 +1,6 @@
 package bunny.boardhole.user.application.command;
 
 import bunny.boardhole.user.domain.validation.required.ValidPassword;
-
 import jakarta.validation.constraints.*;
 
 public record UpdatePasswordCommand(

@@ -1,13 +1,13 @@
 package bunny.boardhole.shared.config;
 
-import java.util.Map;
-import java.util.concurrent.ThreadPoolExecutor;
-
 import org.slf4j.MDC;
 import org.springframework.boot.autoconfigure.task.TaskExecutionProperties;
 import org.springframework.context.annotation.*;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+
+import java.util.Map;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * 비동기 설정 - Spring Boot 기본 설정 활용

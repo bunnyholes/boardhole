@@ -1,23 +1,15 @@
 package bunny.boardhole.scenarios.e2e;
 
-import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.anyOf;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
+import bunny.boardhole.testsupport.config.*;
+import bunny.boardhole.testsupport.e2e.E2ETestBase;
+import io.restassured.http.ContentType;
+import org.junit.jupiter.api.*;
 import org.springframework.context.annotation.Import;
 
-import bunny.boardhole.testsupport.config.TestEmailConfig;
-import bunny.boardhole.testsupport.config.TestSecurityOverrides;
-import bunny.boardhole.testsupport.e2e.E2ETestBase;
+import java.util.*;
 
-import io.restassured.http.ContentType;
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.*;
 
 @DisplayName("사용자 가입→로그인→내 정보 시나리오")
 @Tag("e2e")
@@ -40,32 +32,32 @@ public class UserJourneyE2ETest extends E2ETestBase {
         signup.put("email", email);
 
         given()
-            .contentType(ContentType.URLENC)
-            .formParams(signup)
-        .when()
-            .post("auth/signup")
-        .then()
-            .statusCode(anyOf(is(204), is(409))); // idempotent
+                .contentType(ContentType.URLENC)
+                .formParams(signup)
+                .when()
+                .post("auth/signup")
+                .then()
+                .statusCode(anyOf(is(204), is(409))); // idempotent
 
         var loginRes = given()
-            .contentType(ContentType.URLENC)
-            .formParams(Map.of("username", username, "password", password))
-        .when()
-            .post("auth/login")
-        .then()
-            .statusCode(204)
-            .extract().response();
+                .contentType(ContentType.URLENC)
+                .formParams(Map.of("username", username, "password", password))
+                .when()
+                .post("auth/login")
+                .then()
+                .statusCode(204)
+                .extract().response();
 
         String cookieName = loginRes.getCookie("SESSION") != null ? "SESSION" : "JSESSIONID";
         String session = loginRes.getCookie(cookieName);
 
         given()
-            .cookie(cookieName, session)
-        .when()
-            .get("users/me")
-        .then()
-            .statusCode(200)
-            .body("username", equalTo(username))
-            .body("email", equalTo(email));
+                .cookie(cookieName, session)
+                .when()
+                .get("users/me")
+                .then()
+                .statusCode(200)
+                .body("username", equalTo(username))
+                .body("email", equalTo(email));
     }
 }

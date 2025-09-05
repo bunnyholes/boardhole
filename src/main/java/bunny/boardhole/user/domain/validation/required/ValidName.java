@@ -1,11 +1,10 @@
 package bunny.boardhole.user.domain.validation.required;
 
-import java.lang.annotation.*;
-
 import bunny.boardhole.shared.constants.ValidationConstants;
-
 import jakarta.validation.*;
 import jakarta.validation.constraints.*;
+
+import java.lang.annotation.*;
 
 /**
  * 사용자 실명 검증 애너테이션

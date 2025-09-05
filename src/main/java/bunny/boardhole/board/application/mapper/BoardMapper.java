@@ -1,11 +1,10 @@
 package bunny.boardhole.board.application.mapper;
 
-import org.mapstruct.*;
-
 import bunny.boardhole.board.application.event.ViewedEvent;
 import bunny.boardhole.board.application.result.BoardResult;
 import bunny.boardhole.board.domain.Board;
 import bunny.boardhole.shared.mapstruct.MapstructConfig;
+import org.mapstruct.*;
 
 @Mapper(config = MapstructConfig.class)
 public interface BoardMapper {

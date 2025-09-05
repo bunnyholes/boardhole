@@ -1,7 +1,6 @@
 package bunny.boardhole.board.presentation.dto;
 
 import bunny.boardhole.board.domain.validation.required.*;
-
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(name = "BoardCreateRequest", description = "게시글 작성 요청")

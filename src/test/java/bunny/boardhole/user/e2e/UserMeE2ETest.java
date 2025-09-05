@@ -1,18 +1,12 @@
 package bunny.boardhole.user.e2e;
 
-import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.equalTo;
-
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
+import bunny.boardhole.testsupport.config.*;
+import bunny.boardhole.testsupport.e2e.*;
+import org.junit.jupiter.api.*;
 import org.springframework.context.annotation.Import;
 
-import bunny.boardhole.testsupport.config.TestEmailConfig;
-import bunny.boardhole.testsupport.config.TestSecurityOverrides;
-import bunny.boardhole.testsupport.e2e.AuthSteps;
-import bunny.boardhole.testsupport.e2e.E2ETestBase;
-import bunny.boardhole.testsupport.e2e.SessionCookie;
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.equalTo;
 
 @DisplayName("사용자 E2E — /users/me 인증/미인증")
 @Tag("e2e")
@@ -24,11 +18,11 @@ public class UserMeE2ETest extends E2ETestBase {
     @DisplayName("미인증은 401 ProblemDetails")
     void me_Unauthorized() {
         given()
-        .when()
-            .get("users/me")
-        .then()
-            .statusCode(401)
-            .body("type", equalTo("urn:problem-type:unauthorized"));
+                .when()
+                .get("users/me")
+                .then()
+                .statusCode(401)
+                .body("type", equalTo("urn:problem-type:unauthorized"));
     }
 
     @Test
@@ -42,13 +36,13 @@ public class UserMeE2ETest extends E2ETestBase {
         SessionCookie sc = AuthSteps.login(u, p);
 
         given()
-            .cookie(sc.name(), sc.value())
-        .when()
-            .get("users/me")
-        .then()
-            .statusCode(200)
-            .body("username", equalTo(u))
-            .body("email", equalTo(e));
+                .cookie(sc.name(), sc.value())
+                .when()
+                .get("users/me")
+                .then()
+                .statusCode(200)
+                .body("username", equalTo(u))
+                .body("email", equalTo(e));
     }
 }
 

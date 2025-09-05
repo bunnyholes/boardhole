@@ -1,22 +1,21 @@
 package bunny.boardhole.user.presentation;
 
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static bunny.boardhole.testsupport.mvc.ProblemDetailsMatchers.*;
-import static bunny.boardhole.testsupport.mvc.MatchersUtil.all;
-
-import java.util.*;
-
+import bunny.boardhole.shared.security.AppUserPrincipal;
+import bunny.boardhole.testsupport.mvc.MvcTestBase;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithUserDetails;
 
-import bunny.boardhole.shared.security.AppUserPrincipal;
-import bunny.boardhole.testsupport.mvc.MvcTestBase;
+import java.util.*;
+
+import static bunny.boardhole.testsupport.mvc.MatchersUtil.all;
+import static bunny.boardhole.testsupport.mvc.ProblemDetailsMatchers.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.DisplayName.class)

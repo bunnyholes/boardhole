@@ -1,107 +1,105 @@
 package bunny.boardhole.email.infrastructure;
 
-import static org.junit.jupiter.api.Assertions.*;
+import bunny.boardhole.email.application.EmailService;
+import bunny.boardhole.email.domain.EmailMessage;
+import bunny.boardhole.testsupport.integration.IntegrationTestBase;
+import jakarta.mail.*;
+import jakarta.mail.internet.MimeMessage;
+import org.junit.jupiter.api.*;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.mail.MailSendException;
+import org.springframework.mail.javamail.JavaMailSender;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.junit.jupiter.api.*;
-import org.springframework.boot.test.context.*;
-import org.springframework.context.annotation.Bean;
-import org.springframework.mail.MailSendException;
-import org.junit.jupiter.api.Tag;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.junit.jupiter.api.Tag;
-
-import bunny.boardhole.email.application.EmailService;
-import bunny.boardhole.testsupport.integration.IntegrationTestBase;
-import bunny.boardhole.email.domain.EmailMessage;
-
-import jakarta.mail.*;
-import jakarta.mail.internet.MimeMessage;
+import static org.junit.jupiter.api.Assertions.*;
 
 @Tag("integration")
 @Tag("email")
 class SmtpEmailServiceRetryTest extends IntegrationTestBase {
 
-  @org.springframework.beans.factory.annotation.Autowired EmailService emailService;
-  @org.springframework.beans.factory.annotation.Autowired AtomicInteger attemptCounter;
+    @org.springframework.beans.factory.annotation.Autowired
+    EmailService emailService;
+    @org.springframework.beans.factory.annotation.Autowired
+    AtomicInteger attemptCounter;
 
-  @Test
-  @DisplayName("SMTP 전송 실패 시 재시도 후 성공")
-  void shouldRetryAndSucceed() {
-    EmailMessage msg = EmailMessage.create("test@example.com", "Hello", "<p>world</p>");
-    assertDoesNotThrow(() -> emailService.sendEmail(msg));
-    // 3번 실패 + 1번 성공 = 최소 4회 시도
-    assertEquals(4, attemptCounter.get());
-  }
-
-  @TestConfiguration
-  static class StubMailConfig {
-    @Bean
-    AtomicInteger attemptCounter() {
-      return new AtomicInteger();
+    @Test
+    @DisplayName("SMTP 전송 실패 시 재시도 후 성공")
+    void shouldRetryAndSucceed() {
+        EmailMessage msg = EmailMessage.create("test@example.com", "Hello", "<p>world</p>");
+        assertDoesNotThrow(() -> emailService.sendEmail(msg));
+        // 3번 실패 + 1번 성공 = 최소 4회 시도
+        assertEquals(4, attemptCounter.get());
     }
 
-    @Bean
-    JavaMailSender javaMailSender(AtomicInteger attemptCounter) {
-      return new JavaMailSender() {
-        @Override
-        public MimeMessage createMimeMessage() {
-          return new MimeMessage((Session) null);
+    @TestConfiguration
+    static class StubMailConfig {
+        @Bean
+        AtomicInteger attemptCounter() {
+            return new AtomicInteger();
         }
 
-        @Override
-        public MimeMessage createMimeMessage(java.io.InputStream contentStream) {
-          try {
-            return new MimeMessage(null, contentStream);
-          } catch (MessagingException e) {
-            throw new MailSendException("stub createMimeMessage fail", e);
-          }
-        }
+        @Bean
+        JavaMailSender javaMailSender(AtomicInteger attemptCounter) {
+            return new JavaMailSender() {
+                @Override
+                public MimeMessage createMimeMessage() {
+                    return new MimeMessage((Session) null);
+                }
 
-        @Override
-        public void send(MimeMessage mimeMessage) throws MailSendException {
-          int attempt = attemptCounter.incrementAndGet();
-          // 처음 3회 실패, 이후 성공
-          if (attempt <= 3) throw new MailSendException("stub failure #" + attempt);
-        }
+                @Override
+                public MimeMessage createMimeMessage(java.io.InputStream contentStream) {
+                    try {
+                        return new MimeMessage(null, contentStream);
+                    } catch (MessagingException e) {
+                        throw new MailSendException("stub createMimeMessage fail", e);
+                    }
+                }
 
-        @Override
-        public void send(MimeMessage... mimeMessages) {
-          throw new UnsupportedOperationException();
-        }
+                @Override
+                public void send(MimeMessage mimeMessage) throws MailSendException {
+                    int attempt = attemptCounter.incrementAndGet();
+                    // 처음 3회 실패, 이후 성공
+                    if (attempt <= 3) throw new MailSendException("stub failure #" + attempt);
+                }
 
-        @Override
-        public void send(org.springframework.mail.SimpleMailMessage simpleMessage) {
-          throw new UnsupportedOperationException();
-        }
+                @Override
+                public void send(MimeMessage... mimeMessages) {
+                    throw new UnsupportedOperationException();
+                }
 
-        @Override
-        public void send(org.springframework.mail.SimpleMailMessage... simpleMessages) {
-          throw new UnsupportedOperationException();
-        }
+                @Override
+                public void send(org.springframework.mail.SimpleMailMessage simpleMessage) {
+                    throw new UnsupportedOperationException();
+                }
 
-        @Override
-        public void send(
-            org.springframework.mail.javamail.MimeMessagePreparator mimeMessagePreparator) {
-          throw new UnsupportedOperationException();
-        }
+                @Override
+                public void send(org.springframework.mail.SimpleMailMessage... simpleMessages) {
+                    throw new UnsupportedOperationException();
+                }
 
-        @Override
-        public void send(
-            org.springframework.mail.javamail.MimeMessagePreparator... mimeMessagePreparators) {
-          throw new UnsupportedOperationException();
+                @Override
+                public void send(
+                        org.springframework.mail.javamail.MimeMessagePreparator mimeMessagePreparator) {
+                    throw new UnsupportedOperationException();
+                }
+
+                @Override
+                public void send(
+                        org.springframework.mail.javamail.MimeMessagePreparator... mimeMessagePreparators) {
+                    throw new UnsupportedOperationException();
+                }
+            };
         }
-      };
     }
-  }
 
-  @TestConfiguration
-  static class SyncAsyncConfig {
-    @Bean(name = "taskExecutor")
-    @org.springframework.context.annotation.Primary
-    public java.util.concurrent.Executor taskExecutor() {
-      return new org.springframework.core.task.SyncTaskExecutor();
+    @TestConfiguration
+    static class SyncAsyncConfig {
+        @Bean(name = "taskExecutor")
+        @org.springframework.context.annotation.Primary
+        public java.util.concurrent.Executor taskExecutor() {
+            return new org.springframework.core.task.SyncTaskExecutor();
+        }
     }
-  }
 }

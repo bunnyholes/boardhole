@@ -1,23 +1,21 @@
 package bunny.boardhole.auth.presentation;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static bunny.boardhole.testsupport.mvc.MatchersUtil.all;
-import static bunny.boardhole.testsupport.mvc.ProblemDetailsMatchers.*;
-import static bunny.boardhole.testsupport.mvc.ProblemDetailsMatchers.*;
-
-import java.util.UUID;
-import java.util.stream.Stream;
-
+import bunny.boardhole.shared.util.MessageUtils;
+import bunny.boardhole.testsupport.mvc.MvcTestBase;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.*;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithUserDetails;
 
-import bunny.boardhole.shared.util.MessageUtils;
-import bunny.boardhole.testsupport.mvc.MvcTestBase;
+import java.util.UUID;
+import java.util.stream.Stream;
+
+import static bunny.boardhole.testsupport.mvc.MatchersUtil.all;
+import static bunny.boardhole.testsupport.mvc.ProblemDetailsMatchers.unauthorized;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.DisplayName.class)
@@ -70,7 +68,7 @@ class AuthControllerTest extends MvcTestBase {
                     .andExpect(jsonPath("$.type").exists())
                     .andExpect(jsonPath("$.title").value(MessageUtils.get("exception.title.validation-failed")))
                     .andExpect(jsonPath("$.status").value(400))
-                        .andExpect(jsonPath("$.code").value(bunny.boardhole.shared.constants.ErrorCode.VALIDATION_ERROR.getCode()))
+                    .andExpect(jsonPath("$.code").value(bunny.boardhole.shared.constants.ErrorCode.VALIDATION_ERROR.getCode()))
                     .andExpect(jsonPath("$.errors").isArray())
                     .andDo(print());
         }

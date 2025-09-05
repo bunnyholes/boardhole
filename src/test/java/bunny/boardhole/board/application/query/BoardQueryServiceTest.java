@@ -1,16 +1,13 @@
 package bunny.boardhole.board.application.query;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.*;
-
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-
+import bunny.boardhole.board.application.event.ViewedEvent;
+import bunny.boardhole.board.application.mapper.BoardMapper;
+import bunny.boardhole.board.application.result.BoardResult;
+import bunny.boardhole.board.domain.Board;
+import bunny.boardhole.board.infrastructure.BoardRepository;
+import bunny.boardhole.shared.exception.ResourceNotFoundException;
+import bunny.boardhole.shared.util.MessageUtils;
+import bunny.boardhole.user.domain.User;
 import org.junit.jupiter.api.*;
 import org.mockito.*;
 import org.springframework.context.ApplicationEventPublisher;
@@ -18,14 +15,13 @@ import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.data.domain.*;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import bunny.boardhole.board.application.mapper.BoardMapper;
-import bunny.boardhole.board.application.result.BoardResult;
-import bunny.boardhole.board.application.event.ViewedEvent;
-import bunny.boardhole.board.domain.Board;
-import bunny.boardhole.board.infrastructure.BoardRepository;
-import bunny.boardhole.shared.exception.ResourceNotFoundException;
-import bunny.boardhole.shared.util.MessageUtils;
-import bunny.boardhole.user.domain.User;
+import java.time.LocalDateTime;
+import java.util.*;
+
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.*;
 
 @Tag("unit")
 class BoardQueryServiceTest {
@@ -49,7 +45,7 @@ class BoardQueryServiceTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        
+
         // MessageUtils 초기화
         ResourceBundleMessageSource ms = new ResourceBundleMessageSource();
         ms.setBasename("messages");

@@ -2,10 +2,10 @@ name: Develop Auto Versioning
 
 on:
   push:
-    branches: [develop]
+    branches: [ develop ]
   pull_request:
-    types: [closed]
-    branches: [develop]
+    types: [ closed ]
+    branches: [ develop ]
 
 jobs:
   auto-version:
@@ -21,19 +21,19 @@ jobs:
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
-          
+
       - name: Setup Git
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
-          
+
       - name: Get current version
         id: current_version
         run: |
           VERSION=$(grep "^version=" gradle.properties | cut -d'=' -f2)
           echo "Current version: $VERSION"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-          
+
       - name: Analyze commit message
         id: analyze
         run: |
@@ -56,7 +56,7 @@ jobs:
           else
             echo "type=dev" >> $GITHUB_OUTPUT
           fi
-          
+
       - name: Calculate next version
         id: next_version
         run: |
@@ -96,23 +96,23 @@ jobs:
           
           echo "Next version: $NEW_VERSION"
           echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
-          
+
       - name: Update version in gradle.properties
         run: |
           sed -i "s/version=.*/version=${{ steps.next_version.outputs.version }}/" gradle.properties
-          
+
       - name: Commit and push version update
         run: |
           git add gradle.properties
           git commit -m "chore: bump version to ${{ steps.next_version.outputs.version }} [skip ci]"
           git push origin develop
-          
+
       - name: Create lightweight tag
         run: |
           TAG_NAME="dev-${{ steps.next_version.outputs.version }}"
           git tag $TAG_NAME
           git push origin $TAG_NAME
-          
+
       - name: Summary
         run: |
           echo "## 📦 Version Update Summary" >> $GITHUB_STEP_SUMMARY

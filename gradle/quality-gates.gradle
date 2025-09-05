@@ -41,21 +41,21 @@ sonar {
         property 'sonar.projectKey', project.name
         property 'sonar.projectName', 'Board Hole Application'
         property 'sonar.projectVersion', project.version
-        
+
         // 소스 설정
         property 'sonar.sources', 'src/main/java'
         property 'sonar.tests', 'src/test/java'
         property 'sonar.java.binaries', 'build/classes/java/main'
         property 'sonar.java.test.binaries', 'build/classes/java/test'
         property 'sonar.java.libraries', 'build/libs/*.jar'
-        
+
         // Lombok 지원
         property 'sonar.java.lombok.addLombokGeneratedAnnotation', 'true'
-        
+
         // 커버리지
         property 'sonar.coverage.jacoco.xmlReportPaths', 'build/reports/jacoco/test/jacocoTestReport.xml'
         property 'sonar.junit.reportPaths', 'build/test-results/test'
-        
+
         // 제외 패턴
         property 'sonar.exclusions', '''
             **/test/**,
@@ -68,23 +68,23 @@ sonar {
             **/dto/**,
             **/result/**
         '''
-        
+
         // 중복 코드 제외
         property 'sonar.cpd.exclusions', '''
             **/*Test.java,
             **/*Entity.java,
             **/*DTO.java
         '''
-        
+
         // 커스텀 품질 프로파일 (옵션)
         // property 'sonar.qualityProfile', 'Board Hole Quality Profile'
-        
+
         // Import Checkstyle 결과
         property 'sonar.java.checkstyle.reportPaths', 'build/reports/checkstyle/main.xml'
-        
+
         // Import PMD 결과
         property 'sonar.java.pmd.reportPaths', 'build/reports/pmd/main.xml'
-        
+
         // Import SpotBugs 결과
         property 'sonar.java.spotbugs.reportPaths', 'build/reports/spotbugs/main.xml'
     }
@@ -94,7 +94,7 @@ sonar {
 task qualityGate {
     group = 'verification'
     description = 'Run all quality checks (Checkstyle, PMD, SpotBugs, Tests, Coverage)'
-    
+
     dependsOn 'checkstyleMain'
     dependsOn 'checkstyleTest'
     dependsOn 'pmdMain'
@@ -103,7 +103,7 @@ task qualityGate {
     dependsOn 'spotbugsTest'
     dependsOn 'test'
     dependsOn 'jacocoTestReport'
-    
+
     doLast {
         println """
         ========================================
@@ -134,9 +134,9 @@ task switchToGoogleStyle {
 task strictQualityCheck {
     group = 'verification'
     description = 'Strict quality check for CI/CD'
-    
+
     dependsOn qualityGate
-    
+
     doLast {
         // 커버리지 체크
         def coverageReport = file("build/reports/jacoco/test/jacocoTestReport.xml")
@@ -152,7 +152,7 @@ task strictQualityCheck {
 task fullQualityAnalysis {
     group = 'verification'
     description = 'Run local quality checks and SonarCloud analysis'
-    
+
     dependsOn qualityGate
     finalizedBy 'sonar'
 }

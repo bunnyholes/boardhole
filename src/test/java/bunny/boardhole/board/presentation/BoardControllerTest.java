@@ -1,18 +1,7 @@
 package bunny.boardhole.board.presentation;
 
-import static org.hamcrest.Matchers.*;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static bunny.boardhole.testsupport.mvc.ProblemDetailsMatchers.*;
-import static bunny.boardhole.testsupport.mvc.MatchersUtil.all;
-
-import java.util.UUID;
-import java.util.concurrent.Executor;
-import java.util.function.Function;
-import java.util.stream.Stream;
-
+import bunny.boardhole.shared.security.AppUserPrincipal;
+import bunny.boardhole.testsupport.mvc.MvcTestBase;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -25,8 +14,18 @@ import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
-import bunny.boardhole.shared.security.AppUserPrincipal;
-import bunny.boardhole.testsupport.mvc.MvcTestBase;
+import java.util.UUID;
+import java.util.concurrent.Executor;
+import java.util.function.Function;
+import java.util.stream.Stream;
+
+import static bunny.boardhole.testsupport.mvc.MatchersUtil.all;
+import static bunny.boardhole.testsupport.mvc.ProblemDetailsMatchers.*;
+import static org.hamcrest.Matchers.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @DisplayName("게시판 API 통합 테스트")
 @TestMethodOrder(MethodOrderer.DisplayName.class)
@@ -124,13 +123,13 @@ class BoardControllerTest extends MvcTestBase {
             @DisplayName("❌ 인증 없이 게시글 생성 시도 → 401 Unauthorized")
             @Tag("security")
             void shouldReturn401WhenNotAuthenticated() throws Exception {
-            mockMvc.perform(post("/api/boards")
-                            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                            .param("title", "Test Title")
-                            .param("content", "Test Content"))
-                    .andExpect(status().isUnauthorized())
-                    .andExpect(all(unauthorized()))
-                    .andDo(print());
+                mockMvc.perform(post("/api/boards")
+                                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                                .param("title", "Test Title")
+                                .param("content", "Test Content"))
+                        .andExpect(status().isUnauthorized())
+                        .andExpect(all(unauthorized()))
+                        .andDo(print());
             }
         }
     }

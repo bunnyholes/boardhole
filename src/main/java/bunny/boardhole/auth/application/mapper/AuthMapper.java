@@ -1,11 +1,10 @@
 package bunny.boardhole.auth.application.mapper;
 
-import org.mapstruct.*;
-
 import bunny.boardhole.auth.application.command.LogoutCommand;
 import bunny.boardhole.auth.application.result.AuthResult;
 import bunny.boardhole.shared.mapstruct.MapstructConfig;
 import bunny.boardhole.user.domain.User;
+import org.mapstruct.*;
 
 /**
  * 인증 애플리케이션 계층 매퍼

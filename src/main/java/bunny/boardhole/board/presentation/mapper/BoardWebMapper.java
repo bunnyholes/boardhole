@@ -1,12 +1,11 @@
 package bunny.boardhole.board.presentation.mapper;
 
-import org.mapstruct.*;
-
 import bunny.boardhole.board.application.command.*;
 import bunny.boardhole.board.application.query.GetBoardQuery;
 import bunny.boardhole.board.application.result.BoardResult;
 import bunny.boardhole.board.presentation.dto.*;
 import bunny.boardhole.shared.mapstruct.MapstructConfig;
+import org.mapstruct.*;
 
 /**
  * 게시글 웹 계층 매퍼

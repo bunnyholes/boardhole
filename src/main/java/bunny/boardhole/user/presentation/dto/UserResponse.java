@@ -1,11 +1,10 @@
 package bunny.boardhole.user.presentation.dto;
 
+import bunny.boardhole.user.domain.Role;
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import java.time.LocalDateTime;
 import java.util.Set;
-
-import bunny.boardhole.user.domain.Role;
-
-import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(name = "UserResponse", description = "사용자 정보 응답")
 public record UserResponse(

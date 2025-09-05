@@ -1,12 +1,7 @@
 package bunny.boardhole.user.infrastructure;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.List;
-import java.util.Optional;
-
+import bunny.boardhole.shared.config.TestJpaConfig;
+import bunny.boardhole.user.domain.*;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -14,8 +9,10 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
-import bunny.boardhole.shared.config.TestJpaConfig;
-import bunny.boardhole.user.domain.*;
+import java.time.*;
+import java.util.*;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
 @ActiveProfiles("test")
@@ -57,7 +54,7 @@ class EmailVerificationRepositoryTest {
 
         // 테스트 이메일 검증 데이터 생성
         LocalDateTime now = LocalDateTime.now(ZoneId.systemDefault());
-        
+
         // 유효한 검증 정보
         verification1 = EmailVerification.builder()
                 .code("valid-token-123")
@@ -264,7 +261,7 @@ class EmailVerificationRepositoryTest {
         void deleteExpiredVerifications_RemovesExpiredAndUsed() {
             // Given
             LocalDateTime now = LocalDateTime.now(ZoneId.systemDefault());
-            
+
             // 사용된 토큰 추가
             verification3.markAsUsed();
             emailVerificationRepository.save(verification3);
@@ -274,7 +271,7 @@ class EmailVerificationRepositoryTest {
 
             // Then
             assertThat(deletedCount).isEqualTo(2); // expired-token-456, used verification3
-            
+
             List<EmailVerification> remaining = emailVerificationRepository.findAll();
             assertThat(remaining).hasSize(1);
             assertThat(remaining.get(0).getCode()).isEqualTo("valid-token-123");
@@ -311,7 +308,7 @@ class EmailVerificationRepositoryTest {
             // Then
             List<EmailVerification> userVerifications = emailVerificationRepository.findByUserIdAndUsedFalse(user1.getId());
             assertThat(userVerifications).isEmpty();
-            
+
             // user2의 검증 정보는 영향받지 않음
             List<EmailVerification> user2Verifications = emailVerificationRepository.findByUserIdAndUsedFalse(user2.getId());
             assertThat(user2Verifications).hasSize(1);

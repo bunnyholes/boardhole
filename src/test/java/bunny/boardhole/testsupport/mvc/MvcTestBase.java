@@ -1,9 +1,12 @@
 package bunny.boardhole.testsupport.mvc;
 
-import java.util.Optional;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import bunny.boardhole.board.domain.Board;
+import bunny.boardhole.board.infrastructure.BoardRepository;
+import bunny.boardhole.testsupport.config.TestEmailConfig;
+import bunny.boardhole.user.domain.*;
+import bunny.boardhole.user.infrastructure.UserRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.*;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
@@ -11,13 +14,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import bunny.boardhole.board.domain.Board;
-import bunny.boardhole.board.infrastructure.BoardRepository;
-import bunny.boardhole.testsupport.config.*;
-import bunny.boardhole.user.domain.*;
-import bunny.boardhole.user.infrastructure.UserRepository;
+import java.util.Optional;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -31,7 +28,10 @@ public abstract class MvcTestBase {
 
     @Autowired
     protected ObjectMapper objectMapper;
-
+    @Autowired
+    protected UserRepository userRepository;
+    @Autowired
+    protected BoardRepository boardRepository;
     // Default users pulled directly from application.yml
     @Value("${boardhole.default-users.admin.username}")
     private String adminUsername;
@@ -47,19 +47,29 @@ public abstract class MvcTestBase {
     private String regularEmail;
 
     // Protected accessors for subclasses
-    protected String getAdminUsername() { return adminUsername; }
-    protected String getAdminPassword() { return adminPassword; }
-    protected String getAdminEmail() { return adminEmail; }
-    protected String getRegularUsername() { return regularUsername; }
-    protected String getRegularPassword() { return regularPassword; }
-    protected String getRegularEmail() { return regularEmail; }
+    protected String getAdminUsername() {
+        return adminUsername;
+    }
 
-    @Autowired
-    protected UserRepository userRepository;
+    protected String getAdminPassword() {
+        return adminPassword;
+    }
 
-    @Autowired
-    protected BoardRepository boardRepository;
+    protected String getAdminEmail() {
+        return adminEmail;
+    }
 
+    protected String getRegularUsername() {
+        return regularUsername;
+    }
+
+    protected String getRegularPassword() {
+        return regularPassword;
+    }
+
+    protected String getRegularEmail() {
+        return regularEmail;
+    }
 
     protected Long seedBoardOwnedBy(String username, String title, String content) {
         User owner = userRepository.findByUsername(username)
