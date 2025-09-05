@@ -93,6 +93,7 @@ class BoardControllerTest extends ControllerTestBase {
                                 .param("title", titleValue)
                                 .param("content", contentValue))
                         .andExpect(status().isBadRequest())
+                        .andExpect(jsonPath("$.title").value(bunny.boardhole.shared.util.MessageUtils.get("exception.title.validation-failed")))
                         .andExpect(jsonPath("$.type").value("urn:problem-type:validation-error"))
                         .andExpect(jsonPath("$.errors[?(@.field == '" + expectedMissingField + "')]").exists())
                         .andDo(print());
@@ -192,6 +193,7 @@ class BoardControllerTest extends ControllerTestBase {
         void shouldReturn404WhenBoardNotFound() throws Exception {
             mockMvc.perform(get("/api/boards/999999"))
                     .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.title").value(bunny.boardhole.shared.util.MessageUtils.get("exception.title.not-found")))
                     .andExpect(jsonPath("$.type").value("urn:problem-type:not-found"))
                     .andDo(print());
         }
@@ -214,7 +216,7 @@ class BoardControllerTest extends ControllerTestBase {
             @BeforeAll
             void setup() {
                 boardId = seedBoardOwnedBy(
-                        testUserProperties.regularUsername(),
+                        getRegularUsername(),
                         "Test Board",
                         "Test Content"
                 );
@@ -278,6 +280,7 @@ class BoardControllerTest extends ControllerTestBase {
                             .param("title", "New Title")
                             .param("content", "New Content"))
                     .andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.title").value(bunny.boardhole.shared.util.MessageUtils.get("exception.title.access-denied")))
                     .andDo(print());
         }
 

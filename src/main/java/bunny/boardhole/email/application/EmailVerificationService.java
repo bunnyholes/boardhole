@@ -25,8 +25,8 @@ public class EmailVerificationService {
     private final EmailVerificationRepository emailVerificationRepository;
     private final EmailService emailService;
 
-    @Value("${boardhole.email.verification-expiration-hours:24}")
-    private int verificationExpirationHours;
+    @Value("${boardhole.email.verification-expiration-ms}")
+    private long verificationExpirationMs;
 
     /**
      * 이메일 인증 처리
@@ -93,7 +93,7 @@ public class EmailVerificationService {
         // 새 인증 토큰 생성 및 이메일 발송
         String newToken = java.util.UUID.randomUUID().toString();
         LocalDateTime expiresAt = LocalDateTime.now(ZoneId.systemDefault())
-                .plusHours(verificationExpirationHours);
+                .plus(java.time.Duration.ofMillis(verificationExpirationMs));
 
         EmailVerification newVerification = EmailVerification.builder()
                 .code(newToken)

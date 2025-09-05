@@ -5,6 +5,7 @@ import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.*;
 import org.springframework.http.MediaType;
+import bunny.boardhole.shared.util.MessageUtils;
 import org.springframework.security.test.context.support.WithUserDetails;
 
 import java.util.UUID;
@@ -63,9 +64,9 @@ class AuthControllerTest extends ControllerTestBase {
                             .param("email", email))
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.type").exists())
-                    .andExpect(jsonPath("$.title").exists())
+                    .andExpect(jsonPath("$.title").value(MessageUtils.get("exception.title.validation-failed")))
                     .andExpect(jsonPath("$.status").value(400))
-                    .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
+                        .andExpect(jsonPath("$.code").value(bunny.boardhole.shared.constants.ErrorCode.VALIDATION_ERROR.getCode()))
                     .andExpect(jsonPath("$.errors").isArray())
                     .andDo(print());
         }
@@ -91,6 +92,9 @@ class AuthControllerTest extends ControllerTestBase {
                         .andExpect(status().isNoContent());
 
                 // 같은 사용자명으로 두 번째 회원가입 시도 (실패)
+                // 기대 타이틀(국제화 메시지) — 유틸리티 사용
+                String expectedTitle = MessageUtils.get("exception.title.duplicate-username");
+
                 mockMvc.perform(post("/api/auth/signup")
                                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                                 .param("username", username)
@@ -98,7 +102,8 @@ class AuthControllerTest extends ControllerTestBase {
                                 .param("name", "Second User")
                                 .param("email", "different_" + uniqueId + "@example.com"))
                         .andExpect(status().isConflict())
-                        .andExpect(jsonPath("$.code").value("USER_DUPLICATE_USERNAME"))
+                        .andExpect(jsonPath("$.title").value(expectedTitle))
+                        .andExpect(jsonPath("$.code").value(bunny.boardhole.shared.constants.ErrorCode.USER_DUPLICATE_USERNAME.getCode()))
                         .andDo(print());
             }
 
@@ -125,7 +130,8 @@ class AuthControllerTest extends ControllerTestBase {
                                 .param("name", "Second User")
                                 .param("email", email))
                         .andExpect(status().isConflict())
-                        .andExpect(jsonPath("$.code").value("USER_DUPLICATE_EMAIL"))
+                        .andExpect(jsonPath("$.title").value(MessageUtils.get("exception.title.duplicate-email")))
+                        .andExpect(jsonPath("$.code").value(bunny.boardhole.shared.constants.ErrorCode.USER_DUPLICATE_EMAIL.getCode()))
                         .andDo(print());
             }
         }
@@ -180,9 +186,10 @@ class AuthControllerTest extends ControllerTestBase {
                             .param("username", username)
                             .param("password", password))
                     .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.title").value(MessageUtils.get("exception.title.unauthorized")))
                     .andExpect(jsonPath("$.type").value("urn:problem-type:unauthorized"))
                     .andExpect(jsonPath("$.status").value(401))
-                    .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
+                    .andExpect(jsonPath("$.code").value(bunny.boardhole.shared.constants.ErrorCode.UNAUTHORIZED.getCode()))
                     .andDo(print());
         }
 
@@ -209,6 +216,7 @@ class AuthControllerTest extends ControllerTestBase {
         void shouldReturn401WhenNotAuthenticated() throws Exception {
             mockMvc.perform(get("/api/auth/check"))
                     .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.title").value(MessageUtils.get("exception.title.unauthorized")))
                     .andExpect(jsonPath("$.type").value("urn:problem-type:unauthorized"))
                     .andExpect(jsonPath("$.status").value(401))
                     .andDo(print());
@@ -233,6 +241,7 @@ class AuthControllerTest extends ControllerTestBase {
         void shouldDenyUserAccessWithoutAuth() throws Exception {
             mockMvc.perform(get("/api/auth/user-access"))
                     .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.title").value(MessageUtils.get("exception.title.unauthorized")))
                     .andDo(print());
         }
 
@@ -263,6 +272,7 @@ class AuthControllerTest extends ControllerTestBase {
             void shouldReturn401WhenNotAuthenticated() throws Exception {
                 mockMvc.perform(get("/api/auth/admin-only"))
                         .andExpect(status().isUnauthorized())
+                        .andExpect(jsonPath("$.title").value(MessageUtils.get("exception.title.unauthorized")))
                         .andDo(print());
             }
 
@@ -272,6 +282,7 @@ class AuthControllerTest extends ControllerTestBase {
             void shouldReturn403WhenRegularUser() throws Exception {
                 mockMvc.perform(get("/api/auth/admin-only"))
                         .andExpect(status().isForbidden())
+                        .andExpect(jsonPath("$.title").value(MessageUtils.get("exception.title.access-denied")))
                         .andDo(print());
             }
 
@@ -305,6 +316,7 @@ class AuthControllerTest extends ControllerTestBase {
         void shouldReturn401WhenNotAuthenticated() throws Exception {
             mockMvc.perform(post("/api/auth/logout"))
                     .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.title").value(MessageUtils.get("exception.title.unauthorized")))
                     .andDo(print());
         }
     }

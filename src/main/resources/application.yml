@@ -10,8 +10,9 @@ spring:
   
   # 메시지 소스 설정
   messages:
-    basename: messages,ValidationMessages
+    basename: messages
     encoding: UTF-8
+    fallback-to-system-locale: true
 
   # MVC 설정
   mvc:
@@ -90,9 +91,10 @@ boardhole:
       name-min-length: 1
       name-max-length: 50
     email-verification:
-      expiration-minutes: 30
+      # Unified units to milliseconds
+      expiration-ms: 7200000          # 2 hours
       code-length: 6
-      signup-expiration-hours: 24
+      signup-expiration-ms: 7200000   # 2 hours
   
   # 보안 설정
   security:
@@ -119,7 +121,7 @@ boardhole:
   email:
     base-url: ${EMAIL_BASE_URL:http://localhost:8080}
     from-name: ${EMAIL_FROM_NAME:Board-Hole}
-    verification-expiration-hours: 24
+    verification-expiration-ms: 7200000
     rate-limit:
       per-hour: 5
       per-day: 20
@@ -144,10 +146,12 @@ boardhole:
   default-users:
     admin:
       username: admin
+      password: Admin123!  # 환경별로 오버라이드 권장 (정책 준수: 대/소문자+숫자+특수문자)
       name: 관리자
       email: admin@boardhole.com
     regular:
       username: user
+      password: User123!  # 환경별로 오버라이드 권장 (정책 준수)
       name: 일반 사용자
       email: user@boardhole.com
   

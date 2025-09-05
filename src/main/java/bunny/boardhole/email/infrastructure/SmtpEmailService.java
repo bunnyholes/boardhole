@@ -11,6 +11,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.*;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -28,16 +31,21 @@ public class SmtpEmailService implements EmailService {
     /**
      * 인증 토큰 만료 시간 (시간)
      */
-    @Value("${boardhole.email.verification-expiration-hours:24}")
-    private int verificationExpirationHours;
-    @Value("${spring.mail.username:noreply@boardhole.com}")
+    @Value("${boardhole.email.verification-expiration-ms}")
+    private long verificationExpirationMs;
+    @Value("${spring.mail.username}")
     private String fromEmail;
 
-    @Value("${boardhole.email.base-url:http://localhost:8080}")
+    @Value("${boardhole.email.base-url}")
     private String baseUrl;
 
     @Override
     @Async
+    @Retryable(
+            include = {MailException.class, MessagingException.class},
+            maxAttempts = 5,
+            backoff = @Backoff(delay = 500, multiplier = 2.0, random = true)
+    )
     public void sendEmail(final EmailMessage emailMessage) {
         try {
             final MimeMessage mimeMessage = mailSender.createMimeMessage();
@@ -65,6 +73,16 @@ public class SmtpEmailService implements EmailService {
         }
     }
 
+    @Recover
+    void recover(final Exception e, final EmailMessage emailMessage) {
+        // 영구 실패 시 아웃박스/DLQ에 적재하는 전략으로 확장 가능
+        log.error("[RETRY-RECOVER] 이메일 발송 최종 실패: to={}, subject={}, cause={}",
+                emailMessage != null ? emailMessage.recipientEmail() : "<null>",
+                emailMessage != null ? emailMessage.subject() : "<null>",
+                e.getMessage(), e);
+        // TODO: Outbox 저장 후 배치/스케줄러로 재시도
+    }
+
     @Override
     public void sendTemplatedEmail(final String recipientEmail, final EmailTemplate emailTemplate, final Map<String, Object> templateVariables) {
         final String processedContent = templateService.processTemplate(emailTemplate, templateVariables);
@@ -80,7 +98,7 @@ public class SmtpEmailService implements EmailService {
                 "userName", user.getName(),
                 "userEmail", user.getEmail(),
                 "verificationUrl", verificationUrl,
-                "expirationHours", verificationExpirationHours
+                "expirationHours", Math.max(1, (int) java.time.Duration.ofMillis(verificationExpirationMs).toHours())
         );
 
         sendTemplatedEmail(user.getEmail(), EmailTemplate.SIGNUP_VERIFICATION, templateVariables);
@@ -96,7 +114,7 @@ public class SmtpEmailService implements EmailService {
                 "currentEmail", user.getEmail(),
                 "newEmail", newEmail,
                 "verificationUrl", verificationUrl,
-                "expirationHours", verificationExpirationHours
+                "expirationHours", Math.max(1, (int) java.time.Duration.ofMillis(verificationExpirationMs).toHours())
         );
 
         sendTemplatedEmail(newEmail, EmailTemplate.EMAIL_CHANGE_VERIFICATION, templateVariables);

@@ -28,15 +28,12 @@ public class TestDataConfig {
     @Value("${boardhole.test-data.email-verification.code}")
     private String testVerificationCode;
 
-    @Value("${boardhole.test-data.email-verification.expiration-hours}")
-    private int testExpirationHours;
-
     @Bean
     public TestDataProperties testDataProperties() {
         return new TestDataProperties(
                 testUsername, testPassword, testName, testEmail,
                 testBoardTitle, testBoardContent,
-                testVerificationCode, testExpirationHours
+                testVerificationCode
         );
     }
 
@@ -48,8 +45,7 @@ public class TestDataConfig {
             String email,
             String boardTitle,
             String boardContent,
-            String verificationCode,
-            int expirationHours
+            String verificationCode
     ) {
     }
 }
