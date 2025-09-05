@@ -1,18 +1,16 @@
 package bunny.boardhole.user.domain;
 
-import java.io.Serializable;
-import java.time.LocalDateTime;
-
+import bunny.boardhole.shared.constants.ValidationConstants;
+import bunny.boardhole.shared.util.MessageUtils;
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.persistence.*;
+import lombok.*;
 import org.hibernate.annotations.DynamicUpdate;
 import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
 
-import bunny.boardhole.shared.constants.*;
-import bunny.boardhole.shared.util.MessageUtils;
-
-import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.persistence.*;
-import lombok.*;
+import java.io.Serializable;
+import java.time.LocalDateTime;
 
 @Getter
 @NoArgsConstructor
@@ -196,7 +194,9 @@ public class User implements Serializable {
      *
      * @return 이메일 인증 상태 (현재는 항상 false)
      */
-    public boolean isEmailVerified() { return emailVerified; }
+    public boolean isEmailVerified() {
+        return emailVerified;
+    }
 
-    
+
 }

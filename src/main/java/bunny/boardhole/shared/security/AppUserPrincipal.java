@@ -1,13 +1,12 @@
 package bunny.boardhole.shared.security;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
+import bunny.boardhole.user.domain.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import bunny.boardhole.user.domain.*;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public record AppUserPrincipal(
         User user

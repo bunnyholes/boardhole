@@ -1,26 +1,21 @@
 package bunny.boardhole.email.infrastructure;
 
-import java.util.Map;
-
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.MailException;
-import org.springframework.mail.javamail.*;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Recover;
-import org.springframework.retry.annotation.Retryable;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.context.annotation.Primary;
-import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Service;
-
 import bunny.boardhole.email.application.*;
 import bunny.boardhole.email.domain.*;
 import bunny.boardhole.user.domain.User;
-
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.*;
+import org.springframework.mail.MailException;
+import org.springframework.mail.javamail.*;
+import org.springframework.retry.annotation.*;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Service;
+
+import java.util.Map;
 
 /**
  * SMTP 기반 이메일 발송 서비스 구현체

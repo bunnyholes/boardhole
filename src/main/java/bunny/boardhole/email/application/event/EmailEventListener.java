@@ -1,14 +1,12 @@
 package bunny.boardhole.email.application.event;
 
+import bunny.boardhole.email.application.EmailService;
+import bunny.boardhole.user.application.event.UserCreatedEvent;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.*;
-
-import bunny.boardhole.email.application.EmailService;
-import bunny.boardhole.user.application.event.UserCreatedEvent;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * 이메일 관련 이벤트 리스너

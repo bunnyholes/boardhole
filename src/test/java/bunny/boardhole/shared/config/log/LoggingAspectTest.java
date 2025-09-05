@@ -1,15 +1,13 @@
 package bunny.boardhole.shared.config.log;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
+import ch.qos.logback.classic.*;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import org.junit.jupiter.api.*;
 import org.springframework.aop.aspectj.annotation.AspectJProxyFactory;
 import org.springframework.context.support.ResourceBundleMessageSource;
 
-import ch.qos.logback.classic.*;
-import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.core.read.ListAppender;
-import org.junit.jupiter.api.Tag;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @Tag("unit")
 class LoggingAspectTest {

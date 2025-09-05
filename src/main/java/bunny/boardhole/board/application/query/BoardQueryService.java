@@ -1,19 +1,17 @@
 package bunny.boardhole.board.application.query;
 
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.data.domain.*;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import bunny.boardhole.board.application.mapper.BoardMapper;
 import bunny.boardhole.board.application.result.BoardResult;
 import bunny.boardhole.board.domain.Board;
 import bunny.boardhole.board.infrastructure.BoardRepository;
 import bunny.boardhole.shared.exception.ResourceNotFoundException;
 import bunny.boardhole.shared.util.MessageUtils;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.*;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 게시글 조회 서비스

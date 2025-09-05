@@ -1,14 +1,11 @@
 package bunny.boardhole.testsupport.config;
 
-import java.io.IOException;
-
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Primary;
-
 import bunny.boardhole.shared.security.EmailVerificationFilter;
-
 import jakarta.servlet.*;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.*;
+
+import java.io.IOException;
 
 @TestConfiguration
 public class TestSecurityOverrides {

@@ -1,7 +1,10 @@
 package bunny.boardhole.shared.security;
 
-import java.io.IOException;
-
+import bunny.boardhole.shared.constants.ErrorCode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.*;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -9,13 +12,7 @@ import org.springframework.http.*;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import bunny.boardhole.shared.constants.ErrorCode;
-
-import jakarta.servlet.http.*;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.io.IOException;
 
 /**
  * 인증 실패 진입점 핸들러

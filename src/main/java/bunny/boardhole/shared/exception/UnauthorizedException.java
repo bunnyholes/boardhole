@@ -1,8 +1,7 @@
 package bunny.boardhole.shared.exception;
 
-import org.springframework.context.MessageSource;
-
 import lombok.experimental.StandardException;
+import org.springframework.context.MessageSource;
 
 @StandardException
 public class UnauthorizedException extends RuntimeException {

@@ -1,22 +1,12 @@
 package bunny.boardhole.board.e2e;
 
-import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.notNullValue;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
+import bunny.boardhole.testsupport.config.*;
+import bunny.boardhole.testsupport.e2e.*;
+import org.junit.jupiter.api.*;
 import org.springframework.context.annotation.Import;
 
-import bunny.boardhole.testsupport.config.TestEmailConfig;
-import bunny.boardhole.testsupport.config.TestSecurityOverrides;
-import bunny.boardhole.testsupport.e2e.AuthSteps;
-import bunny.boardhole.testsupport.e2e.BoardSteps;
-import bunny.boardhole.testsupport.e2e.E2ETestBase;
-import bunny.boardhole.testsupport.e2e.SessionCookie;
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.*;
 
 @DisplayName("게시판 E2E — 목록/검색/페이지네이션")
 @Tag("e2e")
@@ -47,19 +37,19 @@ public class BoardListE2ETest extends E2ETestBase {
 
         // Public list (no auth)
         given()
-        .when()
-            .get("boards?page=0&size=2&sort=createdAt,desc")
-        .then()
-            .statusCode(200)
-            .body("content.size()", greaterThanOrEqualTo(1))
-            .body("pageable.pageSize", notNullValue());
+                .when()
+                .get("boards?page=0&size=2&sort=createdAt,desc")
+                .then()
+                .statusCode(200)
+                .body("content.size()", greaterThanOrEqualTo(1))
+                .body("pageable.pageSize", notNullValue());
 
         // Search by unique token in title
         given()
-        .when()
-            .get("boards?search=" + uid)
-        .then()
-            .statusCode(200)
-            .body("content.title", hasItem(org.hamcrest.Matchers.containsString(uid)));
+                .when()
+                .get("boards?search=" + uid)
+                .then()
+                .statusCode(200)
+                .body("content.title", hasItem(org.hamcrest.Matchers.containsString(uid)));
     }
 }

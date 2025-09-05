@@ -1,37 +1,38 @@
 package bunny.boardhole.testsupport.e2e;
 
-import java.util.Map;
-
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 
+import java.util.Map;
+
 public final class BoardSteps {
 
-    private BoardSteps() {}
+    private BoardSteps() {
+    }
 
     public static Response create(SessionCookie session, String title, String content) {
         return RestSpecs.auth(session)
                 .contentType(ContentType.URLENC)
                 .formParams(Map.of("title", title, "content", content))
-            .when()
+                .when()
                 .post("boards")
-            .then()
+                .then()
                 .extract().response();
     }
 
     public static Response get(SessionCookie session, long id) {
         return RestSpecs.auth(session)
-            .when()
+                .when()
                 .get("boards/" + id)
-            .then()
+                .then()
                 .extract().response();
     }
 
     public static Response list(SessionCookie session) {
         return RestSpecs.auth(session)
-            .when()
+                .when()
                 .get("boards")
-            .then()
+                .then()
                 .extract().response();
     }
 
@@ -39,17 +40,17 @@ public final class BoardSteps {
         return RestSpecs.auth(session)
                 .contentType(ContentType.URLENC)
                 .formParams(Map.of("title", title, "content", content))
-            .when()
+                .when()
                 .put("boards/" + id)
-            .then()
+                .then()
                 .extract().response();
     }
 
     public static Response delete(SessionCookie session, long id) {
         return RestSpecs.auth(session)
-            .when()
+                .when()
                 .delete("boards/" + id)
-            .then()
+                .then()
                 .extract().response();
     }
 }

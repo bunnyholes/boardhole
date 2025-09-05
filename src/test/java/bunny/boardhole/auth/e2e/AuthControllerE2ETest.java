@@ -1,41 +1,21 @@
 package bunny.boardhole.auth.e2e;
 
-import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.anyOf;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.stream.Stream;
-
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.TestMethodOrder;
+import bunny.boardhole.testsupport.config.*;
+import bunny.boardhole.testsupport.e2e.*;
+import io.restassured.RestAssured;
+import io.restassured.filter.log.*;
+import io.restassured.http.ContentType;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Import;
 
-import bunny.boardhole.testsupport.config.TestEmailConfig;
-import bunny.boardhole.testsupport.config.TestSecurityOverrides;
-import bunny.boardhole.testsupport.e2e.E2ETestBase;
+import java.util.*;
+import java.util.stream.Stream;
 
-import io.restassured.RestAssured;
-import io.restassured.filter.log.RequestLoggingFilter;
-import io.restassured.filter.log.ResponseLoggingFilter;
-import io.restassured.http.ContentType;
-import bunny.boardhole.testsupport.e2e.AuthSteps;
-import bunny.boardhole.testsupport.e2e.SessionCookie;
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -70,8 +50,6 @@ class AuthControllerE2ETest extends E2ETestBase {
     private String adminSessionCookie;
     private String adminSessionCookieName;
 
-    private record CookieKV(String name, String value) {}
-
     private CookieKV loginAndGetCookieKV(String username, String password, String name, String email) {
         AuthSteps.signup(username, password, name, email);
         SessionCookie sc = AuthSteps.login(username, password);
@@ -89,6 +67,53 @@ class AuthControllerE2ETest extends E2ETestBase {
         // RestAssured 로깅 설정 (디버깅용)
         RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
         RestAssured.filters(new RequestLoggingFilter(), new ResponseLoggingFilter());
+    }
+
+    @AfterAll
+    void tearDown() {
+        System.out.println("\n" + "=".repeat(60));
+        System.out.println("🎉 AuthController E2E 테스트 완료!");
+        System.out.println("=".repeat(60));
+        System.out.println("📊 테스트 커버리지:");
+        System.out.println("   ✅ 공개 API 엔드포인트들");
+        System.out.println("   ✅ 회원가입/로그인/로그아웃 플로우");
+        System.out.println("   ✅ 권한 기반 접근 제어 (USER vs ADMIN)");
+        System.out.println("   ✅ 세션 관리 및 상태 유지");
+        System.out.println("   ✅ 에러 케이스 및 엣지 케이스");
+        System.out.println("   ✅ 중복 검증 및 유효성 검사");
+        System.out.println("=".repeat(60));
+        System.out.println("🔐 인증 시스템이 안정적으로 작동하고 있습니다!");
+        System.out.println("=".repeat(60));
+    }
+
+    private void ensureUserLoggedIn() {
+        // Try direct login (avoid relying on signup for seeded user)
+        System.out.println("[E2E] ensureUserLoggedIn using username=" + regularUsername + ", password=" + regularPassword);
+        Map<String, String> loginData = new HashMap<>();
+        loginData.put("username", regularUsername);
+        loginData.put("password", regularPassword);
+        io.restassured.response.Response loginRes = given()
+                .contentType(ContentType.URLENC)
+                .formParams(loginData)
+                .when()
+                .post("auth/login");
+        System.out.println("[E2E] ensureUserLoggedIn login status=" + loginRes.getStatusCode() + ", cookies=" + loginRes.getCookies());
+        Assertions.assertEquals(204, loginRes.getStatusCode(), "Seed user login should succeed");
+        String cookieName = loginRes.getCookie("SESSION") != null ? "SESSION" : "JSESSIONID";
+        String cookie = loginRes.getCookie(cookieName);
+        userSessionCookieName = cookieName;
+        userSessionCookie = cookie;
+        System.out.println("[E2E] user login cookie => " + userSessionCookieName + "=" + userSessionCookie);
+    }
+
+    private void ensureAdminLoggedIn() {
+        CookieKV kv = loginAndGetCookieKV(adminUsername, adminPassword, "ADMIN", adminEmail);
+        adminSessionCookieName = kv.name();
+        adminSessionCookie = kv.value();
+        System.out.println("[E2E] admin login cookie => " + adminSessionCookieName + "=" + adminSessionCookie);
+    }
+
+    private record CookieKV(String name, String value) {
     }
 
     @Nested
@@ -151,17 +176,17 @@ class AuthControllerE2ETest extends E2ETestBase {
             if (!email.isEmpty()) invalidSignupData.put("email", email);
 
             given()
-                .contentType(ContentType.URLENC)
-                .formParams(invalidSignupData)
-            .when()
-                .post("auth/signup")
-            .then()
-                .statusCode(400)
-                .body("status", equalTo(400))
-                .body("title", equalTo(bunny.boardhole.shared.util.MessageUtils.get("exception.title.validation-failed")))
-                .body("type", equalTo("urn:problem-type:validation-error"))
-                .body("code", equalTo(bunny.boardhole.shared.constants.ErrorCode.VALIDATION_ERROR.getCode()))
-                .body("errors", notNullValue());
+                    .contentType(ContentType.URLENC)
+                    .formParams(invalidSignupData)
+                    .when()
+                    .post("auth/signup")
+                    .then()
+                    .statusCode(400)
+                    .body("status", equalTo(400))
+                    .body("title", equalTo(bunny.boardhole.shared.util.MessageUtils.get("exception.title.validation-failed")))
+                    .body("type", equalTo("urn:problem-type:validation-error"))
+                    .body("code", equalTo(bunny.boardhole.shared.constants.ErrorCode.VALIDATION_ERROR.getCode()))
+                    .body("errors", notNullValue());
         }
 
         @Nested
@@ -177,17 +202,17 @@ class AuthControllerE2ETest extends E2ETestBase {
                 duplicateSignupData.put("name", "중복 테스트 사용자");
                 duplicateSignupData.put("email", "duplicate_" + System.currentTimeMillis() + "@example.com");
 
-            given()
-                .contentType(ContentType.URLENC)
-                .formParams(duplicateSignupData)
-            .when()
-                .post("auth/signup")
-            .then()
-                .statusCode(409)
-                .body("status", equalTo(409))
-                .body("title", equalTo(bunny.boardhole.shared.util.MessageUtils.get("exception.title.duplicate-username")))
-                .body("type", equalTo("urn:problem-type:duplicate-username"))
-                .body("code", equalTo(bunny.boardhole.shared.constants.ErrorCode.USER_DUPLICATE_USERNAME.getCode()));
+                given()
+                        .contentType(ContentType.URLENC)
+                        .formParams(duplicateSignupData)
+                        .when()
+                        .post("auth/signup")
+                        .then()
+                        .statusCode(409)
+                        .body("status", equalTo(409))
+                        .body("title", equalTo(bunny.boardhole.shared.util.MessageUtils.get("exception.title.duplicate-username")))
+                        .body("type", equalTo("urn:problem-type:duplicate-username"))
+                        .body("code", equalTo(bunny.boardhole.shared.constants.ErrorCode.USER_DUPLICATE_USERNAME.getCode()));
             }
 
             @Test
@@ -199,17 +224,17 @@ class AuthControllerE2ETest extends E2ETestBase {
                 duplicateEmailData.put("name", "중복 이메일 테스트 사용자");
                 duplicateEmailData.put("email", testEmail); // 이미 존재하는 이메일
 
-            given()
-                .contentType(ContentType.URLENC)
-                .formParams(duplicateEmailData)
-            .when()
-                .post("auth/signup")
-            .then()
-                .statusCode(409)
-                .body("status", equalTo(409))
-                .body("title", equalTo(bunny.boardhole.shared.util.MessageUtils.get("exception.title.duplicate-email")))
-                .body("type", equalTo("urn:problem-type:duplicate-email"))
-                .body("code", equalTo(bunny.boardhole.shared.constants.ErrorCode.USER_DUPLICATE_EMAIL.getCode()));
+                given()
+                        .contentType(ContentType.URLENC)
+                        .formParams(duplicateEmailData)
+                        .when()
+                        .post("auth/signup")
+                        .then()
+                        .statusCode(409)
+                        .body("status", equalTo(409))
+                        .body("title", equalTo(bunny.boardhole.shared.util.MessageUtils.get("exception.title.duplicate-email")))
+                        .body("type", equalTo("urn:problem-type:duplicate-email"))
+                        .body("code", equalTo(bunny.boardhole.shared.constants.ErrorCode.USER_DUPLICATE_EMAIL.getCode()));
             }
         }
     }
@@ -325,7 +350,7 @@ class AuthControllerE2ETest extends E2ETestBase {
         void shouldDenyUserAccessWithoutAuth() {
             given()
                     .when()
-                        .get("auth/user-access")
+                    .get("auth/user-access")
                     .then()
                     .statusCode(401)
                     .body("status", equalTo(401))
@@ -341,7 +366,7 @@ class AuthControllerE2ETest extends E2ETestBase {
             io.restassured.response.Response res = given()
                     .cookie(userSessionCookieName, userSessionCookie)
                     .when()
-                        .get("auth/user-access");
+                    .get("auth/user-access");
             System.out.println("[E2E] user-access status=" + res.getStatusCode() + ", body=" + res.getBody().asString());
             Assertions.assertEquals(204, res.getStatusCode());
         }
@@ -354,7 +379,7 @@ class AuthControllerE2ETest extends E2ETestBase {
             given()
                     .cookie(adminSessionCookieName, adminSessionCookie)
                     .when()
-                        .get("auth/user-access")
+                    .get("auth/user-access")
                     .then()
                     .statusCode(204);
         }
@@ -483,49 +508,5 @@ class AuthControllerE2ETest extends E2ETestBase {
                     .body("username", equalTo(regularUsername))
                     .body("email", equalTo(regularEmail));
         }
-    }
-
-    @AfterAll
-    void tearDown() {
-        System.out.println("\n" + "=".repeat(60));
-        System.out.println("🎉 AuthController E2E 테스트 완료!");
-        System.out.println("=".repeat(60));
-        System.out.println("📊 테스트 커버리지:");
-        System.out.println("   ✅ 공개 API 엔드포인트들");
-        System.out.println("   ✅ 회원가입/로그인/로그아웃 플로우");
-        System.out.println("   ✅ 권한 기반 접근 제어 (USER vs ADMIN)");
-        System.out.println("   ✅ 세션 관리 및 상태 유지");
-        System.out.println("   ✅ 에러 케이스 및 엣지 케이스");
-        System.out.println("   ✅ 중복 검증 및 유효성 검사");
-        System.out.println("=".repeat(60));
-        System.out.println("🔐 인증 시스템이 안정적으로 작동하고 있습니다!");
-        System.out.println("=".repeat(60));
-    }
-
-    private void ensureUserLoggedIn() {
-        // Try direct login (avoid relying on signup for seeded user)
-        System.out.println("[E2E] ensureUserLoggedIn using username=" + regularUsername + ", password=" + regularPassword);
-        Map<String, String> loginData = new HashMap<>();
-        loginData.put("username", regularUsername);
-        loginData.put("password", regularPassword);
-        io.restassured.response.Response loginRes = given()
-                .contentType(ContentType.URLENC)
-                .formParams(loginData)
-                .when()
-                .post("auth/login");
-        System.out.println("[E2E] ensureUserLoggedIn login status=" + loginRes.getStatusCode() + ", cookies=" + loginRes.getCookies());
-        Assertions.assertEquals(204, loginRes.getStatusCode(), "Seed user login should succeed");
-        String cookieName = loginRes.getCookie("SESSION") != null ? "SESSION" : "JSESSIONID";
-        String cookie = loginRes.getCookie(cookieName);
-        userSessionCookieName = cookieName;
-        userSessionCookie = cookie;
-        System.out.println("[E2E] user login cookie => " + userSessionCookieName + "=" + userSessionCookie);
-    }
-
-    private void ensureAdminLoggedIn() {
-        CookieKV kv = loginAndGetCookieKV(adminUsername, adminPassword, "ADMIN", adminEmail);
-        adminSessionCookieName = kv.name();
-        adminSessionCookie = kv.value();
-        System.out.println("[E2E] admin login cookie => " + adminSessionCookieName + "=" + adminSessionCookie);
     }
 }

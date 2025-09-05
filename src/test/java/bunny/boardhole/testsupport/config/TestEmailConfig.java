@@ -1,13 +1,12 @@
 package bunny.boardhole.testsupport.config;
 
-import java.util.Map;
-
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.*;
-
 import bunny.boardhole.email.application.EmailService;
 import bunny.boardhole.email.domain.*;
 import bunny.boardhole.user.domain.User;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.*;
+
+import java.util.Map;
 
 /**
  * 테스트용 이메일 서비스 설정

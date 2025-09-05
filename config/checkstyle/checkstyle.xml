@@ -26,7 +26,8 @@
             <property name="ignoreAnnotation" value="true"/>
             <property name="ignoreFieldDeclaration" value="false"/>
             <property name="ignoreAnnotationElementDefaults" value="true"/>
-            <property name="constantWaiverParentToken" value="TYPECAST, METHOD_CALL, EXPR, ARRAY_INIT, UNARY_MINUS, UNARY_PLUS, ELIST, STAR, ASSIGN, PLUS, MINUS, DIV, LITERAL_NEW"/>
+            <property name="constantWaiverParentToken"
+                      value="TYPECAST, METHOD_CALL, EXPR, ARRAY_INIT, UNARY_MINUS, UNARY_PLUS, ELIST, STAR, ASSIGN, PLUS, MINUS, DIV, LITERAL_NEW"/>
         </module>
 
         <!-- 하드코딩된 문자열 검사를 위한 정규표현식 -->
@@ -86,11 +87,12 @@
 
         <!-- ===== Lombok 사용 완전 강제 규칙 (모든 기존 코드 포함) ===== -->
         <!-- 이 규칙들은 새 코드뿐만 아니라 모든 기존 코드에도 적용됩니다 -->
-        
+
         <!-- 1. 단순 getter 메서드 완전 금지 -->
         <!-- 패턴: return this.field; 또는 return field; 형태의 단순 반환 -->
         <module name="RegexpSinglelineJava">
-            <property name="format" value="^\s*(public|protected)\s+\w+\s+get[A-Z]\w*\s*\(\s*\)\s*\{\s*return\s+(this\.)?\w+\s*;\s*\}"/>
+            <property name="format"
+                      value="^\s*(public|protected)\s+\w+\s+get[A-Z]\w*\s*\(\s*\)\s*\{\s*return\s+(this\.)?\w+\s*;\s*\}"/>
             <property name="ignoreComments" value="true"/>
             <property name="message" value="[LOMBOK 강제] 단순 getter는 반드시 Lombok @Getter를 사용하세요. 비즈니스 로직이 있는 메서드만 허용됩니다."/>
         </module>
@@ -98,7 +100,8 @@
         <!-- 2. 단순 setter 메서드 완전 금지 -->
         <!-- 패턴: this.field = value; 형태의 단순 할당 -->
         <module name="RegexpSinglelineJava">
-            <property name="format" value="^\s*(public|protected)\s+void\s+set[A-Z]\w*\s*\([^)]+\)\s*\{\s*this\.\w+\s*=\s*\w+\s*;\s*\}"/>
+            <property name="format"
+                      value="^\s*(public|protected)\s+void\s+set[A-Z]\w*\s*\([^)]+\)\s*\{\s*this\.\w+\s*=\s*\w+\s*;\s*\}"/>
             <property name="ignoreComments" value="true"/>
             <property name="message" value="[LOMBOK 강제] 단순 setter는 반드시 Lombok @Setter를 사용하세요. 검증 로직이 있는 메서드만 허용됩니다."/>
         </module>
@@ -130,14 +133,14 @@
             <property name="ignoreComments" value="true"/>
             <property name="message" value="[LOMBOK 강제] hashCode()는 반드시 Lombok @EqualsAndHashCode를 사용하세요"/>
         </module>
-        
+
         <!-- 7. 여러 줄 getter 메서드도 감지 (비즈니스 로직 없는 경우) -->
         <module name="RegexpSinglelineJava">
             <property name="format" value="^\s*(public|protected)\s+\w+\s+get[A-Z]\w*\s*\(\s*\)\s*\{$"/>
             <property name="ignoreComments" value="true"/>
             <property name="message" value="[LOMBOK 강제] getter 메서드는 Lombok @Getter를 사용하거나 비즈니스 로직을 포함해야 합니다"/>
         </module>
-        
+
         <!-- 8. 여러 줄 setter 메서드도 감지 (검증 로직 없는 경우) -->
         <module name="RegexpSinglelineJava">
             <property name="format" value="^\s*(public|protected)\s+void\s+set[A-Z]\w*\s*\([^)]+\)\s*\{$"/>

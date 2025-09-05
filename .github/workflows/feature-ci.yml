@@ -2,8 +2,8 @@ name: Feature Branch CI
 
 on:
   pull_request:
-    branches: [develop]
-    types: [opened, synchronize, reopened]
+    branches: [ develop ]
+    types: [ opened, synchronize, reopened ]
 
 jobs:
   validate-branch-name:
@@ -22,7 +22,7 @@ jobs:
           fi
           
           echo "✅ Branch name is valid"
-          
+
   commit-lint:
     runs-on: ubuntu-latest
     steps:
@@ -30,7 +30,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          
+
       - name: Check commit messages
         run: |
           # PR의 모든 커밋 메시지 검사
@@ -55,28 +55,28 @@ jobs:
           fi
           
           echo "✅ All commit messages are valid"
-          
+
   build-and-test:
     runs-on: ubuntu-latest
-    needs: [validate-branch-name, commit-lint]
+    needs: [ validate-branch-name, commit-lint ]
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
+
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
           cache: gradle
-          
+
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
-        
+
       - name: Build with Gradle
         run: ./gradlew build
-        
+
       - name: Run tests
         run: ./gradlew test
 
@@ -89,7 +89,7 @@ jobs:
       - name: Generate test report
         if: always()
         run: ./gradlew jacocoAllTestReport jacocoTestReport
-        
+
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v3
@@ -110,43 +110,43 @@ jobs:
         with:
           name: e2e-test-results
           path: build/reports/tests/e2eTest/
-          
+
   code-quality:
     runs-on: ubuntu-latest
-    needs: [validate-branch-name, commit-lint]
+    needs: [ validate-branch-name, commit-lint ]
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
+
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
           cache: gradle
-          
+
       - name: Run Checkstyle
         run: ./gradlew checkstyleMain checkstyleTest
-        
+
       - name: Run SpotBugs
         run: ./gradlew spotbugsMain
-        
+
       - name: Upload Checkstyle report
         if: always()
         uses: actions/upload-artifact@v3
         with:
           name: checkstyle-report
           path: build/reports/checkstyle/
-          
+
   version-preview:
     runs-on: ubuntu-latest
-    needs: [build-and-test, code-quality]
+    needs: [ build-and-test, code-quality ]
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
+
       - name: Preview version change
         run: |
           CURRENT_VERSION=$(grep "^version=" gradle.properties | cut -d'=' -f2)
@@ -166,7 +166,7 @@ jobs:
           else
             echo "**Expected Change**: Development iteration 🔧" >> $GITHUB_STEP_SUMMARY
           fi
-          
+
       - name: Comment PR
         uses: actions/github-script@v7
         with:

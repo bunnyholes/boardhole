@@ -1,12 +1,11 @@
 package bunny.boardhole.user.presentation.mapper;
 
-import org.mapstruct.*;
-
 import bunny.boardhole.email.presentation.dto.*;
 import bunny.boardhole.shared.mapstruct.MapstructConfig;
 import bunny.boardhole.user.application.command.*;
 import bunny.boardhole.user.application.result.UserResult;
 import bunny.boardhole.user.presentation.dto.*;
+import org.mapstruct.*;
 
 /**
  * 사용자 웹 계층 매퍼

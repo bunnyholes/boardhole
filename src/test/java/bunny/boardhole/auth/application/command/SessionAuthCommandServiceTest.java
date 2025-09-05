@@ -1,31 +1,23 @@
 package bunny.boardhole.auth.application.command;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.*;
-
-import java.util.List;
-
+import bunny.boardhole.auth.application.mapper.AuthMapper;
+import bunny.boardhole.auth.application.result.AuthResult;
+import bunny.boardhole.shared.exception.UnauthorizedException;
+import bunny.boardhole.shared.security.AppUserPrincipal;
+import bunny.boardhole.shared.util.MessageUtils;
+import bunny.boardhole.user.domain.User;
 import org.junit.jupiter.api.*;
 import org.mockito.*;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.context.*;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import bunny.boardhole.auth.application.mapper.AuthMapper;
-import bunny.boardhole.auth.application.result.AuthResult;
-import bunny.boardhole.auth.application.command.LoginCommand;
-import bunny.boardhole.auth.application.command.LogoutCommand;
-import bunny.boardhole.shared.exception.UnauthorizedException;
-import bunny.boardhole.shared.security.AppUserPrincipal;
-import bunny.boardhole.shared.util.MessageUtils;
-import bunny.boardhole.user.domain.Role;
-import bunny.boardhole.user.domain.User;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.*;
 
 @Tag("unit")
 class SessionAuthCommandServiceTest {
@@ -46,7 +38,7 @@ class SessionAuthCommandServiceTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        
+
         // MessageUtils 초기화
         ResourceBundleMessageSource ms = new ResourceBundleMessageSource();
         ms.setBasename("messages");
@@ -180,7 +172,7 @@ class SessionAuthCommandServiceTest {
         void login_NullUsername_HandledByValidation() {
             // Given
             LoginCommand command = new LoginCommand(null, "password");
-            
+
             given(authenticationManager.authenticate(any(Authentication.class)))
                     .willThrow(new BadCredentialsException("Invalid credentials"));
 
@@ -196,7 +188,7 @@ class SessionAuthCommandServiceTest {
         void login_EmptyPassword_HandledByValidation() {
             // Given
             LoginCommand command = new LoginCommand("testuser", "");
-            
+
             given(authenticationManager.authenticate(any(Authentication.class)))
                     .willThrow(new BadCredentialsException("Invalid credentials"));
 
@@ -217,7 +209,7 @@ class SessionAuthCommandServiceTest {
         void logout_ClearsSecurityContext() {
             // Given
             LogoutCommand command = new LogoutCommand(1L);
-            
+
             // SecurityContext에 인증 정보 설정
             Authentication authentication = mock(Authentication.class);
             SecurityContext context = SecurityContextHolder.createEmptyContext();
@@ -240,7 +232,7 @@ class SessionAuthCommandServiceTest {
         void logout_AlreadyLoggedOut_NoException() {
             // Given
             LogoutCommand command = new LogoutCommand(1L);
-            
+
             // SecurityContext가 이미 비어있는 상태
             assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
 

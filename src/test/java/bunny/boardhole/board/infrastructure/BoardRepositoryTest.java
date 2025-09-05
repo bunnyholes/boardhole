@@ -1,10 +1,9 @@
 package bunny.boardhole.board.infrastructure;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.List;
-import java.util.Optional;
-
+import bunny.boardhole.board.domain.Board;
+import bunny.boardhole.shared.config.TestJpaConfig;
+import bunny.boardhole.user.domain.User;
+import bunny.boardhole.user.infrastructure.UserRepository;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -13,11 +12,9 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.*;
 import org.springframework.test.context.ActiveProfiles;
 
-import bunny.boardhole.board.domain.Board;
-import bunny.boardhole.shared.config.TestJpaConfig;
-import bunny.boardhole.user.domain.Role;
-import bunny.boardhole.user.domain.User;
-import bunny.boardhole.user.infrastructure.UserRepository;
+import java.util.*;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
 @ActiveProfiles("test")
@@ -126,7 +123,7 @@ class BoardRepositoryTest {
             assertThat(page.getTotalElements()).isEqualTo(3);
             assertThat(page.getTotalPages()).isEqualTo(2);
             assertThat(page.getNumber()).isEqualTo(0);
-            
+
             // 작성자 정보 포함 확인
             page.getContent().forEach(board -> {
                 assertThat(board.getAuthor()).isNotNull();

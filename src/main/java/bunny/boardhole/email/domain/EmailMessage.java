@@ -1,10 +1,9 @@
 package bunny.boardhole.email.domain;
 
-import java.util.*;
-
+import lombok.Builder;
 import org.springframework.util.Assert;
 
-import lombok.Builder;
+import java.util.*;
 
 /**
  * 이메일 메시지를 표현하는 도메인 객체

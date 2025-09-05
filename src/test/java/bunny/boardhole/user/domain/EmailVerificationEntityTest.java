@@ -1,13 +1,12 @@
 package bunny.boardhole.user.domain;
 
-import static org.assertj.core.api.Assertions.*;
+import bunny.boardhole.shared.util.MessageUtils;
+import bunny.boardhole.testsupport.jpa.EntityTestBase;
+import org.junit.jupiter.api.*;
 
 import java.time.*;
 
-import org.junit.jupiter.api.*;
-
-import bunny.boardhole.testsupport.jpa.EntityTestBase;
-import bunny.boardhole.shared.util.MessageUtils;
+import static org.assertj.core.api.Assertions.*;
 
 @DisplayName("EmailVerification 엔티티 테스트")
 @TestMethodOrder(MethodOrderer.DisplayName.class)

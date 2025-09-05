@@ -1,9 +1,9 @@
 package bunny.boardhole.email.application;
 
-import static org.mockito.Mockito.*;
-
-import java.util.Set;
-
+import bunny.boardhole.email.domain.EmailTemplate;
+import bunny.boardhole.email.infrastructure.SmtpEmailService;
+import bunny.boardhole.user.domain.*;
+import jakarta.mail.internet.MimeMessage;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
@@ -11,11 +11,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import bunny.boardhole.email.domain.EmailTemplate;
-import bunny.boardhole.email.infrastructure.SmtpEmailService;
-import bunny.boardhole.user.domain.*;
+import java.util.Set;
 
-import jakarta.mail.internet.MimeMessage;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class EmailServiceMockTest {

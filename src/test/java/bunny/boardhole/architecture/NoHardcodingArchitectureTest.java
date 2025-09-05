@@ -1,13 +1,11 @@
 package bunny.boardhole.architecture;
 
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.fields;
-
+import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.core.importer.*;
+import com.tngtech.archunit.lang.ArchRule;
 import org.junit.jupiter.api.Test;
 
-import com.tngtech.archunit.core.domain.JavaClasses;
-import com.tngtech.archunit.core.importer.ClassFileImporter;
-import com.tngtech.archunit.core.importer.ImportOption;
-import com.tngtech.archunit.lang.ArchRule;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.fields;
 
 /**
  * 하드코딩 제한 아키텍처 테스트

@@ -1,24 +1,21 @@
 package bunny.boardhole.shared.exception;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static bunny.boardhole.testsupport.mvc.ProblemDetailsMatchers.*;
-import static bunny.boardhole.testsupport.mvc.MatchersUtil.all;
-
-import java.util.*;
-
+import bunny.boardhole.board.domain.Board;
+import bunny.boardhole.testsupport.mvc.MvcTestBase;
+import com.fasterxml.jackson.core.type.TypeReference;
 import org.junit.jupiter.api.*;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.web.servlet.MvcResult;
 
-import com.fasterxml.jackson.core.type.TypeReference;
+import java.util.*;
 
-import bunny.boardhole.board.domain.Board;
-import bunny.boardhole.testsupport.mvc.MvcTestBase;
-import org.junit.jupiter.api.Tag;
+import static bunny.boardhole.testsupport.mvc.MatchersUtil.all;
+import static bunny.boardhole.testsupport.mvc.ProblemDetailsMatchers.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @DisplayName("에러 처리 통합 테스트")
 @Tag("integration")

@@ -1,10 +1,12 @@
 package bunny.boardhole.user.application;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
-import java.util.*;
-
+import bunny.boardhole.shared.exception.ResourceNotFoundException;
+import bunny.boardhole.shared.util.MessageUtils;
+import bunny.boardhole.user.application.mapper.UserMapper;
+import bunny.boardhole.user.application.query.UserQueryService;
+import bunny.boardhole.user.application.result.UserResult;
+import bunny.boardhole.user.domain.*;
+import bunny.boardhole.user.infrastructure.UserRepository;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -13,13 +15,10 @@ import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.data.domain.*;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import bunny.boardhole.shared.exception.ResourceNotFoundException;
-import bunny.boardhole.shared.util.MessageUtils;
-import bunny.boardhole.user.application.mapper.UserMapper;
-import bunny.boardhole.user.application.query.UserQueryService;
-import bunny.boardhole.user.application.result.UserResult;
-import bunny.boardhole.user.domain.*;
-import bunny.boardhole.user.infrastructure.UserRepository;
+import java.util.*;
+
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)

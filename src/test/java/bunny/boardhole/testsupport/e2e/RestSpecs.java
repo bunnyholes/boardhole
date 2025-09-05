@@ -1,16 +1,17 @@
 package bunny.boardhole.testsupport.e2e;
 
-import static io.restassured.RestAssured.given;
-
 import io.restassured.http.ContentType;
 import io.restassured.specification.RequestSpecification;
+
+import static io.restassured.RestAssured.given;
 
 /**
  * RestAssured 테스트를 위한 공통 RequestSpecification 팩토리
  * 인증 상태별로 사전 구성된 요청 스펙을 제공합니다.
  */
 public final class RestSpecs {
-    private RestSpecs() {}
+    private RestSpecs() {
+    }
 
     /**
      * 익명 사용자용 JSON 요청 스펙
@@ -30,7 +31,7 @@ public final class RestSpecs {
                 .accept(ContentType.JSON)
                 .cookie(session.name(), session.value());
     }
-    
+
     /**
      * 폼 데이터 전송용 익명 요청 스펙
      */
@@ -39,7 +40,7 @@ public final class RestSpecs {
                 .contentType(ContentType.URLENC)
                 .accept(ContentType.JSON);
     }
-    
+
     /**
      * 폼 데이터 전송용 인증된 요청 스펙
      */

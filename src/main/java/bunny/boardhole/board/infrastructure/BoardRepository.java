@@ -1,14 +1,13 @@
 package bunny.boardhole.board.infrastructure;
 
-import java.util.Optional;
-
+import bunny.boardhole.board.domain.Board;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.validation.annotation.Validated;
 
-import bunny.boardhole.board.domain.Board;
+import java.util.Optional;
 
 /**
  * 게시글 데이터 접근 리포지토리

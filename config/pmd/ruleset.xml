@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
-<ruleset name="board-hole-pmd-rules"
+<ruleset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         name="board-hole-pmd-rules"
          xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd">
 
     <description>엄격한 PMD 룰셋 for Board Hole 프로젝트 - 업계 표준 품질 기준</description>
@@ -39,7 +39,7 @@
 
     <!-- ===== Lombok 사용 완전 강제 규칙 (모든 기존 코드 포함) ===== -->
     <!-- 우선순위 1: 빌드 실패, 우선순위 2: 경고 -->
-    
+
     <!-- 수동 getter/setter 메서드 완전 금지 -->
     <rule name="UseLombokForAccessors"
           language="java"
@@ -186,7 +186,8 @@
           language="java"
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
         <properties>
-            <property name="xpath" value="//ClassDeclaration[.//Annotation[@SimpleName='Controller' or @SimpleName='RestController']]//MethodDeclaration//Type//ClassType[@SimpleName='ResponseEntity']"/>
+            <property name="xpath"
+                      value="//ClassDeclaration[.//Annotation[@SimpleName='Controller' or @SimpleName='RestController']]//MethodDeclaration//Type//ClassType[@SimpleName='ResponseEntity']"/>
         </properties>
         <priority>1</priority>
     </rule>
