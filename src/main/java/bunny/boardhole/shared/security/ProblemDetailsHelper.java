@@ -1,14 +1,16 @@
 package bunny.boardhole.shared.security;
 
-import bunny.boardhole.shared.config.log.RequestLoggingFilter;
-import jakarta.servlet.http.HttpServletRequest;
-import lombok.extern.slf4j.Slf4j;
-import org.slf4j.MDC;
-import org.springframework.http.ProblemDetail;
-
 import java.net.URI;
 import java.time.Instant;
 import java.util.Optional;
+
+import org.slf4j.MDC;
+import org.springframework.http.ProblemDetail;
+
+import bunny.boardhole.shared.config.log.RequestLoggingFilter;
+
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * ProblemDetail 생성을 위한 공통 헬퍼 클래스

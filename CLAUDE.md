@@ -165,3 +165,4 @@ Spring profiles:
 - Mapping: MapStruct 1.6.3
 - Testing: JUnit 5, Testcontainers, ArchUnit
 - Quality: Checkstyle, PMD, SpotBugs, ErrorProne, JaCoCo
+- 코드를 수정하고 주석을 남기지마라 , 특히 무엇무엇슥 삭제햇습니다.

@@ -1,19 +1,21 @@
 package bunny.boardhole.shared.exception;
 
-import bunny.boardhole.board.domain.Board;
-import bunny.boardhole.shared.web.ControllerTestBase;
-import com.fasterxml.jackson.core.type.TypeReference;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+import java.util.*;
+
 import org.junit.jupiter.api.*;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.web.servlet.MvcResult;
 
-import java.util.*;
+import com.fasterxml.jackson.core.type.TypeReference;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import bunny.boardhole.board.domain.Board;
+import bunny.boardhole.shared.web.ControllerTestBase;
 
 @DisplayName("에러 처리 통합 테스트")
 class ErrorHandlingIntegrationTest extends ControllerTestBase {

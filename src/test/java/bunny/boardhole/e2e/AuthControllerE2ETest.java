@@ -31,6 +31,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import bunny.boardhole.shared.config.TestEmailConfig;
 import bunny.boardhole.shared.config.TestSecurityOverrides;
+
 import io.restassured.RestAssured;
 import io.restassured.filter.log.RequestLoggingFilter;
 import io.restassured.filter.log.ResponseLoggingFilter;

@@ -62,10 +62,8 @@ public class DataInitializer implements CommandLineRunner {
             userRepository.save(admin);
             log.info(messageSource.getMessage("log.user.admin.created",
                     new Object[]{adminUsername}, LocaleContextHolder.getLocale()));
-        } else {
-            log.info(messageSource.getMessage("log.user.admin.exists",
-                    new Object[]{adminUsername}, LocaleContextHolder.getLocale()));
-        }
+        } else log.info(messageSource.getMessage("log.user.admin.exists",
+                new Object[]{adminUsername}, LocaleContextHolder.getLocale()));
 
         // 일반 사용자 계정 확인 및 생성
         if (!userRepository.existsByUsername(regularUsername)) {
@@ -80,10 +78,8 @@ public class DataInitializer implements CommandLineRunner {
             userRepository.save(regularUser);
             log.info(messageSource.getMessage("log.user.regular.created",
                     new Object[]{regularUsername}, LocaleContextHolder.getLocale()));
-        } else {
-            log.info(messageSource.getMessage("log.user.regular.exists",
-                    new Object[]{regularUsername}, LocaleContextHolder.getLocale()));
-        }
+        } else log.info(messageSource.getMessage("log.user.regular.exists",
+                new Object[]{regularUsername}, LocaleContextHolder.getLocale()));
 
         // 기본 환영 게시글 생성
         if (boardRepository.count() == 0) {

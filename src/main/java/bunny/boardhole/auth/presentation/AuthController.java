@@ -1,5 +1,14 @@
 package bunny.boardhole.auth.presentation;
 
+import org.springframework.http.*;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.*;
+import org.springframework.security.web.context.SecurityContextRepository;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+
 import bunny.boardhole.auth.application.AuthCommandService;
 import bunny.boardhole.auth.application.mapper.AuthMapper;
 import bunny.boardhole.auth.presentation.dto.LoginRequest;
@@ -9,6 +18,7 @@ import bunny.boardhole.shared.security.AppUserPrincipal;
 import bunny.boardhole.user.application.command.UserCommandService;
 import bunny.boardhole.user.presentation.dto.UserCreateRequest;
 import bunny.boardhole.user.presentation.mapper.UserWebMapper;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.*;
 import io.swagger.v3.oas.annotations.responses.*;
@@ -17,14 +27,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.security.PermitAll;
 import jakarta.servlet.http.*;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.*;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.context.*;
-import org.springframework.security.web.context.SecurityContextRepository;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(ApiPaths.AUTH)

@@ -1,13 +1,15 @@
 package bunny.boardhole.board.domain;
 
+import org.hibernate.annotations.DynamicUpdate;
+import org.springframework.util.Assert;
+
 import bunny.boardhole.shared.constants.ValidationConstants;
 import bunny.boardhole.shared.domain.BaseEntity;
 import bunny.boardhole.shared.util.MessageUtils;
 import bunny.boardhole.user.domain.User;
+
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.DynamicUpdate;
-import org.springframework.util.Assert;
 
 @Getter
 @NoArgsConstructor

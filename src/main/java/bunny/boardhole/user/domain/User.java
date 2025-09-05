@@ -1,16 +1,18 @@
 package bunny.boardhole.user.domain;
 
-import bunny.boardhole.shared.constants.*;
-import bunny.boardhole.shared.util.MessageUtils;
-import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.persistence.*;
-import lombok.*;
+import java.io.Serializable;
+import java.time.LocalDateTime;
+
 import org.hibernate.annotations.DynamicUpdate;
 import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
 
-import java.io.Serializable;
-import java.time.LocalDateTime;
+import bunny.boardhole.shared.constants.*;
+import bunny.boardhole.shared.util.MessageUtils;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.persistence.*;
+import lombok.*;
 
 @Getter
 @NoArgsConstructor

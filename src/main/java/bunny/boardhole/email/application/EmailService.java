@@ -1,9 +1,9 @@
 package bunny.boardhole.email.application;
 
+import java.util.Map;
+
 import bunny.boardhole.email.domain.*;
 import bunny.boardhole.user.domain.User;
-
-import java.util.Map;
 
 /**
  * 이메일 발송 서비스 인터페이스

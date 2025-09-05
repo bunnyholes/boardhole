@@ -1,9 +1,10 @@
 package bunny.boardhole.auth.presentation.mapper;
 
+import org.mapstruct.Mapper;
+
 import bunny.boardhole.auth.application.command.LoginCommand;
 import bunny.boardhole.auth.presentation.dto.LoginRequest;
 import bunny.boardhole.shared.mapstruct.MapstructConfig;
-import org.mapstruct.Mapper;
 
 
 /**

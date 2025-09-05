@@ -1,6 +1,6 @@
 package bunny.boardhole.user.domain;
 
-import bunny.boardhole.shared.domain.BaseTimeEntity;
+import bunny.boardhole.shared.domain.BaseEntity;
 import bunny.boardhole.shared.util.MessageUtils;
 import jakarta.persistence.*;
 import lombok.*;
@@ -17,7 +17,7 @@ import java.time.*;
         @Index(name = "idx_email_verification_user_id", columnList = "user_id"),
         @Index(name = "idx_email_verification_expires_at", columnList = "expires_at")
 })
-public class EmailVerification extends BaseTimeEntity {
+public class EmailVerification extends BaseEntity {
 
     @Id
     @EqualsAndHashCode.Include

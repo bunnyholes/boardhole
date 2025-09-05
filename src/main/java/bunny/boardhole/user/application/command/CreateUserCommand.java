@@ -12,4 +12,3 @@ public record CreateUserCommand(
         @ValidEmail String email
 ) {
 }
-

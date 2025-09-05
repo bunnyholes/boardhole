@@ -1,21 +1,5 @@
 package bunny.boardhole.board.presentation;
 
-import bunny.boardhole.board.application.command.BoardCommandService;
-import bunny.boardhole.board.application.query.BoardQueryService;
-import bunny.boardhole.board.application.result.BoardResult;
-import bunny.boardhole.board.presentation.dto.*;
-import bunny.boardhole.board.presentation.mapper.BoardWebMapper;
-import bunny.boardhole.shared.constants.ApiPaths;
-import bunny.boardhole.shared.security.AppUserPrincipal;
-import bunny.boardhole.user.domain.User;
-import io.swagger.v3.oas.annotations.*;
-import io.swagger.v3.oas.annotations.media.*;
-import io.swagger.v3.oas.annotations.responses.*;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.annotation.Nullable;
-import jakarta.annotation.security.PermitAll;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.*;
 import org.springframework.data.web.PageableDefault;
@@ -24,6 +8,24 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import bunny.boardhole.board.application.command.BoardCommandService;
+import bunny.boardhole.board.application.query.BoardQueryService;
+import bunny.boardhole.board.application.result.BoardResult;
+import bunny.boardhole.board.presentation.dto.*;
+import bunny.boardhole.board.presentation.mapper.BoardWebMapper;
+import bunny.boardhole.shared.constants.ApiPaths;
+import bunny.boardhole.shared.security.AppUserPrincipal;
+import bunny.boardhole.user.domain.User;
+
+import io.swagger.v3.oas.annotations.*;
+import io.swagger.v3.oas.annotations.media.*;
+import io.swagger.v3.oas.annotations.responses.*;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.annotation.Nullable;
+import jakarta.annotation.security.PermitAll;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RestController

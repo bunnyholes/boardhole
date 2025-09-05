@@ -60,8 +60,9 @@
         <!-- 사용하지 않는 Import -->
         <module name="UnusedImports"/>
 
-        <!-- 와일드카드 Import 제한 -->
+        <!-- 와일드카드 Import 제한 (일반 임포트는 허용) -->
         <module name="AvoidStarImport">
+            <property name="allowClassImports" value="true"/>
             <property name="allowStaticMemberImports" value="false"/>
         </module>
 
@@ -83,7 +84,66 @@
             <property name="countEmpty" value="false"/>
         </module>
 
+        <!-- ===== Lombok 사용 완전 강제 규칙 (모든 기존 코드 포함) ===== -->
+        <!-- 이 규칙들은 새 코드뿐만 아니라 모든 기존 코드에도 적용됩니다 -->
         
+        <!-- 1. 단순 getter 메서드 완전 금지 -->
+        <!-- 패턴: return this.field; 또는 return field; 형태의 단순 반환 -->
+        <module name="RegexpSinglelineJava">
+            <property name="format" value="^\s*(public|protected)\s+\w+\s+get[A-Z]\w*\s*\(\s*\)\s*\{\s*return\s+(this\.)?\w+\s*;\s*\}"/>
+            <property name="ignoreComments" value="true"/>
+            <property name="message" value="[LOMBOK 강제] 단순 getter는 반드시 Lombok @Getter를 사용하세요. 비즈니스 로직이 있는 메서드만 허용됩니다."/>
+        </module>
+
+        <!-- 2. 단순 setter 메서드 완전 금지 -->
+        <!-- 패턴: this.field = value; 형태의 단순 할당 -->
+        <module name="RegexpSinglelineJava">
+            <property name="format" value="^\s*(public|protected)\s+void\s+set[A-Z]\w*\s*\([^)]+\)\s*\{\s*this\.\w+\s*=\s*\w+\s*;\s*\}"/>
+            <property name="ignoreComments" value="true"/>
+            <property name="message" value="[LOMBOK 강제] 단순 setter는 반드시 Lombok @Setter를 사용하세요. 검증 로직이 있는 메서드만 허용됩니다."/>
+        </module>
+
+        <!-- 3. 빈 생성자 완전 금지 -->
+        <module name="RegexpSinglelineJava">
+            <property name="format" value="^\s*(public|protected|private)\s+[A-Z][a-zA-Z0-9]*\s*\(\s*\)\s*\{\s*\}"/>
+            <property name="ignoreComments" value="true"/>
+            <property name="message" value="[LOMBOK 강제] 빈 생성자는 반드시 Lombok @NoArgsConstructor를 사용하세요"/>
+        </module>
+
+        <!-- 4. toString() 메서드 수동 구현 완전 금지 -->
+        <module name="RegexpSinglelineJava">
+            <property name="format" value="^\s*public\s+String\s+toString\s*\(\s*\)\s*\{"/>
+            <property name="ignoreComments" value="true"/>
+            <property name="message" value="[LOMBOK 강제] toString()은 반드시 Lombok @ToString을 사용하세요"/>
+        </module>
+
+        <!-- 5. equals() 메서드 수동 구현 완전 금지 -->
+        <module name="RegexpSinglelineJava">
+            <property name="format" value="^\s*public\s+boolean\s+equals\s*\(\s*Object\s+\w+\s*\)\s*\{"/>
+            <property name="ignoreComments" value="true"/>
+            <property name="message" value="[LOMBOK 강제] equals()는 반드시 Lombok @EqualsAndHashCode를 사용하세요"/>
+        </module>
+
+        <!-- 6. hashCode() 메서드 수동 구현 완전 금지 -->
+        <module name="RegexpSinglelineJava">
+            <property name="format" value="^\s*public\s+int\s+hashCode\s*\(\s*\)\s*\{"/>
+            <property name="ignoreComments" value="true"/>
+            <property name="message" value="[LOMBOK 강제] hashCode()는 반드시 Lombok @EqualsAndHashCode를 사용하세요"/>
+        </module>
+        
+        <!-- 7. 여러 줄 getter 메서드도 감지 (비즈니스 로직 없는 경우) -->
+        <module name="RegexpSinglelineJava">
+            <property name="format" value="^\s*(public|protected)\s+\w+\s+get[A-Z]\w*\s*\(\s*\)\s*\{$"/>
+            <property name="ignoreComments" value="true"/>
+            <property name="message" value="[LOMBOK 강제] getter 메서드는 Lombok @Getter를 사용하거나 비즈니스 로직을 포함해야 합니다"/>
+        </module>
+        
+        <!-- 8. 여러 줄 setter 메서드도 감지 (검증 로직 없는 경우) -->
+        <module name="RegexpSinglelineJava">
+            <property name="format" value="^\s*(public|protected)\s+void\s+set[A-Z]\w*\s*\([^)]+\)\s*\{$"/>
+            <property name="ignoreComments" value="true"/>
+            <property name="message" value="[LOMBOK 강제] setter 메서드는 Lombok @Setter를 사용하거나 검증 로직을 포함해야 합니다"/>
+        </module>
 
         <!-- ResponseEntity import 금지 -->
         <module name="IllegalImport">

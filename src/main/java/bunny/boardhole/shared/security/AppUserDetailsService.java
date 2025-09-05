@@ -1,12 +1,14 @@
 package bunny.boardhole.shared.security;
 
-import bunny.boardhole.shared.util.MessageUtils;
-import bunny.boardhole.user.domain.User;
-import bunny.boardhole.user.infrastructure.UserRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.*;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
+
+import bunny.boardhole.shared.util.MessageUtils;
+import bunny.boardhole.user.domain.User;
+import bunny.boardhole.user.infrastructure.UserRepository;
+
+import lombok.RequiredArgsConstructor;
 
 /**
  * 사용자 인증 세부 정보 서비스

@@ -1,13 +1,9 @@
 package bunny.boardhole.shared.web;
 
-import bunny.boardhole.board.domain.Board;
-import bunny.boardhole.board.infrastructure.BoardRepository;
-import bunny.boardhole.shared.config.*;
-import bunny.boardhole.user.domain.*;
-import bunny.boardhole.user.infrastructure.UserRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.beans.factory.annotation.Value;
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
@@ -15,7 +11,13 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import bunny.boardhole.board.domain.Board;
+import bunny.boardhole.board.infrastructure.BoardRepository;
+import bunny.boardhole.shared.config.*;
+import bunny.boardhole.user.domain.*;
+import bunny.boardhole.user.infrastructure.UserRepository;
 
 @SpringBootTest
 @AutoConfigureMockMvc

@@ -1,10 +1,10 @@
 package bunny.boardhole.shared.config;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.*;
 import org.springframework.web.cors.*;
-
-import java.util.List;
 
 @Configuration
 public class CorsConfig {

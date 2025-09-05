@@ -1,12 +1,14 @@
 package bunny.boardhole.shared.config;
 
-import bunny.boardhole.shared.security.EmailVerificationFilter;
+import java.io.IOException;
+
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 
+import bunny.boardhole.shared.security.EmailVerificationFilter;
+
 import jakarta.servlet.*;
-import java.io.IOException;
 
 @TestConfiguration
 public class TestSecurityOverrides {
@@ -24,4 +26,3 @@ public class TestSecurityOverrides {
         };
     }
 }
-

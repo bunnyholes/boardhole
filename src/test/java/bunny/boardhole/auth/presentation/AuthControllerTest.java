@@ -1,19 +1,20 @@
 package bunny.boardhole.auth.presentation;
 
-import bunny.boardhole.shared.web.ControllerTestBase;
-import org.junit.jupiter.api.*;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.*;
-import org.springframework.http.MediaType;
-import bunny.boardhole.shared.util.MessageUtils;
-import org.springframework.security.test.context.support.WithUserDetails;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.util.UUID;
 import java.util.stream.Stream;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import org.junit.jupiter.api.*;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.*;
+import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithUserDetails;
+
+import bunny.boardhole.shared.util.MessageUtils;
+import bunny.boardhole.shared.web.ControllerTestBase;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.DisplayName.class)

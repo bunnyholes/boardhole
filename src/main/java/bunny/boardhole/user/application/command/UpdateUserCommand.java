@@ -1,6 +1,7 @@
 package bunny.boardhole.user.application.command;
 
 import bunny.boardhole.user.domain.validation.optional.OptionalName;
+
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.*;
 

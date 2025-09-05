@@ -1,267 +1,279 @@
-# 📋 Spring Boot 게시판 프로젝트 TODO
+# 🚀 Spring Boot 게시판 프로젝트 로드맵
 
-## 📊 프로젝트 현황 대시보드
-| 항목 | 현재 | 목표 |
-|------|------|------|
-| **코드 규모** | 157개 Java 파일 | - |
-| **테스트 파일** | 24개 | 100개+ |
-| **테스트 커버리지** | ~15% | 80% |
-| **코드 라인수** | ~10,400줄 | - |
-| **기술 스택** | Java 21, Spring Boot 3.5.5, MySQL, Redis, Docker | - |
-
----
-
-## 🚨 우선순위별 작업 분류
-
-### 🔴 P0 - Critical (즉시 수정 필요)
-> 데이터 손실, 보안 취약점, 시스템 장애 위험
-
-#### 1. 이메일 발송 실패 처리
-- [ ] 재시도 메커니즘 구현 (EmailEventListener line 35, 56, 74)
-- [ ] 실패 큐 구현 (DLQ - Dead Letter Queue)
-- [ ] Spring Retry 또는 Resilience4j 도입
-- [ ] 실패 알림 시스템 구축
-
-#### 2. 테스트 커버리지 긴급 개선
-- [ ] 현재 15% → 1차 목표 50% (1주)
-- [ ] BoardCommandService 단위 테스트
-- [ ] UserCommandService 통합 테스트
-- [ ] EmailEventListener 비동기 처리 테스트
-- [ ] AppPermissionEvaluator 권한 검증 테스트
-
-#### 3. 보안 취약점 패치
-- [ ] 이메일 미인증 사용자 접근 제한
-- [ ] Rate Limiting 구현 (brute force 방어)
-- [ ] 민감 정보 로깅 방지 (password, token)
-- [ ] CSRF 토큰 검증 강화
-
-#### 4. 트랜잭션 무결성
-- [ ] @TransactionalEventListener 실패 정책
-- [ ] 이벤트 처리 경계 명확화
-- [ ] 데이터베이스 락 전략 최적화
+## 📊 프로젝트 현황
+| 메트릭 | 현재 | 목표 | 상태 |
+|--------|------|------|------|
+| **IntelliJ 인스펙션** | 900+ issues | 0 issues | 🔴 |
+| **코드 규모** | 157 Java files | - | ✅ |
+| **테스트 커버리지** | 0% (JaCoCo 설정 이슈) | 80% | 🔴 |
+| **테스트 수** | 285 tests (5 failing) | 100% passing | 🟡 |
+| **코드 품질** | Checkstyle 43개, PMD 1,153개 위반 | 0 violations | 🟡 |
+| **아키텍처 준수** | 100% (ArchUnit 통과) | 100% | ✅ |
 
 ---
 
-### 🟡 P1 - Major (2주 내 처리)
-> 성능 저하, 유지보수성 문제, 기능 제한
+## 🗓️ 실행 로드맵
 
-#### 5. 성능 최적화
-- [ ] **캐싱 전략**
-  - [ ] AppPermissionEvaluator 캐싱 (line 74 TODO)
-  - [ ] Spring Cache 도입 (@Cacheable, @CacheEvict)
+### 🚨 Phase 0: IntelliJ 인스펙션 해결 (최우선 - Week 1)
+**목표**: 모든 IntelliJ IDEA 인스펙션 이슈 제거
+
+#### Sprint 0.1 (Day 1): Critical - Null 안전성 (56개)
+- [ ] **DataFlowIssue 해결** (43개)
+  - [ ] EmailOutbox.java - `markAsSent()`, `recordFailure()` null 할당 수정
+  - [ ] EmailOutboxRepositoryTest.java (18개 이슈)
+  - [ ] UserCommandServiceTest.java (6개 이슈)
+  - [ ] UserQueryServiceTest.java (3개 이슈)
+- [ ] **NullableProblems 해결** (13개)
+  - [ ] @Nullable 애노테이션 추가
+  - [ ] Optional 활용 개선
+  - [ ] Null 체크 로직 보강
+
+#### Sprint 0.2 (Day 2): Major - 미사용 코드 제거 (281개)
+- [ ] **UnusedProperty 정리** (205개)
+  - [ ] messages.properties 미사용 키 제거
+  - [ ] messages_en.properties 동기화
+  - [ ] ValidationMessages.properties 정리
+- [ ] **unused 코드 제거** (76개)
+  - [ ] ApiPaths.java 미사용 상수 (9개)
+  - [ ] EmailOutboxRepository.java 미사용 메서드 (5개)
+  - [ ] BoardQueryService.java 미사용 코드 (4개)
+  - [ ] 미사용 파라미터 제거
+
+#### Sprint 0.3 (Day 3): 리소스 번들 & Spring 설정 (157개)
+- [ ] **InconsistentResourceBundle 수정** (127개)
+  - [ ] 모든 언어 파일 키 동기화
+  - [ ] 누락된 번역 추가
+  - [ ] 중복 키 제거
+- [ ] **SpringBootApplicationYaml 수정** (30개)
+  - [ ] application.yml 프로퍼티 검증
+  - [ ] 타입 불일치 수정
+  - [ ] 잘못된 프로퍼티 키 수정
+
+#### Sprint 0.4 (Day 4-5): 코드 품질 & 스타일 (300개+)
+- [ ] **Import 정리**
+  - [ ] UNUSED_IMPORT 제거 (7개)
+  - [ ] Star imports → 명시적 imports (Checkstyle 43개)
+- [ ] **코드 최적화**
+  - [ ] WeakerAccess - 접근 제한자 최적화 (10개)
+  - [ ] CanBeFinal - final 키워드 추가
+  - [ ] FieldMayBeFinal - 필드 final 선언
+  - [ ] EmptyMethod - 빈 메서드 제거 (16개)
+- [ ] **Java 21 기능 적용**
+  - [ ] SequencedCollectionMethodCanBeUsed (15개)
+  - [ ] Convert2MethodRef - 메서드 레퍼런스 변환
+- [ ] **기타 정리**
+  - [ ] SpellCheckingInspection - 맞춤법 수정 (113개)
+  - [ ] SimplifiableAnnotation - 애노테이션 간소화
+  - [ ] SameParameterValue - 동일 파라미터 값 개선
+
+#### Sprint 0.5 (Day 6-7): 검증 & 마무리
+- [ ] **모든 인스펙션 재실행**
+  - [ ] IntelliJ IDEA Analyze → Inspect Code
+  - [ ] 0 issues 확인
+- [ ] **빌드 검증**
+  - [ ] ./gradlew clean build
+  - [ ] 모든 테스트 통과 확인
+- [ ] **문서화**
+  - [ ] 수정 사항 CHANGELOG 작성
+  - [ ] 코드 리뷰 체크리스트 업데이트
+
+---
+
+### 📌 Phase 1: 긴급 수정 (Week 2)
+**목표**: 크리티컬 이슈 해결 및 기본 품질 확보
+
+#### Sprint 1.1 (Day 1-2): 테스트 안정화
+- [ ] **실패 테스트 수정** (5개)
+  - [ ] SmtpEmailServiceRetryTest 재시도 로직
+  - [ ] SmtpEmailServiceWithOutboxTest Outbox 패턴 3개
+  - [ ] EmailVerificationServiceTest 이메일 검증
+- [ ] **JaCoCo 설정 수정**
+  - [ ] 커버리지 리포트 생성 문제 해결
+  - [ ] 실제 커버리지 측정 활성화
+
+#### Sprint 1.2 (Day 3-4): 이메일 시스템 안정화
+- [ ] **Spring Retry 구현**
+  - [ ] @Retryable 설정 완성
+  - [ ] @Recover 메서드 구현
+  - [ ] Exponential backoff 설정
+- [ ] **Outbox 패턴 완성**
+  - [ ] 트랜잭션 경계 정리
+  - [ ] 실패 시 저장 로직 검증
+
+#### Sprint 1.3 (Day 5-7): Checkstyle & PMD 해결
+- [ ] **Checkstyle 위반 수정** (43개)
+  - [ ] 120자 라인 길이 초과 수정 (32개)
+  - [ ] JavaDoc 주석 추가
+- [ ] **PMD 위반 수정** (1,153개)
+  - [ ] 복잡도 감소
+  - [ ] 명명 규칙 준수
+  - [ ] 중복 코드 제거
+
+---
+
+### 📌 Phase 2: 품질 개선 (Week 3-4)
+**목표**: 코드 품질 향상 및 테스트 커버리지 확보
+
+#### Sprint 2.1: 테스트 커버리지 향상
+- [ ] **단위 테스트 추가** (목표: 50%)
+  - [ ] BoardCommandService 완전 커버리지
+  - [ ] UserCommandService 핵심 로직
+  - [ ] 도메인 엔티티 비즈니스 메서드
+- [ ] **통합 테스트 강화**
+  - [ ] 트랜잭션 롤백 시나리오
+  - [ ] 동시성 테스트 추가
+
+#### Sprint 2.2: 로깅 체계 정리
+- [ ] **중복 로깅 제거**
+  - [ ] UserCommandService (line 158, 184)
+  - [ ] SessionAuthCommandService (line 64)
+  - [ ] EmailEventListener (30, 32, 34, 47, 53, 55, 68, 70, 73)
+  - [ ] SmtpEmailService (87, 103, 115, 127)
+- [ ] **AOP 기반 로깅**
+  - [ ] BusinessValidationAspect 구현
+  - [ ] EventHandlerAspect 구현
+  - [ ] MDC 활용 (요청 추적 ID)
+
+#### Sprint 2.3: 설정 관리 통합
+- [ ] **BoardholeProperties 도입**
+  ```java
+  @ConfigurationProperties(prefix="boardhole")
+  public class BoardholeProperties {
+      private Validation validation;
+      private Email email;
+      private Security security;
+      // 중첩 구조로 관리
+  }
+  ```
+- [ ] **시간 단위 통일**
+  - [ ] 모든 시간 값 ms 단위로 통일
+  - [ ] Duration 변환 로직 구현
+
+---
+
+### 📌 Phase 3: 성능 최적화 (Week 5)
+**목표**: 성능 개선 및 확장성 확보
+
+#### Sprint 3.1: 캐싱 전략
+- [ ] **Spring Cache 도입**
+  - [ ] AppPermissionEvaluator 캐싱
+  - [ ] 자주 조회되는 사용자 정보
   - [ ] Redis 캐시 레이어 구축
-- [ ] **쿼리 최적화**
-  - [ ] N+1 문제 해결 (BoardRepository)
-  - [ ] Cursor 기반 페이징 구현
-  - [ ] 데이터베이스 인덱스 추가
-- [ ] **Connection Pool**
-  - [ ] HikariCP 튜닝
 
-#### 6. 비동기 처리 개선
-- [ ] AsyncUncaughtExceptionHandler 구현
-- [ ] MDC 컨텍스트 전파
-- [ ] CompletableFuture 체이닝
-- [ ] 타임아웃 설정
+#### Sprint 3.2: 쿼리 최적화
+- [ ] **N+1 문제 해결**
+  - [ ] BoardRepository fetch join
+  - [ ] @EntityGraph 활용
+  - [ ] 배치 사이즈 최적화
 
-#### 7. 입력 검증 체계화
-- [ ] @Valid*, @Optional* 커스텀 애노테이션 완성
-- [ ] ValidationGroup 정의
-- [ ] 다국어 검증 메시지
-
-#### 8. 로깅 체계 정리 🆕
-##### 중복 로깅 제거
-- [ ] UserCommandService (line 158, 184)
-- [ ] SessionAuthCommandService (line 64)
-- [ ] EmailEventListener (line 30, 32, 34, 47, 53, 55, 68, 70, 73)
-- [ ] SmtpEmailService (line 87, 103, 115, 127)
-
-##### 신규 AOP Aspect
-- [ ] BusinessValidationAspect
-- [ ] EventHandlerAspect
-- [ ] EmailServiceAspect
-
-##### 로깅 표준화
-- [ ] 레벨별 용도 정의 (DEBUG/INFO/WARN/ERROR)
-- [ ] MDC 활용 (요청 추적 ID)
-- [ ] 구조화된 로깅 (JSON 포맷)
-
-#### 9. 설정 관리 (프로퍼티 전략)
-- [ ] BoardholeProperties 루트 구성 도입 (@ConfigurationProperties)
-  - [ ] validation.emailVerification (expirationMs, signupExpirationMs, codeLength)
-  - [ ] email (verificationExpirationMs, fromName, baseUrl)
-  - [ ] security.verificationCode (charset, length, expiryMinutes)
-  - [ ] cors, defaultUsers 등 기존 구조 유지하되 묶음으로 주입
-- [ ] 서비스 주입 간소화: 각 서비스는 BoardholeProperties 하나만 주입 → 서브뷰로 사용
-- [ ] 시간 단위 통일: 모두 ms 단위로 관리 (코드에서 Duration 변환)
-- [ ] 폴백 제거: 미설정 시 즉시 실패 (main에 기본값 명시, test는 최소 오버라이드)
-- [ ] YAML 중복 제거: 파생 값은 참조 사용 (예: email.verification-expiration-ms → ${boardhole.validation.email-verification.expiration-ms})
-- [ ] 테스트 프로필 가이드 정착
-  - [ ] test에서는 application-test.yml만 사용 (@ActiveProfiles("test")), test/resources/application.yml 금지
-  - [ ] 정말 필요한 키만 오버라이드(만료 ms 등), 나머지는 main 기본값 사용
-  - [ ] 케이스별 임시 오버라이드는 @DynamicPropertySource로 처리
-- [ ] 민감 정보 암호화 (Jasypt)
+#### Sprint 3.3: 비동기 처리
+- [ ] **AsyncConfig 고도화**
+  - [ ] ThreadPoolTaskExecutor 튜닝
+  - [ ] AsyncUncaughtExceptionHandler
+  - [ ] CompletableFuture 활용
 
 ---
 
-### 🔵 P2 - Minor (1개월 내)
-> 코드 품질, 개발 편의성, 확장성
+### 📌 Phase 4: 보안 강화 (Week 6)
+**목표**: 보안 취약점 제거 및 강화
 
-#### 10. 코드 품질
-- [ ] MapStruct BaseMapper 인터페이스
-- [ ] 패키지 구조 일관성 (event 패키지)
-- [ ] ArchUnit 순환 의존성 검사
-- [ ] 메서드 복잡도 감소 (최대 20줄)
+#### Sprint 4.1: 인증/인가
+- [ ] **Rate Limiting**
+  - [ ] Bucket4j 도입
+  - [ ] IP 기반 제한
+- [ ] **이메일 인증 강화**
+  - [ ] 미인증 사용자 접근 제한
+  - [ ] 인증 코드 만료 처리
 
-#### 11. API 개선
-- [ ] API 버저닝 전략 결정
-- [ ] RFC 7807 Problem Details 완전 적용
-- [ ] Rate Limiting (Bucket4j)
-- [ ] OpenAPI 3.0 스펙 완성
-  
-##### 알아보기 메모
-- [ ] Problem Details 자동 적용 범위와 전역 핸들러/시큐리티 핸들러와의 상호작용 정리 (application.yml의 spring.mvc.problemdetails.enabled=true 영향 범위)
+#### Sprint 4.2: 보안 설정
+- [ ] **로깅 보안**
+  - [ ] 민감 정보 마스킹
+  - [ ] 감사 로그 구현
 
 ---
 
-## 🧭 설정/프로퍼티 전략 (Direction)
-- 루트 묶음 도입: `@ConfigurationProperties(prefix="boardhole")`로 BoardholeProperties 하나에 하위 설정을 중첩 타입으로 구성.
-- 주입 간소화: 서비스는 BoardholeProperties만 주입하고, 필요한 서브뷰(예: validation().emailVerification())로 접근.
-- 단위 통일: 시간 관련 값은 전부 ms로 관리하고, 코드에서 `Duration` 변환. YAML에 서로 다른 단위 혼재 금지.
-- 폴백 금지: `@Value` 기본값 문법(`:`) 사용 금지. 미설정은 바로 실패로 감지.
-- 중복 제거: 파생 값은 YAML 참조로 정의해 키 개수는 유지하고, 정의 중복을 제거.
-- 테스트 정책:
-  - test 프로필만 오버라이드(최소 키), 케이스별 변동은 `@DynamicPropertySource`로 처리.
-  - test-data는 텍스트 픽스처만 유지(만료 값은 공용(ms) 키 사용).
+## 📈 성공 지표 (KPI)
 
-### Next Steps
-- [ ] BoardholeProperties 초안 추가 + `@EnableConfigurationProperties` 등록
-- [ ] UserCommandService/EmailVerificationService를 BoardholeProperties 의존으로 전환 (@Value 제거)
-- [ ] EntityTestBase 등 테스트 주입부 정리 (TestDataConfig → ConfigurationProperties로 이관)
+### IntelliJ 인스펙션 지표 (최우선)
+| 카테고리 | 현재 | Day 1 | Day 2 | Day 3 | Day 4 | Day 5 | Day 7 |
+|----------|------|-------|-------|-------|-------|-------|-------|
+| Null 안전성 | 56 | 0 | 0 | 0 | 0 | 0 | 0 |
+| 미사용 코드 | 281 | 281 | 0 | 0 | 0 | 0 | 0 |
+| 리소스 번들 | 127 | 127 | 127 | 0 | 0 | 0 | 0 |
+| Spring 설정 | 30 | 30 | 30 | 0 | 0 | 0 | 0 |
+| 코드 스타일 | 300+ | 300+ | 300+ | 300+ | 0 | 0 | 0 |
+| **총 이슈** | **900+** | **750** | **450** | **300** | **0** | **0** | **0** |
 
-#### 12. 개발 환경
-- [ ] 테스트 Fixture/ObjectMother 패턴
-- [ ] Docker .env 템플릿
-- [ ] Makefile 자동화
-- [ ] setup.sh 스크립트
+### 품질 지표
+| 지표 | Week 1 | Week 2 | Week 3 | Week 4 | Week 5 |
+|------|--------|--------|--------|--------|--------|
+| IntelliJ 인스펙션 | 0 | 0 | 0 | 0 | 0 |
+| 테스트 커버리지 | 20% | 40% | 60% | 70% | 80% |
+| Checkstyle 위반 | 0 | 0 | 0 | 0 | 0 |
+| PMD 위반 | 500 | 200 | 50 | 10 | 0 |
+| 실패 테스트 | 0 | 0 | 0 | 0 | 0 |
 
 ---
 
 ## ✅ 완료된 작업
 
+### 2025-09-06
+- [x] IntelliJ 인스펙션 분석 완료
+- [x] 900+ 이슈 카테고리화 및 우선순위 설정
+
+### 2025-09-05
+- [x] 만료 시간 단위 ms로 통일
+- [x] test/resources/application.yml 제거
+- [x] 기본 사용자 비밀번호 정책 준수
+
 ### 2025-09-03
 - [x] Validation Message Migration
-  - [x] 11개 커스텀 애노테이션 키 통일
-  - [x] ValidationMessages.properties 정리
-  - [x] 영문 번역 완성
-
-### API 문서화
-- [x] Spring REST Docs 제거
-- [x] springdoc-openapi 중심 전환
-- [x] Swagger UI 활성화 (/swagger-ui)
-
-### 2025-09-05 (설정/프로퍼티 정리)
-- [x] 만료 시간 단위 ms로 통일 (validation/email), 폴백 제거 → 실패 조기 감지
-- [x] test-data 만료 관련 프로퍼티 제거, 공용(ms)만 사용
-- [x] test/resources/application.yml 제거(가림 문제 방지), @ActiveProfiles("test") 유지
-- [x] 기본 사용자 비밀번호 정책 준수 값으로 상향 (Admin123!, User123!)
+- [x] springdoc-openapi 전환
+- [x] Swagger UI 활성화
 
 ---
 
-## 🚀 신규 기능 백로그
+## 🎯 다음 단계 우선순위
 
-### 게시판 기능
-- [ ] 댓글 시스템 (대댓글, 좋아요)
-- [ ] 파일 첨부 (S3 연동)
-- [ ] Elasticsearch 검색
-- [ ] 태그 시스템
-- [ ] 북마크 기능
+### 즉시 시작 (Today - 최우선)
+1. **EmailOutbox.java null 안전성 수정**
+2. **DataFlowIssue 43개 해결**
+3. **NullableProblems 13개 해결**
 
-### 사용자 기능
-- [ ] 프로필 관리
-- [ ] 팔로우 시스템
-- [ ] 실시간 알림 (SSE/WebSocket)
-- [ ] 소셜 로그인 (OAuth2)
+### 내일 (Tomorrow)
+1. **messages.properties 205개 미사용 키 제거**
+2. **unused 코드 76개 제거**
 
-### 관리자 기능
-- [ ] 어드민 대시보드
-- [ ] 컨텐츠 관리
-- [ ] 배치 작업 (@Scheduled)
-- [ ] 감사 로그
+### 이번 주 완료 (This Week)
+1. **IntelliJ 인스펙션 0 issues 달성**
+2. **모든 테스트 통과**
+3. **Checkstyle & PMD 위반 해결**
 
----
-
-## 📅 실행 로드맵
-
-### Sprint 1 (Week 1) - 긴급 조치
-| 일정 | 작업 | 담당자 | 상태 |
-|------|------|--------|------|
-| Day 1-2 | 이메일 재시도 메커니즘 | - | ⏳ |
-| Day 3-4 | 핵심 테스트 작성 | - | ⏳ |
-| Day 5 | 보안 패치 | - | ⏳ |
-| Day 6-7 | 트랜잭션 정리 | - | ⏳ |
-
-### Sprint 2 (Week 2-3) - 안정화
-| 일정 | 작업 | 담당자 | 상태 |
-|------|------|--------|------|
-| Week 2 | 캐싱 전략 구현 | - | ⏳ |
-| Week 2 | N+1 쿼리 최적화 | - | ⏳ |
-| Week 3 | 로깅 체계 정리 | - | ⏳ |
-| Week 3 | 입력 검증 완성 | - | ⏳ |
-
-### Sprint 3 (Week 4) - 개선
-| 일정 | 작업 | 담당자 | 상태 |
-|------|------|--------|------|
-| Week 4 | 코드 품질 개선 | - | ⏳ |
-| Week 4 | API 고도화 | - | ⏳ |
-| Week 4 | 신기능 1-2개 | - | ⏳ |
+### 이번 달 목표 (This Month)
+1. 테스트 커버리지 80% 달성
+2. 모든 코드 품질 이슈 해결
+3. 성능 최적화 완료
+4. 보안 강화 완료
 
 ---
 
-## 🏗️ 기술 부채
-
-### 아키텍처
-- [ ] Event Sourcing + CQRS
-- [ ] Aggregate 경계 정의
-- [ ] 헥사고날 아키텍처
-- [ ] Multi-module 구조
-
-### DevOps
-- [ ] GitHub Actions + ArgoCD
-- [ ] K6/Gatling 성능 테스트
-- [ ] SonarQube 품질 관리
-- [ ] Kubernetes 배포
-
-### 운영 준비
-- [ ] Blue-Green 배포
-- [ ] Circuit Breaker
-- [ ] 백업/복구 전략
-- [ ] SLI/SLO/SLA 정의
+## 📚 기술 스택
+- **Backend**: Java 21, Spring Boot 3.5.5
+- **Database**: MySQL 8.0, Redis
+- **Testing**: JUnit 5, Testcontainers, ArchUnit
+- **Quality**: IntelliJ IDEA, Checkstyle, PMD, SpotBugs, JaCoCo
+- **Documentation**: SpringDoc OpenAPI, Swagger UI
+- **Infrastructure**: Docker, Docker Compose
 
 ---
 
-## 📝 문서화 진행 상황
-
-### 진행 중 🚧
-- [ ] @Operation 애노테이션 보강
-- [ ] ProblemDetails 문서화
-- [ ] package-info.java 작성
-- [ ] 도메인 모델 문서화
-
-### 계획 중 📋
-- [ ] OpenAPI YAML 생성
-- [ ] ReDoc 정적 사이트
-- [ ] GitHub Pages 배포
-- [ ] API 버전 관리
+## 🔗 참고 문서
+- [API Documentation](http://localhost:8080/swagger-ui)
+- [IntelliJ Inspections](https://www.jetbrains.com/help/idea/code-inspection.html)
+- [Spring Boot Reference](https://spring.io/projects/spring-boot)
 
 ---
 
-## 🔗 참고 자료
-- [Spring Boot 공식 문서](https://spring.io/projects/spring-boot)
-- [프로젝트 Wiki](./docs/wiki)
-- [API 문서](http://localhost:8080/swagger-ui)
-- [아키텍처 다이어그램](./docs/architecture)
-
----
-
-*마지막 업데이트: 2025-09-04*
-*다음 리뷰: 2025-09-11*
+*마지막 업데이트: 2025-09-06*  
+*다음 리뷰: 2025-09-08 (Phase 0 완료 후)*  
+*담당자: TBD*

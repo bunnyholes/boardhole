@@ -1,0 +1,28 @@
+# ========================================
+# SMTP 프로파일 전용 설정
+# 실제 이메일 발송을 위한 SMTP 설정
+# ========================================
+
+spring:
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          connectiontimeout: 5000
+          timeout: 3000
+          writetimeout: 5000
+    test-connection: false
+
+# SMTP 사용시 이메일 관련 설정
+boardhole:
+  email:
+    # Outbox 패턴 활성화 (실제 발송시 필요)
+    outbox:
+      enabled: true

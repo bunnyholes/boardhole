@@ -1,11 +1,10 @@
 package bunny.boardhole.shared.exception;
 
-import bunny.boardhole.shared.config.log.RequestLoggingFilter;
-import bunny.boardhole.shared.constants.ErrorCode;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.ConstraintViolationException;
-import lombok.RequiredArgsConstructor;
+import java.net.URI;
+import java.time.Instant;
+import java.util.*;
+import java.util.stream.Collectors;
+
 import org.slf4j.MDC;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,10 +20,13 @@ import org.springframework.web.*;
 import org.springframework.web.bind.*;
 import org.springframework.web.bind.annotation.*;
 
-import java.net.URI;
-import java.time.Instant;
-import java.util.*;
-import java.util.stream.Collectors;
+import bunny.boardhole.shared.config.log.RequestLoggingFilter;
+import bunny.boardhole.shared.constants.ErrorCode;
+
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.ConstraintViolationException;
+import lombok.RequiredArgsConstructor;
 
 @RestControllerAdvice
 @org.springframework.core.annotation.Order(org.springframework.core.Ordered.HIGHEST_PRECEDENCE)

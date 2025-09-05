@@ -1,12 +1,12 @@
 package bunny.boardhole.shared.config;
 
+import java.util.Optional;
+
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
-
-import java.util.Optional;
 
 /**
  * JPA Auditing을 위한 AuditorAware 구현체
