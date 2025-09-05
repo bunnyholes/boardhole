@@ -1,17 +1,19 @@
 package bunny.boardhole.shared.security;
 
-import bunny.boardhole.board.infrastructure.BoardRepository;
-import bunny.boardhole.shared.constants.PermissionType;
-import bunny.boardhole.user.domain.User;
-import lombok.RequiredArgsConstructor;
+import java.io.Serializable;
+import java.util.Locale;
+
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.*;
 import org.springframework.stereotype.Component;
 
-import java.io.Serializable;
-import java.util.Locale;
+import bunny.boardhole.board.infrastructure.BoardRepository;
+import bunny.boardhole.shared.constants.PermissionType;
+import bunny.boardhole.user.domain.User;
+
+import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
@@ -84,4 +86,3 @@ public class AppPermissionEvaluator implements PermissionEvaluator {
                 .orElse(false);
     }
 }
-

@@ -1,5 +1,12 @@
 package bunny.boardhole.board.application.command;
 
+import java.util.Optional;
+
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
+
 import bunny.boardhole.board.application.mapper.BoardMapper;
 import bunny.boardhole.board.application.result.BoardResult;
 import bunny.boardhole.board.domain.Board;
@@ -8,16 +15,11 @@ import bunny.boardhole.shared.exception.ResourceNotFoundException;
 import bunny.boardhole.shared.util.MessageUtils;
 import bunny.boardhole.user.domain.User;
 import bunny.boardhole.user.infrastructure.UserRepository;
+
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.validation.annotation.Validated;
-
-import java.util.Optional;
 
 /**
  * 게시글 명령 서비스

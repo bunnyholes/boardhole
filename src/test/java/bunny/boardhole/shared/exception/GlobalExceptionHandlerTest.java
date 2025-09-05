@@ -1,7 +1,11 @@
 package bunny.boardhole.shared.exception;
 
-import bunny.boardhole.shared.config.log.RequestLoggingFilter;
-import jakarta.servlet.http.HttpServletRequest;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
+
+import java.net.URI;
+import java.util.*;
+
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
@@ -16,11 +20,9 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.validation.*;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
-import java.net.URI;
-import java.util.*;
+import bunny.boardhole.shared.config.log.RequestLoggingFilter;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import jakarta.servlet.http.HttpServletRequest;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("GlobalExceptionHandler 테스트")

@@ -1,13 +1,11 @@
 package bunny.boardhole.user.application;
 
-import bunny.boardhole.shared.exception.*;
-import bunny.boardhole.shared.util.*;
-import bunny.boardhole.user.application.command.*;
-import bunny.boardhole.user.application.event.UserCreatedEvent;
-import bunny.boardhole.user.application.mapper.UserMapper;
-import bunny.boardhole.user.application.result.UserResult;
-import bunny.boardhole.user.domain.*;
-import bunny.boardhole.user.infrastructure.*;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+import java.time.*;
+import java.util.*;
+
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
@@ -18,11 +16,14 @@ import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.time.*;
-import java.util.*;
-
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import bunny.boardhole.shared.exception.*;
+import bunny.boardhole.shared.util.*;
+import bunny.boardhole.user.application.command.*;
+import bunny.boardhole.user.application.event.UserCreatedEvent;
+import bunny.boardhole.user.application.mapper.UserMapper;
+import bunny.boardhole.user.application.result.UserResult;
+import bunny.boardhole.user.domain.*;
+import bunny.boardhole.user.infrastructure.*;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -487,4 +488,3 @@ class UserCommandServiceTest {
         }
     }
 }
-

@@ -1,7 +1,8 @@
 package bunny.boardhole.shared.exception;
 
-import lombok.experimental.StandardException;
 import org.springframework.context.MessageSource;
+
+import lombok.experimental.StandardException;
 
 @StandardException
 public class ConflictException extends RuntimeException {

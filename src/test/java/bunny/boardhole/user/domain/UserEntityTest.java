@@ -1,14 +1,15 @@
 package bunny.boardhole.user.domain;
 
-import bunny.boardhole.shared.constants.ValidationConstants;
-import bunny.boardhole.shared.test.EntityTestBase;
-import bunny.boardhole.shared.util.MessageUtils;
-import org.junit.jupiter.api.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.time.*;
 import java.util.Set;
 
-import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.*;
+
+import bunny.boardhole.shared.constants.ValidationConstants;
+import bunny.boardhole.shared.test.EntityTestBase;
+import bunny.boardhole.shared.util.MessageUtils;
 
 @DisplayName("User 엔티티 테스트")
 @TestMethodOrder(MethodOrderer.DisplayName.class)

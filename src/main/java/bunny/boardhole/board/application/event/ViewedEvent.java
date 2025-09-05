@@ -4,4 +4,3 @@ public record ViewedEvent(
         Long boardId
 ) {
 }
-

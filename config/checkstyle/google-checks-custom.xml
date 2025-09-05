@@ -1,0 +1,149 @@
+<?xml version="1.0"?>
+<!DOCTYPE module PUBLIC
+        "-//Checkstyle//DTD Checkstyle Configuration 1.3//EN"
+        "https://checkstyle.org/dtds/configuration_1_3.dtd">
+
+<!--
+    Google Java Style + Custom Rules for board-hole
+    기본 Google 스타일에 프로젝트 특화 규칙 추가
+-->
+<module name="Checker">
+    <property name="charset" value="UTF-8"/>
+    <property name="severity" value="warning"/>
+    <property name="fileExtensions" value="java"/>
+    
+    <!-- Suppressions (필요시) -->
+    <module name="SuppressionFilter">
+        <property name="file" value="${config_loc}/suppressions.xml"
+                  default="checkstyle-suppressions.xml" />
+        <property name="optional" value="true"/>
+    </module>
+
+    <!-- ===== Google Java Style 기본 규칙 ===== -->
+    
+    <!-- 파일 크기 -->
+    <module name="FileLength">
+        <property name="max" value="2000"/>
+    </module>
+    
+    <!-- 라인 길이 -->
+    <module name="LineLength">
+        <property name="max" value="120"/>
+        <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://"/>
+    </module>
+
+    <module name="TreeWalker">
+        <!-- ===== Google 네이밍 규칙 ===== -->
+        <module name="PackageName">
+            <property name="format" value="^[a-z]+(\.[a-z][a-z0-9]*)*$"/>
+        </module>
+        
+        <module name="TypeName">
+            <property name="format" value="^[A-Z][a-zA-Z0-9]*$"/>
+        </module>
+        
+        <module name="MemberName">
+            <property name="format" value="^[a-z][a-z0-9][a-zA-Z0-9]*$"/>
+        </module>
+        
+        <module name="ParameterName">
+            <property name="format" value="^[a-z]([a-z0-9][a-zA-Z0-9]*)?$"/>
+        </module>
+        
+        <module name="LocalVariableName">
+            <property name="format" value="^[a-z]([a-z0-9][a-zA-Z0-9]*)?$"/>
+        </module>
+        
+        <module name="ConstantName"/>
+        
+        <!-- ===== Google 임포트 규칙 ===== -->
+        <module name="AvoidStarImport">
+            <!-- Allow normal star imports to reduce LLM context pressure -->
+            <property name="allowClassImports" value="true"/>
+        </module>
+        <module name="UnusedImports"/>
+        <module name="RedundantImport"/>
+        <module name="IllegalImport"/>
+        
+        <module name="ImportOrder">
+            <property name="groups" value="/^java\./,javax,org,com,bunny"/>
+            <property name="ordered" value="true"/>
+            <property name="separated" value="true"/>
+            <property name="option" value="top"/>
+        </module>
+        
+        <!-- ===== Google 코드 스타일 ===== -->
+        <module name="Indentation">
+            <property name="basicOffset" value="4"/>
+            <property name="braceAdjustment" value="0"/>
+            <property name="caseIndent" value="4"/>
+            <property name="lineWrappingIndentation" value="8"/>
+        </module>
+        
+        <module name="MethodLength">
+            <property name="max" value="40"/>
+        </module>
+        
+        <module name="ParameterNumber">
+            <property name="max" value="7"/>
+        </module>
+        
+        <module name="EmptyBlock">
+            <property name="option" value="TEXT"/>
+        </module>
+        
+        <module name="LeftCurly"/>
+        <module name="RightCurly"/>
+        <module name="NeedBraces"/>
+        
+        <module name="OneStatementPerLine"/>
+        <module name="MultipleVariableDeclarations"/>
+        <module name="ArrayTypeStyle"/>
+        <module name="UpperEll"/>
+        
+        <!-- ===== 프로젝트 특화 규칙 (기존 유지) ===== -->
+        
+        <!-- Lombok 강제 규칙들 -->
+        <module name="RegexpSinglelineJava">
+            <property name="format" value="^\s*(public|protected)\s+\w+\s+get[A-Z]\w*\s*\(\s*\)\s*\{\s*return\s+(this\.)?\w+\s*;\s*\}"/>
+            <property name="ignoreComments" value="true"/>
+            <property name="message" value="[LOMBOK 강제] 단순 getter는 반드시 Lombok @Getter를 사용하세요"/>
+        </module>
+        
+        <module name="RegexpSinglelineJava">
+            <property name="format" value="^\s*(public|protected)\s+void\s+set[A-Z]\w*\s*\([^)]+\)\s*\{\s*this\.\w+\s*=\s*\w+\s*;\s*\}"/>
+            <property name="ignoreComments" value="true"/>
+            <property name="message" value="[LOMBOK 강제] 단순 setter는 반드시 Lombok @Setter를 사용하세요"/>
+        </module>
+        
+        <module name="RegexpSinglelineJava">
+            <property name="format" value="^\s*public\s+String\s+toString\s*\(\s*\)\s*\{"/>
+            <property name="ignoreComments" value="true"/>
+            <property name="message" value="[LOMBOK 강제] toString()은 반드시 Lombok @ToString을 사용하세요"/>
+        </module>
+        
+        <module name="RegexpSinglelineJava">
+            <property name="format" value="^\s*public\s+boolean\s+equals\s*\(\s*Object\s+\w+\s*\)\s*\{"/>
+            <property name="ignoreComments" value="true"/>
+            <property name="message" value="[LOMBOK 강제] equals()는 반드시 Lombok @EqualsAndHashCode를 사용하세요"/>
+        </module>
+        
+        <module name="RegexpSinglelineJava">
+            <property name="format" value="^\s*public\s+int\s+hashCode\s*\(\s*\)\s*\{"/>
+            <property name="ignoreComments" value="true"/>
+            <property name="message" value="[LOMBOK 강제] hashCode()는 반드시 Lombok @EqualsAndHashCode를 사용하세요"/>
+        </module>
+        
+        <!-- ResponseEntity 사용 금지 -->
+        <module name="IllegalImport">
+            <property name="illegalClasses" value="org.springframework.http.ResponseEntity"/>
+        </module>
+        
+        <!-- 매직 넘버 검사 -->
+        <module name="MagicNumber">
+            <property name="ignoreNumbers" value="-1, 0, 1, 2"/>
+            <property name="ignoreHashCodeMethod" value="true"/>
+            <property name="ignoreAnnotation" value="true"/>
+        </module>
+    </module>
+</module>

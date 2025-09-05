@@ -1,5 +1,12 @@
 package bunny.boardhole.auth.application.command;
 
+import org.springframework.security.authentication.*;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.*;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
+
 import bunny.boardhole.auth.application.AuthCommandService;
 import bunny.boardhole.auth.application.mapper.AuthMapper;
 import bunny.boardhole.auth.application.result.AuthResult;
@@ -7,15 +14,10 @@ import bunny.boardhole.shared.exception.UnauthorizedException;
 import bunny.boardhole.shared.security.AppUserPrincipal;
 import bunny.boardhole.shared.util.MessageUtils;
 import bunny.boardhole.user.domain.User;
+
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.authentication.*;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.*;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.validation.annotation.Validated;
 
 /**
  * Session-based authentication provider implementation.

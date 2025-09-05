@@ -1,19 +1,20 @@
 package bunny.boardhole.user.presentation;
 
-import bunny.boardhole.shared.security.AppUserPrincipal;
-import bunny.boardhole.shared.web.ControllerTestBase;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+import java.util.*;
+
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithUserDetails;
 
-import java.util.*;
-
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import bunny.boardhole.shared.security.AppUserPrincipal;
+import bunny.boardhole.shared.web.ControllerTestBase;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.DisplayName.class)

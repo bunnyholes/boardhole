@@ -1,11 +1,12 @@
 package bunny.boardhole.shared.domain;
 
-import jakarta.persistence.*;
-import lombok.Getter;
+import java.time.LocalDateTime;
+
 import org.springframework.data.annotation.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.LocalDateTime;
+import jakarta.persistence.*;
+import lombok.Getter;
 
 @Getter
 @MappedSuperclass

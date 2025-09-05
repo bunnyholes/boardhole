@@ -1,5 +1,15 @@
 package bunny.boardhole.user.presentation;
 
+import org.jspecify.annotations.Nullable;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.*;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.http.*;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+
 import bunny.boardhole.email.presentation.dto.*;
 import bunny.boardhole.shared.constants.ApiPaths;
 import bunny.boardhole.shared.exception.ValidationException;
@@ -10,6 +20,7 @@ import bunny.boardhole.user.application.query.UserQueryService;
 import bunny.boardhole.user.application.result.UserResult;
 import bunny.boardhole.user.presentation.dto.*;
 import bunny.boardhole.user.presentation.mapper.UserWebMapper;
+
 import io.swagger.v3.oas.annotations.*;
 import io.swagger.v3.oas.annotations.media.*;
 import io.swagger.v3.oas.annotations.responses.*;
@@ -17,15 +28,6 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jspecify.annotations.Nullable;
-import org.springdoc.core.annotations.ParameterObject;
-import org.springframework.data.domain.*;
-import org.springframework.data.web.PageableDefault;
-import org.springframework.http.*;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController

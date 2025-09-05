@@ -1,8 +1,8 @@
 package bunny.boardhole.shared.test;
 
-import bunny.boardhole.shared.config.*;
-import bunny.boardhole.shared.util.MessageUtils;
-import bunny.boardhole.user.domain.*;
+import java.time.*;
+import java.util.*;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,8 +13,9 @@ import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.time.*;
-import java.util.*;
+import bunny.boardhole.shared.config.*;
+import bunny.boardhole.shared.util.MessageUtils;
+import bunny.boardhole.user.domain.*;
 
 @DataJpaTest
 @ActiveProfiles("test")

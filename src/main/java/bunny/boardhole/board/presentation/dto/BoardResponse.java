@@ -1,8 +1,8 @@
 package bunny.boardhole.board.presentation.dto;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-
 import java.time.LocalDateTime;
+
+import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(name = "BoardResponse", description = "게시글 응답")
 public record BoardResponse(

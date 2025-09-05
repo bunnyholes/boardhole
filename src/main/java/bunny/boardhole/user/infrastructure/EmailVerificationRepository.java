@@ -1,13 +1,14 @@
 package bunny.boardhole.user.infrastructure;
 
-import bunny.boardhole.user.domain.EmailVerification;
+import java.time.LocalDateTime;
+import java.util.*;
+
 import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.util.*;
+import bunny.boardhole.user.domain.EmailVerification;
 
 @Repository
 public interface EmailVerificationRepository extends JpaRepository<EmailVerification, String> {

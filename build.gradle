@@ -7,6 +7,7 @@ plugins {
     id 'checkstyle'
     id 'jacoco'
     id 'pmd'
+    id 'com.diffplug.spotless' version '6.25.0'
     id 'net.ltgt.errorprone' version '4.3.0'
     id 'org.sonarqube' version '6.3.1.5724'
     id 'com.github.spotbugs' version '6.2.7'
@@ -32,7 +33,7 @@ configurations {
     compileOnly {
         extendsFrom annotationProcessor
     }
-    
+
 }
 
 repositories {
@@ -42,10 +43,10 @@ repositories {
 dependencies {
     // -- SpotBugs Security Plugin --
     spotbugsPlugins 'com.h3xstream.findsecbugs:findsecbugs-plugin:1.14.0'
-    
+
     // -- ErrorProne --
     errorprone 'com.google.errorprone:error_prone_core:2.41.0'
-    
+
     // -- Core Spring Boot Starters --
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
@@ -54,7 +55,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-mail'
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
-    
+
     // -- Session Management (Redis) --
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
     implementation 'org.springframework.session:spring-session-data-redis'
@@ -62,7 +63,7 @@ dependencies {
     // -- API Documentation (SpringDoc) --
     // noinspection VulnerableLibrariesLocal
     implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.12"
-    
+
     // -- Null Safety (JSpecify) --
     implementation "org.jspecify:jspecify:1.0.0"
 
@@ -89,15 +90,15 @@ dependencies {
     testImplementation 'org.springframework.security:spring-security-test'
     testImplementation 'com.h2database:h2'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    
+
     // -- RestAssured for E2E testing --
     testImplementation 'io.rest-assured:rest-assured:5.5.0'
     testImplementation 'io.rest-assured:json-path:5.5.0'
     testImplementation 'io.rest-assured:xml-path:5.5.0'
-    
+
     // -- TestContainers for real SMTP testing --
+    testImplementation 'org.testcontainers:testcontainers'
     testImplementation 'org.testcontainers:junit-jupiter'
-    testImplementation 'com.icegreen:greenmail-junit5:2.1.5'
     
     // -- ArchUnit for architecture testing --
     testImplementation 'com.tngtech.archunit:archunit-junit5:1.4.1'
@@ -114,7 +115,7 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
-    
+
     testLogging {
         events "passed", "skipped", "failed"
         exceptionFormat = "short"
@@ -125,11 +126,20 @@ tasks.named('test') {
 
 rewrite {
     activeRecipe(
-        'org.openrewrite.java.RemoveUnusedImports',
-        'org.openrewrite.java.format.AutoFormat',
-        'org.openrewrite.java.logging.slf4j.ParameterizedLogging'
+            'org.openrewrite.java.RemoveUnusedImports',
+            'org.openrewrite.java.format.AutoFormat',
+            'org.openrewrite.java.logging.slf4j.ParameterizedLogging'
     )
     exportDatatables = true
+}
+
+// Auto-formatting and import ordering
+spotless {
+    java {
+        // Keep star imports; only order and clean unused imports
+        importOrder('java', 'javax', 'org', 'com', 'bunny')
+        removeUnusedImports()
+    }
 }
 
 checkstyle {
@@ -158,16 +168,16 @@ sonarqube {
         property "sonar.java.binaries", "build/classes"
         property "sonar.java.test.binaries", "build/test-results/test"
         property "sonar.exclusions", "**/*Test.java, **/*Tests.java, **/test/**"
-        
+
         // Jacoco 커버리지 리포트 경로
         property "sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/test/jacocoTestReport.xml"
-        
+
         // PMD 리포트 경로
         property "sonar.java.pmd.reportPaths", "build/reports/pmd/main.xml"
-        
+
         // SpotBugs 리포트 경로 (기존 설정 개선)
         property "sonar.java.spotbugs.reportPaths", "build/reports/spotbugs/main.xml"
-        
+
         // Checkstyle 리포트 경로
         property "sonar.java.checkstyle.reportPaths", "build/reports/checkstyle/main.xml"
     }
@@ -178,7 +188,7 @@ task sonarAnalysis {
     description = 'Run SonarCloud analysis with all quality reports'
     dependsOn 'qualityCheck'
     finalizedBy 'sonar'
-    
+
     doLast {
         println """
         ==========================================
@@ -257,17 +267,17 @@ release {
     failOnUnversionedFiles = true
     failOnUpdateNeeded = true
     revertOnFail = true
-    
+
     tagTemplate = 'v${version}'
     versionPropertyFile = 'gradle.properties'
-    
+
     preCommitText = '[Release]'
     preTagCommitMessage = 'Release version'
     newVersionCommitMessage = 'Prepare next version'
     tagCommitMessage = 'Release version'
-    
+
     buildTasks = ['build']
-    
+
     git {
         requireBranch.set('master')
         pushToRemote.set('origin')
@@ -278,21 +288,21 @@ release {
 changelog {
     githubUser = 'bunnyxiyo'
     githubRepository = 'board-hole'
-    
+
     outputFile = file("${projectDir}/CHANGELOG.md")
-    
+
     // Sections configuration
     sections = [
-        [title: '✨ New Features', labels: ['feature', 'enhancement', 'feat']],
-        [title: '🐛 Bug Fixes', labels: ['bug', 'fix', 'bugfix']],
-        [title: '📝 Documentation', labels: ['documentation', 'docs']],
-        [title: '♻️ Refactoring', labels: ['refactor', 'refactoring']],
-        [title: '🔧 Maintenance', labels: ['chore', 'maintenance']],
-        [title: '⚡ Performance', labels: ['performance', 'perf']],
-        [title: '🔒 Security', labels: ['security']],
-        [title: '✅ Tests', labels: ['test', 'tests', 'testing']]
+            [title: '✨ New Features', labels: ['feature', 'enhancement', 'feat']],
+            [title: '🐛 Bug Fixes', labels: ['bug', 'fix', 'bugfix']],
+            [title: '📝 Documentation', labels: ['documentation', 'docs']],
+            [title: '♻️ Refactoring', labels: ['refactor', 'refactoring']],
+            [title: '🔧 Maintenance', labels: ['chore', 'maintenance']],
+            [title: '⚡ Performance', labels: ['performance', 'perf']],
+            [title: '🔒 Security', labels: ['security']],
+            [title: '✅ Tests', labels: ['test', 'tests', 'testing']]
     ]
-    
+
     excludeLabels = ['duplicate', 'wontfix', 'invalid', 'question']
 }
 
@@ -302,7 +312,7 @@ task releaseWithChangelog {
     description = 'Generate changelog and perform release'
     dependsOn 'generateChangelog'
     finalizedBy 'release'
-    
+
     doLast {
         println """
         ======================================
@@ -321,14 +331,14 @@ task releaseWithChangelog {
 task releaseDryRun {
     group = 'release'
     description = 'Dry run of release process (no actual changes)'
-    
+
     doLast {
         println """
         ======================================
         🔍 Release Dry Run
         ======================================
         Current version: ${project.version}
-        Next patch version would be: ${project.version.toString().replace('-SNAPSHOT', '').split('\\.').with { 
+        Next patch version would be: ${project.version.toString().replace('-SNAPSHOT', '').split('\\.').with {
             "${it[0]}.${it[1]}.${(it[2] as Integer) + 1}"
         }}
         Tag would be: v${project.version.toString().replace('-SNAPSHOT', '')}
@@ -344,46 +354,46 @@ task releaseDryRun {
 task buildAlpha {
     group = 'release'
     description = 'Build with alpha version (use -Palpha=1)'
-    
+
     doLast {
         def alphaNumber = project.hasProperty('alpha') ? project.alpha : '1'
         def alphaVersion = "${project.version.toString().replace('-SNAPSHOT', '')}-alpha.${alphaNumber}"
         println "Building Alpha Version: ${alphaVersion}"
     }
-    
+
     dependsOn 'build'
 }
 
 task buildBeta {
     group = 'release'
     description = 'Build with beta version (use -Pbeta=1)'
-    
+
     doLast {
         def betaNumber = project.hasProperty('beta') ? project.beta : '1'
         def betaVersion = "${project.version.toString().replace('-SNAPSHOT', '')}-beta.${betaNumber}"
         println "Building Beta Version: ${betaVersion}"
     }
-    
+
     dependsOn 'build'
 }
 
 task buildRC {
     group = 'release'
     description = 'Build with RC version (use -Prc=1)'
-    
+
     doLast {
         def rcNumber = project.hasProperty('rc') ? project.rc : '1'
         def rcVersion = "${project.version.toString().replace('-SNAPSHOT', '')}-rc.${rcNumber}"
         println "Building Release Candidate: ${rcVersion}"
     }
-    
+
     dependsOn 'build'
 }
 
 task buildWithGitHash {
     group = 'release'
     description = 'Build with git commit hash in version'
-    
+
     doLast {
         def gitHash = 'unknown'
         try {
@@ -396,24 +406,24 @@ task buildWithGitHash {
         } catch (Exception e) {
             // ignore
         }
-        
+
         def hashVersion = "${project.version}-${gitHash}"
         println "Building with Git Hash: ${hashVersion}"
     }
-    
+
     dependsOn 'build'
 }
 
 task buildWithTimestamp {
     group = 'release'
     description = 'Build with timestamp in version'
-    
+
     doLast {
         def timestamp = new Date().format('yyyyMMddHHmmss')
         def timestampVersion = "${project.version}-${timestamp}"
         println "Building with Timestamp: ${timestampVersion}"
     }
-    
+
     dependsOn 'build'
 }
 
@@ -421,7 +431,7 @@ task buildWithTimestamp {
 task showVersion {
     group = 'release'
     description = 'Show current project version'
-    
+
     doLast {
         println """
         ======================================
@@ -454,22 +464,22 @@ jacoco {
 
 jacocoTestReport {
     dependsOn test
-    
+
     reports {
         xml.required = true  // SonarQube 연동용
         html.required = true // 개발자 확인용
         csv.required = false
     }
-    
+
     afterEvaluate {
         classDirectories.setFrom(files(classDirectories.files.collect {
             fileTree(dir: it, exclude: [
-                '**/*Application*',     // Spring Boot main class
-                '**/*Config*',          // Configuration classes
-                '**/*Test*',            // Test classes
-                '**/*Exception*',       // Exception classes
-                '**/dto/**',            // DTO classes
-                '**/entity/**'          // Entity classes (optional)
+                    '**/*Application*',     // Spring Boot main class
+                    '**/*Config*',          // Configuration classes
+                    '**/*Test*',            // Test classes
+                    '**/*Exception*',       // Exception classes
+                    '**/dto/**',            // DTO classes
+                    '**/entity/**'          // Entity classes (optional)
             ])
         }))
     }
@@ -481,14 +491,14 @@ test {
 
 jacocoTestCoverageVerification {
     dependsOn jacocoTestReport
-    
+
     violationRules {
         rule {
             limit {
                 minimum = 0.60  // 현재 수준 (64%) 근처로 설정
             }
         }
-        
+
         rule {
             element = 'CLASS'
             limit {
@@ -497,7 +507,7 @@ jacocoTestCoverageVerification {
                 minimum = 0.40  // 점진적 개선용 낮은 임계값
             }
         }
-        
+
         rule {
             element = 'METHOD'
             limit {
@@ -515,7 +525,7 @@ pmd {
     consoleOutput = true
     ignoreFailures = true  // 점진적 개선을 위해 경고만 출력
     ruleSetFiles = files("${rootDir}/config/pmd/ruleset.xml")
-    
+
     ruleSets = []  // 기본 ruleset 비활성화, 커스텀 룰셋 사용
 }
 
@@ -537,35 +547,35 @@ pmdTest {
 tasks.withType(JavaCompile).configureEach {
     options.errorprone {
         disableWarningsInGeneratedCode = true
-        
+
         // 핵심 품질 검사 - 경고 수준
         warn(
-            'MissingOverride',
-            'DefaultCharset',
-            'StreamResourceLeak', 
-            'ReferenceEquality',
-            'StringSplitter',
-            'UnusedVariable',
-            'UnusedMethod',
-            'MutablePublicArray',
-            'StaticAssignmentInConstructor',
-            'StringCaseLocaleUsage',
-            'EmptyCatch',
-            'JavaTimeDefaultTimeZone'
+                'MissingOverride',
+                'DefaultCharset',
+                'StreamResourceLeak',
+                'ReferenceEquality',
+                'StringSplitter',
+                'UnusedVariable',
+                'UnusedMethod',
+                'MutablePublicArray',
+                'StaticAssignmentInConstructor',
+                'StringCaseLocaleUsage',
+                'EmptyCatch',
+                'JavaTimeDefaultTimeZone'
         )
-        
+
         // Null Safety 강화 - JSpecify 관련 체크
         warn(
-            'DoNotCall'
+                'DoNotCall'
         )
-        
+
         // 심각한 결함 검사 - 오류 수준 (빌드 실패)
         error(
-            'DeadException',
-            'LockNotBeforeTry', 
-            'SynchronizeOnNonFinalField'
+                'DeadException',
+                'LockNotBeforeTry',
+                'SynchronizeOnNonFinalField'
         )
-        
+
         // 모든 경고를 오류로 처리 (엄격한 품질 기준)
         allErrorsAsWarnings = false
         allDisabledChecksAsWarnings = false
@@ -577,7 +587,7 @@ task qualityCheck {
     group = 'verification'
     description = 'Run all quality check tools with strict standards'
     dependsOn 'test', 'pmdMain', 'pmdTest', 'spotbugsMain', 'spotbugsTest', 'jacocoTestCoverageVerification'
-    
+
     doFirst {
         println """
         ========================================
@@ -592,7 +602,7 @@ task qualityCheck {
         ========================================
         """
     }
-    
+
     doLast {
         println """
         ========================================
@@ -616,11 +626,11 @@ task qualityCheck {
 task ensureNullMarked {
     group = 'build setup'
     description = 'Ensure all packages have @NullMarked package-info.java files'
-    
+
     doLast {
         def srcDir = file('src/main/java')
         def packages = [:]
-        
+
         // 모든 .java 파일이 있는 패키지 수집
         fileTree(srcDir) {
             include '**/*.java'
@@ -628,11 +638,11 @@ task ensureNullMarked {
         }.each { javaFile ->
             def packageDir = javaFile.parentFile
             def packageName = packageDir.path
-                .replace(srcDir.path + File.separator, '')
-                .replace(File.separator, '.')
+                    .replace(srcDir.path + File.separator, '')
+                    .replace(File.separator, '.')
             packages[packageDir] = packageName
         }
-        
+
         // package-info.java가 없는 패키지에 자동 생성
         packages.each { packageDir, packageName ->
             def packageInfoFile = new File(packageDir, 'package-info.java')
@@ -658,3 +668,6 @@ compileJava.dependsOn ensureNullMarked
 build {
     dependsOn qualityCheck
 }
+
+// 품질 게이트 통합 설정 적용
+apply from: 'gradle/quality-gates.gradle'

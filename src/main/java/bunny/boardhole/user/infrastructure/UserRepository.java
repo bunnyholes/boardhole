@@ -1,12 +1,13 @@
 package bunny.boardhole.user.infrastructure;
 
-import bunny.boardhole.user.domain.User;
+import java.util.Optional;
+
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.stereotype.Repository;
 import org.springframework.validation.annotation.Validated;
 
-import java.util.Optional;
+import bunny.boardhole.user.domain.User;
 
 /**
  * 사용자 데이터 접근 리포지토리

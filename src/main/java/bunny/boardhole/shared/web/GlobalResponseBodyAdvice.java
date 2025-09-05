@@ -1,7 +1,7 @@
 package bunny.boardhole.shared.web;
 
-import jakarta.servlet.http.*;
-import lombok.extern.slf4j.Slf4j;
+import java.io.IOException;
+
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
 import org.springframework.http.server.*;
@@ -9,7 +9,8 @@ import org.springframework.lang.Nullable;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 
-import java.io.IOException;
+import jakarta.servlet.http.*;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 전역 응답 처리 어드바이스

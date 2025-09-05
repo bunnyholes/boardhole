@@ -1,7 +1,16 @@
 package bunny.boardhole.board.presentation;
 
-import bunny.boardhole.shared.security.AppUserPrincipal;
-import bunny.boardhole.shared.web.ControllerTestBase;
+import static org.hamcrest.Matchers.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+import java.util.UUID;
+import java.util.concurrent.Executor;
+import java.util.function.Function;
+import java.util.stream.Stream;
+
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -14,16 +23,8 @@ import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
-import java.util.UUID;
-import java.util.concurrent.Executor;
-import java.util.function.Function;
-import java.util.stream.Stream;
-
-import static org.hamcrest.Matchers.*;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import bunny.boardhole.shared.security.AppUserPrincipal;
+import bunny.boardhole.shared.web.ControllerTestBase;
 
 @DisplayName("게시판 API 통합 테스트")
 @TestMethodOrder(MethodOrderer.DisplayName.class)

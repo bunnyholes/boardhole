@@ -1,20 +1,23 @@
 package bunny.boardhole.shared.security;
 
-import bunny.boardhole.shared.constants.ApiPaths;
-import bunny.boardhole.user.domain.User;
-import bunny.boardhole.user.infrastructure.UserRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.servlet.*;
-import jakarta.servlet.http.*;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.io.IOException;
+import java.util.Set;
+
 import org.springframework.http.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
-import java.util.Set;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import bunny.boardhole.shared.constants.ApiPaths;
+import bunny.boardhole.user.domain.User;
+import bunny.boardhole.user.infrastructure.UserRepository;
+
+import jakarta.servlet.*;
+import jakarta.servlet.http.*;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 이메일 인증이 필요한 사용자를 체크하는 필터

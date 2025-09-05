@@ -37,6 +37,99 @@
     <!-- Security - 보안 강화 -->
     <rule ref="category/java/security.xml"/>
 
+    <!-- ===== Lombok 사용 완전 강제 규칙 (모든 기존 코드 포함) ===== -->
+    <!-- 우선순위 1: 빌드 실패, 우선순위 2: 경고 -->
+    
+    <!-- 수동 getter/setter 메서드 완전 금지 -->
+    <rule name="UseLombokForAccessors"
+          language="java"
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          message="수동 getter/setter 대신 Lombok @Getter/@Setter를 사용하세요">
+        <description>
+            [LOMBOK 강제] 모든 단순 getter/setter는 반드시 Lombok을 사용해야 합니다.
+            비즈니스 로직이 포함된 메서드만 허용됩니다.
+        </description>
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+//MethodDeclaration[
+    (starts-with(@Name, 'get') or starts-with(@Name, 'set'))
+    and not(../Annotation//Name[@Image='Override'])
+    and (../../../TypeDeclaration[@Kind='CLASS'])
+    and not(../Annotation//Name[@Image='Getter' or @Image='Setter' or @Image='Data'])
+]
+                ]]></value>
+            </property>
+        </properties>
+    </rule>
+
+    <!-- 빈 생성자 금지 -->
+    <rule name="UseLombokForNoArgsConstructor"
+          language="java"
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          message="빈 생성자 대신 Lombok @NoArgsConstructor를 사용하세요">
+        <description>
+            빈 생성자는 Lombok @NoArgsConstructor로 대체되어야 합니다.
+        </description>
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+//ConstructorDeclaration[
+    count(FormalParameters/FormalParameter) = 0
+    and count(BlockStatement) = 0
+    and not(../Annotation//Name[@Image='NoArgsConstructor' or @Image='Data'])
+]
+                ]]></value>
+            </property>
+        </properties>
+    </rule>
+
+    <!-- toString() 수동 구현 금지 -->
+    <rule name="UseLombokForToString"
+          language="java"
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          message="수동 toString() 대신 Lombok @ToString을 사용하세요">
+        <description>
+            toString() 메서드는 Lombok @ToString으로 대체되어야 합니다.
+        </description>
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+//MethodDeclaration[
+    @Name='toString'
+    and ResultType//Type[@TypeImage='String']
+    and count(FormalParameters/FormalParameter) = 0
+    and not(../Annotation//Name[@Image='ToString' or @Image='Data'])
+]
+                ]]></value>
+            </property>
+        </properties>
+    </rule>
+
+    <!-- equals/hashCode 수동 구현 금지 -->
+    <rule name="UseLombokForEqualsAndHashCode"
+          language="java"
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          message="수동 equals/hashCode 대신 Lombok @EqualsAndHashCode를 사용하세요">
+        <description>
+            equals와 hashCode 메서드는 Lombok @EqualsAndHashCode로 대체되어야 합니다.
+        </description>
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+//MethodDeclaration[
+    (@Name='equals' or @Name='hashCode')
+    and not(../Annotation//Name[@Image='EqualsAndHashCode' or @Image='Data'])
+]
+                ]]></value>
+            </property>
+        </properties>
+    </rule>
+
     <!-- 엄격한 복잡도 제한 -->
     <rule ref="category/java/design.xml/CyclomaticComplexity">
         <properties>

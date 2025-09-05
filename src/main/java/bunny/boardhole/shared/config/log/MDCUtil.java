@@ -1,12 +1,13 @@
 package bunny.boardhole.shared.config.log;
 
-import jakarta.servlet.http.HttpServletRequest;
-import lombok.experimental.UtilityClass;
+import java.util.Optional;
+
 import org.slf4j.MDC;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import java.util.Optional;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.experimental.UtilityClass;
 
 @UtilityClass
 class MDCUtil {

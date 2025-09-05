@@ -1,10 +1,11 @@
 package bunny.boardhole.user.domain.validation.optional;
 
+import java.lang.annotation.*;
+
 import bunny.boardhole.shared.constants.ValidationConstants;
+
 import jakarta.validation.*;
 import jakarta.validation.constraints.*;
-
-import java.lang.annotation.*;
 
 /**
  * 이메일 검증 애너테이션 (선택적 필드)

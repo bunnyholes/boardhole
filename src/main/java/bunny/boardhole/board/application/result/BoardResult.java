@@ -14,4 +14,3 @@ public record BoardResult(
         LocalDateTime updatedAt
 ) {
 }
-

@@ -1,15 +1,16 @@
 package bunny.boardhole.architecture;
 
-import com.tngtech.archunit.core.domain.JavaClasses;
-import com.tngtech.archunit.core.importer.ClassFileImporter;
-import com.tngtech.archunit.lang.ArchRule;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.*;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RestController;
 
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.*;
+import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.core.importer.ClassFileImporter;
+import com.tngtech.archunit.lang.ArchRule;
 
 /**
  * 컨트롤러 아키텍처 규칙 테스트

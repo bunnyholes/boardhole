@@ -1,6 +1,7 @@
 package bunny.boardhole.board.application.command;
 
 import bunny.boardhole.board.domain.validation.required.*;
+
 import jakarta.validation.constraints.*;
 
 public record CreateBoardCommand(

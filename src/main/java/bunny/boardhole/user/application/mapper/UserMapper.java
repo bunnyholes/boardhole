@@ -1,14 +1,15 @@
 package bunny.boardhole.user.application.mapper;
 
+import java.time.LocalDateTime;
+
+import org.mapstruct.Mapper;
+
 import bunny.boardhole.email.application.event.*;
 import bunny.boardhole.shared.mapstruct.MapstructConfig;
 import bunny.boardhole.user.application.command.UpdateUserCommand;
 import bunny.boardhole.user.application.event.UserCreatedEvent;
 import bunny.boardhole.user.application.result.UserResult;
 import bunny.boardhole.user.domain.User;
-import org.mapstruct.Mapper;
-
-import java.time.LocalDateTime;
 
 @Mapper(config = MapstructConfig.class)
 public interface UserMapper {

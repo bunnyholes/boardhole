@@ -4,4 +4,3 @@ public record GetBoardQuery(
         Long id
 ) {
 }
-

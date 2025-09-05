@@ -6,3 +6,15 @@ pluginManagement {
 }
 
 rootProject.name = 'board-hole'
+
+// Load local properties if exists
+def localPropertiesFile = file('gradle-local.properties')
+if (localPropertiesFile.exists()) {
+    def localProperties = new Properties()
+    localPropertiesFile.withInputStream { localProperties.load(it) }
+    localProperties.each { key, value ->
+        if (key.toString().startsWith("systemProp.")) {
+            System.setProperty(key.toString().substring(11), value.toString())
+        }
+    }
+}

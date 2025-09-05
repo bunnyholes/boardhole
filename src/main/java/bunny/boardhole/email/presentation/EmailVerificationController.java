@@ -1,14 +1,16 @@
 package bunny.boardhole.email.presentation;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+
 import bunny.boardhole.email.application.EmailVerificationService;
 import bunny.boardhole.shared.constants.ApiPaths;
+
 import io.swagger.v3.oas.annotations.*;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
 
 /**
  * 이메일 인증 관련 컨트롤러
