@@ -1,55 +1,54 @@
 package bunny.boardhole.shared.config.log;
 
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.experimental.UtilityClass;
 import org.slf4j.MDC;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.Optional;
 
-public final class MDCUtil {
+@UtilityClass
+class MDCUtil {
 
-    private MDCUtil() {
-    }
-
-    public static void setUserId() {
+    void setUserId() {
         Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication())
                 .filter(Authentication::isAuthenticated)
                 .map(Authentication::getName)
                 .ifPresent(username -> MDC.put("userId", username));
     }
 
-    public static void setSessionId(HttpServletRequest request) {
+    void setSessionId(HttpServletRequest request) {
         Optional.ofNullable(request.getSession(false))
                 .ifPresent(session -> MDC.put("sessionId", session.getId()));
     }
 
-    public static void setLayer(String layer) {
+    void setLayer(String layer) {
         MDC.put("layer", layer);
     }
 
 
-    public static void clearRequest() {
+    void clearRequest() {
         MDC.remove(LogConstants.TRACE_ID_KEY);
         MDC.remove("userId");
         MDC.remove("sessionId");
         MDC.remove("clientIp");
     }
 
-    public static void clearMethod() {
+    void clearMethod() {
         MDC.remove("layer");
         MDC.remove("operation");
     }
 
-    public static void setTraceId(String traceId) {
+    void setTraceId(String traceId) {
         MDC.put(LogConstants.TRACE_ID_KEY, traceId);
     }
 
-    public static String getClientIp() {
+    String getClientIp() {
         return MDC.get("clientIp");
     }
 
-    public static void setClientIp(String clientIp) {
+    void setClientIp(String clientIp) {
         MDC.put("clientIp", clientIp);
     }
 }

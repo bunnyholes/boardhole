@@ -5,6 +5,7 @@ import bunny.boardhole.shared.util.MessageUtils;
 import bunny.boardhole.user.domain.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.orm.jpa.*;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Import;
@@ -28,6 +29,9 @@ public abstract class EntityTestBase {
 
     @Autowired
     protected MessageSource messageSource;
+
+    @Value("${boardhole.validation.email-verification.expiration-ms}")
+    private long validationExpirationMs;
 
     protected static String createUniqueEmail() {
         return UUID.randomUUID().toString().substring(0, 8) + "@example.com";
@@ -74,6 +78,7 @@ public abstract class EntityTestBase {
     }
 
     protected LocalDateTime getTestExpirationTime() {
-        return LocalDateTime.now(ZoneId.systemDefault()).plusHours(testData.expirationHours());
+        return LocalDateTime.now(ZoneId.systemDefault())
+                .plus(java.time.Duration.ofMillis(validationExpirationMs));
     }
 }

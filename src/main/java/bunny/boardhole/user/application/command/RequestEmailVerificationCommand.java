@@ -4,9 +4,9 @@ import bunny.boardhole.user.domain.validation.required.ValidEmail;
 import jakarta.validation.constraints.*;
 
 public record RequestEmailVerificationCommand(
-        @NotNull(message = "{user.validation.userId.required}") @Positive(message = "{user.validation.userId.positive}") Long userId,
+        @NotNull(message = "{validation.user.userId.required}") @Positive(message = "{validation.user.userId.positive}") Long userId,
 
-        @NotBlank(message = "{user.validation.password.current.required}") String currentPassword,
+        @NotBlank(message = "{validation.user.password.current.required}") String currentPassword,
 
         @ValidEmail String newEmail
 ) {

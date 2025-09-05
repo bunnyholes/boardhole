@@ -8,6 +8,6 @@ import jakarta.validation.constraints.NotBlank;
 public record LoginRequest(
         @ValidUsername @Schema(description = "사용자명", example = "admin", requiredMode = Schema.RequiredMode.REQUIRED) String username,
 
-        @NotBlank(message = "{user.validation.password.required}") @Schema(description = "비밀번호", example = "admin123", requiredMode = Schema.RequiredMode.REQUIRED) String password
+        @NotBlank(message = "{validation.user.password.required}") @Schema(description = "비밀번호", example = "admin123", requiredMode = Schema.RequiredMode.REQUIRED) String password
 ) {
 }

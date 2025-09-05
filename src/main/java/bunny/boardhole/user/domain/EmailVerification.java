@@ -42,11 +42,11 @@ public class EmailVerification extends BaseTimeEntity {
     @Builder
     public EmailVerification(String code, Long userId, String newEmail,
                              LocalDateTime expiresAt, EmailVerificationType verificationType) {
-        Assert.hasText(code, MessageUtils.get("validation.email-verification.code.required"));
-        Assert.notNull(userId, MessageUtils.get("validation.email-verification.user-id.required"));
-        Assert.hasText(newEmail, MessageUtils.get("validation.email-verification.new-email.required"));
-        Assert.notNull(expiresAt, MessageUtils.get("validation.email-verification.expires-at.required"));
-        Assert.notNull(verificationType, MessageUtils.get("validation.email-verification.type.required"));
+        Assert.hasText(code, MessageUtils.get("validation.email.verification.code.required"));
+        Assert.notNull(userId, MessageUtils.get("validation.email.verification.userId.required"));
+        Assert.hasText(newEmail, MessageUtils.get("validation.email.verification.newEmail.required"));
+        Assert.notNull(expiresAt, MessageUtils.get("validation.email.verification.expiresAt.required"));
+        Assert.notNull(verificationType, MessageUtils.get("validation.email.verification.type.required"));
 
         this.code = code;
         this.userId = userId;
@@ -58,8 +58,8 @@ public class EmailVerification extends BaseTimeEntity {
 
 
     public void markAsUsed() {
-        Assert.state(!used, "이미 사용된 검증 코드입니다");
-        Assert.state(LocalDateTime.now(ZoneId.systemDefault()).isBefore(expiresAt), "만료된 검증 코드입니다");
+        Assert.state(!used, MessageUtils.get("validation.email.verification.already-used"));
+        Assert.state(LocalDateTime.now(ZoneId.systemDefault()).isBefore(expiresAt), MessageUtils.get("validation.email.verification.expired"));
         used = true;
     }
 

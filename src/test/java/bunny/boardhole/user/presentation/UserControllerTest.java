@@ -3,6 +3,8 @@ package bunny.boardhole.user.presentation;
 import bunny.boardhole.shared.security.AppUserPrincipal;
 import bunny.boardhole.shared.web.ControllerTestBase;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithUserDetails;
 
@@ -71,11 +73,12 @@ class UserControllerTest extends ControllerTestBase {
         @DisplayName("✅ 일반 사용자 - 본인 조회 성공")
         @WithUserDetails
         void shouldAllowUserToGetOwnInfo() throws Exception {
-            Long userId = findUserIdByUsername(testUserProperties.regularUsername());
+            String username = getRegularUsername();
+            Long userId = findUserIdByUsername(username);
             mockMvc.perform(get("/api/users/" + userId))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.id").value(userId))
-                    .andExpect(jsonPath("$.username").value(testUserProperties.regularUsername()))
+                    .andExpect(jsonPath("$.username").value(username))
                     .andDo(print());
         }
 
@@ -85,6 +88,7 @@ class UserControllerTest extends ControllerTestBase {
         void shouldReturn404WhenUserNotFound() throws Exception {
             mockMvc.perform(get("/api/users/999999"))
                     .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.title").value(bunny.boardhole.shared.util.MessageUtils.get("exception.title.not-found")))
                     .andDo(print());
         }
     }
@@ -98,7 +102,8 @@ class UserControllerTest extends ControllerTestBase {
         @DisplayName("✅ 본인 정보 수정 성공")
         @WithUserDetails
         void shouldAllowUserToUpdateOwnInfo() throws Exception {
-            Long userId = findUserIdByUsername(testUserProperties.regularUsername());
+            String username = getRegularUsername();
+            Long userId = findUserIdByUsername(username);
             String uniqueId = UUID.randomUUID().toString().substring(0, 8);
 
             mockMvc.perform(put("/api/users/" + userId)
@@ -117,6 +122,7 @@ class UserControllerTest extends ControllerTestBase {
                             .param("name", "Hacked Name")
                             .param("email", "hacked@example.com"))
                     .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.title").value(bunny.boardhole.shared.util.MessageUtils.get("exception.title.unauthorized")))
                     .andDo(print());
         }
 
@@ -129,6 +135,7 @@ class UserControllerTest extends ControllerTestBase {
                             .param("name", "New Name")
                             .param("email", "new@example.com"))
                     .andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.title").value(bunny.boardhole.shared.util.MessageUtils.get("exception.title.access-denied")))
                     .andDo(print());
         }
     }
@@ -139,15 +146,16 @@ class UserControllerTest extends ControllerTestBase {
     @TestInstance(TestInstance.Lifecycle.PER_CLASS)
     class DeleteUser {
 
-        @Test
-        @DisplayName("✅ 본인 삭제 성공")
-        void shouldAllowUserToDeleteOwnAccount() throws Exception {
+        @ParameterizedTest(name = "삭제 성공: {0} ({1})")
+        @CsvSource({"Delete Test User, USER"})
+        @DisplayName("✅ 본인 삭제 성공 (파라미터 주입)")
+        void shouldAllowUserToDeleteOwnAccount(String displayName, String rolesCsv) throws Exception {
             String uniqueId = UUID.randomUUID().toString().substring(0, 8);
             String username = "delete_" + uniqueId;
-            Long userId = seedUser(username, "To Delete", "delete_" + uniqueId + "@example.com", "plain", Set.of(bunny.boardhole.user.domain.Role.USER));
+            Long userId = seedUser(username, displayName, username + "@example.com", "plain", Set.of(bunny.boardhole.user.domain.Role.valueOf(rolesCsv)));
             var principal = new AppUserPrincipal(userRepository.findByUsername(username)
                     .orElseThrow(() -> new IllegalStateException("User not found: " + username)));
-            var adminPrincipal = new AppUserPrincipal(userRepository.findByUsername(testUserProperties.adminUsername())
+            var adminPrincipal = new AppUserPrincipal(userRepository.findByUsername(getAdminUsername())
                     .orElseThrow(() -> new IllegalStateException("Admin user not found")));
 
             mockMvc.perform(delete("/api/users/" + userId).with(user(principal)))
@@ -165,6 +173,7 @@ class UserControllerTest extends ControllerTestBase {
         void shouldReturn401WhenNotAuthenticated() throws Exception {
             mockMvc.perform(delete("/api/users/1"))
                     .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.title").value(bunny.boardhole.shared.util.MessageUtils.get("exception.title.unauthorized")))
                     .andDo(print());
         }
 
@@ -174,6 +183,7 @@ class UserControllerTest extends ControllerTestBase {
         void shouldReturn403WhenUserNotFound() throws Exception {
             mockMvc.perform(delete("/api/users/999999"))
                     .andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.title").value(bunny.boardhole.shared.util.MessageUtils.get("exception.title.access-denied")))
                     .andDo(print());
         }
 
@@ -184,9 +194,8 @@ class UserControllerTest extends ControllerTestBase {
             @Test
             @DisplayName("❌ 다른 일반 사용자가 삭제 시도 → 403 Forbidden")
             void shouldDenyOtherUserToDelete() throws Exception {
-                String uniqueId = UUID.randomUUID().toString().substring(0, 8);
-                Long userId = seedUser("del_" + uniqueId, "Delete Test User", "del_" + uniqueId + "@example.com", "plain", Set.of(bunny.boardhole.user.domain.Role.USER));
-                var otherPrincipal = new AppUserPrincipal(userRepository.findByUsername(testUserProperties.regularUsername())
+                Long userId = seedUser("del_" + UUID.randomUUID().toString().substring(0, 8), "Delete Test User", "random@example.com", "plain", Set.of(bunny.boardhole.user.domain.Role.USER));
+                var otherPrincipal = new AppUserPrincipal(userRepository.findByUsername(getRegularUsername())
                         .orElseThrow(() -> new IllegalStateException("Regular user not found")));
 
                 mockMvc.perform(delete("/api/users/" + userId).with(user(otherPrincipal)))
@@ -207,7 +216,7 @@ class UserControllerTest extends ControllerTestBase {
         void shouldGetCurrentUserInfo() throws Exception {
             mockMvc.perform(get("/api/users/me"))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.username").value(testUserProperties.regularUsername()))
+                    .andExpect(jsonPath("$.username").value(getRegularUsername()))
                     .andExpect(jsonPath("$.roles").exists())
                     .andDo(print());
         }

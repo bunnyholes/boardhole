@@ -37,11 +37,11 @@ public class UserCommandService {
     private final VerificationCodeGenerator verificationCodeGenerator;
     private final ApplicationEventPublisher eventPublisher;
 
-    @Value("${boardhole.validation.email-verification.signup-expiration-hours}")
-    private int signupExpirationHours;
+    @Value("${boardhole.validation.email-verification.signup-expiration-ms}")
+    private long signupExpirationMs;
 
-    @Value("${boardhole.validation.email-verification.expiration-minutes}")
-    private int expirationMinutes;
+    @Value("${boardhole.validation.email-verification.expiration-ms}")
+    private long expirationMs;
 
     /**
      * 사용자 생성
@@ -69,7 +69,7 @@ public class UserCommandService {
         // 회원가입 이메일 인증 토큰 생성 및 발송
         String verificationToken = java.util.UUID.randomUUID().toString();
         LocalDateTime expiresAt = LocalDateTime.now(ZoneId.systemDefault())
-                .plusHours(signupExpirationHours);
+                .plus(java.time.Duration.ofMillis(signupExpirationMs));
 
         EmailVerification verification = EmailVerification.builder()
                 .code(verificationToken)
@@ -201,7 +201,7 @@ public class UserCommandService {
                 .userId(cmd.userId())
                 .newEmail(cmd.newEmail())
                 .expiresAt(LocalDateTime.now(ZoneId.systemDefault())
-                        .plusMinutes(expirationMinutes))
+                        .plus(java.time.Duration.ofMillis(expirationMs)))
                 .build();
         emailVerificationRepository.save(verification);
 

@@ -5,9 +5,8 @@ import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.*;
 
 public record UpdateUserCommand(
-        @NotNull(message = "{user.validation.userId.required}") @Positive(message = "{user.validation.userId.positive}") Long userId,
+        @NotNull(message = "{validation.user.userId.required}") @Positive(message = "{validation.user.userId.positive}") Long userId,
 
         @OptionalName @Nullable String name
 ) {
 }
-

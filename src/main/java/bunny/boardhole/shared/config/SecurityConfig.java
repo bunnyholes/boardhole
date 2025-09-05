@@ -85,6 +85,7 @@ public class SecurityConfig {
                         // Error page
                         .requestMatchers("/error").permitAll()
                         // Public API endpoints - explicit permit only
+                        .requestMatchers("/api/v1/auth/register", "/api/v1/auth/login", "/api/v1/auth/public-access").permitAll()
                         .requestMatchers(ApiPaths.AUTH + ApiPaths.AUTH_SIGNUP, ApiPaths.AUTH + ApiPaths.AUTH_LOGIN, ApiPaths.AUTH + ApiPaths.AUTH_PUBLIC_ACCESS).permitAll()
                         .requestMatchers(ApiPaths.AUTH + "/verify-email", ApiPaths.AUTH + "/resend-verification").permitAll()
                         .requestMatchers(HttpMethod.GET, ApiPaths.USERS + "/{id}/email/verify").permitAll()

@@ -7,6 +7,6 @@ import jakarta.validation.constraints.*;
  * CQRS 패턴의 Command 객체로 로그아웃 요청을 나타냅니다.
  */
 public record LogoutCommand(
-        @NotNull(message = "{user.validation.userId.required}") @Positive(message = "{user.validation.userId.positive}") Long userId
+        @NotNull(message = "{validation.user.userId.required}") @Positive(message = "{validation.user.userId.positive}") Long userId
 ) {
 }

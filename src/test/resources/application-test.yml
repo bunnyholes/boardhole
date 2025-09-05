@@ -49,10 +49,26 @@ logging:
     org.springframework.web: DEBUG
 
 boardhole:
-  # 이메일 설정 (테스트용)
   email:
+    verification-expiration-ms: 1
     from-email: noreply@test.boardhole.com
     base-url: http://localhost:8080
+  test-data:
+    user:
+      username: testuser
+      password: Plain123!
+      name: Test User
+      email: test@example.com
+    board:
+      title: Test Board Title
+      content: Test Board Content
+    email-verification:
+      code: TESTCD
+  validation:
+    email-verification:
+      expiration-ms: 1
+      signup-expiration-ms: 1
+  
 
   # CORS 설정 (테스트용)
   cors:
@@ -64,35 +80,4 @@ boardhole:
     allow-credentials: true
     max-age: 3600
 
-  # 검증 설정 (테스트용)
-  validation:
-    email-verification:
-      signup-expiration-hours: 24
-      expiration-minutes: 30
   
-  # 기본 사용자 설정
-  default-users:
-    admin:
-      username: admin
-      password: admin123
-      name: Admin
-      email: admin@boardhole.com
-    regular:
-      username: user
-      password: user123
-      name: User
-      email: user@boardhole.com
-
-  # Entity 테스트용 데이터
-  test-data:
-    user:
-      username: testuser
-      password: password123
-      name: 테스트 사용자
-      email: test@example.com
-    board:
-      title: 테스트 제목
-      content: 테스트 내용
-    email-verification:
-      code: ABC123
-      expiration-hours: 1
