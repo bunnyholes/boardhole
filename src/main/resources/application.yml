@@ -164,7 +164,7 @@ boardhole:
     contact:
       name: BUNNY
       email: bunny@xiyo.dev
-      url: mailto:contact@xiyo.dev
+      url: https://github.com/XIYO/board-hole
     license:
       name: Apache 2.0
       url: https://www.apache.org/licenses/LICENSE-2.0
