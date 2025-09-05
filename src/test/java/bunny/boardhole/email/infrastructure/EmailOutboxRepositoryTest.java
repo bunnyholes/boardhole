@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 import bunny.boardhole.email.domain.*;
 import bunny.boardhole.testsupport.jpa.EntityTestBase;
@@ -109,21 +110,15 @@ class EmailOutboxRepositoryTest extends EntityTestBase {
 
     @Test
     @DisplayName("✅ 특정 날짜 이전의 완료/실패 이메일 삭제")
+    @Transactional
     void deleteOldEmails_Success() {
       // given
       LocalDateTime cutoffDate = LocalDateTime.now(ZoneId.systemDefault()).minusDays(30);
+      LocalDateTime oldDate = cutoffDate.minusDays(1);
 
       // 오래된 이메일 (31일 전)
       EmailOutbox oldSent = createAndSaveOutbox("old1@example.com", EmailStatus.SENT, null);
       EmailOutbox oldFailed = createAndSaveOutbox("old2@example.com", EmailStatus.FAILED, null);
-
-      // 직접 createdAt 설정을 위해 리플렉션 사용 (테스트 목적)
-      org.springframework.test.util.ReflectionTestUtils.setField(
-          oldSent, "createdAt", cutoffDate.minusDays(1));
-      org.springframework.test.util.ReflectionTestUtils.setField(
-          oldFailed, "createdAt", cutoffDate.minusDays(1));
-      repository.save(oldSent);
-      repository.save(oldFailed);
 
       // 최근 이메일
       createAndSaveOutbox("new1@example.com", EmailStatus.SENT, null);
@@ -131,9 +126,18 @@ class EmailOutboxRepositoryTest extends EntityTestBase {
 
       // PENDING 상태는 삭제하지 않음
       EmailOutbox oldPending = createAndSaveOutbox("old3@example.com", EmailStatus.PENDING, null);
-      org.springframework.test.util.ReflectionTestUtils.setField(
-          oldPending, "createdAt", cutoffDate.minusDays(1));
-      repository.save(oldPending);
+
+      // Flush to ensure all entities are persisted
+      entityManager.flush();
+
+      // Update createdAt using native SQL to bypass JPA auditing
+      entityManager.getEntityManager()
+          .createNativeQuery("UPDATE email_outbox SET created_at = :oldDate WHERE id IN (:ids)")
+          .setParameter("oldDate", oldDate)
+          .setParameter("ids", List.of(oldSent.getId(), oldFailed.getId(), oldPending.getId()))
+          .executeUpdate();
+
+      entityManager.clear();
 
       // when
       int deletedCount =
