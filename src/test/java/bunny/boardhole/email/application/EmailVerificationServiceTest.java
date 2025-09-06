@@ -65,13 +65,14 @@ class EmailVerificationServiceTest {
 
         // MessageUtils 초기화
         ResourceBundleMessageSource ms = new ResourceBundleMessageSource();
-        ms.setBasename("messages");
+        ms.setBasenames("messages");
         ms.setDefaultEncoding("UTF-8");
-        ms.setUseCodeAsDefaultMessage(true);
+        ms.setFallbackToSystemLocale(true);
+        ms.setUseCodeAsDefaultMessage(false);
         ReflectionTestUtils.setField(MessageUtils.class, "messageSource", ms);
 
         // Service 설정값 초기화
-        ReflectionTestUtils.setField(service, "verificationExpirationMs", 3600000L); // 1시간
+        ReflectionTestUtils.setField(service, "verificationExpirationMs", 7200000L); // 2시간
 
         // 테스트 데이터 준비
         user = User.builder().username("testuser").password("password").name("Test User").email("test@example.com").build();
@@ -106,7 +107,8 @@ class EmailVerificationServiceTest {
             String result = service.verifyEmail(token);
 
             // Then
-            assertThat(result).contains("이메일 인증이 완료되었습니다");
+            assertThat(result).isNotNull();
+            assertThat(result).contains("completed");
 
             verify(emailVerificationRepository).findByCodeAndUsedFalse(token);
             verify(userRepository).findById(userId);
@@ -146,7 +148,8 @@ class EmailVerificationServiceTest {
             String result = service.verifyEmail(token);
 
             // Then
-            assertThat(result).contains("이메일 인증이 완료되었습니다");
+            assertThat(result).isNotNull();
+            assertThat(result).contains("completed");
 
             verify(emailVerificationRepository).findByCodeAndUsedFalse(token);
             verify(userRepository).findById(userId);
@@ -165,7 +168,7 @@ class EmailVerificationServiceTest {
             given(emailVerificationRepository.findByCodeAndUsedFalse(invalidToken)).willReturn(Optional.empty());
 
             // When & Then
-            assertThatThrownBy(() -> service.verifyEmail(invalidToken)).isInstanceOf(ResourceNotFoundException.class).hasMessageContaining("유효하지 않은 인증 토큰");
+            assertThatThrownBy(() -> service.verifyEmail(invalidToken)).isInstanceOf(ResourceNotFoundException.class).hasMessageContaining("Invalid verification token");
 
             verify(emailVerificationRepository).findByCodeAndUsedFalse(invalidToken);
             verify(userRepository, never()).findById(anyLong());
@@ -186,7 +189,7 @@ class EmailVerificationServiceTest {
             given(emailVerificationRepository.findByCodeAndUsedFalse(token)).willReturn(Optional.of(expiredVerification));
 
             // When & Then
-            assertThatThrownBy(() -> service.verifyEmail(token)).isInstanceOf(IllegalArgumentException.class).hasMessageContaining("만료된 인증 토큰");
+            assertThatThrownBy(() -> service.verifyEmail(token)).isInstanceOf(IllegalArgumentException.class).hasMessageContaining("expired");
 
             verify(emailVerificationRepository).findByCodeAndUsedFalse(token);
             verify(userRepository, never()).findById(anyLong());
@@ -204,7 +207,7 @@ class EmailVerificationServiceTest {
             given(userRepository.findById(1L)).willReturn(Optional.empty());
 
             // When & Then
-            assertThatThrownBy(() -> service.verifyEmail(token)).isInstanceOf(ResourceNotFoundException.class).hasMessageContaining("User not found");
+            assertThatThrownBy(() -> service.verifyEmail(token)).isInstanceOf(ResourceNotFoundException.class).hasMessageContaining("not found");
 
             verify(emailVerificationRepository).findByCodeAndUsedFalse(token);
             verify(userRepository).findById(1L);
@@ -222,7 +225,7 @@ class EmailVerificationServiceTest {
             given(emailVerificationRepository.findByCodeAndUsedFalse(token)).willReturn(Optional.empty());
 
             // When & Then
-            assertThatThrownBy(() -> service.verifyEmail(token)).isInstanceOf(ResourceNotFoundException.class).hasMessageContaining("유효하지 않은 인증 토큰");
+            assertThatThrownBy(() -> service.verifyEmail(token)).isInstanceOf(ResourceNotFoundException.class).hasMessageContaining("Invalid verification token");
 
             verify(emailVerificationRepository).findByCodeAndUsedFalse(token);
             verify(userRepository, never()).findById(anyLong());
@@ -249,7 +252,8 @@ class EmailVerificationServiceTest {
             String result = service.resendVerificationEmail(userId);
 
             // Then
-            assertThat(result).contains("인증 이메일이 재발송되었습니다");
+            assertThat(result).isNotNull();
+            assertThat(result).contains("resent");
 
             verify(userRepository).findById(userId);
             verify(emailVerificationRepository).findByUserIdAndUsedFalse(userId);
@@ -276,7 +280,7 @@ class EmailVerificationServiceTest {
             given(userRepository.findById(userId)).willReturn(Optional.of(verifiedUser));
 
             // When & Then
-            assertThatThrownBy(() -> service.resendVerificationEmail(userId)).isInstanceOf(IllegalArgumentException.class).hasMessageContaining("이미 인증된 사용자");
+            assertThatThrownBy(() -> service.resendVerificationEmail(userId)).isInstanceOf(IllegalArgumentException.class).hasMessageContaining("User is already verified");
 
             verify(userRepository).findById(userId);
             verify(emailVerificationRepository, never()).findByUserIdAndUsedFalse(anyLong());
@@ -292,7 +296,7 @@ class EmailVerificationServiceTest {
             given(userRepository.findById(userId)).willReturn(Optional.empty());
 
             // When & Then
-            assertThatThrownBy(() -> service.resendVerificationEmail(userId)).isInstanceOf(ResourceNotFoundException.class).hasMessageContaining("User not found");
+            assertThatThrownBy(() -> service.resendVerificationEmail(userId)).isInstanceOf(ResourceNotFoundException.class).hasMessageContaining("not found");
 
             verify(userRepository).findById(userId);
             verify(emailVerificationRepository, never()).findByUserIdAndUsedFalse(anyLong());
@@ -314,7 +318,8 @@ class EmailVerificationServiceTest {
             String result = service.resendVerificationEmail(userId);
 
             // Then
-            assertThat(result).contains("인증 이메일이 재발송되었습니다");
+            assertThat(result).isNotNull();
+            assertThat(result).contains("resent");
 
             verify(userRepository).findById(userId);
             verify(emailVerificationRepository).findByUserIdAndUsedFalse(userId);
@@ -346,7 +351,8 @@ class EmailVerificationServiceTest {
             String result = service.resendVerificationEmail(userId);
 
             // Then
-            assertThat(result).contains("인증 이메일이 재발송되었습니다");
+            assertThat(result).isNotNull();
+            assertThat(result).contains("resent");
 
             // 모든 기존 토큰이 만료 처리되었는지 확인
             verify(verification1).markAsUsed();

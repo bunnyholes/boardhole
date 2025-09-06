@@ -119,11 +119,10 @@ public class EmailOutbox extends BaseEntity {
     }
 
     /**
-     * 다음 재시도 시간 계산 (지수 백오프)
+     * 다음 재시도 시간 계산 (고정 10분 간격)
      */
     private LocalDateTime calculateNextRetryTime() {
-        // 지수 백오프: 1분, 2분, 4분, 8분, 16분, 32분, 64분(최대)
-        int delayMinutes = (int) Math.pow(2, Math.min(retryCount - 1, 6));
-        return LocalDateTime.now(ZoneId.systemDefault()).plusMinutes(delayMinutes);
+        // 고정 10분 간격으로 재시도 (총 5회: 최초 1회 + 10분 후, 20분 후, 30분 후, 40분 후)
+        return LocalDateTime.now(ZoneId.systemDefault()).plusMinutes(10);
     }
 }

@@ -186,34 +186,29 @@ class EmailOutboxEntityTest extends EntityTestBase {
         }
 
         @Test
-        @DisplayName("✅ 지수 백오프 재시도 시간 계산")
-        void calculateNextRetryTime_ExponentialBackoff() {
+        @DisplayName("✅ 고정 10분 간격 재시도 시간 계산")
+        void calculateNextRetryTime_FixedInterval() {
             // given
             EmailOutbox outbox = createTestEmailOutbox();
-            final int maxRetries = 10;
+            final int maxRetries = 5;
 
-            // when & then - 지수 백오프 확인 (1분, 2분, 4분, 8분...)
-            LocalDateTime previousRetryTime = LocalDateTime.now(ZoneId.systemDefault());
+            // when & then - 고정 10분 간격 확인
+            LocalDateTime beforeFailure = LocalDateTime.now(ZoneId.systemDefault());
 
-            for (int i = 1; i <= 7; i++) {
+            for (int i = 1; i <= 4; i++) {
                 outbox.recordFailure("Test failure " + i, maxRetries);
                 LocalDateTime nextRetryTime = outbox.getNextRetryAt();
 
-                // 지수 백오프: 2^(i-1) 분
-                int expectedDelayMinutes = (int) Math.pow(2, Math.min(i - 1, 6));
+                assertThat(nextRetryTime).isNotNull();
+                // 10분 후 재시도 확인 (±1분 허용)
+                long actualDelayMinutes = java.time.Duration.between(beforeFailure, nextRetryTime).toMinutes();
+                assertThat(actualDelayMinutes).isBetween(9L, 11L);
 
-                if (i < 7) {
-                    assertThat(nextRetryTime).isNotNull();
-                    // 대략적인 시간 차이 확인 (±10초 허용)
-                    long actualDelayMinutes = (nextRetryTime.toEpochSecond(java.time.ZoneOffset.UTC) - previousRetryTime.toEpochSecond(java.time.ZoneOffset.UTC)) / 60;
-                    assertThat(actualDelayMinutes).isBetween(expectedDelayMinutes - 1L, expectedDelayMinutes + 1L);
-                }
-
-                previousRetryTime = LocalDateTime.now(ZoneId.systemDefault());
+                beforeFailure = LocalDateTime.now(ZoneId.systemDefault());
             }
 
-            // 최대 지연 시간은 64분 (2^6)
-            assertThat(outbox.getRetryCount()).isEqualTo(7);
+            // 최대 4회 재시도로 변경 (총 5회 시도)
+            assertThat(outbox.getRetryCount()).isEqualTo(4);
         }
     }
 
