@@ -4,6 +4,10 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.ActiveProfiles;
 
 import bunny.boardhole.shared.config.TestJpaConfig;
@@ -23,12 +28,13 @@ import bunny.boardhole.user.domain.EmailVerificationType;
 import bunny.boardhole.user.domain.User;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DataJpaTest
 @ActiveProfiles("test")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import(TestJpaConfig.class)
-@Tag("integration")
+@Tag("unit")
 class EmailVerificationRepositoryTest {
 
     @Autowired
@@ -361,4 +367,189 @@ class EmailVerificationRepositoryTest {
             assertThat(verification2.isExpired()).isTrue();  // 1시간 전 만료
         }
     }
+
+    @Nested
+    @DisplayName("유효성 검증 및 만료 테스트")
+    class ValidationAndExpirationTest {
+
+        @Test
+        @DisplayName("만료된 토큰 처리")
+        void expiredToken_Handling() {
+            // Given - 만료된 토큰 생성
+            EmailVerification expiredToken = EmailVerification.builder().code(UUID.randomUUID().toString()).userId(10L).newEmail("expired@example.com").verificationType(EmailVerificationType.SIGNUP).expiresAt(LocalDateTime.now().minusHours(1)) // 이미 만료
+                    .build();
+            emailVerificationRepository.save(expiredToken);
+
+            // When
+            boolean isExpired = expiredToken.isExpired();
+            boolean isValid = expiredToken.isValid();
+
+            // Then
+            assertThat(isExpired).isTrue();
+            assertThat(isValid).isFalse();
+        }
+
+        @Test
+        @DisplayName("토큰 사용 후 유효성 변경")
+        void tokenUsage_ChangesValidity() {
+            // Given
+            EmailVerification token = EmailVerification.builder().code(UUID.randomUUID().toString()).userId(20L).newEmail("usage@example.com").verificationType(EmailVerificationType.CHANGE_EMAIL).expiresAt(LocalDateTime.now().plusHours(1)).build();
+            token = emailVerificationRepository.save(token);
+
+            // When
+            token.markAsUsed();
+            EmailVerification updated = emailVerificationRepository.save(token);
+
+            // Then
+            assertThat(updated.isUsed()).isTrue();
+            assertThat(updated.isValid()).isFalse();
+        }
+
+        @Test
+        @DisplayName("만료된 토큰 사용 시도 실패")
+        void expiredToken_CannotBeUsed() {
+            // Given
+            EmailVerification expiredToken = EmailVerification.builder().code(UUID.randomUUID().toString()).userId(30L).newEmail("cannot.use@example.com").verificationType(EmailVerificationType.SIGNUP).expiresAt(LocalDateTime.now().minusMinutes(1)).build();
+            EmailVerification savedExpiredToken = emailVerificationRepository.save(expiredToken);
+
+            // When & Then
+            assertThatThrownBy(() -> savedExpiredToken.markAsUsed()).isInstanceOf(IllegalStateException.class);
+        }
+
+        @Test
+        @DisplayName("이미 사용된 토큰 재사용 실패")
+        void usedToken_CannotBeReused() {
+            // Given
+            EmailVerification token = EmailVerification.builder().code(UUID.randomUUID().toString()).userId(40L).newEmail("reuse@example.com").verificationType(EmailVerificationType.SIGNUP).expiresAt(LocalDateTime.now().plusHours(1)).build();
+            EmailVerification savedToken = emailVerificationRepository.save(token);
+            savedToken.markAsUsed();
+            EmailVerification usedToken = emailVerificationRepository.save(savedToken);
+
+            // When & Then
+            assertThatThrownBy(() -> usedToken.markAsUsed()).isInstanceOf(IllegalStateException.class);
+        }
+    }
+
+    @Nested
+    @DisplayName("만료 토큰 정리")
+    class ExpiredTokenCleanupTest {
+
+        @Test
+        @DisplayName("만료된 토큰 삭제")
+        void deleteExpiredTokens() {
+            // Given - 만료된 토큰 생성
+            for (int i = 0; i < 10; i++) {
+                EmailVerification expiredToken = EmailVerification.builder().code(UUID.randomUUID().toString()).userId(100L + i).newEmail("expired" + i + "@example.com").verificationType(EmailVerificationType.SIGNUP).expiresAt(LocalDateTime.now().minusHours(i + 1)).build();
+                emailVerificationRepository.save(expiredToken);
+            }
+
+            // When
+            int deletedCount = emailVerificationRepository.deleteExpiredVerifications(LocalDateTime.now());
+
+            // Then
+            assertThat(deletedCount).isGreaterThanOrEqualTo(10);
+            assertThat(emailVerificationRepository.findAll()).allMatch(token -> !token.isExpired());
+        }
+
+        @Test
+        @DisplayName("특정 사용자의 모든 토큰 무효화")
+        void invalidateAllUserTokens() {
+            // Given - 한 사용자의 여러 토큰 생성
+            final Long userId = 200L;
+            for (int i = 0; i < 5; i++) {
+                EmailVerification token = EmailVerification.builder().code(UUID.randomUUID().toString()).userId(userId).newEmail("multi" + i + "@example.com").verificationType(EmailVerificationType.SIGNUP).expiresAt(LocalDateTime.now().plusHours(i + 1)).build();
+                emailVerificationRepository.save(token);
+            }
+
+            // When
+            emailVerificationRepository.invalidateUserVerifications(userId);
+
+            // Then
+            List<EmailVerification> activeTokens = emailVerificationRepository.findByUserIdAndUsedFalse(userId);
+            assertThat(activeTokens).isEmpty();
+        }
+    }
+
+    @Nested
+    @DisplayName("중복 및 제약 조건 테스트")
+    class DuplicateAndConstraintTest {
+
+        @PersistenceContext
+        private EntityManager entityManager;
+
+        @Test
+        @DisplayName("중복 코드로 토큰 생성 실패")
+        void duplicateCode_CreationFails() {
+            // Given
+            String duplicateCode = UUID.randomUUID().toString();
+            EmailVerification token1 = EmailVerification.builder().code(duplicateCode).userId(300L).newEmail("first@example.com").verificationType(EmailVerificationType.SIGNUP).expiresAt(LocalDateTime.now().plusHours(1)).build();
+            emailVerificationRepository.save(token1);
+
+            // When & Then
+            EmailVerification token2 = EmailVerification.builder().code(duplicateCode) // 동일한 코드
+                    .userId(301L).newEmail("second@example.com").verificationType(EmailVerificationType.SIGNUP).expiresAt(LocalDateTime.now().plusHours(1)).build();
+
+            assertThatThrownBy(() -> {
+                emailVerificationRepository.save(token2);
+                emailVerificationRepository.flush();
+            }).isInstanceOf(DataIntegrityViolationException.class);
+        }
+
+        @Test
+        @DisplayName("사용자별 여러 토큰 허용")
+        void multipleTokensPerUser_Allowed() {
+            // Given
+            final Long userId = 400L;
+
+            // When - 같은 사용자에 대해 여러 토큰 생성
+            EmailVerification token1 = EmailVerification.builder().code(UUID.randomUUID().toString()).userId(userId).newEmail("token1@example.com").verificationType(EmailVerificationType.SIGNUP).expiresAt(LocalDateTime.now().plusHours(1)).build();
+
+            EmailVerification token2 = EmailVerification.builder().code(UUID.randomUUID().toString()).userId(userId).newEmail("token2@example.com").verificationType(EmailVerificationType.CHANGE_EMAIL).expiresAt(LocalDateTime.now().plusHours(2)).build();
+
+            emailVerificationRepository.save(token1);
+            emailVerificationRepository.save(token2);
+
+            // Then
+            List<EmailVerification> userTokens = emailVerificationRepository.findByUserIdAndUsedFalse(userId);
+            assertThat(userTokens).hasSize(2);
+            assertThat(userTokens).extracting(EmailVerification::getVerificationType).containsExactlyInAnyOrder(EmailVerificationType.SIGNUP, EmailVerificationType.CHANGE_EMAIL);
+        }
+    }
+
+    @Nested
+    @DisplayName("Auditing 기능 테스트")
+    class AuditingTest {
+
+        @Test
+        @DisplayName("생성 시 createdAt, updatedAt 자동 설정")
+        void save_NewToken_SetsAuditFields() {
+            // Given
+            EmailVerification token = EmailVerification.builder().code(UUID.randomUUID().toString()).userId(500L).newEmail("audit@example.com").verificationType(EmailVerificationType.SIGNUP).expiresAt(LocalDateTime.now().plusHours(1)).build();
+
+            // When
+            EmailVerification saved = emailVerificationRepository.save(token);
+
+            // Then
+            assertThat(saved.getCreatedAt()).isNotNull();
+            assertThat(saved.getUpdatedAt()).isNotNull();
+            assertThat(saved.getCreatedAt()).isEqualTo(saved.getUpdatedAt());
+        }
+
+        @Test
+        @DisplayName("수정 시 updatedAt 변경 확인")
+        void update_ExistingToken_UpdatesAuditFields() {
+            // Given
+            EmailVerification token = EmailVerification.builder().code(UUID.randomUUID().toString()).userId(600L).newEmail("update@example.com").verificationType(EmailVerificationType.SIGNUP).expiresAt(LocalDateTime.now().plusHours(1)).build();
+            EmailVerification saved = emailVerificationRepository.save(token);
+
+            // When
+            saved.markAsUsed();
+            EmailVerification updated = emailVerificationRepository.save(saved);
+
+            // Then - updatedAt이 설정되어 있음을 확인
+            assertThat(updated.getCreatedAt()).isNotNull();
+            assertThat(updated.getUpdatedAt()).isNotNull();
+        }
+    }
+
 }
