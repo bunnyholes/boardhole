@@ -1,11 +1,19 @@
 package bunny.boardhole.board.e2e;
 
-import bunny.boardhole.testsupport.config.*;
-import bunny.boardhole.testsupport.e2e.*;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.Import;
 
-import static org.hamcrest.Matchers.*;
+import bunny.boardhole.testsupport.config.TestEmailConfig;
+import bunny.boardhole.testsupport.config.TestSecurityOverrides;
+import bunny.boardhole.testsupport.e2e.AuthSteps;
+import bunny.boardhole.testsupport.e2e.BoardSteps;
+import bunny.boardhole.testsupport.e2e.E2ETestBase;
+import bunny.boardhole.testsupport.e2e.SessionCookie;
+
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.notNullValue;
 
 @DisplayName("게시판 E2E — 작성/조회/권한/삭제")
 @Tag("e2e")

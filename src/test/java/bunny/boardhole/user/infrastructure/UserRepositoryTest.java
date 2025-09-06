@@ -1,19 +1,28 @@
 package bunny.boardhole.user.infrastructure;
 
-import bunny.boardhole.shared.config.TestJpaConfig;
-import bunny.boardhole.user.domain.User;
-import org.junit.jupiter.api.*;
+import java.util.Optional;
+
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.util.Optional;
+import bunny.boardhole.shared.config.TestJpaConfig;
+import bunny.boardhole.user.domain.User;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DataJpaTest
 @ActiveProfiles("test")
@@ -27,37 +36,21 @@ class UserRepositoryTest {
 
     private User user1;
     private User user2;
-    private User user3;
 
     @BeforeEach
     void setUp() {
         // 테스트 사용자 생성
-        user1 = User.builder()
-                .username("john_doe")
-                .password("password123")
-                .name("John Doe")
-                .email("john@example.com")
-                .build();
+        user1 = User.builder().username("john_doe").password("password123").name("John Doe").email("john@example.com").build();
         // User는 기본적으로 USER 권한을 가짐
         user1 = userRepository.save(user1);
 
-        user2 = User.builder()
-                .username("jane_smith")
-                .password("password456")
-                .name("Jane Smith")
-                .email("jane@example.com")
-                .build();
+        user2 = User.builder().username("jane_smith").password("password456").name("Jane Smith").email("jane@example.com").build();
         user2.grantAdminRole(); // ADMIN 권한 추가
         user2 = userRepository.save(user2);
 
-        user3 = User.builder()
-                .username("bob_johnson")
-                .password("password789")
-                .name("Bob Johnson")
-                .email("bob@example.com")
-                .build();
+        User user3 = User.builder().username("bob_johnson").password("password789").name("Bob Johnson").email("bob@example.com").build();
         // User는 기본적으로 USER 권한을 가짐
-        user3 = userRepository.save(user3);
+        userRepository.save(user3);
     }
 
     @AfterEach
@@ -206,14 +199,11 @@ class UserRepositoryTest {
             Pageable pageable = PageRequest.of(0, 10);
 
             // When
-            Page<User> page = userRepository.findByUsernameContainingIgnoreCaseOrNameContainingIgnoreCaseOrEmailContainingIgnoreCase(
-                    "john", "john", "john", pageable);
+            Page<User> page = userRepository.findByUsernameContainingIgnoreCaseOrNameContainingIgnoreCaseOrEmailContainingIgnoreCase("john", "john", "john", pageable);
 
             // Then
             assertThat(page.getContent()).hasSize(2); // john_doe, bob_johnson
-            assertThat(page.getContent())
-                    .extracting(User::getUsername)
-                    .containsExactlyInAnyOrder("john_doe", "bob_johnson");
+            assertThat(page.getContent()).extracting(User::getUsername).containsExactlyInAnyOrder("john_doe", "bob_johnson");
         }
 
         @Test
@@ -223,12 +213,11 @@ class UserRepositoryTest {
             Pageable pageable = PageRequest.of(0, 10);
 
             // When
-            Page<User> page = userRepository.findByUsernameContainingIgnoreCaseOrNameContainingIgnoreCaseOrEmailContainingIgnoreCase(
-                    "Smith", "Smith", "Smith", pageable);
+            Page<User> page = userRepository.findByUsernameContainingIgnoreCaseOrNameContainingIgnoreCaseOrEmailContainingIgnoreCase("Smith", "Smith", "Smith", pageable);
 
             // Then
             assertThat(page.getContent()).hasSize(1);
-            assertThat(page.getContent().get(0).getName()).isEqualTo("Jane Smith");
+            assertThat(page.getContent().getFirst().getName()).isEqualTo("Jane Smith");
         }
 
         @Test
@@ -238,12 +227,11 @@ class UserRepositoryTest {
             Pageable pageable = PageRequest.of(0, 10);
 
             // When
-            Page<User> page = userRepository.findByUsernameContainingIgnoreCaseOrNameContainingIgnoreCaseOrEmailContainingIgnoreCase(
-                    "bob@", "bob@", "bob@", pageable);
+            Page<User> page = userRepository.findByUsernameContainingIgnoreCaseOrNameContainingIgnoreCaseOrEmailContainingIgnoreCase("bob@", "bob@", "bob@", pageable);
 
             // Then
             assertThat(page.getContent()).hasSize(1);
-            assertThat(page.getContent().get(0).getEmail()).isEqualTo("bob@example.com");
+            assertThat(page.getContent().getFirst().getEmail()).isEqualTo("bob@example.com");
         }
 
         @Test
@@ -253,12 +241,11 @@ class UserRepositoryTest {
             Pageable pageable = PageRequest.of(0, 10);
 
             // When
-            Page<User> page = userRepository.findByUsernameContainingIgnoreCaseOrNameContainingIgnoreCaseOrEmailContainingIgnoreCase(
-                    "JANE", "JANE", "JANE", pageable);
+            Page<User> page = userRepository.findByUsernameContainingIgnoreCaseOrNameContainingIgnoreCaseOrEmailContainingIgnoreCase("JANE", "JANE", "JANE", pageable);
 
             // Then
             assertThat(page.getContent()).hasSize(1);
-            assertThat(page.getContent().get(0).getUsername()).isEqualTo("jane_smith");
+            assertThat(page.getContent().getFirst().getUsername()).isEqualTo("jane_smith");
         }
 
         @Test
@@ -266,20 +253,14 @@ class UserRepositoryTest {
         void searchWithPaging_ReturnsPagedResults() {
             // Given - 더 많은 사용자 추가
             for (int i = 0; i < 5; i++) {
-                User extraUser = User.builder()
-                        .username("user_" + i)
-                        .password("password")
-                        .name("Test User " + i)
-                        .email("user" + i + "@example.com")
-                        .build();
+                User extraUser = User.builder().username("user_" + i).password("password").name("Test User " + i).email("user" + i + "@example.com").build();
                 userRepository.save(extraUser);
             }
 
             Pageable pageable = PageRequest.of(0, 2);
 
             // When
-            Page<User> page = userRepository.findByUsernameContainingIgnoreCaseOrNameContainingIgnoreCaseOrEmailContainingIgnoreCase(
-                    "example", "example", "example", pageable);
+            Page<User> page = userRepository.findByUsernameContainingIgnoreCaseOrNameContainingIgnoreCaseOrEmailContainingIgnoreCase("example", "example", "example", pageable);
 
             // Then
             assertThat(page.getContent()).hasSize(2);
@@ -295,8 +276,7 @@ class UserRepositoryTest {
             Pageable pageable = PageRequest.of(0, 10);
 
             // When
-            Page<User> page = userRepository.findByUsernameContainingIgnoreCaseOrNameContainingIgnoreCaseOrEmailContainingIgnoreCase(
-                    "nonexistent", "nonexistent", "nonexistent", pageable);
+            Page<User> page = userRepository.findByUsernameContainingIgnoreCaseOrNameContainingIgnoreCaseOrEmailContainingIgnoreCase("nonexistent", "nonexistent", "nonexistent", pageable);
 
             // Then
             assertThat(page.getContent()).isEmpty();
@@ -312,12 +292,7 @@ class UserRepositoryTest {
         @DisplayName("사용자 생성")
         void save_NewUser_CreatesSuccessfully() {
             // Given
-            User newUser = User.builder()
-                    .username("new_user")
-                    .password("newpassword")
-                    .name("New User")
-                    .email("new@example.com")
-                    .build();
+            User newUser = User.builder().username("new_user").password("newpassword").name("New User").email("new@example.com").build();
 
             // When
             User saved = userRepository.save(newUser);
@@ -365,12 +340,8 @@ class UserRepositoryTest {
         @DisplayName("중복된 사용자명으로 생성 실패")
         void save_DuplicateUsername_ThrowsException() {
             // Given
-            User duplicateUser = User.builder()
-                    .username("john_doe") // 이미 존재하는 사용자명
-                    .password("password")
-                    .name("Another John")
-                    .email("another@example.com")
-                    .build();
+            User duplicateUser = User.builder().username("john_doe") // 이미 존재하는 사용자명
+                    .password("password").name("Another John").email("another@example.com").build();
 
             // When & Then
             assertThatThrownBy(() -> {
@@ -383,11 +354,7 @@ class UserRepositoryTest {
         @DisplayName("중복된 이메일로 생성 실패")
         void save_DuplicateEmail_ThrowsException() {
             // Given
-            User duplicateUser = User.builder()
-                    .username("another_user")
-                    .password("password")
-                    .name("Another User")
-                    .email("john@example.com") // 이미 존재하는 이메일
+            User duplicateUser = User.builder().username("another_user").password("password").name("Another User").email("john@example.com") // 이미 존재하는 이메일
                     .build();
 
             // When & Then
@@ -409,7 +376,7 @@ class UserRepositoryTest {
             user1.grantAdminRole();
 
             // When
-            User updated = userRepository.save(user1);
+            userRepository.save(user1);
 
             // Then
             Optional<User> found = userRepository.findById(user1.getId());
@@ -424,7 +391,7 @@ class UserRepositoryTest {
             user2.revokeAdminRole();
 
             // When
-            User updated = userRepository.save(user2);
+            userRepository.save(user2);
 
             // Then
             Optional<User> found = userRepository.findById(user2.getId());

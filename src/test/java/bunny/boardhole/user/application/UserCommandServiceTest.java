@@ -1,28 +1,60 @@
 package bunny.boardhole.user.application;
 
-import bunny.boardhole.shared.exception.*;
-import bunny.boardhole.shared.util.*;
-import bunny.boardhole.user.application.command.*;
-import bunny.boardhole.user.application.event.UserCreatedEvent;
-import bunny.boardhole.user.application.mapper.UserMapper;
-import bunny.boardhole.user.application.result.UserResult;
-import bunny.boardhole.user.domain.*;
-import bunny.boardhole.user.infrastructure.*;
-import org.junit.jupiter.api.*;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Optional;
+import java.util.Set;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.*;
-import org.mockito.junit.jupiter.*;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.time.*;
-import java.util.*;
+import bunny.boardhole.shared.exception.DuplicateEmailException;
+import bunny.boardhole.shared.exception.DuplicateUsernameException;
+import bunny.boardhole.shared.exception.ResourceNotFoundException;
+import bunny.boardhole.shared.exception.UnauthorizedException;
+import bunny.boardhole.shared.exception.ValidationException;
+import bunny.boardhole.shared.util.MessageUtils;
+import bunny.boardhole.shared.util.VerificationCodeGenerator;
+import bunny.boardhole.user.application.command.CreateUserCommand;
+import bunny.boardhole.user.application.command.RequestEmailVerificationCommand;
+import bunny.boardhole.user.application.command.UpdateEmailCommand;
+import bunny.boardhole.user.application.command.UpdatePasswordCommand;
+import bunny.boardhole.user.application.command.UpdateUserCommand;
+import bunny.boardhole.user.application.command.UserCommandService;
+import bunny.boardhole.user.application.event.UserCreatedEvent;
+import bunny.boardhole.user.application.mapper.UserMapper;
+import bunny.boardhole.user.application.result.UserResult;
+import bunny.boardhole.user.domain.EmailVerification;
+import bunny.boardhole.user.domain.EmailVerificationType;
+import bunny.boardhole.user.domain.Role;
+import bunny.boardhole.user.domain.User;
+import bunny.boardhole.user.infrastructure.EmailVerificationRepository;
+import bunny.boardhole.user.infrastructure.UserRepository;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -64,13 +96,7 @@ class UserCommandServiceTest {
     }
 
     private static User userWithName(String name) {
-        return User.builder()
-                .username(USERNAME)
-                .password(ENCODED_PASSWORD)
-                .name(name)
-                .email(EMAIL)
-                .roles(Set.of(Role.USER))
-                .build();
+        return User.builder().username(USERNAME).password(ENCODED_PASSWORD).name(name).email(EMAIL).roles(Set.of(Role.USER)).build();
     }
 
     private static UserResult userResult() {
@@ -78,17 +104,13 @@ class UserCommandServiceTest {
     }
 
     private static UserResult userResultWithName(String name) {
-        return new UserResult(USER_ID, USERNAME, name, EMAIL, null, null, null, Set.of(Role.USER));
+        // Suppress null warning: test record with null timestamps for testing purposes
+        @SuppressWarnings("DataFlowIssue") UserResult result = new UserResult(USER_ID, USERNAME, name, EMAIL, null, null, null, Set.of(Role.USER));
+        return result;
     }
 
     private static EmailVerification emailVerification() {
-        return EmailVerification.builder()
-                .code(VERIFICATION_CODE)
-                .userId(USER_ID)
-                .newEmail(NEW_EMAIL)
-                .expiresAt(LocalDateTime.now(ZoneId.systemDefault()).plusMinutes(10))
-                .verificationType(EmailVerificationType.CHANGE_EMAIL)
-                .build();
+        return EmailVerification.builder().code(VERIFICATION_CODE).userId(USER_ID).newEmail(NEW_EMAIL).expiresAt(LocalDateTime.now(ZoneId.systemDefault()).plusMinutes(10)).verificationType(EmailVerificationType.CHANGE_EMAIL).build();
     }
 
     @BeforeEach
@@ -99,14 +121,7 @@ class UserCommandServiceTest {
         ms.setUseCodeAsDefaultMessage(true);
         ReflectionTestUtils.setField(MessageUtils.class, "messageSource", ms);
 
-        userCommandService = new UserCommandService(
-                userRepository,
-                emailVerificationRepository,
-                passwordEncoder,
-                userMapper,
-                verificationCodeGenerator,
-                eventPublisher
-        );
+        userCommandService = new UserCommandService(userRepository, emailVerificationRepository, passwordEncoder, userMapper, verificationCodeGenerator, eventPublisher);
     }
 
     @Nested
@@ -134,8 +149,7 @@ class UserCommandServiceTest {
 
             // 이벤트 생성 메서드 mock 설정
             UserCreatedEvent mockEvent = new UserCreatedEvent(saved, "test-token", java.time.LocalDateTime.now());
-            lenient().when(userMapper.toUserCreatedEvent(any(User.class), anyString(), any(java.time.LocalDateTime.class)))
-                    .thenReturn(mockEvent);
+            lenient().when(userMapper.toUserCreatedEvent(any(User.class), anyString(), any(java.time.LocalDateTime.class))).thenReturn(mockEvent);
 
             // when
             UserResult result = userCommandService.create(cmd);
@@ -164,8 +178,7 @@ class UserCommandServiceTest {
             when(userRepository.existsByUsername(UserCommandServiceTest.USERNAME)).thenReturn(true);
 
             // when & then
-            assertThatThrownBy(() -> userCommandService.create(cmd))
-                    .isInstanceOf(DuplicateUsernameException.class);
+            assertThatThrownBy(() -> userCommandService.create(cmd)).isInstanceOf(DuplicateUsernameException.class);
             verify(userRepository).existsByUsername(UserCommandServiceTest.USERNAME);
         }
 
@@ -179,8 +192,7 @@ class UserCommandServiceTest {
             when(userRepository.existsByEmail(UserCommandServiceTest.EMAIL)).thenReturn(true);
 
             // when & then
-            assertThatThrownBy(() -> userCommandService.create(cmd))
-                    .isInstanceOf(DuplicateEmailException.class);
+            assertThatThrownBy(() -> userCommandService.create(cmd)).isInstanceOf(DuplicateEmailException.class);
             verify(userRepository).existsByUsername(UserCommandServiceTest.USERNAME);
             verify(userRepository).existsByEmail(UserCommandServiceTest.EMAIL);
         }
@@ -224,8 +236,7 @@ class UserCommandServiceTest {
             UpdateUserCommand cmd = new UpdateUserCommand(UserCommandServiceTest.USER_ID, UserCommandServiceTest.NEW_NAME);
 
             // when & then
-            assertThatThrownBy(() -> userCommandService.update(cmd))
-                    .isInstanceOf(ResourceNotFoundException.class);
+            assertThatThrownBy(() -> userCommandService.update(cmd)).isInstanceOf(ResourceNotFoundException.class);
             verify(userRepository).findById(UserCommandServiceTest.USER_ID);
         }
     }
@@ -259,8 +270,7 @@ class UserCommandServiceTest {
             when(userRepository.findById(UserCommandServiceTest.USER_ID)).thenReturn(Optional.empty());
 
             // when & then
-            assertThatThrownBy(() -> userCommandService.delete(UserCommandServiceTest.USER_ID))
-                    .isInstanceOf(ResourceNotFoundException.class);
+            assertThatThrownBy(() -> userCommandService.delete(UserCommandServiceTest.USER_ID)).isInstanceOf(ResourceNotFoundException.class);
             verify(userRepository).findById(UserCommandServiceTest.USER_ID);
         }
     }
@@ -295,8 +305,7 @@ class UserCommandServiceTest {
             when(userRepository.findById(UserCommandServiceTest.USER_ID)).thenReturn(Optional.empty());
 
             // when & then
-            assertThatThrownBy(() -> userCommandService.updateLastLogin(UserCommandServiceTest.USER_ID))
-                    .isInstanceOf(ResourceNotFoundException.class);
+            assertThatThrownBy(() -> userCommandService.updateLastLogin(UserCommandServiceTest.USER_ID)).isInstanceOf(ResourceNotFoundException.class);
             verify(userRepository).findById(UserCommandServiceTest.USER_ID);
         }
     }
@@ -319,8 +328,7 @@ class UserCommandServiceTest {
             UpdatePasswordCommand cmd = new UpdatePasswordCommand(UserCommandServiceTest.USER_ID, UserCommandServiceTest.WRONG_PASSWORD, UserCommandServiceTest.NEW_PASSWORD);
 
             // when & then
-            assertThatThrownBy(() -> userCommandService.updatePassword(cmd))
-                    .isInstanceOf(UnauthorizedException.class);
+            assertThatThrownBy(() -> userCommandService.updatePassword(cmd)).isInstanceOf(UnauthorizedException.class);
             verify(userRepository).findById(UserCommandServiceTest.USER_ID);
             verify(passwordEncoder).matches(UserCommandServiceTest.WRONG_PASSWORD, UserCommandServiceTest.ENCODED_PASSWORD);
         }
@@ -358,8 +366,7 @@ class UserCommandServiceTest {
             UpdatePasswordCommand cmd = new UpdatePasswordCommand(UserCommandServiceTest.USER_ID, UserCommandServiceTest.RAW_PASSWORD, UserCommandServiceTest.NEW_PASSWORD);
 
             // when & then
-            assertThatThrownBy(() -> userCommandService.updatePassword(cmd))
-                    .isInstanceOf(ResourceNotFoundException.class);
+            assertThatThrownBy(() -> userCommandService.updatePassword(cmd)).isInstanceOf(ResourceNotFoundException.class);
             verify(userRepository).findById(UserCommandServiceTest.USER_ID);
         }
     }
@@ -382,8 +389,7 @@ class UserCommandServiceTest {
             RequestEmailVerificationCommand cmd = new RequestEmailVerificationCommand(UserCommandServiceTest.USER_ID, UserCommandServiceTest.WRONG_PASSWORD, UserCommandServiceTest.NEW_EMAIL);
 
             // when & then
-            assertThatThrownBy(() -> userCommandService.requestEmailVerification(cmd))
-                    .isInstanceOf(UnauthorizedException.class);
+            assertThatThrownBy(() -> userCommandService.requestEmailVerification(cmd)).isInstanceOf(UnauthorizedException.class);
             verify(userRepository).findById(UserCommandServiceTest.USER_ID);
             verify(passwordEncoder).matches(UserCommandServiceTest.WRONG_PASSWORD, UserCommandServiceTest.ENCODED_PASSWORD);
         }
@@ -402,8 +408,7 @@ class UserCommandServiceTest {
             RequestEmailVerificationCommand cmd = new RequestEmailVerificationCommand(UserCommandServiceTest.USER_ID, UserCommandServiceTest.RAW_PASSWORD, UserCommandServiceTest.NEW_EMAIL);
 
             // when & then
-            assertThatThrownBy(() -> userCommandService.requestEmailVerification(cmd))
-                    .isInstanceOf(DuplicateEmailException.class);
+            assertThatThrownBy(() -> userCommandService.requestEmailVerification(cmd)).isInstanceOf(DuplicateEmailException.class);
             verify(userRepository).existsByEmail(UserCommandServiceTest.NEW_EMAIL);
         }
 
@@ -416,8 +421,7 @@ class UserCommandServiceTest {
             RequestEmailVerificationCommand cmd = new RequestEmailVerificationCommand(UserCommandServiceTest.USER_ID, UserCommandServiceTest.RAW_PASSWORD, UserCommandServiceTest.NEW_EMAIL);
 
             // when & then
-            assertThatThrownBy(() -> userCommandService.requestEmailVerification(cmd))
-                    .isInstanceOf(ResourceNotFoundException.class);
+            assertThatThrownBy(() -> userCommandService.requestEmailVerification(cmd)).isInstanceOf(ResourceNotFoundException.class);
             verify(userRepository).findById(UserCommandServiceTest.USER_ID);
         }
     }
@@ -436,8 +440,7 @@ class UserCommandServiceTest {
             EmailVerification verification = UserCommandServiceTest.emailVerification();
 
             when(userRepository.findById(UserCommandServiceTest.USER_ID)).thenReturn(Optional.of(user));
-            when(emailVerificationRepository.findValidVerification(eq(UserCommandServiceTest.USER_ID), eq(UserCommandServiceTest.VERIFICATION_CODE), any()))
-                    .thenReturn(Optional.of(verification));
+            when(emailVerificationRepository.findValidVerification(eq(UserCommandServiceTest.USER_ID), eq(UserCommandServiceTest.VERIFICATION_CODE), any())).thenReturn(Optional.of(verification));
             when(userRepository.save(user)).thenReturn(user);
             UserResult expected = UserCommandServiceTest.userResult();
             when(userMapper.toResult(user)).thenReturn(expected);
@@ -462,14 +465,12 @@ class UserCommandServiceTest {
             ReflectionTestUtils.setField(user, "id", UserCommandServiceTest.USER_ID);
 
             when(userRepository.findById(UserCommandServiceTest.USER_ID)).thenReturn(Optional.of(user));
-            when(emailVerificationRepository.findValidVerification(eq(UserCommandServiceTest.USER_ID), eq(UserCommandServiceTest.VERIFICATION_CODE), any()))
-                    .thenReturn(Optional.empty());
+            when(emailVerificationRepository.findValidVerification(eq(UserCommandServiceTest.USER_ID), eq(UserCommandServiceTest.VERIFICATION_CODE), any())).thenReturn(Optional.empty());
 
             UpdateEmailCommand cmd = new UpdateEmailCommand(UserCommandServiceTest.USER_ID, UserCommandServiceTest.VERIFICATION_CODE);
 
             // when & then
-            assertThatThrownBy(() -> userCommandService.updateEmail(cmd))
-                    .isInstanceOf(ValidationException.class);
+            assertThatThrownBy(() -> userCommandService.updateEmail(cmd)).isInstanceOf(ValidationException.class);
         }
 
         @Test
@@ -481,8 +482,7 @@ class UserCommandServiceTest {
             UpdateEmailCommand cmd = new UpdateEmailCommand(UserCommandServiceTest.USER_ID, UserCommandServiceTest.VERIFICATION_CODE);
 
             // when & then
-            assertThatThrownBy(() -> userCommandService.updateEmail(cmd))
-                    .isInstanceOf(ResourceNotFoundException.class);
+            assertThatThrownBy(() -> userCommandService.updateEmail(cmd)).isInstanceOf(ResourceNotFoundException.class);
             verify(userRepository).findById(UserCommandServiceTest.USER_ID);
         }
     }

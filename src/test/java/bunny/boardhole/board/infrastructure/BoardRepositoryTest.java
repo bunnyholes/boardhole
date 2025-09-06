@@ -1,18 +1,28 @@
 package bunny.boardhole.board.infrastructure;
 
-import bunny.boardhole.board.domain.Board;
-import bunny.boardhole.shared.config.TestJpaConfig;
-import bunny.boardhole.user.domain.User;
-import bunny.boardhole.user.infrastructure.UserRepository;
-import org.junit.jupiter.api.*;
+import java.util.List;
+import java.util.Optional;
+
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.util.*;
+import bunny.boardhole.board.domain.Board;
+import bunny.boardhole.shared.config.TestJpaConfig;
+import bunny.boardhole.user.domain.User;
+import bunny.boardhole.user.infrastructure.UserRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -31,42 +41,23 @@ class BoardRepositoryTest {
 
     private User author;
     private Board board1;
-    private Board board2;
-    private Board board3;
 
     @BeforeEach
     void setUp() {
         // 테스트 사용자 생성
-        author = User.builder()
-                .username("testuser")
-                .password("password123")
-                .name("Test User")
-                .email("test@example.com")
-                .build();
+        author = User.builder().username("testuser").password("password123").name("Test User").email("test@example.com").build();
         // User는 기본적으로 USER 권한을 가짐
         author = userRepository.save(author);
 
         // 테스트 게시글 생성
-        board1 = Board.builder()
-                .title("Spring Boot Tutorial")
-                .content("This is a comprehensive guide to Spring Boot")
-                .author(author)
-                .build();
+        board1 = Board.builder().title("Spring Boot Tutorial").content("This is a comprehensive guide to Spring Boot").author(author).build();
         board1 = boardRepository.save(board1);
 
-        board2 = Board.builder()
-                .title("Java Best Practices")
-                .content("Learn about Java coding standards and best practices")
-                .author(author)
-                .build();
-        board2 = boardRepository.save(board2);
+        Board board2 = Board.builder().title("Java Best Practices").content("Learn about Java coding standards and best practices").author(author).build();
+        boardRepository.save(board2);
 
-        board3 = Board.builder()
-                .title("Testing with JUnit")
-                .content("Complete guide to testing Spring applications with JUnit")
-                .author(author)
-                .build();
-        board3 = boardRepository.save(board3);
+        Board board3 = Board.builder().title("Testing with JUnit").content("Complete guide to testing Spring applications with JUnit").author(author).build();
+        boardRepository.save(board3);
     }
 
     @AfterEach
@@ -143,7 +134,7 @@ class BoardRepositoryTest {
             // Then
             List<Board> boards = page.getContent();
             assertThat(boards).hasSize(3);
-            assertThat(boards.get(0).getTitle()).isEqualTo("Java Best Practices");
+            assertThat(boards.getFirst().getTitle()).isEqualTo("Java Best Practices");
             assertThat(boards.get(1).getTitle()).isEqualTo("Spring Boot Tutorial");
             assertThat(boards.get(2).getTitle()).isEqualTo("Testing with JUnit");
         }
@@ -180,9 +171,7 @@ class BoardRepositoryTest {
 
             // Then
             assertThat(page.getContent()).hasSize(2);
-            assertThat(page.getContent())
-                    .extracting(Board::getTitle)
-                    .containsExactlyInAnyOrder("Spring Boot Tutorial", "Testing with JUnit");
+            assertThat(page.getContent()).extracting(Board::getTitle).containsExactlyInAnyOrder("Spring Boot Tutorial", "Testing with JUnit");
         }
 
         @Test
@@ -252,11 +241,7 @@ class BoardRepositoryTest {
         void searchByKeyword_WithPaging_ReturnsPagedResults() {
             // Given - 더 많은 테스트 데이터 추가
             for (int i = 0; i < 5; i++) {
-                Board extraBoard = Board.builder()
-                        .title("Spring Framework Part " + i)
-                        .content("Spring content " + i)
-                        .author(author)
-                        .build();
+                Board extraBoard = Board.builder().title("Spring Framework Part " + i).content("Spring content " + i).author(author).build();
                 boardRepository.save(extraBoard);
             }
 
@@ -308,11 +293,7 @@ class BoardRepositoryTest {
         @DisplayName("게시글 생성")
         void save_NewBoard_CreatesSuccessfully() {
             // Given
-            Board newBoard = Board.builder()
-                    .title("New Post")
-                    .content("New content")
-                    .author(author)
-                    .build();
+            Board newBoard = Board.builder().title("New Post").content("New content").author(author).build();
 
             // When
             Board saved = boardRepository.save(newBoard);

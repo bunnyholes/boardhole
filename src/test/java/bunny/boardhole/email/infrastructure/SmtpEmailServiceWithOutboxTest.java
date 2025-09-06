@@ -1,25 +1,37 @@
 package bunny.boardhole.email.infrastructure;
 
-import bunny.boardhole.email.application.*;
-import bunny.boardhole.email.domain.EmailMessage;
-import bunny.boardhole.testsupport.integration.IntegrationTestBase;
-import jakarta.mail.*;
+import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import jakarta.mail.MessagingException;
+import jakarta.mail.Session;
 import jakarta.mail.internet.MimeMessage;
-import org.junit.jupiter.api.*;
+
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.mail.MailSendException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-import java.util.concurrent.Executor;
-import java.util.concurrent.atomic.AtomicInteger;
+import bunny.boardhole.email.application.EmailOutboxService;
+import bunny.boardhole.email.application.EmailService;
+import bunny.boardhole.email.application.EmailTemplateService;
+import bunny.boardhole.email.domain.EmailMessage;
+import bunny.boardhole.testsupport.integration.IntegrationTestBase;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.argThat;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 @DisplayName("SmtpEmailService Outbox 통합 테스트")
 @Tag("integration")
@@ -41,8 +53,7 @@ class SmtpEmailServiceWithOutboxTest extends IntegrationTestBase {
     @DisplayName("✅ 재시도 실패 시 @Recover에서 Outbox에 저장")
     void whenRetryFails_SaveToOutbox() {
         // given
-        EmailMessage message =
-                EmailMessage.create("test@example.com", "Test Subject", "<p>Test Content</p>");
+        EmailMessage message = EmailMessage.create("test@example.com", "Test Subject", "<p>Test Content</p>");
 
         // when
         assertDoesNotThrow(() -> emailService.sendEmail(message));
@@ -52,34 +63,23 @@ class SmtpEmailServiceWithOutboxTest extends IntegrationTestBase {
         assertThat(attemptCounter.get()).isEqualTo(3);
 
         // @Recover 메서드에서 EmailOutboxService.saveFailedEmail이 호출되어야 함
-        verify(emailOutboxService, times(1))
-                .saveFailedEmail(
-                        argThat(
-                                msg ->
-                                        msg.recipientEmail().equals("test@example.com")
-                                                && msg.subject().equals("Test Subject")
-                                                && msg.content().equals("<p>Test Content</p>")),
-                        any(Exception.class));
+        verify(emailOutboxService, times(1)).saveFailedEmail(argThat(msg -> msg.recipientEmail().equals("test@example.com") && msg.subject().equals("Test Subject") && msg.content().equals("<p>Test Content</p>")), any(Exception.class));
     }
 
     @Test
     @DisplayName("✅ Outbox 저장 중 예외 발생 시에도 에러 처리")
     void whenOutboxSaveFails_HandleGracefully() {
         // given
-        EmailMessage message =
-                EmailMessage.create("test@example.com", "Test Subject", "<p>Test Content</p>");
+        EmailMessage message = EmailMessage.create("test@example.com", "Test Subject", "<p>Test Content</p>");
 
         // Outbox 저장도 실패하도록 설정
-        doThrow(new RuntimeException("Outbox save failed"))
-                .when(emailOutboxService)
-                .saveFailedEmail(any(EmailMessage.class), any(Exception.class));
+        doThrow(new RuntimeException("Outbox save failed")).when(emailOutboxService).saveFailedEmail(any(EmailMessage.class), any(Exception.class));
 
         // when
         assertDoesNotThrow(() -> emailService.sendEmail(message));
 
         // then
-        verify(emailOutboxService, times(1))
-                .saveFailedEmail(any(EmailMessage.class), any(Exception.class));
+        verify(emailOutboxService, times(1)).saveFailedEmail(any(EmailMessage.class), any(Exception.class));
     }
 
     @Test
@@ -90,13 +90,11 @@ class SmtpEmailServiceWithOutboxTest extends IntegrationTestBase {
         // 이 케이스는 실제로는 발생하지 않지만, 로직 검증을 위한 테스트
 
         // when - 정상적인 이메일 발송 시도
-        EmailMessage message =
-                EmailMessage.create("test@example.com", "Test Subject", "<p>Test Content</p>");
+        EmailMessage message = EmailMessage.create("test@example.com", "Test Subject", "<p>Test Content</p>");
         assertDoesNotThrow(() -> emailService.sendEmail(message));
 
         // then - null이 아닌 정상 메시지로 saveFailedEmail 호출됨
-        verify(emailOutboxService, times(1))
-                .saveFailedEmail(argThat(msg -> msg != null), any(Exception.class));
+        verify(emailOutboxService, times(1)).saveFailedEmail(argThat(msg -> msg != null), any(Exception.class));
     }
 
     @TestConfiguration
@@ -117,8 +115,7 @@ class SmtpEmailServiceWithOutboxTest extends IntegrationTestBase {
                 }
 
                 @Override
-                public MimeMessage createMimeMessage(java.io.InputStream contentStream)
-                        throws MailSendException {
+                public MimeMessage createMimeMessage(java.io.InputStream contentStream) throws MailSendException {
                     try {
                         return new MimeMessage(null, contentStream);
                     } catch (MessagingException e) {
@@ -149,14 +146,12 @@ class SmtpEmailServiceWithOutboxTest extends IntegrationTestBase {
                 }
 
                 @Override
-                public void send(
-                        org.springframework.mail.javamail.MimeMessagePreparator mimeMessagePreparator) {
+                public void send(org.springframework.mail.javamail.MimeMessagePreparator mimeMessagePreparator) {
                     throw new UnsupportedOperationException();
                 }
 
                 @Override
-                public void send(
-                        org.springframework.mail.javamail.MimeMessagePreparator... mimeMessagePreparators) {
+                public void send(org.springframework.mail.javamail.MimeMessagePreparator... mimeMessagePreparators) {
                     throw new UnsupportedOperationException();
                 }
             };

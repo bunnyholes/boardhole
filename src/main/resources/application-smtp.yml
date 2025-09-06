@@ -23,6 +23,6 @@ spring:
 # SMTP 사용시 이메일 관련 설정
 boardhole:
   email:
-    # Outbox 패턴 활성화 (실제 발송시 필요)
-    outbox:
-      enabled: true
+  # Outbox 패턴 활성화 (실제 발송시 필요) - 현재 미사용
+  # outbox:
+  #   enabled: true

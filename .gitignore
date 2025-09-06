@@ -19,12 +19,14 @@ bin/
 
 ### IntelliJ IDEA ###
 .idea
+!.idea/codeStyles/
 *.iws
 *.iml
 *.ipr
 out/
 !**/src/main/**/out/
 !**/src/test/**/out/
+xml/
 
 ### NetBeans ###
 /nbproject/private/

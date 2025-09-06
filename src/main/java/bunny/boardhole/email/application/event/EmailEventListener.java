@@ -1,12 +1,15 @@
 package bunny.boardhole.email.application.event;
 
-import bunny.boardhole.email.application.EmailService;
-import bunny.boardhole.user.application.event.UserCreatedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.event.*;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
+
+import bunny.boardhole.email.application.EmailService;
+import bunny.boardhole.user.application.event.UserCreatedEvent;
 
 /**
  * 이메일 관련 이벤트 리스너
@@ -45,11 +48,7 @@ public class EmailEventListener {
     public void handleEmailVerificationRequested(EmailVerificationRequestedEvent event) {
         try {
             log.debug("Sending email change verification to user: {}", event.user().getUsername());
-            emailService.sendEmailChangeVerificationEmail(
-                    event.user(),
-                    event.newEmail(),
-                    event.verificationCode()
-            );
+            emailService.sendEmailChangeVerificationEmail(event.user(), event.newEmail(), event.verificationCode());
             log.info("Email change verification sent successfully to: {}", event.newEmail());
         } catch (Exception e) {
             log.error("Failed to send email change verification to: {}", event.newEmail(), e);
@@ -67,8 +66,7 @@ public class EmailEventListener {
         try {
             log.debug("Sending email change notification to user: {}", event.user().getUsername());
             emailService.sendEmailChangedNotification(event.user(), event.newEmail());
-            log.info("Email change notification sent successfully to both {} and {}",
-                    event.oldEmail(), event.newEmail());
+            log.info("Email change notification sent successfully to both {} and {}", event.oldEmail(), event.newEmail());
         } catch (Exception e) {
             log.error("Failed to send email change notification", e);
             // TODO: 이메일 발송 실패 시 재시도 로직 또는 실패 알림 처리

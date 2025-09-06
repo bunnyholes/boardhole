@@ -1,14 +1,22 @@
 package bunny.boardhole.board.domain;
 
+import java.time.LocalDateTime;
+
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestMethodOrder;
+
 import bunny.boardhole.shared.constants.ValidationConstants;
 import bunny.boardhole.shared.util.MessageUtils;
 import bunny.boardhole.testsupport.jpa.EntityTestBase;
 import bunny.boardhole.user.domain.User;
-import org.junit.jupiter.api.*;
 
-import java.time.LocalDateTime;
-
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DisplayName("Board 엔티티 테스트")
 @TestMethodOrder(MethodOrderer.DisplayName.class)
@@ -31,11 +39,7 @@ class BoardEntityTest extends EntityTestBase {
             String content = testData.boardContent();
 
             // when
-            Board board = Board.builder()
-                    .title(title)
-                    .content(content)
-                    .author(author)
-                    .build();
+            Board board = Board.builder().title(title).content(content).author(author).build();
 
             // then
             assertThat(board.getTitle()).isEqualTo(title);
@@ -60,13 +64,7 @@ class BoardEntityTest extends EntityTestBase {
             String expectedMessage = MessageUtils.get("validation.board.title.required");
 
             // when & then
-            assertThatThrownBy(() -> Board.builder()
-                    .title("")
-                    .content(testData.boardContent())
-                    .author(author)
-                    .build())
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessage(expectedMessage);
+            assertThatThrownBy(() -> Board.builder().title("").content(testData.boardContent()).author(author).build()).isInstanceOf(IllegalArgumentException.class).hasMessage(expectedMessage);
         }
 
         @Test
@@ -77,13 +75,7 @@ class BoardEntityTest extends EntityTestBase {
             String expectedMessage = MessageUtils.get("validation.board.content.required");
 
             // when & then
-            assertThatThrownBy(() -> Board.builder()
-                    .title(testData.boardTitle())
-                    .content("")
-                    .author(author)
-                    .build())
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessage(expectedMessage);
+            assertThatThrownBy(() -> Board.builder().title(testData.boardTitle()).content("").author(author).build()).isInstanceOf(IllegalArgumentException.class).hasMessage(expectedMessage);
         }
 
     }
@@ -102,13 +94,7 @@ class BoardEntityTest extends EntityTestBase {
             String expectedMessage = MessageUtils.get("validation.board.title.too-long", ValidationConstants.BOARD_TITLE_MAX_LENGTH);
 
             // when & then
-            assertThatThrownBy(() -> Board.builder()
-                    .title(longTitle)
-                    .content(testData.boardContent())
-                    .author(author)
-                    .build())
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessage(expectedMessage);
+            assertThatThrownBy(() -> Board.builder().title(longTitle).content(testData.boardContent()).author(author).build()).isInstanceOf(IllegalArgumentException.class).hasMessage(expectedMessage);
         }
 
         @Test
@@ -120,13 +106,7 @@ class BoardEntityTest extends EntityTestBase {
             String expectedMessage = MessageUtils.get("validation.board.content.too-long", ValidationConstants.BOARD_CONTENT_MAX_LENGTH);
 
             // when & then
-            assertThatThrownBy(() -> Board.builder()
-                    .title(testData.boardTitle())
-                    .content(longContent)
-                    .author(author)
-                    .build())
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessage(expectedMessage);
+            assertThatThrownBy(() -> Board.builder().title(testData.boardTitle()).content(longContent).author(author).build()).isInstanceOf(IllegalArgumentException.class).hasMessage(expectedMessage);
         }
     }
 
@@ -140,11 +120,7 @@ class BoardEntityTest extends EntityTestBase {
         void prePersist_SetsTimestampsAndDefaultValues() {
             // given
             User author = createAndPersistUser();
-            Board board = Board.builder()
-                    .title(testData.boardTitle())
-                    .content(testData.boardContent())
-                    .author(author)
-                    .build();
+            Board board = Board.builder().title(testData.boardTitle()).content(testData.boardContent()).author(author).build();
 
             // when
             entityManager.persistAndFlush(board);
@@ -160,11 +136,7 @@ class BoardEntityTest extends EntityTestBase {
         void preUpdate_UpdatesTimestamp() {
             // given
             User author = createAndPersistUser();
-            Board board = Board.builder()
-                    .title(testData.boardTitle())
-                    .content(testData.boardContent())
-                    .author(author)
-                    .build();
+            Board board = Board.builder().title(testData.boardTitle()).content(testData.boardContent()).author(author).build();
             entityManager.persistAndFlush(board);
             LocalDateTime originalUpdatedAt = board.getUpdatedAt();
 
@@ -187,11 +159,7 @@ class BoardEntityTest extends EntityTestBase {
         void changeTitle_WithValidTitle_Success() {
             // given
             User author = createAndPersistUser();
-            Board board = Board.builder()
-                    .title(testData.boardTitle())
-                    .content(testData.boardContent())
-                    .author(author)
-                    .build();
+            Board board = Board.builder().title(testData.boardTitle()).content(testData.boardContent()).author(author).build();
             final String newTitle = "새로운 제목";
 
             // when
@@ -206,17 +174,11 @@ class BoardEntityTest extends EntityTestBase {
         void changeTitle_WithEmptyTitle_ThrowsException() {
             // given
             User author = createAndPersistUser();
-            Board board = Board.builder()
-                    .title(testData.boardTitle())
-                    .content(testData.boardContent())
-                    .author(author)
-                    .build();
+            Board board = Board.builder().title(testData.boardTitle()).content(testData.boardContent()).author(author).build();
             String expectedMessage = MessageUtils.get("validation.board.title.required");
 
             // when & then
-            assertThatThrownBy(() -> board.changeTitle(""))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessage(expectedMessage);
+            assertThatThrownBy(() -> board.changeTitle("")).isInstanceOf(IllegalArgumentException.class).hasMessage(expectedMessage);
         }
 
         @Test
@@ -224,11 +186,7 @@ class BoardEntityTest extends EntityTestBase {
         void changeContent_WithValidContent_Success() {
             // given
             User author = createAndPersistUser();
-            Board board = Board.builder()
-                    .title(testData.boardTitle())
-                    .content(testData.boardContent())
-                    .author(author)
-                    .build();
+            Board board = Board.builder().title(testData.boardTitle()).content(testData.boardContent()).author(author).build();
             final String newContent = "새로운 내용";
 
             // when
@@ -243,17 +201,11 @@ class BoardEntityTest extends EntityTestBase {
         void changeContent_WithEmptyContent_ThrowsException() {
             // given
             User author = createAndPersistUser();
-            Board board = Board.builder()
-                    .title(testData.boardTitle())
-                    .content(testData.boardContent())
-                    .author(author)
-                    .build();
+            Board board = Board.builder().title(testData.boardTitle()).content(testData.boardContent()).author(author).build();
             String expectedMessage = MessageUtils.get("validation.board.content.required");
 
             // when & then
-            assertThatThrownBy(() -> board.changeContent(""))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessage(expectedMessage);
+            assertThatThrownBy(() -> board.changeContent("")).isInstanceOf(IllegalArgumentException.class).hasMessage(expectedMessage);
         }
 
         @Test
@@ -261,11 +213,7 @@ class BoardEntityTest extends EntityTestBase {
         void increaseViewCount_IncrementsCorrectly() {
             // given
             User author = createAndPersistUser();
-            Board board = Board.builder()
-                    .title(testData.boardTitle())
-                    .content(testData.boardContent())
-                    .author(author)
-                    .build();
+            Board board = Board.builder().title(testData.boardTitle()).content(testData.boardContent()).author(author).build();
             entityManager.persistAndFlush(board);
 
             // when
@@ -292,11 +240,7 @@ class BoardEntityTest extends EntityTestBase {
         void saveAndFind_PersistsCorrectly() {
             // given
             User author = createAndPersistUser();
-            Board board = Board.builder()
-                    .title(testData.boardTitle())
-                    .content(testData.boardContent())
-                    .author(author)
-                    .build();
+            Board board = Board.builder().title(testData.boardTitle()).content(testData.boardContent()).author(author).build();
 
             // when
             entityManager.persistAndFlush(board);
@@ -318,11 +262,7 @@ class BoardEntityTest extends EntityTestBase {
         void version_OptimisticLocking_WorksCorrectly() {
             // given
             User author = createAndPersistUser();
-            Board board = Board.builder()
-                    .title(testData.boardTitle())
-                    .content(testData.boardContent())
-                    .author(author)
-                    .build();
+            Board board = Board.builder().title(testData.boardTitle()).content(testData.boardContent()).author(author).build();
             entityManager.persistAndFlush(board);
             Long originalVersion = board.getVersion();
 

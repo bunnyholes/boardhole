@@ -1,12 +1,9 @@
 package bunny.boardhole.testsupport.mvc;
 
-import bunny.boardhole.board.domain.Board;
-import bunny.boardhole.board.infrastructure.BoardRepository;
-import bunny.boardhole.testsupport.config.TestEmailConfig;
-import bunny.boardhole.user.domain.*;
-import bunny.boardhole.user.infrastructure.UserRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.beans.factory.annotation.*;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
@@ -14,13 +11,20 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import bunny.boardhole.board.domain.Board;
+import bunny.boardhole.board.infrastructure.BoardRepository;
+import bunny.boardhole.testsupport.config.TestEmailConfig;
+import bunny.boardhole.user.domain.Role;
+import bunny.boardhole.user.domain.User;
+import bunny.boardhole.user.infrastructure.UserRepository;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Transactional
-@Import({TestEmailConfig.class})
+@Import(TestEmailConfig.class)
 public abstract class MvcTestBase {
 
     @Autowired
@@ -72,33 +76,21 @@ public abstract class MvcTestBase {
     }
 
     protected Long seedBoardOwnedBy(String username, String title, String content) {
-        User owner = userRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalStateException("User not found: " + username));
-        Board board = Board.builder()
-                .title(title)
-                .content(content)
-                .author(owner)
-                .build();
+        User owner = userRepository.findByUsername(username).orElseThrow(() -> new IllegalStateException("User not found: " + username));
+        Board board = Board.builder().title(title).content(content).author(owner).build();
         return boardRepository.save(board).getId();
     }
 
     protected Long seedUser(String username, String name, String email, String rawPassword, java.util.Set<Role> roles) {
         Optional<User> existing = userRepository.findByUsername(username);
-        if (existing.isPresent()) return existing.get().getId();
-        User user = User.builder()
-                .username(username)
-                .password(rawPassword)
-                .name(name)
-                .email(email)
-                .roles(new java.util.HashSet<>(roles))
-                .build();
+        if (existing.isPresent())
+            return existing.get().getId();
+        User user = User.builder().username(username).password(rawPassword).name(name).email(email).roles(new java.util.HashSet<>(roles)).build();
         user.verifyEmail();
         return userRepository.save(user).getId();
     }
 
     protected Long findUserIdByUsername(String username) {
-        return userRepository.findByUsername(username)
-                .map(User::getId)
-                .orElse(null);
+        return userRepository.findByUsername(username).map(User::getId).orElse(null);
     }
 }

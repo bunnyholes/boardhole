@@ -1,19 +1,25 @@
 package bunny.boardhole.email.infrastructure;
 
-import bunny.boardhole.email.application.EmailService;
-import bunny.boardhole.email.domain.EmailMessage;
-import bunny.boardhole.testsupport.integration.IntegrationTestBase;
-import jakarta.mail.*;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import jakarta.mail.MessagingException;
+import jakarta.mail.Session;
 import jakarta.mail.internet.MimeMessage;
-import org.junit.jupiter.api.*;
+
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.mail.MailSendException;
 import org.springframework.mail.javamail.JavaMailSender;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import bunny.boardhole.email.application.EmailService;
+import bunny.boardhole.email.domain.EmailMessage;
+import bunny.boardhole.testsupport.integration.IntegrationTestBase;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Tag("integration")
 @Tag("email")
@@ -61,7 +67,8 @@ class SmtpEmailServiceRetryTest extends IntegrationTestBase {
                 public void send(MimeMessage mimeMessage) throws MailSendException {
                     int attempt = attemptCounter.incrementAndGet();
                     // 처음 3회 실패, 이후 성공
-                    if (attempt <= 3) throw new MailSendException("stub failure #" + attempt);
+                    if (attempt <= 3)
+                        throw new MailSendException("stub failure #" + attempt);
                 }
 
                 @Override
@@ -80,14 +87,12 @@ class SmtpEmailServiceRetryTest extends IntegrationTestBase {
                 }
 
                 @Override
-                public void send(
-                        org.springframework.mail.javamail.MimeMessagePreparator mimeMessagePreparator) {
+                public void send(org.springframework.mail.javamail.MimeMessagePreparator mimeMessagePreparator) {
                     throw new UnsupportedOperationException();
                 }
 
                 @Override
-                public void send(
-                        org.springframework.mail.javamail.MimeMessagePreparator... mimeMessagePreparators) {
+                public void send(org.springframework.mail.javamail.MimeMessagePreparator... mimeMessagePreparators) {
                     throw new UnsupportedOperationException();
                 }
             };

@@ -1,24 +1,26 @@
 package bunny.boardhole.email.infrastructure;
 
-import bunny.boardhole.email.application.*;
-import bunny.boardhole.email.domain.*;
+import java.util.List;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
+import bunny.boardhole.email.application.EmailOutboxService;
+import bunny.boardhole.email.application.EmailService;
+import bunny.boardhole.email.domain.EmailMessage;
+import bunny.boardhole.email.domain.EmailOutbox;
+import bunny.boardhole.email.domain.EmailStatus;
 
 /**
  * 실패한 이메일을 주기적으로 재시도하는 스케줄러
  */
 @Component
-@ConditionalOnProperty(
-        name = "boardhole.email.outbox.enabled",
-        havingValue = "true",
-        matchIfMissing = true)
+@ConditionalOnProperty(name = "boardhole.email.outbox.enabled", havingValue = "true", matchIfMissing = true)
 @RequiredArgsConstructor
 @Slf4j
 public class EmailRetryScheduler {
@@ -36,7 +38,8 @@ public class EmailRetryScheduler {
     public void retryFailedEmails() {
         List<EmailOutbox> pendingEmails = outboxService.findRetriableEmails();
 
-        if (pendingEmails.isEmpty()) return;
+        if (pendingEmails.isEmpty())
+            return;
 
         log.info("Outbox 이메일 재시도 시작: {}개", pendingEmails.size());
 
@@ -67,19 +70,9 @@ public class EmailRetryScheduler {
                 failureCount++;
 
                 if (outbox.getStatus() == EmailStatus.FAILED)
-                    log.error(
-                            "Outbox 이메일 최종 실패 (최대 재시도 횟수 초과): id={}, to={}, retryCount={}",
-                            outbox.getId(),
-                            outbox.getRecipientEmail(),
-                            outbox.getRetryCount());
+                    log.error("Outbox 이메일 최종 실패 (최대 재시도 횟수 초과): id={}, to={}, retryCount={}", outbox.getId(), outbox.getRecipientEmail(), outbox.getRetryCount());
                 else
-                    log.warn(
-                            "Outbox 이메일 발송 실패 (재시도 예정): id={}, to={}, retryCount={}/{}, nextRetry={}",
-                            outbox.getId(),
-                            outbox.getRecipientEmail(),
-                            outbox.getRetryCount(),
-                            maxRetryCount,
-                            outbox.getNextRetryAt());
+                    log.warn("Outbox 이메일 발송 실패 (재시도 예정): id={}, to={}, retryCount={}/{}, nextRetry={}", outbox.getId(), outbox.getRecipientEmail(), outbox.getRetryCount(), maxRetryCount, outbox.getNextRetryAt());
             }
 
         if (successCount > 0 || failureCount > 0)
@@ -93,7 +86,8 @@ public class EmailRetryScheduler {
     public void cleanupOldEmails() {
         try {
             int deleted = outboxService.cleanupOldEmails();
-            if (deleted > 0) log.info("오래된 Outbox 이메일 정리 완료: {}개 삭제", deleted);
+            if (deleted > 0)
+                log.info("오래된 Outbox 이메일 정리 완료: {}개 삭제", deleted);
         } catch (Exception e) {
             log.error("오래된 Outbox 이메일 정리 실패", e);
         }
@@ -107,13 +101,7 @@ public class EmailRetryScheduler {
         try {
             var stats = outboxService.getStatistics();
             if (stats.total() > 0)
-                log.info(
-                        "EmailOutbox 통계: 대기={}, 처리중={}, 완료={}, 실패={}, 전체={}",
-                        stats.pending(),
-                        stats.processing(),
-                        stats.sent(),
-                        stats.failed(),
-                        stats.total());
+                log.info("EmailOutbox 통계: 대기={}, 처리중={}, 완료={}, 실패={}, 전체={}", stats.pending(), stats.processing(), stats.sent(), stats.failed(), stats.total());
         } catch (Exception e) {
             log.error("Outbox 통계 조회 실패", e);
         }

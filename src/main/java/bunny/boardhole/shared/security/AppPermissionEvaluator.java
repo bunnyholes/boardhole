@@ -1,17 +1,20 @@
 package bunny.boardhole.shared.security;
 
+import java.io.Serializable;
+import java.util.Locale;
+
+import lombok.RequiredArgsConstructor;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.lang.Nullable;
+import org.springframework.security.access.PermissionEvaluator;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.stereotype.Component;
+
 import bunny.boardhole.board.infrastructure.BoardRepository;
 import bunny.boardhole.shared.constants.PermissionType;
 import bunny.boardhole.user.domain.User;
-import lombok.RequiredArgsConstructor;
-import org.springframework.lang.Nullable;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.access.PermissionEvaluator;
-import org.springframework.security.core.*;
-import org.springframework.stereotype.Component;
-
-import java.io.Serializable;
-import java.util.Locale;
 
 @Component
 @RequiredArgsConstructor
@@ -23,10 +26,9 @@ public class AppPermissionEvaluator implements PermissionEvaluator {
     private String rolePrefix;
 
     private static boolean hasRole(Authentication auth, String role) {
-        if (!auth.isAuthenticated()) return false;
-        return auth.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .anyMatch(role::equals);
+        if (!auth.isAuthenticated())
+            return false;
+        return auth.getAuthorities().stream().map(GrantedAuthority::getAuthority).anyMatch(role::equals);
     }
 
     private static boolean isSameUser(Authentication auth, Long userId) {
@@ -36,7 +38,8 @@ public class AppPermissionEvaluator implements PermissionEvaluator {
 
     private static @Nullable Long extractUserId(Authentication auth) {
         Object principal = auth.getPrincipal();
-        if (principal instanceof AppUserPrincipal(User user)) return user.getId();
+        if (principal instanceof AppUserPrincipal(User user))
+            return user.getId();
         return null;
     }
 
@@ -48,14 +51,17 @@ public class AppPermissionEvaluator implements PermissionEvaluator {
 
     @Override
     public boolean hasPermission(Authentication auth, Serializable targetId, String targetType, Object permission) {
-        if (!auth.isAuthenticated()) return false;
+        if (!auth.isAuthenticated())
+            return false;
         String type = targetType.toUpperCase(Locale.ROOT);
         String perm = permission.toString().toUpperCase(Locale.ROOT);
 
         // Admin shortcut
-        if (hasRole(auth, rolePrefix + "ADMIN")) return true;
+        if (hasRole(auth, rolePrefix + "ADMIN"))
+            return true;
 
-        if (!(targetId instanceof Long id)) return false;
+        if (!(targetId instanceof Long id))
+            return false;
 
         return switch (type) {
             case PermissionType.TARGET_BOARD -> switch (perm) {
@@ -79,8 +85,6 @@ public class AppPermissionEvaluator implements PermissionEvaluator {
 
         // N+1 문제 해결: 작성자 ID만 조회하는 경량 쿼리 사용
         // 전체 Board 엔티티를 로드하지 않고 필요한 정보만 조회하여 성능 최적화
-        return boardRepository.findAuthorIdById(boardId)
-                .map(ownerId -> isSameUser(auth, ownerId))
-                .orElse(false);
+        return boardRepository.findAuthorIdById(boardId).map(ownerId -> isSameUser(auth, ownerId)).orElse(false);
     }
 }

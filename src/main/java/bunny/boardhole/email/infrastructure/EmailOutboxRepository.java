@@ -1,12 +1,16 @@
 package bunny.boardhole.email.infrastructure;
 
-import bunny.boardhole.email.domain.*;
-import org.springframework.data.jpa.repository.*;
+import java.time.LocalDateTime;
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
-import java.util.List;
+import bunny.boardhole.email.domain.EmailOutbox;
+import bunny.boardhole.email.domain.EmailStatus;
 
 /**
  * EmailOutbox JPA Repository
@@ -21,8 +25,7 @@ public interface EmailOutboxRepository extends JpaRepository<EmailOutbox, Long> 
      * @param now    현재 시간
      * @return 재시도 가능한 이메일 목록
      */
-    List<EmailOutbox> findByStatusAndNextRetryAtBeforeOrNextRetryAtIsNull(
-            EmailStatus status, LocalDateTime now);
+    List<EmailOutbox> findByStatusAndNextRetryAtBeforeOrNextRetryAtIsNull(EmailStatus status, LocalDateTime now);
 
     /**
      * 특정 상태의 이메일 개수 조회
@@ -41,8 +44,7 @@ public interface EmailOutboxRepository extends JpaRepository<EmailOutbox, Long> 
      */
     @Modifying
     @Query("DELETE FROM EmailOutbox e WHERE e.status IN :statuses AND e.createdAt < :before")
-    int deleteOldEmails(
-            @Param("statuses") List<EmailStatus> statuses, @Param("before") LocalDateTime before);
+    int deleteOldEmails(@Param("statuses") List<EmailStatus> statuses, @Param("before") LocalDateTime before);
 
     /**
      * 특정 수신자의 대기 중인 이메일 존재 여부 확인

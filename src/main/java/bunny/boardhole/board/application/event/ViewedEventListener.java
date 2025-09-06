@@ -1,12 +1,15 @@
 package bunny.boardhole.board.application.event;
 
-import bunny.boardhole.board.application.command.*;
-import bunny.boardhole.board.application.mapper.BoardCommandMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+
+import bunny.boardhole.board.application.command.BoardCommandService;
+import bunny.boardhole.board.application.command.IncrementViewCountCommand;
+import bunny.boardhole.board.application.mapper.BoardCommandMapper;
 
 /**
  * 게시글 조회 이벤트 처리기

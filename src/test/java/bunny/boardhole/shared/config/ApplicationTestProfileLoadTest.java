@@ -1,11 +1,16 @@
 package bunny.boardhole.shared.config;
 
-import bunny.boardhole.testsupport.integration.IntegrationTestBase;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
-import static org.junit.jupiter.api.Assertions.*;
+import bunny.boardhole.testsupport.integration.IntegrationTestBase;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Tag("integration")
 class ApplicationTestProfileLoadTest extends IntegrationTestBase {

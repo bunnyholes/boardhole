@@ -1,12 +1,16 @@
 package bunny.boardhole.shared.security;
 
+import lombok.RequiredArgsConstructor;
+
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
+
 import bunny.boardhole.shared.util.MessageUtils;
 import bunny.boardhole.user.domain.User;
 import bunny.boardhole.user.infrastructure.UserRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.userdetails.*;
-import org.springframework.stereotype.Service;
-import org.springframework.validation.annotation.Validated;
 
 /**
  * 사용자 인증 세부 정보 서비스
@@ -20,8 +24,7 @@ public class AppUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException(MessageUtils.get("error.user.not-found.username", username)));
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException(MessageUtils.get("error.user.not-found.username", username)));
         return new AppUserPrincipal(user);
     }
 }

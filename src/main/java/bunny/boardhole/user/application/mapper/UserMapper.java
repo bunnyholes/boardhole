@@ -1,16 +1,19 @@
 package bunny.boardhole.user.application.mapper;
 
-import bunny.boardhole.email.application.event.*;
+import java.time.LocalDateTime;
+
+import org.mapstruct.Mapper;
+
+import bunny.boardhole.email.application.event.EmailChangedEvent;
+import bunny.boardhole.email.application.event.EmailVerificationRequestedEvent;
 import bunny.boardhole.shared.mapstruct.MapstructConfig;
 import bunny.boardhole.user.application.command.UpdateUserCommand;
 import bunny.boardhole.user.application.event.UserCreatedEvent;
 import bunny.boardhole.user.application.result.UserResult;
 import bunny.boardhole.user.domain.User;
-import org.mapstruct.Mapper;
-
-import java.time.LocalDateTime;
 
 @Mapper(config = MapstructConfig.class)
+@SuppressWarnings("NullableProblems")
 public interface UserMapper {
     UserResult toResult(User user);
 
@@ -21,7 +24,8 @@ public interface UserMapper {
      * @param user    업데이트할 사용자 엔티티
      */
     default void updateUserFromCommand(UpdateUserCommand command, User user) {
-        if (command.name() != null) user.changeName(command.name());
+        if (command.name() != null)
+            user.changeName(command.name());
         // 향후 다른 필드 업데이트가 필요할 때 여기에 추가
     }
 
@@ -44,8 +48,7 @@ public interface UserMapper {
      * @param expiresAt        인증 코드 만료 시간
      * @return EmailVerificationRequestedEvent
      */
-    EmailVerificationRequestedEvent toEmailVerificationRequestedEvent(
-            User user, String newEmail, String verificationCode, LocalDateTime expiresAt);
+    EmailVerificationRequestedEvent toEmailVerificationRequestedEvent(User user, String newEmail, String verificationCode, LocalDateTime expiresAt);
 
     /**
      * 이메일 변경 완료 이벤트 생성 - MapStruct가 자동으로 record 생성자에 매핑

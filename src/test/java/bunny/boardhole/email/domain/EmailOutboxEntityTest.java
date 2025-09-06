@@ -1,9 +1,17 @@
 package bunny.boardhole.email.domain;
 
-import bunny.boardhole.testsupport.jpa.EntityTestBase;
-import org.junit.jupiter.api.*;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 
-import java.time.*;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestMethodOrder;
+
+import bunny.boardhole.testsupport.jpa.EntityTestBase;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -15,9 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class EmailOutboxEntityTest extends EntityTestBase {
 
     private static EmailOutbox createTestEmailOutbox() {
-        EmailMessage message =
-                EmailMessage.create(
-                        EntityTestBase.createUniqueEmail(), "Test Subject", "<p>Test Content</p>");
+        EmailMessage message = EmailMessage.create(EntityTestBase.createUniqueEmail(), "Test Subject", "<p>Test Content</p>");
         return EmailOutbox.from(message);
     }
 
@@ -199,12 +205,8 @@ class EmailOutboxEntityTest extends EntityTestBase {
                 if (i < 7) {
                     assertThat(nextRetryTime).isNotNull();
                     // 대략적인 시간 차이 확인 (±10초 허용)
-                    long actualDelayMinutes =
-                            (nextRetryTime.toEpochSecond(java.time.ZoneOffset.UTC)
-                                    - previousRetryTime.toEpochSecond(java.time.ZoneOffset.UTC))
-                                    / 60;
-                    assertThat(actualDelayMinutes)
-                            .isBetween(expectedDelayMinutes - 1L, expectedDelayMinutes + 1L);
+                    long actualDelayMinutes = (nextRetryTime.toEpochSecond(java.time.ZoneOffset.UTC) - previousRetryTime.toEpochSecond(java.time.ZoneOffset.UTC)) / 60;
+                    assertThat(actualDelayMinutes).isBetween(expectedDelayMinutes - 1L, expectedDelayMinutes + 1L);
                 }
 
                 previousRetryTime = LocalDateTime.now(ZoneId.systemDefault());

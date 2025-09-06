@@ -1,14 +1,25 @@
 package bunny.boardhole.email.infrastructure;
 
-import bunny.boardhole.email.domain.*;
-import bunny.boardhole.testsupport.jpa.EntityTestBase;
-import org.springframework.lang.Nullable;
-import org.junit.jupiter.api.*;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.List;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.Nullable;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.*;
-import java.util.List;
+import bunny.boardhole.email.domain.EmailMessage;
+import bunny.boardhole.email.domain.EmailOutbox;
+import bunny.boardhole.email.domain.EmailStatus;
+import bunny.boardhole.testsupport.jpa.EntityTestBase;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -22,10 +33,8 @@ class EmailOutboxRepositoryTest extends EntityTestBase {
     @Autowired
     private EmailOutboxRepository repository;
 
-    private EmailOutbox createAndSaveOutbox(
-            String email, EmailStatus status, @Nullable LocalDateTime nextRetryAt) {
-        EmailOutbox outbox =
-                EmailOutbox.from(EmailMessage.create(email, "Test Subject", "Test Content"));
+    private EmailOutbox createAndSaveOutbox(String email, EmailStatus status, @Nullable LocalDateTime nextRetryAt) {
+        EmailOutbox outbox = EmailOutbox.from(EmailMessage.create(email, "Test Subject", "Test Content"));
         outbox.setStatus(status);
         outbox.setNextRetryAt(nextRetryAt);
         return repository.save(outbox);
@@ -52,14 +61,11 @@ class EmailOutboxRepositoryTest extends EntityTestBase {
             createAndSaveOutbox("test4@example.com", EmailStatus.PENDING, null); // nextRetryAt이 null
 
             // when
-            List<EmailOutbox> retriableEmails =
-                    repository.findByStatusAndNextRetryAtBeforeOrNextRetryAtIsNull(EmailStatus.PENDING, now);
+            List<EmailOutbox> retriableEmails = repository.findByStatusAndNextRetryAtBeforeOrNextRetryAtIsNull(EmailStatus.PENDING, now);
 
             // then
             assertThat(retriableEmails).hasSize(2);
-            assertThat(retriableEmails)
-                    .extracting(EmailOutbox::getRecipientEmail)
-                    .containsExactlyInAnyOrder("test1@example.com", "test4@example.com");
+            assertThat(retriableEmails).extracting(EmailOutbox::getRecipientEmail).containsExactlyInAnyOrder("test1@example.com", "test4@example.com");
         }
 
         @Test
@@ -71,8 +77,7 @@ class EmailOutboxRepositoryTest extends EntityTestBase {
             createAndSaveOutbox("test2@example.com", EmailStatus.PENDING, null);
 
             // when
-            List<EmailOutbox> retriableEmails =
-                    repository.findByStatusAndNextRetryAtBeforeOrNextRetryAtIsNull(EmailStatus.PENDING, now);
+            List<EmailOutbox> retriableEmails = repository.findByStatusAndNextRetryAtBeforeOrNextRetryAtIsNull(EmailStatus.PENDING, now);
 
             // then
             assertThat(retriableEmails).hasSize(2);
@@ -132,17 +137,12 @@ class EmailOutboxRepositoryTest extends EntityTestBase {
             entityManager.flush();
 
             // Update createdAt using native SQL to bypass JPA auditing
-            entityManager.getEntityManager()
-                    .createNativeQuery("UPDATE EMAIL_OUTBOX SET CREATED_AT = :oldDate WHERE ID IN (:ids)")
-                    .setParameter("oldDate", oldDate)
-                    .setParameter("ids", List.of(oldSent.getId(), oldFailed.getId(), oldPending.getId()))
-                    .executeUpdate();
+            entityManager.getEntityManager().createNativeQuery("UPDATE EMAIL_OUTBOX SET CREATED_AT = :oldDate WHERE ID IN (:ids)").setParameter("oldDate", oldDate).setParameter("ids", List.of(oldSent.getId(), oldFailed.getId(), oldPending.getId())).executeUpdate();
 
             entityManager.clear();
 
             // when
-            int deletedCount =
-                    repository.deleteOldEmails(List.of(EmailStatus.SENT, EmailStatus.FAILED), cutoffDate);
+            int deletedCount = repository.deleteOldEmails(List.of(EmailStatus.SENT, EmailStatus.FAILED), cutoffDate);
 
             // then
             assertThat(deletedCount).isEqualTo(2);
@@ -166,12 +166,8 @@ class EmailOutboxRepositoryTest extends EntityTestBase {
 
             // when & then
             assertThat(repository.existsByRecipientEmailAndStatus(email, EmailStatus.PENDING)).isTrue();
-            assertThat(repository.existsByRecipientEmailAndStatus(email, EmailStatus.PROCESSING))
-                    .isFalse();
-            assertThat(
-                    repository.existsByRecipientEmailAndStatus(
-                            "nonexistent@example.com", EmailStatus.PENDING))
-                    .isFalse();
+            assertThat(repository.existsByRecipientEmailAndStatus(email, EmailStatus.PROCESSING)).isFalse();
+            assertThat(repository.existsByRecipientEmailAndStatus("nonexistent@example.com", EmailStatus.PENDING)).isFalse();
         }
     }
 
@@ -184,8 +180,7 @@ class EmailOutboxRepositoryTest extends EntityTestBase {
         @DisplayName("✅ EmailOutbox 저장 및 조회")
         void saveAndFindById_Success() {
             // given
-            EmailOutbox outbox =
-                    EmailOutbox.from(EmailMessage.create("test@example.com", "Subject", "Content"));
+            EmailOutbox outbox = EmailOutbox.from(EmailMessage.create("test@example.com", "Subject", "Content"));
 
             // when
             EmailOutbox saved = repository.save(outbox);
@@ -201,8 +196,7 @@ class EmailOutboxRepositoryTest extends EntityTestBase {
         @DisplayName("✅ EmailOutbox 업데이트")
         void updateEmailOutbox_Success() {
             // given
-            EmailOutbox outbox =
-                    EmailOutbox.from(EmailMessage.create("test@example.com", "Subject", "Content"));
+            EmailOutbox outbox = EmailOutbox.from(EmailMessage.create("test@example.com", "Subject", "Content"));
             EmailOutbox saved = repository.save(outbox);
 
             // when
@@ -219,8 +213,7 @@ class EmailOutboxRepositoryTest extends EntityTestBase {
         @DisplayName("✅ EmailOutbox 삭제")
         void deleteEmailOutbox_Success() {
             // given
-            EmailOutbox outbox =
-                    EmailOutbox.from(EmailMessage.create("test@example.com", "Subject", "Content"));
+            EmailOutbox outbox = EmailOutbox.from(EmailMessage.create("test@example.com", "Subject", "Content"));
             EmailOutbox saved = repository.save(outbox);
 
             // when

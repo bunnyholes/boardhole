@@ -1,9 +1,10 @@
 package bunny.boardhole.architecture;
 
+import org.junit.jupiter.api.Test;
+
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchRule;
-import org.junit.jupiter.api.Test;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
@@ -15,8 +16,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
  */
 class ObjectCreationArchitectureTest {
 
-    private static final JavaClasses importedClasses =
-            new ClassFileImporter().importPackages("bunny.boardhole");
+    private static final JavaClasses importedClasses = new ClassFileImporter().importPackages("bunny.boardhole");
 
     @Test
     void presentationLayerFollowsLayeredArchitecture() {
@@ -32,24 +32,14 @@ class ObjectCreationArchitectureTest {
 
     @Test
     void domainLayerCannotDependOnOuterLayers() {
-        ArchRule rule = noClasses()
-                .that().resideInAPackage("..domain..")
-                .should().dependOnClassesThat().resideInAPackage("..application..")
-                .orShould().dependOnClassesThat().resideInAPackage("..presentation..")
-                .orShould().dependOnClassesThat().resideInAPackage("..infrastructure..")
-                .allowEmptyShould(true)
-                .because("도메인 레이어는 외부 레이어에 의존해서는 안 됩니다.");
+        ArchRule rule = noClasses().that().resideInAPackage("..domain..").should().dependOnClassesThat().resideInAPackage("..application..").orShould().dependOnClassesThat().resideInAPackage("..presentation..").orShould().dependOnClassesThat().resideInAPackage("..infrastructure..").allowEmptyShould(true).because("도메인 레이어는 외부 레이어에 의존해서는 안 됩니다.");
 
         rule.check(importedClasses);
     }
 
     @Test
     void applicationLayerCannotDependOnPresentationLayer() {
-        ArchRule rule = noClasses()
-                .that().resideInAPackage("..application..")
-                .should().dependOnClassesThat().resideInAPackage("..presentation..")
-                .allowEmptyShould(true)
-                .because("애플리케이션 레이어는 프레젠테이션 레이어에 의존해서는 안 됩니다.");
+        ArchRule rule = noClasses().that().resideInAPackage("..application..").should().dependOnClassesThat().resideInAPackage("..presentation..").allowEmptyShould(true).because("애플리케이션 레이어는 프레젠테이션 레이어에 의존해서는 안 됩니다.");
 
         rule.check(importedClasses);
     }

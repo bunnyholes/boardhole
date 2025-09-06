@@ -1,18 +1,25 @@
 package bunny.boardhole.shared.security;
 
-import bunny.boardhole.shared.constants.ErrorCode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.servlet.http.*;
+import java.io.IOException;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
-import org.springframework.http.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ProblemDetail;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 
-import java.io.IOException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import bunny.boardhole.shared.constants.ErrorCode;
 
 /**
  * 인증 실패 진입점 핸들러
@@ -39,6 +46,5 @@ public class ProblemDetailsAuthenticationEntryPoint implements AuthenticationEnt
         response.setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
         objectMapper.writeValue(response.getWriter(), pd);
     }
-
 
 }

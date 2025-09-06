@@ -1,15 +1,20 @@
 package bunny.boardhole.email.application;
 
-import bunny.boardhole.email.domain.*;
-import bunny.boardhole.email.infrastructure.EmailOutboxRepository;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.List;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.*;
-import java.util.List;
+import bunny.boardhole.email.domain.EmailMessage;
+import bunny.boardhole.email.domain.EmailOutbox;
+import bunny.boardhole.email.domain.EmailStatus;
+import bunny.boardhole.email.infrastructure.EmailOutboxRepository;
 
 /**
  * EmailOutbox 비즈니스 로직 서비스
@@ -45,11 +50,7 @@ public class EmailOutboxService {
         outbox.recordFailure(error.getMessage(), maxRetryCount);
 
         EmailOutbox saved = repository.save(outbox);
-        log.info(
-                "실패한 이메일을 Outbox에 저장: id={}, to={}, retryCount={}",
-                saved.getId(),
-                saved.getRecipientEmail(),
-                saved.getRetryCount());
+        log.info("실패한 이메일을 Outbox에 저장: id={}, to={}, retryCount={}", saved.getId(), saved.getRecipientEmail(), saved.getRetryCount());
     }
 
     /**
@@ -59,8 +60,7 @@ public class EmailOutboxService {
      */
     @Transactional(readOnly = true)
     public List<EmailOutbox> findRetriableEmails() {
-        return repository.findByStatusAndNextRetryAtBeforeOrNextRetryAtIsNull(
-                EmailStatus.PENDING, LocalDateTime.now(ZoneId.systemDefault()));
+        return repository.findByStatusAndNextRetryAtBeforeOrNextRetryAtIsNull(EmailStatus.PENDING, LocalDateTime.now(ZoneId.systemDefault()));
     }
 
     /**
@@ -70,11 +70,7 @@ public class EmailOutboxService {
      */
     public void updateStatus(EmailOutbox outbox) {
         repository.save(outbox);
-        log.debug(
-                "EmailOutbox 상태 업데이트: id={}, status={}, retryCount={}",
-                outbox.getId(),
-                outbox.getStatus(),
-                outbox.getRetryCount());
+        log.debug("EmailOutbox 상태 업데이트: id={}, status={}, retryCount={}", outbox.getId(), outbox.getStatus(), outbox.getRetryCount());
     }
 
     /**
@@ -83,14 +79,11 @@ public class EmailOutboxService {
      * @param outboxId Outbox ID
      */
     public void markAsSent(Long outboxId) {
-        repository
-                .findById(outboxId)
-                .ifPresent(
-                        outbox -> {
-                            outbox.markAsSent();
-                            repository.save(outbox);
-                            log.info("이메일 발송 성공: outboxId={}, to={}", outbox.getId(), outbox.getRecipientEmail());
-                        });
+        repository.findById(outboxId).ifPresent(outbox -> {
+            outbox.markAsSent();
+            repository.save(outbox);
+            log.info("이메일 발송 성공: outboxId={}, to={}", outbox.getId(), outbox.getRecipientEmail());
+        });
     }
 
     /**
@@ -100,19 +93,11 @@ public class EmailOutboxService {
      * @param error    실패 원인
      */
     public void recordFailure(Long outboxId, String error) {
-        repository
-                .findById(outboxId)
-                .ifPresent(
-                        outbox -> {
-                            outbox.recordFailure(error, maxRetryCount);
-                            repository.save(outbox);
-                            log.warn(
-                                    "이메일 발송 실패: outboxId={}, retryCount={}/{}, error={}",
-                                    outbox.getId(),
-                                    outbox.getRetryCount(),
-                                    maxRetryCount,
-                                    error);
-                        });
+        repository.findById(outboxId).ifPresent(outbox -> {
+            outbox.recordFailure(error, maxRetryCount);
+            repository.save(outbox);
+            log.warn("이메일 발송 실패: outboxId={}, retryCount={}/{}, error={}", outbox.getId(), outbox.getRetryCount(), maxRetryCount, error);
+        });
     }
 
     /**
@@ -126,7 +111,8 @@ public class EmailOutboxService {
         List<EmailStatus> statuses = List.of(EmailStatus.SENT, EmailStatus.FAILED);
 
         int deleted = repository.deleteOldEmails(statuses, cutoffDate);
-        if (deleted > 0) log.info("오래된 Outbox 이메일 정리: {}개 삭제 ({}일 이전)", deleted, retentionDays);
+        if (deleted > 0)
+            log.info("오래된 Outbox 이메일 정리: {}개 삭제 ({}일 이전)", deleted, retentionDays);
 
         return deleted;
     }
@@ -138,11 +124,7 @@ public class EmailOutboxService {
      */
     @Transactional(readOnly = true)
     public EmailOutboxStatistics getStatistics() {
-        return new EmailOutboxStatistics(
-                repository.countByStatus(EmailStatus.PENDING),
-                repository.countByStatus(EmailStatus.PROCESSING),
-                repository.countByStatus(EmailStatus.SENT),
-                repository.countByStatus(EmailStatus.FAILED));
+        return new EmailOutboxStatistics(repository.countByStatus(EmailStatus.PENDING), repository.countByStatus(EmailStatus.PROCESSING), repository.countByStatus(EmailStatus.SENT), repository.countByStatus(EmailStatus.FAILED));
     }
 
     /**

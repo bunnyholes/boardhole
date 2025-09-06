@@ -1,12 +1,15 @@
 package bunny.boardhole.user.infrastructure;
 
-import bunny.boardhole.user.domain.User;
-import org.springframework.data.domain.*;
-import org.springframework.data.jpa.repository.*;
+import java.util.Optional;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import org.springframework.validation.annotation.Validated;
 
-import java.util.Optional;
+import bunny.boardhole.user.domain.User;
 
 /**
  * 사용자 데이터 접근 리포지토리
@@ -71,6 +74,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
      * @param pageable 페이지네이션 정보
      * @return 검색된 사용자 페이지
      */
-    Page<User> findByUsernameContainingIgnoreCaseOrNameContainingIgnoreCaseOrEmailContainingIgnoreCase(
-            String username, String name, String email, Pageable pageable);
+    Page<User> findByUsernameContainingIgnoreCaseOrNameContainingIgnoreCaseOrEmailContainingIgnoreCase(String username, String name, String email, Pageable pageable);
 }

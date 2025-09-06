@@ -1,20 +1,26 @@
 package bunny.boardhole.board.application.command;
 
+import java.util.Optional;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.springframework.context.support.ResourceBundleMessageSource;
+import org.springframework.test.util.ReflectionTestUtils;
+
 import bunny.boardhole.board.domain.Board;
 import bunny.boardhole.board.infrastructure.BoardRepository;
 import bunny.boardhole.shared.util.MessageUtils;
 import bunny.boardhole.user.domain.User;
 import bunny.boardhole.user.infrastructure.UserRepository;
-import org.junit.jupiter.api.*;
-import org.mockito.*;
-import org.springframework.context.support.ResourceBundleMessageSource;
-import org.springframework.test.util.ReflectionTestUtils;
-
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 @Tag("unit")
 class BoardCommandServiceTest {
@@ -32,7 +38,7 @@ class BoardCommandServiceTest {
 
     @BeforeEach
     void setUp() {
-        try (var mocks = MockitoAnnotations.openMocks(this)) {
+        try (var ignored = MockitoAnnotations.openMocks(this)) {
             ResourceBundleMessageSource ms = new ResourceBundleMessageSource();
             ms.setBasename("messages");
             ms.setDefaultEncoding("UTF-8");

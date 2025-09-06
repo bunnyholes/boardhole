@@ -1,13 +1,7 @@
 package bunny.boardhole.shared.mapstruct;
 
-import org.mapstruct.*;
+import org.mapstruct.MapperConfig;
 
-@MapperConfig(
-        componentModel = "spring",
-        unmappedTargetPolicy = ReportingPolicy.ERROR,
-        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
-        nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS,
-        builder = @Builder(disableBuilder = true)
-)
+@MapperConfig(componentModel = "spring")
 public interface MapstructConfig {
 }

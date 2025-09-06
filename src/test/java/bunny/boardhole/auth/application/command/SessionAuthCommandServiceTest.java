@@ -1,22 +1,39 @@
 package bunny.boardhole.auth.application.command;
 
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.springframework.context.support.ResourceBundleMessageSource;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.LockedException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.test.util.ReflectionTestUtils;
+
 import bunny.boardhole.auth.application.mapper.AuthMapper;
 import bunny.boardhole.auth.application.result.AuthResult;
 import bunny.boardhole.shared.exception.UnauthorizedException;
 import bunny.boardhole.shared.security.AppUserPrincipal;
 import bunny.boardhole.shared.util.MessageUtils;
 import bunny.boardhole.user.domain.User;
-import org.junit.jupiter.api.*;
-import org.mockito.*;
-import org.springframework.context.support.ResourceBundleMessageSource;
-import org.springframework.security.authentication.*;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.*;
-import org.springframework.test.util.ReflectionTestUtils;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 @Tag("unit")
 class SessionAuthCommandServiceTest {
@@ -36,7 +53,11 @@ class SessionAuthCommandServiceTest {
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
+        try (var mocks = MockitoAnnotations.openMocks(this)) {
+            // Mocks will be cleaned up automatically
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to setup mocks", e);
+        }
 
         // MessageUtils 초기화
         ResourceBundleMessageSource ms = new ResourceBundleMessageSource();
@@ -49,24 +70,13 @@ class SessionAuthCommandServiceTest {
         SecurityContextHolder.clearContext();
 
         // 테스트 데이터 준비
-        user = User.builder()
-                .username("testuser")
-                .password("password")
-                .name("Test User")
-                .email("test@example.com")
-                .build();
+        user = User.builder().username("testuser").password("password").name("Test User").email("test@example.com").build();
         ReflectionTestUtils.setField(user, "id", 1L);
         // User는 기본적으로 권한을 가짐
 
         principal = new AppUserPrincipal(user);
 
-        authResult = new AuthResult(
-                1L,
-                "testuser",
-                "test@example.com",
-                "Test User",
-                "USER",
-                true);
+        authResult = new AuthResult(1L, "testuser", "test@example.com", "Test User", "USER", true);
     }
 
     @AfterEach
@@ -114,13 +124,10 @@ class SessionAuthCommandServiceTest {
             // Given
             LoginCommand command = new LoginCommand("testuser", "wrongpassword");
 
-            given(authenticationManager.authenticate(any(Authentication.class)))
-                    .willThrow(new BadCredentialsException("Invalid credentials"));
+            given(authenticationManager.authenticate(any(Authentication.class))).willThrow(new BadCredentialsException("Invalid credentials"));
 
             // When & Then
-            assertThatThrownBy(() -> service.login(command))
-                    .isInstanceOf(UnauthorizedException.class)
-                    .hasMessageContaining("Invalid username or password");
+            assertThatThrownBy(() -> service.login(command)).isInstanceOf(UnauthorizedException.class).hasMessageContaining("Invalid username or password");
 
             // SecurityContext가 비어있는지 확인
             SecurityContext context = SecurityContextHolder.getContext();
@@ -136,13 +143,10 @@ class SessionAuthCommandServiceTest {
             // Given
             LoginCommand command = new LoginCommand("testuser", "password");
 
-            given(authenticationManager.authenticate(any(Authentication.class)))
-                    .willThrow(new LockedException("Account is locked"));
+            given(authenticationManager.authenticate(any(Authentication.class))).willThrow(new LockedException("Account is locked"));
 
             // When & Then
-            assertThatThrownBy(() -> service.login(command))
-                    .isInstanceOf(LockedException.class)
-                    .hasMessageContaining("Account is locked");
+            assertThatThrownBy(() -> service.login(command)).isInstanceOf(LockedException.class).hasMessageContaining("Account is locked");
 
             verify(authenticationManager).authenticate(any(Authentication.class));
             verify(authMapper, never()).toAuthResult(any());
@@ -154,13 +158,10 @@ class SessionAuthCommandServiceTest {
             // Given
             LoginCommand command = new LoginCommand("testuser", "password");
 
-            given(authenticationManager.authenticate(any(Authentication.class)))
-                    .willThrow(new DisabledException("Account is disabled"));
+            given(authenticationManager.authenticate(any(Authentication.class))).willThrow(new DisabledException("Account is disabled"));
 
             // When & Then
-            assertThatThrownBy(() -> service.login(command))
-                    .isInstanceOf(DisabledException.class)
-                    .hasMessageContaining("Account is disabled");
+            assertThatThrownBy(() -> service.login(command)).isInstanceOf(DisabledException.class).hasMessageContaining("Account is disabled");
 
             verify(authenticationManager).authenticate(any(Authentication.class));
             verify(authMapper, never()).toAuthResult(any());
@@ -172,12 +173,10 @@ class SessionAuthCommandServiceTest {
             // Given
             LoginCommand command = new LoginCommand("", "password");
 
-            given(authenticationManager.authenticate(any(Authentication.class)))
-                    .willThrow(new BadCredentialsException("Invalid credentials"));
+            given(authenticationManager.authenticate(any(Authentication.class))).willThrow(new BadCredentialsException("Invalid credentials"));
 
             // When & Then
-            assertThatThrownBy(() -> service.login(command))
-                    .isInstanceOf(UnauthorizedException.class);
+            assertThatThrownBy(() -> service.login(command)).isInstanceOf(UnauthorizedException.class);
 
             verify(authenticationManager).authenticate(any(Authentication.class));
         }
@@ -188,12 +187,10 @@ class SessionAuthCommandServiceTest {
             // Given
             LoginCommand command = new LoginCommand("testuser", "");
 
-            given(authenticationManager.authenticate(any(Authentication.class)))
-                    .willThrow(new BadCredentialsException("Invalid credentials"));
+            given(authenticationManager.authenticate(any(Authentication.class))).willThrow(new BadCredentialsException("Invalid credentials"));
 
             // When & Then
-            assertThatThrownBy(() -> service.login(command))
-                    .isInstanceOf(UnauthorizedException.class);
+            assertThatThrownBy(() -> service.login(command)).isInstanceOf(UnauthorizedException.class);
 
             verify(authenticationManager).authenticate(any(Authentication.class));
         }
@@ -275,8 +272,7 @@ class SessionAuthCommandServiceTest {
             // Given
             LoginCommand command = new LoginCommand("testuser", "wrongpassword");
 
-            given(authenticationManager.authenticate(any(Authentication.class)))
-                    .willThrow(new BadCredentialsException("Invalid"));
+            given(authenticationManager.authenticate(any(Authentication.class))).willThrow(new BadCredentialsException("Invalid"));
 
             // When
             try {

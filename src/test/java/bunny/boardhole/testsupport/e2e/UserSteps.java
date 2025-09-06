@@ -7,10 +7,6 @@ final class UserSteps {
     }
 
     public static Response me(SessionCookie session) {
-        return RestSpecs.auth(session)
-                .when()
-                .get("users/me")
-                .then()
-                .extract().response();
+        return RestSpecs.auth(session).when().get("users/me").then().extract().response();
     }
 }

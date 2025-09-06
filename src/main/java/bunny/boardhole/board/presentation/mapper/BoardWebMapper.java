@@ -1,17 +1,23 @@
 package bunny.boardhole.board.presentation.mapper;
 
-import bunny.boardhole.board.application.command.*;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+
+import bunny.boardhole.board.application.command.CreateBoardCommand;
+import bunny.boardhole.board.application.command.UpdateBoardCommand;
 import bunny.boardhole.board.application.query.GetBoardQuery;
 import bunny.boardhole.board.application.result.BoardResult;
-import bunny.boardhole.board.presentation.dto.*;
+import bunny.boardhole.board.presentation.dto.BoardCreateRequest;
+import bunny.boardhole.board.presentation.dto.BoardResponse;
+import bunny.boardhole.board.presentation.dto.BoardUpdateRequest;
 import bunny.boardhole.shared.mapstruct.MapstructConfig;
-import org.mapstruct.*;
 
 /**
  * 게시글 웹 계층 매퍼
  * 게시글 웹 DTO와 애플리케이션 Command/Result 간 매핑을 담당합니다.
  */
 @Mapper(config = MapstructConfig.class)
+@SuppressWarnings("NullableProblems")
 public interface BoardWebMapper {
 
     /**

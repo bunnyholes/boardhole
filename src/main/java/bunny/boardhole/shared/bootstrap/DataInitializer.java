@@ -1,11 +1,10 @@
 package bunny.boardhole.shared.bootstrap;
 
-import bunny.boardhole.board.domain.Board;
-import bunny.boardhole.board.infrastructure.BoardRepository;
-import bunny.boardhole.user.domain.*;
-import bunny.boardhole.user.infrastructure.UserRepository;
+import java.util.Set;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.MessageSource;
@@ -13,7 +12,11 @@ import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import java.util.Set;
+import bunny.boardhole.board.domain.Board;
+import bunny.boardhole.board.infrastructure.BoardRepository;
+import bunny.boardhole.user.domain.Role;
+import bunny.boardhole.user.domain.User;
+import bunny.boardhole.user.infrastructure.UserRepository;
 
 @Slf4j
 @Component
@@ -51,35 +54,21 @@ public class DataInitializer implements CommandLineRunner {
 
         // 관리자 계정 확인 및 생성
         if (!userRepository.existsByUsername(adminUsername)) {
-            User admin = User.builder()
-                    .username(adminUsername)
-                    .password(passwordEncoder.encode(adminPassword))
-                    .name(adminName)
-                    .email(adminEmail)
-                    .roles(Set.of(Role.ADMIN))
-                    .build();
+            User admin = User.builder().username(adminUsername).password(passwordEncoder.encode(adminPassword)).name(adminName).email(adminEmail).roles(Set.of(Role.ADMIN)).build();
             admin.verifyEmail(); // 기본 사용자는 이메일 인증 완료 상태로 생성
             userRepository.save(admin);
-            log.info(messageSource.getMessage("log.user.admin.created",
-                    new Object[]{adminUsername}, LocaleContextHolder.getLocale()));
-        } else log.info(messageSource.getMessage("log.user.admin.exists",
-                new Object[]{adminUsername}, LocaleContextHolder.getLocale()));
+            log.info(messageSource.getMessage("log.user.admin.created", new Object[]{adminUsername}, LocaleContextHolder.getLocale()));
+        } else
+            log.info(messageSource.getMessage("log.user.admin.exists", new Object[]{adminUsername}, LocaleContextHolder.getLocale()));
 
         // 일반 사용자 계정 확인 및 생성
         if (!userRepository.existsByUsername(regularUsername)) {
-            User regularUser = User.builder()
-                    .username(regularUsername)
-                    .password(passwordEncoder.encode(regularPassword))
-                    .name(regularName)
-                    .email(regularEmail)
-                    .roles(Set.of(Role.USER))
-                    .build();
+            User regularUser = User.builder().username(regularUsername).password(passwordEncoder.encode(regularPassword)).name(regularName).email(regularEmail).roles(Set.of(Role.USER)).build();
             regularUser.verifyEmail(); // 기본 사용자는 이메일 인증 완료 상태로 생성
             userRepository.save(regularUser);
-            log.info(messageSource.getMessage("log.user.regular.created",
-                    new Object[]{regularUsername}, LocaleContextHolder.getLocale()));
-        } else log.info(messageSource.getMessage("log.user.regular.exists",
-                new Object[]{regularUsername}, LocaleContextHolder.getLocale()));
+            log.info(messageSource.getMessage("log.user.regular.created", new Object[]{regularUsername}, LocaleContextHolder.getLocale()));
+        } else
+            log.info(messageSource.getMessage("log.user.regular.exists", new Object[]{regularUsername}, LocaleContextHolder.getLocale()));
 
         // 기본 환영 게시글 생성
         if (boardRepository.count() == 0) {
@@ -89,17 +78,12 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void createWelcomeBoard() {
-        User admin = userRepository.findByUsername(adminUsername)
-                .orElseThrow(() -> new IllegalStateException("Admin user not found: " + adminUsername));
+        User admin = userRepository.findByUsername(adminUsername).orElseThrow(() -> new IllegalStateException("Admin user not found: " + adminUsername));
 
         String title = messageSource.getMessage("data.welcome.board.title", null, LocaleContextHolder.getLocale());
         String content = messageSource.getMessage("data.welcome.board.content", null, LocaleContextHolder.getLocale());
 
-        Board welcomeBoard = Board.builder()
-                .title(title)
-                .content(content)
-                .author(admin)
-                .build();
+        Board welcomeBoard = Board.builder().title(title).content(content).author(admin).build();
         boardRepository.save(welcomeBoard);
     }
 

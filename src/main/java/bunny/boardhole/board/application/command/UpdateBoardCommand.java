@@ -1,7 +1,10 @@
 package bunny.boardhole.board.application.command;
 
-import bunny.boardhole.board.domain.validation.optional.*;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+
+import bunny.boardhole.board.domain.validation.optional.OptionalBoardContent;
+import bunny.boardhole.board.domain.validation.optional.OptionalBoardTitle;
 
 public record UpdateBoardCommand(
         @NotNull(message = "{validation.board.boardId.required}") @Positive(message = "{validation.board.boardId.positive}") Long boardId,
@@ -10,6 +13,5 @@ public record UpdateBoardCommand(
 
         @OptionalBoardTitle String title,
 
-        @OptionalBoardContent String content
-) {
+        @OptionalBoardContent String content) {
 }

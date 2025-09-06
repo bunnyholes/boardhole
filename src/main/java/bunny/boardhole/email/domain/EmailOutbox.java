@@ -1,22 +1,32 @@
 package bunny.boardhole.email.domain;
 
-import bunny.boardhole.shared.domain.BaseEntity;
-import jakarta.persistence.*;
-import lombok.*;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
+
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import org.springframework.lang.Nullable;
 
-import java.time.*;
+import bunny.boardhole.shared.domain.BaseEntity;
 
 /**
  * 실패한 이메일을 저장하고 재시도를 관리하는 Outbox 엔티티
  */
 @Entity
-@Table(
-        name = "email_outbox",
-        indexes = {
-                @Index(name = "idx_email_outbox_status", columnList = "status"),
-                @Index(name = "idx_email_outbox_next_retry", columnList = "status,nextRetryAt")
-        })
+@Table(name = "email_outbox", indexes = {@Index(name = "idx_email_outbox_status", columnList = "status"), @Index(name = "idx_email_outbox_next_retry", columnList = "status,nextRetryAt")})
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -98,8 +108,7 @@ public class EmailOutbox extends BaseEntity {
      * 재시도 가능 여부 확인
      */
     public boolean canRetry() {
-        return status == EmailStatus.PENDING
-                && (nextRetryAt == null || nextRetryAt.isBefore(LocalDateTime.now(ZoneId.systemDefault())));
+        return status == EmailStatus.PENDING && (nextRetryAt == null || nextRetryAt.isBefore(LocalDateTime.now(ZoneId.systemDefault())));
     }
 
     /**

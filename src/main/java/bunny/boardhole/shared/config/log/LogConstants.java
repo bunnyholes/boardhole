@@ -22,9 +22,7 @@ final class LogConstants {
     // 로그 키워드
     public static final String TRACE_ID_KEY = "traceId";
     // 민감정보 필드명
-    public static final String[] SENSITIVE_FIELDS = {
-            "password", "pwd", "secret", "token", "key", "credential"
-    };
+    public static final String[] SENSITIVE_FIELDS = {"password", "pwd", "secret", "token", "key", "credential"};
 
     private LogConstants() {
     }

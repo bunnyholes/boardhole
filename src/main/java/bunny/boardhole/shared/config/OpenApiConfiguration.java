@@ -1,11 +1,16 @@
 package bunny.boardhole.shared.config;
 
-import io.swagger.v3.oas.models.OpenAPI;
-import io.swagger.v3.oas.models.info.*;
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.info.BuildProperties;
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Contact;
+import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.info.License;
 
 /**
  * OpenAPI Bean 설정
@@ -43,19 +48,6 @@ public class OpenApiConfiguration {
 
     @Bean
     public OpenAPI boardHoleOpenAPI() {
-        return new OpenAPI()
-                .info(new Info()
-                        .title(title)
-                        .version(buildProperties.getVersion())
-                        .description(description + " (Build: " + buildProperties.getTime() + ")")
-                        .termsOfService(termsOfService)
-                        .contact(new Contact()
-                                .name(contactName)
-                                .email(contactEmail)
-                                .url(contactUrl))
-                        .license(new License()
-                                .name(licenseName)
-                                .url(licenseUrl)))
-                ;
+        return new OpenAPI().info(new Info().title(title).version(buildProperties.getVersion()).description(description + " (Build: " + buildProperties.getTime() + ")").termsOfService(termsOfService).contact(new Contact().name(contactName).email(contactEmail).url(contactUrl)).license(new License().name(licenseName).url(licenseUrl)));
     }
 }

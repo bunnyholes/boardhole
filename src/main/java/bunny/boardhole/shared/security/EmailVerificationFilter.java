@@ -1,20 +1,31 @@
 package bunny.boardhole.shared.security;
 
-import bunny.boardhole.shared.constants.ApiPaths;
-import bunny.boardhole.user.domain.User;
-import bunny.boardhole.user.infrastructure.UserRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.servlet.*;
-import jakarta.servlet.http.*;
+import java.io.IOException;
+import java.util.Set;
+
+import jakarta.servlet.Filter;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.*;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ProblemDetail;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
-import java.util.Set;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import bunny.boardhole.shared.constants.ApiPaths;
+import bunny.boardhole.user.domain.User;
+import bunny.boardhole.user.infrastructure.UserRepository;
 
 /**
  * 이메일 인증이 필요한 사용자를 체크하는 필터
@@ -24,22 +35,12 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class EmailVerificationFilter implements Filter {
 
-
-    private static final Set<String> EXCLUDED_PATHS = Set.of(
-            ApiPaths.AUTH + "/verify-email",
-            ApiPaths.AUTH + "/resend-verification",
-            ApiPaths.AUTH + ApiPaths.AUTH_LOGIN,
-            ApiPaths.AUTH + ApiPaths.AUTH_LOGOUT,
-            "/error",
-            "/v3/api-docs",
-            "/swagger-ui"
-    );
+    private static final Set<String> EXCLUDED_PATHS = Set.of(ApiPaths.AUTH + "/verify-email", ApiPaths.AUTH + "/resend-verification", ApiPaths.AUTH + ApiPaths.AUTH_LOGIN, ApiPaths.AUTH + ApiPaths.AUTH_LOGOUT, "/error", "/v3/api-docs", "/swagger-ui");
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
 
     @Override
-    public void doFilter(final ServletRequest request, final ServletResponse response, final FilterChain chain)
-            throws IOException, ServletException {
+    public void doFilter(final ServletRequest request, final ServletResponse response, final FilterChain chain) throws IOException, ServletException {
 
         final HttpServletRequest httpRequest = (HttpServletRequest) request;
         final HttpServletResponse httpResponse = (HttpServletResponse) response;
@@ -55,8 +56,7 @@ public class EmailVerificationFilter implements Filter {
         final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         // 인증된 사용자인 경우에만 이메일 인증 상태 체크
-        if (authentication != null && authentication.isAuthenticated() &&
-                !"anonymousUser".equals(authentication.getName())) {
+        if (authentication != null && authentication.isAuthenticated() && !"anonymousUser".equals(authentication.getName())) {
 
             final String username = authentication.getName();
             final User user = userRepository.findOptionalByUsername(username).orElse(null);
@@ -91,10 +91,7 @@ public class EmailVerificationFilter implements Filter {
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
 
-        final ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
-                HttpStatus.FORBIDDEN,
-                "이메일 인증이 필요합니다. 가입 시 발송된 인증 이메일을 확인해 주세요."
-        );
+        final ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, "이메일 인증이 필요합니다. 가입 시 발송된 인증 이메일을 확인해 주세요.");
         problemDetail.setTitle("Email Verification Required");
         problemDetail.setProperty("errorCode", "EMAIL_VERIFICATION_REQUIRED");
         problemDetail.setProperty("resendUrl", ApiPaths.AUTH + "/resend-verification");

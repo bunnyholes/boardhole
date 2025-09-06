@@ -1,18 +1,37 @@
 package bunny.boardhole.email.infrastructure;
 
-import bunny.boardhole.email.application.*;
-import bunny.boardhole.email.domain.*;
-import org.junit.jupiter.api.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.*;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.util.*;
+import bunny.boardhole.email.application.EmailOutboxService;
+import bunny.boardhole.email.application.EmailService;
+import bunny.boardhole.email.domain.EmailMessage;
+import bunny.boardhole.email.domain.EmailOutbox;
+import bunny.boardhole.email.domain.EmailStatus;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @DisplayName("EmailRetryScheduler 테스트")
 @ExtendWith(MockitoExtension.class)
@@ -31,11 +50,11 @@ class EmailRetrySchedulerTest {
     @InjectMocks
     private EmailRetryScheduler scheduler;
 
-    private static EmailOutbox createTestEmailOutbox(Long id, String email, EmailStatus status) {
+    private static EmailOutbox createTestEmailOutbox(Long id, String email) {
         EmailMessage message = EmailMessage.create(email, "Test Subject", "Test Content");
         EmailOutbox outbox = EmailOutbox.from(message);
         outbox.setId(id);
-        outbox.setStatus(status);
+        outbox.setStatus(EmailStatus.PENDING);
         return outbox;
     }
 
@@ -53,8 +72,8 @@ class EmailRetrySchedulerTest {
         @DisplayName("✅ PENDING 이메일 재시도 후 성공")
         void retryFailedEmails_Success() {
             // given
-            EmailOutbox outbox1 = createTestEmailOutbox(1L, "test1@example.com", EmailStatus.PENDING);
-            EmailOutbox outbox2 = createTestEmailOutbox(2L, "test2@example.com", EmailStatus.PENDING);
+            EmailOutbox outbox1 = EmailRetrySchedulerTest.createTestEmailOutbox(1L, "test1@example.com");
+            EmailOutbox outbox2 = EmailRetrySchedulerTest.createTestEmailOutbox(2L, "test2@example.com");
             List<EmailOutbox> pendingEmails = Arrays.asList(outbox1, outbox2);
 
             when(outboxService.findRetriableEmails()).thenReturn(pendingEmails);
@@ -79,17 +98,14 @@ class EmailRetrySchedulerTest {
         @DisplayName("✅ 일부 이메일 재시도 실패")
         void retryFailedEmails_PartialFailure() {
             // given
-            EmailOutbox outbox1 = createTestEmailOutbox(1L, "success@example.com", EmailStatus.PENDING);
-            EmailOutbox outbox2 = createTestEmailOutbox(2L, "fail@example.com", EmailStatus.PENDING);
+            EmailOutbox outbox1 = EmailRetrySchedulerTest.createTestEmailOutbox(1L, "success@example.com");
+            EmailOutbox outbox2 = EmailRetrySchedulerTest.createTestEmailOutbox(2L, "fail@example.com");
             List<EmailOutbox> pendingEmails = Arrays.asList(outbox1, outbox2);
 
             when(outboxService.findRetriableEmails()).thenReturn(pendingEmails);
 
             // 첫 번째는 성공, 두 번째는 실패
-            doNothing()
-                    .doThrow(new RuntimeException("Send failed"))
-                    .when(emailService)
-                    .sendEmail(any(EmailMessage.class));
+            doNothing().doThrow(new RuntimeException("Send failed")).when(emailService).sendEmail(any(EmailMessage.class));
 
             // when
             scheduler.retryFailedEmails();
@@ -122,14 +138,12 @@ class EmailRetrySchedulerTest {
         @DisplayName("✅ 최대 재시도 횟수 초과 시 FAILED 상태로 변경")
         void retryFailedEmails_MaxRetriesExceeded() {
             // given
-            EmailOutbox outbox = createTestEmailOutbox(1L, "test@example.com", EmailStatus.PENDING);
+            EmailOutbox outbox = EmailRetrySchedulerTest.createTestEmailOutbox(1L, "test@example.com");
             outbox.setRetryCount(9); // 이미 9번 시도함
             List<EmailOutbox> pendingEmails = Collections.singletonList(outbox);
 
             when(outboxService.findRetriableEmails()).thenReturn(pendingEmails);
-            doThrow(new RuntimeException("Final failure"))
-                    .when(emailService)
-                    .sendEmail(any(EmailMessage.class));
+            doThrow(new RuntimeException("Final failure")).when(emailService).sendEmail(any(EmailMessage.class));
 
             // when
             scheduler.retryFailedEmails();
@@ -183,8 +197,7 @@ class EmailRetrySchedulerTest {
         @DisplayName("✅ 통계 로깅 성공")
         void logStatistics_Success() {
             // given
-            EmailOutboxService.EmailOutboxStatistics stats =
-                    new EmailOutboxService.EmailOutboxStatistics(5L, 2L, 100L, 3L);
+            EmailOutboxService.EmailOutboxStatistics stats = new EmailOutboxService.EmailOutboxStatistics(5L, 2L, 100L, 3L);
             when(outboxService.getStatistics()).thenReturn(stats);
 
             // when
@@ -198,8 +211,7 @@ class EmailRetrySchedulerTest {
         @DisplayName("✅ 통계가 0일 때는 로깅하지 않음")
         void logStatistics_ZeroStats_NoLogging() {
             // given
-            EmailOutboxService.EmailOutboxStatistics stats =
-                    new EmailOutboxService.EmailOutboxStatistics(0L, 0L, 0L, 0L);
+            EmailOutboxService.EmailOutboxStatistics stats = new EmailOutboxService.EmailOutboxStatistics(0L, 0L, 0L, 0L);
             when(outboxService.getStatistics()).thenReturn(stats);
 
             // when
