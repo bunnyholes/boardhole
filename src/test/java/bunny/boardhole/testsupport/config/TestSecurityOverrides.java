@@ -1,11 +1,17 @@
 package bunny.boardhole.testsupport.config;
 
-import bunny.boardhole.shared.security.EmailVerificationFilter;
-import jakarta.servlet.*;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.*;
-
 import java.io.IOException;
+
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
+
+import bunny.boardhole.shared.security.EmailVerificationFilter;
 
 @TestConfiguration
 public class TestSecurityOverrides {
@@ -14,12 +20,13 @@ public class TestSecurityOverrides {
     @Primary
     public EmailVerificationFilter emailVerificationBypassFilter() {
         // No-op filter for tests: bypasses email verification checks
-        return new EmailVerificationFilter(null, null) {
+        // Suppress null warning: dependencies not used in overridden doFilter method
+        @SuppressWarnings("DataFlowIssue") EmailVerificationFilter filter = new EmailVerificationFilter(null, null) {
             @Override
-            public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
-                    throws IOException, ServletException {
+            public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
                 chain.doFilter(request, response);
             }
         };
+        return filter;
     }
 }

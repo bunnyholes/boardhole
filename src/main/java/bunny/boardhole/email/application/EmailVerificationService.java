@@ -1,17 +1,24 @@
 package bunny.boardhole.email.application;
 
-import bunny.boardhole.shared.exception.ResourceNotFoundException;
-import bunny.boardhole.shared.util.MessageUtils;
-import bunny.boardhole.user.domain.*;
-import bunny.boardhole.user.infrastructure.*;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.List;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.*;
-import java.util.List;
+import bunny.boardhole.shared.exception.ResourceNotFoundException;
+import bunny.boardhole.shared.util.MessageUtils;
+import bunny.boardhole.shared.util.TokenGenerator;
+import bunny.boardhole.user.domain.EmailVerification;
+import bunny.boardhole.user.domain.EmailVerificationType;
+import bunny.boardhole.user.domain.User;
+import bunny.boardhole.user.infrastructure.EmailVerificationRepository;
+import bunny.boardhole.user.infrastructure.UserRepository;
 
 /**
  * 이메일 인증 관련 서비스
@@ -31,22 +38,17 @@ public class EmailVerificationService {
     /**
      * 이메일 인증 처리
      *
-     * @param id    사용자 ID
      * @param token 인증 토큰
      * @return 성공 메시지
      */
     @Transactional
-    public String verifyEmail(Long id, String token) {
-        EmailVerification verification = emailVerificationRepository.findByCodeAndUsedFalse(token)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        MessageUtils.get("error.email-verification.invalid-token")));
+    public String verifyEmail(String token) {
+        EmailVerification verification = emailVerificationRepository.findByCodeAndUsedFalse(token).orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.email-verification.invalid-token")));
 
-        if (verification.isExpired()) throw new IllegalArgumentException(
-                MessageUtils.get("error.email-verification.expired"));
+        if (verification.isExpired())
+            throw new IllegalArgumentException(MessageUtils.get("error.email-verification.expired"));
 
-        User user = userRepository.findById(verification.getUserId())
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        MessageUtils.get("error.user.not-found.id", verification.getUserId())));
+        User user = userRepository.findById(verification.getUserId()).orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.user.not-found.id", verification.getUserId())));
 
         // 인증 타입에 따른 처리
         if (verification.getVerificationType() == EmailVerificationType.SIGNUP) {
@@ -76,12 +78,10 @@ public class EmailVerificationService {
      */
     @Transactional
     public String resendVerificationEmail(Long id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        MessageUtils.get("error.user.not-found.id", id)));
+        User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.user.not-found.id", id)));
 
-        if (user.isEmailVerified()) throw new IllegalArgumentException(
-                MessageUtils.get("error.email-verification.already-verified"));
+        if (user.isEmailVerified())
+            throw new IllegalArgumentException(MessageUtils.get("error.email-verification.already-verified"));
 
         // 기존 미사용 토큰들을 만료 처리
         List<EmailVerification> existingVerifications = emailVerificationRepository.findByUserIdAndUsedFalse(user.getId());
@@ -91,17 +91,10 @@ public class EmailVerificationService {
         });
 
         // 새 인증 토큰 생성 및 이메일 발송
-        String newToken = java.util.UUID.randomUUID().toString();
-        LocalDateTime expiresAt = LocalDateTime.now(ZoneId.systemDefault())
-                .plus(java.time.Duration.ofMillis(verificationExpirationMs));
+        String newToken = TokenGenerator.generateToken();
+        LocalDateTime expiresAt = LocalDateTime.now(ZoneId.systemDefault()).plus(java.time.Duration.ofMillis(verificationExpirationMs));
 
-        EmailVerification newVerification = EmailVerification.builder()
-                .code(newToken)
-                .userId(user.getId())
-                .newEmail(user.getEmail())
-                .expiresAt(expiresAt)
-                .verificationType(EmailVerificationType.SIGNUP)
-                .build();
+        EmailVerification newVerification = EmailVerification.builder().code(newToken).userId(user.getId()).newEmail(user.getEmail()).expiresAt(expiresAt).verificationType(EmailVerificationType.SIGNUP).build();
 
         emailVerificationRepository.save(newVerification);
         emailService.sendSignupVerificationEmail(user, newToken);

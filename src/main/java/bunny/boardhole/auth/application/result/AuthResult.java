@@ -1,21 +1,18 @@
 package bunny.boardhole.auth.application.result;
 
-
 /**
  * 인증 결과 DTO
  * 인증/인가 작업의 결과를 Application Layer에서 Web Layer로 전달하기 위한 객체입니다.
  */
-public record AuthResult(
-        Long userId,
+public record AuthResult(Long userId,
 
-        String username,
+                         String username,
 
-        String email,
+                         String email,
 
-        String name,
+                         String name,
 
-        String role,
+                         String role,
 
-        boolean authenticated
-) {
+                         boolean authenticated) {
 }

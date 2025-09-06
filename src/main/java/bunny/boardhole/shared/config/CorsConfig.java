@@ -1,10 +1,13 @@
 package bunny.boardhole.shared.config;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.*;
-import org.springframework.web.cors.*;
-
 import java.util.List;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 public class CorsConfig {
@@ -42,7 +45,8 @@ public class CorsConfig {
         cfg.setAllowCredentials(allowCredentials);
         cfg.setMaxAge(maxAge);
 
-        for (String pattern : pathPatterns) source.registerCorsConfiguration(pattern, cfg);
+        for (String pattern : pathPatterns)
+            source.registerCorsConfiguration(pattern, cfg);
         return source;
     }
 }

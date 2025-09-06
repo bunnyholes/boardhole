@@ -1,19 +1,37 @@
 package bunny.boardhole.email.application;
 
-import bunny.boardhole.email.domain.*;
-import bunny.boardhole.email.infrastructure.EmailOutboxRepository;
-import org.junit.jupiter.api.*;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.*;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.time.LocalDateTime;
-import java.util.*;
+import bunny.boardhole.email.domain.EmailMessage;
+import bunny.boardhole.email.domain.EmailOutbox;
+import bunny.boardhole.email.domain.EmailStatus;
+import bunny.boardhole.email.infrastructure.EmailOutboxRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyList;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.argThat;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @DisplayName("EmailOutboxService 테스트")
 @ExtendWith(MockitoExtension.class)
@@ -57,8 +75,7 @@ class EmailOutboxServiceTest {
             Exception error = new RuntimeException("SMTP connection failed");
             EmailOutbox savedOutbox = createTestEmailOutbox();
 
-            when(repository.existsByRecipientEmailAndStatus(anyString(), any(EmailStatus.class)))
-                    .thenReturn(false);
+            when(repository.existsByRecipientEmailAndStatus(anyString(), any(EmailStatus.class))).thenReturn(false);
             when(repository.save(any(EmailOutbox.class))).thenReturn(savedOutbox);
 
             // when
@@ -66,14 +83,7 @@ class EmailOutboxServiceTest {
 
             // then
             verify(repository).existsByRecipientEmailAndStatus("test@example.com", EmailStatus.PENDING);
-            verify(repository)
-                    .save(
-                            argThat(
-                                    outbox ->
-                                            outbox.getRecipientEmail().equals("test@example.com")
-                                                    && outbox.getSubject().equals("Test Subject")
-                                                    && "SMTP connection failed".equals(outbox.getLastError())
-                                                    && outbox.getRetryCount() == 1));
+            verify(repository).save(argThat(outbox -> outbox.getRecipientEmail().equals("test@example.com") && outbox.getSubject().equals("Test Subject") && "SMTP connection failed".equals(outbox.getLastError()) && outbox.getRetryCount() == 1));
         }
 
         @Test
@@ -83,8 +93,7 @@ class EmailOutboxServiceTest {
             EmailMessage message = createTestEmailMessage();
             Exception error = new RuntimeException("Error");
 
-            when(repository.existsByRecipientEmailAndStatus(anyString(), any(EmailStatus.class)))
-                    .thenReturn(true);
+            when(repository.existsByRecipientEmailAndStatus(anyString(), any(EmailStatus.class))).thenReturn(true);
 
             // when
             service.saveFailedEmail(message, error);
@@ -106,18 +115,14 @@ class EmailOutboxServiceTest {
             // given
             List<EmailOutbox> expectedEmails = List.of(createTestEmailOutbox(), createTestEmailOutbox());
 
-            when(repository.findByStatusAndNextRetryAtBeforeOrNextRetryAtIsNull(
-                    any(EmailStatus.class), any(LocalDateTime.class)))
-                    .thenReturn(expectedEmails);
+            when(repository.findByStatusAndNextRetryAtBeforeOrNextRetryAtIsNull(any(EmailStatus.class), any(LocalDateTime.class))).thenReturn(expectedEmails);
 
             // when
             List<EmailOutbox> result = service.findRetriableEmails();
 
             // then
             assertThat(result).hasSize(2);
-            verify(repository)
-                    .findByStatusAndNextRetryAtBeforeOrNextRetryAtIsNull(
-                            eq(EmailStatus.PENDING), any(LocalDateTime.class));
+            verify(repository).findByStatusAndNextRetryAtBeforeOrNextRetryAtIsNull(eq(EmailStatus.PENDING), any(LocalDateTime.class));
         }
     }
 
@@ -210,17 +215,14 @@ class EmailOutboxServiceTest {
             // given
             final int expectedDeleted = 5;
 
-            when(repository.deleteOldEmails(anyList(), any(LocalDateTime.class)))
-                    .thenReturn(expectedDeleted);
+            when(repository.deleteOldEmails(anyList(), any(LocalDateTime.class))).thenReturn(expectedDeleted);
 
             // when
             int result = service.cleanupOldEmails();
 
             // then
             assertThat(result).isEqualTo(expectedDeleted);
-            verify(repository)
-                    .deleteOldEmails(
-                            eq(List.of(EmailStatus.SENT, EmailStatus.FAILED)), any(LocalDateTime.class));
+            verify(repository).deleteOldEmails(eq(List.of(EmailStatus.SENT, EmailStatus.FAILED)), any(LocalDateTime.class));
         }
 
         @Test

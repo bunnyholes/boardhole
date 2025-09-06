@@ -1,15 +1,15 @@
 package bunny.boardhole.shared.config;
 
-import bunny.boardhole.shared.constants.ApiPaths;
-import bunny.boardhole.shared.security.*;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.MessageSource;
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.access.PermissionEvaluator;
-import org.springframework.security.access.expression.method.*;
+import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
+import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -21,7 +21,15 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.context.*;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.security.web.context.SecurityContextRepository;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import bunny.boardhole.shared.constants.ApiPaths;
+import bunny.boardhole.shared.security.EmailVerificationFilter;
+import bunny.boardhole.shared.security.ProblemDetailsAccessDeniedHandler;
+import bunny.boardhole.shared.security.ProblemDetailsAuthenticationEntryPoint;
 
 /**
  * Spring Security 설정
@@ -61,54 +69,29 @@ public class SecurityConfig {
      * @return 설정된 보안 필터 체인
      */
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http, SecurityContextRepository securityContextRepository,
-                                           ProblemDetailsAuthenticationEntryPoint authenticationEntryPoint,
-                                           ProblemDetailsAccessDeniedHandler accessDeniedHandler,
-                                           EmailVerificationFilter emailVerificationFilter) throws Exception {
-        http
-                .csrf(AbstractHttpConfigurer::disable)
-                .cors(Customizer.withDefaults())
-                .authorizeHttpRequests(auth -> auth
-                        // Static resources and common locations
-                        .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll() // 현재는 실제 배포 전까지는 항상 유지
-                        // Assets - allow all
-                        .requestMatchers("/assets/**").permitAll() // 현재는 실제 배포 전까지는 항상 유지
-                        // Other static resources
-                        .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**", "/favicon.ico").permitAll() // 현재는 실제 배포 전까지는 항상 유지
-                        // Root and specific HTML files
-                        .requestMatchers("/").permitAll() // 현재는 실제 배포 전까지는 항상 유지
-                        .requestMatchers("/*.html").permitAll() // 현재는 실제 배포 전까지는 항상 유지
-                        .requestMatchers("/admin*.html", "/board*.html", "/user*.html").permitAll() // 현재는 실제 배포 전까지는 항상 유지
-                        .requestMatchers("/login.html", "/signup.html", "/welcome.html", "/my-page.html").permitAll() // 현재는 실제 배포 전까지는 항상 유지
-                        // Swagger UI - explicitly permit
-                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**").permitAll()
-                        // Error page
-                        .requestMatchers("/error").permitAll()
-                        // Public API endpoints - explicit permit only
-                        .requestMatchers("/api/v1/auth/register", "/api/v1/auth/login", "/api/v1/auth/public-access").permitAll()
-                        .requestMatchers(ApiPaths.AUTH + ApiPaths.AUTH_SIGNUP, ApiPaths.AUTH + ApiPaths.AUTH_LOGIN, ApiPaths.AUTH + ApiPaths.AUTH_PUBLIC_ACCESS).permitAll()
-                        .requestMatchers(ApiPaths.AUTH + "/verify-email", ApiPaths.AUTH + "/resend-verification").permitAll()
-                        .requestMatchers(HttpMethod.GET, ApiPaths.USERS + "/{id}/email/verify").permitAll()
-                        .requestMatchers(HttpMethod.POST, ApiPaths.USERS + "/{id}/email/resend").permitAll()
-                        .requestMatchers(HttpMethod.GET, ApiPaths.BOARDS, ApiPaths.BOARDS + "/**").permitAll()
-                        // All other requests require authentication by default
-                        .anyRequest().authenticated()
-                )
-                .exceptionHandling(ex -> ex
-                        .authenticationEntryPoint(authenticationEntryPoint)
-                        .accessDeniedHandler(accessDeniedHandler)
-                )
-                .formLogin(AbstractHttpConfigurer::disable)
-                .httpBasic(AbstractHttpConfigurer::disable); // HTTP Basic 인증 비활성화
+    public SecurityFilterChain filterChain(HttpSecurity http, SecurityContextRepository securityContextRepository, ProblemDetailsAuthenticationEntryPoint authenticationEntryPoint, ProblemDetailsAccessDeniedHandler accessDeniedHandler, EmailVerificationFilter emailVerificationFilter) throws Exception {
+        http.csrf(AbstractHttpConfigurer::disable).cors(Customizer.withDefaults()).authorizeHttpRequests(auth -> auth
+                // Static resources and common locations
+                .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll() // 현재는 실제 배포 전까지는 항상 유지
+                // Assets - allow all
+                .requestMatchers("/assets/**").permitAll() // 현재는 실제 배포 전까지는 항상 유지
+                // Other static resources
+                .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**", "/favicon.ico").permitAll() // 현재는 실제 배포 전까지는 항상 유지
+                // Root and specific HTML files
+                .requestMatchers("/").permitAll() // 현재는 실제 배포 전까지는 항상 유지
+                .requestMatchers("/*.html").permitAll() // 현재는 실제 배포 전까지는 항상 유지
+                .requestMatchers("/admin*.html", "/board*.html", "/user*.html").permitAll() // 현재는 실제 배포 전까지는 항상 유지
+                .requestMatchers("/login.html", "/signup.html", "/welcome.html", "/my-page.html").permitAll() // 현재는 실제 배포 전까지는 항상 유지
+                // Swagger UI - explicitly permit
+                .requestMatchers("/v3/api-docs/**", "/swagger-ui/**").permitAll()
+                // Error page
+                .requestMatchers("/error").permitAll()
+                // Public API endpoints - explicit permit only
+                .requestMatchers("/api/v1/auth/register", "/api/v1/auth/login", "/api/v1/auth/public-access").permitAll().requestMatchers(ApiPaths.AUTH + ApiPaths.AUTH_SIGNUP, ApiPaths.AUTH + ApiPaths.AUTH_LOGIN, ApiPaths.AUTH + ApiPaths.AUTH_PUBLIC_ACCESS).permitAll().requestMatchers(ApiPaths.AUTH + "/verify-email", ApiPaths.AUTH + "/resend-verification").permitAll().requestMatchers(HttpMethod.GET, ApiPaths.USERS + "/{id}/email/verify").permitAll().requestMatchers(HttpMethod.POST, ApiPaths.USERS + "/{id}/email/resend").permitAll().requestMatchers(HttpMethod.GET, ApiPaths.BOARDS, ApiPaths.BOARDS + "/**").permitAll()
+                // All other requests require authentication by default
+                .anyRequest().authenticated()).exceptionHandling(ex -> ex.authenticationEntryPoint(authenticationEntryPoint).accessDeniedHandler(accessDeniedHandler)).formLogin(AbstractHttpConfigurer::disable).httpBasic(AbstractHttpConfigurer::disable); // HTTP Basic 인증 비활성화
 
-        http.sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-                        .sessionFixation().migrateSession()
-                        .maximumSessions(1)
-                        .maxSessionsPreventsLogin(false))
-                .securityContext((securityContext) -> securityContext
-                        .securityContextRepository(securityContextRepository))
-                .addFilterAfter(emailVerificationFilter, UsernamePasswordAuthenticationFilter.class);
+        http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED).sessionFixation().migrateSession().maximumSessions(1).maxSessionsPreventsLogin(false)).securityContext((securityContext) -> securityContext.securityContextRepository(securityContextRepository)).addFilterAfter(emailVerificationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 

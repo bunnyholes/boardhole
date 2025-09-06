@@ -1,26 +1,36 @@
 package bunny.boardhole.shared.config.log;
 
-import bunny.boardhole.board.application.command.*;
-import bunny.boardhole.board.application.mapper.BoardMapper;
-import bunny.boardhole.board.application.result.BoardResult;
-import bunny.boardhole.board.domain.Board;
-import bunny.boardhole.board.infrastructure.BoardRepository;
-import bunny.boardhole.shared.util.*;
-import bunny.boardhole.user.application.command.UserCommandService;
-import bunny.boardhole.user.application.mapper.UserMapper;
-import bunny.boardhole.user.domain.*;
-import bunny.boardhole.user.infrastructure.*;
-import ch.qos.logback.classic.Logger;
-import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.core.read.ListAppender;
-import org.junit.jupiter.api.*;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.aop.aspectj.annotation.AspectJProxyFactory;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.util.*;
+import bunny.boardhole.board.application.command.BoardCommandService;
+import bunny.boardhole.board.application.command.CreateBoardCommand;
+import bunny.boardhole.board.application.mapper.BoardMapper;
+import bunny.boardhole.board.application.result.BoardResult;
+import bunny.boardhole.board.domain.Board;
+import bunny.boardhole.board.infrastructure.BoardRepository;
+import bunny.boardhole.shared.util.MessageUtils;
+import bunny.boardhole.shared.util.VerificationCodeGenerator;
+import bunny.boardhole.user.application.command.UserCommandService;
+import bunny.boardhole.user.application.mapper.UserMapper;
+import bunny.boardhole.user.domain.Role;
+import bunny.boardhole.user.domain.User;
+import bunny.boardhole.user.infrastructure.EmailVerificationRepository;
+import bunny.boardhole.user.infrastructure.UserRepository;
+
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -64,8 +74,7 @@ class BusinessLogAspectTest {
         UserMapper userMapper = Mockito.mock(UserMapper.class);
         VerificationCodeGenerator codeGenerator = Mockito.mock(VerificationCodeGenerator.class);
         org.springframework.context.ApplicationEventPublisher eventPublisher = Mockito.mock(org.springframework.context.ApplicationEventPublisher.class);
-        UserCommandService targetUser = new UserCommandService(userRepository, evRepo, encoder, userMapper,
-                codeGenerator, eventPublisher);
+        UserCommandService targetUser = new UserCommandService(userRepository, evRepo, encoder, userMapper, codeGenerator, eventPublisher);
         AspectJProxyFactory userFactory = new AspectJProxyFactory(targetUser);
         userFactory.addAspect(aspect);
         userService = userFactory.getProxy();
@@ -83,7 +92,9 @@ class BusinessLogAspectTest {
         Board board = Board.builder().title("title").content("secret content").author(author).build();
         ReflectionTestUtils.setField(board, "id", 1L);
         given(boardRepository.save(any(Board.class))).willReturn(board);
-        given(boardMapper.toResult(board)).willReturn(new BoardResult(1L, "title", "secret content", 1L, "writer", 0, null, null));
+        // Suppress null warning: test record with null timestamps for logging test purposes
+        @SuppressWarnings("DataFlowIssue") BoardResult boardResult = new BoardResult(1L, "title", "secret content", 1L, "writer", 0, null, null);
+        given(boardMapper.toResult(board)).willReturn(boardResult);
 
         boardService.create(new CreateBoardCommand(1L, "title", "secret content"));
 
@@ -124,8 +135,6 @@ class BusinessLogAspectTest {
         userService.delete(1L);
 
         // 로그에서 사용자 삭제 메시지 확인
-        assertThat(appender.list.stream().anyMatch(e ->
-                e.getFormattedMessage().contains("User deleted") ||
-                        e.getFormattedMessage().contains("사용자 삭제"))).isTrue();
+        assertThat(appender.list.stream().anyMatch(e -> e.getFormattedMessage().contains("User deleted") || e.getFormattedMessage().contains("사용자 삭제"))).isTrue();
     }
 }

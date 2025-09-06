@@ -4,9 +4,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.bind.ConstructorBinding;
 
 @ConfigurationProperties(prefix = "boardhole.logging")
-public record LoggingProperties(
-        Performance performance
-) {
+public record LoggingProperties(Performance performance) {
 
     @ConstructorBinding
     public LoggingProperties(Performance performance) {
@@ -29,12 +27,6 @@ public record LoggingProperties(
         return ms >= performance.normalThreshold();
     }
 
-    record Performance(
-            long fastThreshold,
-            long normalThreshold
-    ) {
-        public Performance() {
-            this(100L, 500L);
-        }
+    record Performance(long fastThreshold, long normalThreshold) {
     }
 }

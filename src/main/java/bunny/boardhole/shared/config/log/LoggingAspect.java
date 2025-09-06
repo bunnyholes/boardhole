@@ -2,8 +2,11 @@ package bunny.boardhole.shared.config.log;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.aspectj.lang.ProceedingJoinPoint;
-import org.aspectj.lang.annotation.*;
+import org.aspectj.lang.annotation.Around;
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.MessageSource;
 import org.springframework.core.Ordered;
@@ -25,7 +28,7 @@ public class LoggingAspect {
      * Controller 레이어 메소드 포인트컷
      * 모든 Controller 클래스의 public 메소드를 대상으로 합니다.
      */
-    @Pointcut("execution(public * bunny.boardhole..controller..*(..))")
+    @Pointcut("execution(public * bunny.boardhole..*Controller.*(..))")
     void anyController() {
         // AOP 포인트컷 정의용 빈 메소드
     }
@@ -34,7 +37,7 @@ public class LoggingAspect {
      * Service 레이어 메소드 포인트컷
      * 모든 Service 클래스의 public 메소드를 대상으로 합니다.
      */
-    @Pointcut("execution(public * bunny.boardhole..service..*(..))")
+    @Pointcut("execution(public * bunny.boardhole..*Service.*(..))")
     void anyService() {
         // AOP 포인트컷 정의용 빈 메소드
     }
@@ -43,7 +46,7 @@ public class LoggingAspect {
      * Repository 레이어 메소드 포인트컷
      * 모든 Repository 클래스의 public 메소드를 대상으로 합니다.
      */
-    @Pointcut("execution(public * bunny.boardhole..repository..*(..))")
+    @Pointcut("execution(public * bunny.boardhole..*Repository.*(..))")
     void anyRepository() {
         // AOP 포인트컷 정의용 빈 메소드
     }
@@ -83,9 +86,7 @@ public class LoggingAspect {
 
             // 성능 경고는 임계값 초과 시에만 (불필요한 로깅 감소)
             if (logFormatter.shouldWarnPerformance(tookMs)) {
-                log.warn(messageSource.getMessage("log.performance.warning",
-                        new Object[]{signature, tookMs},
-                        org.springframework.context.i18n.LocaleContextHolder.getLocale()));
+                log.warn(messageSource.getMessage("log.performance.warning", new Object[]{signature, tookMs}, org.springframework.context.i18n.LocaleContextHolder.getLocale()));
             }
 
             // 메서드 종료 로깅은 DEBUG 레벨에서만 (로깅 포맷 오류가 있어도 비즈니스 흐름에 영향 주지 않도록 보호)
@@ -109,9 +110,12 @@ public class LoggingAspect {
     }
 
     private String extractLayer(String signature) {
-        if (signature.contains("Controller")) return "controller";
-        if (signature.contains("Service")) return "service";
-        if (signature.contains("Repository")) return "repository";
+        if (signature.contains("Controller"))
+            return "controller";
+        if (signature.contains("Service"))
+            return "service";
+        if (signature.contains("Repository"))
+            return "repository";
         return "unknown";
     }
 

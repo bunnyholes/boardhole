@@ -30,22 +30,10 @@ public class TestDataConfig {
 
     @Bean
     public TestDataProperties testDataProperties() {
-        return new TestDataProperties(
-                testUsername, testPassword, testName, testEmail,
-                testBoardTitle, testBoardContent,
-                testVerificationCode
-        );
+        return new TestDataProperties(testUsername, testPassword, testName, testEmail, testBoardTitle, testBoardContent, testVerificationCode);
     }
 
-
-    public record TestDataProperties(
-            String username,
-            String password,
-            String name,
-            String email,
-            String boardTitle,
-            String boardContent,
-            String verificationCode
-    ) {
+    public record TestDataProperties(String username, String password, String name, String email, String boardTitle, String boardContent,
+                                     String verificationCode) {
     }
 }

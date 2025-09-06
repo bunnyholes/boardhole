@@ -1,9 +1,9 @@
 package bunny.boardhole.shared.util;
 
+import java.security.SecureRandom;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
-import java.security.SecureRandom;
 
 /**
  * 검증 코드 생성 유틸리티
@@ -26,7 +26,8 @@ public class VerificationCodeGenerator {
      */
     public String generate() {
         StringBuilder code = new StringBuilder(length);
-        for (int i = 0; i < length; i++) code.append(charset.charAt(random.nextInt(charset.length())));
+        for (int i = 0; i < length; i++)
+            code.append(charset.charAt(random.nextInt(charset.length())));
         return code.toString();
     }
 }

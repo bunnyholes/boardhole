@@ -9,7 +9,7 @@ Spring Boot 게시판 애플리케이션 with:
 - Java 21, Spring Boot 3.5.5
 - MySQL (Docker) + Redis (Session)
 - Domain-driven architecture with clear layer separation
-- Comprehensive quality tooling: Checkstyle, PMD, SpotBugs, JaCoCo, SonarCloud, ErrorProne
+- Quality tooling: JaCoCo (coverage), SonarCloud integration
 
 ## Build & Run Commands
 
@@ -29,15 +29,36 @@ Spring Boot 게시판 애플리케이션 with:
 ./gradlew test --tests BoardControllerTest         # Run single test class
 
 # Quality Checks
-./gradlew qualityCheck       # All quality checks (PMD, SpotBugs, Checkstyle, Coverage)
 ./gradlew jacocoTestReport   # Generate coverage report
-./gradlew sonarAnalysis      # Run SonarCloud analysis
-./gradlew spotbugsConsole   # SpotBugs with console output
+./gradlew sonarAnalysis      # Run SonarCloud analysis with coverage
 
 # Database & Redis (via Docker Compose)
 docker-compose up -d         # Start MySQL (port 13306) & Redis (port 16379)
 docker-compose down          # Stop containers
 ```
+
+## IntelliJ IDEA Setup
+
+### Code Formatting & Import Organization
+
+This project uses **IntelliJ IDEA code style settings** instead of Spotless for consistent formatting.
+
+**Required Setup (All Team Members)**:
+
+1. **Open Project**: IntelliJ will automatically detect `.idea/codeStyles/` settings
+2. **Enable Auto Actions on Save**:
+    - Go to Settings → Tools → Actions on Save (Ctrl/Cmd + Alt + S)
+    - Enable:
+        - ✅ **Reformat code**
+        - ✅ **Optimize imports**
+        - ✅ **Rearrange code** (optional)
+
+**Benefits over Spotless**:
+
+- 🚀 Faster builds (no formatting check overhead)
+- 💡 Real-time formatting while typing
+- 🎯 Perfect IDE integration (no conflicts)
+- 🔧 More advanced formatting options available
 
 ## Architecture & Structure
 
@@ -139,11 +160,8 @@ All REST APIs under `/api/v1/*`:
 ## Quality Standards
 
 - Code coverage: ≥60% (current ~64%)
-- Checkstyle: Max 0 warnings/errors
-- PMD: Complexity ≤7, Class ≤300 lines
-- SpotBugs: Maximum effort, all levels
-- ErrorProne: Strict mode enabled
 - SonarCloud: Continuous analysis
+- IntelliJ IDEA: Built-in inspections and code analysis
 
 ## Environment Setup
 
@@ -164,5 +182,5 @@ Spring profiles:
 - Documentation: SpringDoc OpenAPI
 - Mapping: MapStruct 1.6.3
 - Testing: JUnit 5, Testcontainers, ArchUnit
-- Quality: Checkstyle, PMD, SpotBugs, ErrorProne, JaCoCo
+- Quality: JaCoCo (coverage)
 - 코드를 수정하고 주석을 남기지마라 , 특히 무엇무엇슥 삭제햇습니다.

@@ -1,14 +1,17 @@
 package bunny.boardhole.shared.security;
 
-import bunny.boardhole.shared.config.log.RequestLoggingFilter;
-import jakarta.servlet.http.HttpServletRequest;
-import lombok.extern.slf4j.Slf4j;
-import org.slf4j.MDC;
-import org.springframework.http.ProblemDetail;
-
 import java.net.URI;
 import java.time.Instant;
 import java.util.Optional;
+
+import jakarta.servlet.http.HttpServletRequest;
+
+import lombok.extern.slf4j.Slf4j;
+
+import org.slf4j.MDC;
+import org.springframework.http.ProblemDetail;
+
+import bunny.boardhole.shared.config.log.RequestLoggingFilter;
 
 /**
  * ProblemDetail 생성을 위한 공통 헬퍼 클래스
@@ -30,9 +33,7 @@ final class ProblemDetailsHelper {
             log.warn("Invalid request URI: {}", request.getRequestURI(), e);
         }
 
-        Optional.ofNullable(MDC.get(RequestLoggingFilter.TRACE_ID))
-                .filter(traceId -> !traceId.isBlank())
-                .ifPresent(traceId -> pd.setProperty("traceId", traceId));
+        Optional.ofNullable(MDC.get(RequestLoggingFilter.TRACE_ID)).filter(traceId -> !traceId.isBlank()).ifPresent(traceId -> pd.setProperty("traceId", traceId));
 
         pd.setProperty("path", request.getRequestURI());
         pd.setProperty("method", request.getMethod());
@@ -44,17 +45,13 @@ final class ProblemDetailsHelper {
      * Problem Type URI를 생성합니다.
      */
     static URI buildType(String problemBaseUri, String slug) {
-        return Optional.ofNullable(problemBaseUri)
-                .filter(base -> !base.isBlank())
-                .map(base -> base.endsWith("/") ? base : base + "/")
-                .map(base -> {
-                    try {
-                        return URI.create(base + slug);
-                    } catch (IllegalArgumentException e) {
-                        log.warn("Invalid problem type URI: {}{}", base, slug, e);
-                        return null;
-                    }
-                })
-                .orElse(URI.create("urn:problem-type:" + slug));
+        return Optional.ofNullable(problemBaseUri).filter(base -> !base.isBlank()).map(base -> base.endsWith("/") ? base : base + "/").map(base -> {
+            try {
+                return URI.create(base + slug);
+            } catch (IllegalArgumentException e) {
+                log.warn("Invalid problem type URI: {}{}", base, slug, e);
+                return null;
+            }
+        }).orElse(URI.create("urn:problem-type:" + slug));
     }
 }

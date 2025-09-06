@@ -1,12 +1,21 @@
 package bunny.boardhole.user.domain;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestMethodOrder;
+
 import bunny.boardhole.shared.util.MessageUtils;
 import bunny.boardhole.testsupport.jpa.EntityTestBase;
-import org.junit.jupiter.api.*;
 
-import java.time.*;
-
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DisplayName("EmailVerification 엔티티 테스트")
 @TestMethodOrder(MethodOrderer.DisplayName.class)
@@ -16,13 +25,7 @@ import static org.assertj.core.api.Assertions.*;
 class EmailVerificationEntityTest extends EntityTestBase {
 
     private EmailVerification createEmailVerification() {
-        return EmailVerification.builder()
-                .code(createUniqueCode())
-                .userId(1L)
-                .newEmail(createUniqueEmail())
-                .expiresAt(getTestExpirationTime())
-                .verificationType(EmailVerificationType.SIGNUP)
-                .build();
+        return EmailVerification.builder().code(createUniqueCode()).userId(1L).newEmail(createUniqueEmail()).expiresAt(getTestExpirationTime()).verificationType(EmailVerificationType.SIGNUP).build();
     }
 
     @Nested
@@ -40,13 +43,7 @@ class EmailVerificationEntityTest extends EntityTestBase {
             LocalDateTime expiresAt = getTestExpirationTime();
 
             // when
-            EmailVerification verification = EmailVerification.builder()
-                    .code(code)
-                    .userId(userId)
-                    .newEmail(newEmail)
-                    .expiresAt(expiresAt)
-                    .verificationType(EmailVerificationType.SIGNUP)
-                    .build();
+            EmailVerification verification = EmailVerification.builder().code(code).userId(userId).newEmail(newEmail).expiresAt(expiresAt).verificationType(EmailVerificationType.SIGNUP).build();
 
             // then
             assertThat(verification.getCode()).isEqualTo(code);
@@ -70,17 +67,8 @@ class EmailVerificationEntityTest extends EntityTestBase {
             String expectedMessage = MessageUtils.get("validation.email.verification.code.required");
 
             // when & then
-            assertThatThrownBy(() -> EmailVerification.builder()
-                    .code("")
-                    .userId(1L)
-                    .newEmail(createUniqueEmail())
-                    .expiresAt(getTestExpirationTime())
-                    .verificationType(EmailVerificationType.SIGNUP)
-                    .build())
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessage(expectedMessage);
+            assertThatThrownBy(() -> EmailVerification.builder().code("").userId(1L).newEmail(createUniqueEmail()).expiresAt(getTestExpirationTime()).verificationType(EmailVerificationType.SIGNUP).build()).isInstanceOf(IllegalArgumentException.class).hasMessage(expectedMessage);
         }
-
 
         @Test
         @DisplayName("❌ 빈 새 이메일로 생성 시 예외 발생")
@@ -89,15 +77,7 @@ class EmailVerificationEntityTest extends EntityTestBase {
             String expectedMessage = MessageUtils.get("validation.email.verification.newEmail.required");
 
             // when & then
-            assertThatThrownBy(() -> EmailVerification.builder()
-                    .code(createUniqueCode())
-                    .userId(1L)
-                    .newEmail("")
-                    .expiresAt(getTestExpirationTime())
-                    .verificationType(EmailVerificationType.SIGNUP)
-                    .build())
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessage(expectedMessage);
+            assertThatThrownBy(() -> EmailVerification.builder().code(createUniqueCode()).userId(1L).newEmail("").expiresAt(getTestExpirationTime()).verificationType(EmailVerificationType.SIGNUP).build()).isInstanceOf(IllegalArgumentException.class).hasMessage(expectedMessage);
         }
 
     }
@@ -148,41 +128,25 @@ class EmailVerificationEntityTest extends EntityTestBase {
 
             // when & then
             String expectedMessage = "이미 사용된 검증 코드입니다";
-            assertThatThrownBy(verification::markAsUsed)
-                    .isInstanceOf(IllegalStateException.class)
-                    .hasMessage(expectedMessage);
+            assertThatThrownBy(verification::markAsUsed).isInstanceOf(IllegalStateException.class).hasMessage(expectedMessage);
         }
 
         @Test
         @DisplayName("❌ markAsUsed 테스트 - 만료된 검증 코드 예외")
         void markAsUsed_Expired_ThrowsException() {
             // given
-            EmailVerification verification = EmailVerification.builder()
-                    .code(createUniqueCode())
-                    .userId(1L)
-                    .newEmail(createUniqueEmail())
-                    .expiresAt(LocalDateTime.now(ZoneId.systemDefault()).minusHours(1))
-                    .verificationType(EmailVerificationType.SIGNUP)
-                    .build();
+            EmailVerification verification = EmailVerification.builder().code(createUniqueCode()).userId(1L).newEmail(createUniqueEmail()).expiresAt(LocalDateTime.now(ZoneId.systemDefault()).minusHours(1)).verificationType(EmailVerificationType.SIGNUP).build();
 
             // when & then
             String expectedMessage = "만료된 검증 코드입니다";
-            assertThatThrownBy(verification::markAsUsed)
-                    .isInstanceOf(IllegalStateException.class)
-                    .hasMessage(expectedMessage);
+            assertThatThrownBy(verification::markAsUsed).isInstanceOf(IllegalStateException.class).hasMessage(expectedMessage);
         }
 
         @Test
         @DisplayName("✅ isExpired 테스트 - 만료 여부 확인")
         void isExpired_ChecksExpirationCorrectly() {
             // given
-            EmailVerification expiredVerification = EmailVerification.builder()
-                    .code(createUniqueCode())
-                    .userId(1L)
-                    .newEmail(createUniqueEmail())
-                    .expiresAt(LocalDateTime.now(ZoneId.systemDefault()).minusHours(1))
-                    .verificationType(EmailVerificationType.SIGNUP)
-                    .build();
+            EmailVerification expiredVerification = EmailVerification.builder().code(createUniqueCode()).userId(1L).newEmail(createUniqueEmail()).expiresAt(LocalDateTime.now(ZoneId.systemDefault()).minusHours(1)).verificationType(EmailVerificationType.SIGNUP).build();
 
             EmailVerification validVerification = createEmailVerification();
 
@@ -200,13 +164,7 @@ class EmailVerificationEntityTest extends EntityTestBase {
             EmailVerification usedVerification = createEmailVerification();
             usedVerification.markAsUsed();
 
-            EmailVerification expiredVerification = EmailVerification.builder()
-                    .code(createUniqueCode())
-                    .userId(1L)
-                    .newEmail(createUniqueEmail())
-                    .expiresAt(LocalDateTime.now(ZoneId.systemDefault()).minusHours(1))
-                    .verificationType(EmailVerificationType.SIGNUP)
-                    .build();
+            EmailVerification expiredVerification = EmailVerification.builder().code(createUniqueCode()).userId(1L).newEmail(createUniqueEmail()).expiresAt(LocalDateTime.now(ZoneId.systemDefault()).minusHours(1)).verificationType(EmailVerificationType.SIGNUP).build();
 
             // when & then
             assertThat(validVerification.isValid()).isTrue();
@@ -244,21 +202,9 @@ class EmailVerificationEntityTest extends EntityTestBase {
         @DisplayName("✅ equals와 hashCode 테스트 - code 기반 동등성")
         void equalsAndHashCode_BasedOnCode() {
             // given
-            EmailVerification verification1 = EmailVerification.builder()
-                    .code(createUniqueCode())
-                    .userId(1L)
-                    .newEmail(createUniqueEmail())
-                    .expiresAt(LocalDateTime.now(ZoneId.systemDefault()).plusHours(1))
-                    .verificationType(EmailVerificationType.SIGNUP)
-                    .build();
+            EmailVerification verification1 = EmailVerification.builder().code(createUniqueCode()).userId(1L).newEmail(createUniqueEmail()).expiresAt(LocalDateTime.now(ZoneId.systemDefault()).plusHours(1)).verificationType(EmailVerificationType.SIGNUP).build();
 
-            EmailVerification verification2 = EmailVerification.builder()
-                    .code(createUniqueCode())
-                    .userId(2L)
-                    .newEmail(createUniqueEmail())
-                    .expiresAt(LocalDateTime.now(ZoneId.systemDefault()).plusHours(2))
-                    .verificationType(EmailVerificationType.CHANGE_EMAIL)
-                    .build();
+            EmailVerification verification2 = EmailVerification.builder().code(createUniqueCode()).userId(2L).newEmail(createUniqueEmail()).expiresAt(LocalDateTime.now(ZoneId.systemDefault()).plusHours(2)).verificationType(EmailVerificationType.CHANGE_EMAIL).build();
 
             // when
             entityManager.persistAndFlush(verification1);

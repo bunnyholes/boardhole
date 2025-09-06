@@ -1,16 +1,37 @@
 package bunny.boardhole.user.domain;
 
-import bunny.boardhole.shared.constants.ValidationConstants;
-import bunny.boardhole.shared.util.MessageUtils;
-import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.persistence.*;
-import lombok.*;
-import org.hibernate.annotations.DynamicUpdate;
-import org.springframework.lang.NonNull;
-import org.springframework.util.Assert;
-
+import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
+
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Table;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+
+import org.hibernate.annotations.DynamicUpdate;
+import org.springframework.util.Assert;
+
+import bunny.boardhole.shared.constants.ValidationConstants;
+import bunny.boardhole.shared.util.MessageUtils;
+
+import io.swagger.v3.oas.annotations.media.Schema;
 
 @Getter
 @NoArgsConstructor
@@ -19,14 +40,12 @@ import java.time.LocalDateTime;
 @ToString(exclude = {"password", "roles"})
 @Entity
 @DynamicUpdate
-@Table(name = "users", indexes = {
-        @Index(name = "idx_user_username", columnList = "username"),
-        @Index(name = "idx_user_email", columnList = "email"),
-        @Index(name = "idx_user_name", columnList = "name")
-})
+@Table(name = "users", indexes = {@Index(name = "idx_user_username", columnList = "username"), @Index(name = "idx_user_email", columnList = "email"), @Index(name = "idx_user_name", columnList = "name")})
 @Schema(name = "User", description = "사용자 도메인 엔티티 - 시스템의 핵심 사용자 정보")
 public class User implements Serializable {
 
+    @Serial
+    private static final long serialVersionUID = 2870948220832438912L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @EqualsAndHashCode.Include
@@ -45,7 +64,7 @@ public class User implements Serializable {
     @Schema(description = "사용자 실명 (1-50자)", example = "홍길동")
     private String name;
 
-    @Column(nullable = false, unique = true, length = ValidationConstants.USER_EMAIL_MAX_LENGTH)
+    @Column(nullable = false, unique = true)
     @Schema(description = "이메일 주소 (고유값)", example = "john@example.com")
     private String email;
 
@@ -78,17 +97,14 @@ public class User implements Serializable {
 
     // 필요한 필드만 받는 생성자에 @Builder 적용
     @Builder
-    public User(@NonNull String username, @NonNull String password, @NonNull String name, @NonNull String email, java.util.Set<Role> roles) {
+    public User(String username, String password, String name, String email, java.util.Set<Role> roles) {
         Assert.hasText(username, MessageUtils.get("validation.user.username.required"));
-        Assert.isTrue(username.length() <= ValidationConstants.USER_USERNAME_MAX_LENGTH,
-                MessageUtils.get("validation.user.username.too-long", ValidationConstants.USER_USERNAME_MAX_LENGTH));
+        Assert.isTrue(username.length() <= ValidationConstants.USER_USERNAME_MAX_LENGTH, MessageUtils.get("validation.user.username.too-long", ValidationConstants.USER_USERNAME_MAX_LENGTH));
         Assert.hasText(password, MessageUtils.get("validation.user.password.required"));
         Assert.hasText(name, MessageUtils.get("validation.user.name.required"));
-        Assert.isTrue(name.length() <= ValidationConstants.USER_NAME_MAX_LENGTH,
-                MessageUtils.get("validation.user.name.too-long", ValidationConstants.USER_NAME_MAX_LENGTH));
+        Assert.isTrue(name.length() <= ValidationConstants.USER_NAME_MAX_LENGTH, MessageUtils.get("validation.user.name.too-long", ValidationConstants.USER_NAME_MAX_LENGTH));
         Assert.hasText(email, MessageUtils.get("validation.user.email.required"));
-        Assert.isTrue(email.length() <= ValidationConstants.USER_EMAIL_MAX_LENGTH,
-                MessageUtils.get("validation.user.email.too-long", ValidationConstants.USER_EMAIL_MAX_LENGTH));
+        Assert.isTrue(email.length() <= ValidationConstants.USER_EMAIL_MAX_LENGTH, MessageUtils.get("validation.user.email.too-long", ValidationConstants.USER_EMAIL_MAX_LENGTH));
 
         this.username = username;
         this.password = password;
@@ -97,33 +113,19 @@ public class User implements Serializable {
         this.roles = roles;
     }
 
-    @PrePersist
-    public void prePersist() {
-        LocalDateTime now = LocalDateTime.now();
-        if (createdAt == null) createdAt = now;
-        if (updatedAt == null) updatedAt = now;
-    }
-
-    @PreUpdate
-    public void preUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
-
-    public void changeName(@NonNull String name) {
+    public void changeName(String name) {
         Assert.hasText(name, MessageUtils.get("validation.user.name.required"));
-        Assert.isTrue(name.length() <= ValidationConstants.USER_NAME_MAX_LENGTH,
-                MessageUtils.get("validation.user.name.too-long", ValidationConstants.USER_NAME_MAX_LENGTH));
+        Assert.isTrue(name.length() <= ValidationConstants.USER_NAME_MAX_LENGTH, MessageUtils.get("validation.user.name.too-long", ValidationConstants.USER_NAME_MAX_LENGTH));
         this.name = name;
     }
 
-    public void changeEmail(@NonNull String email) {
+    public void changeEmail(String email) {
         Assert.hasText(email, MessageUtils.get("validation.user.email.required"));
-        Assert.isTrue(email.length() <= ValidationConstants.USER_EMAIL_MAX_LENGTH,
-                MessageUtils.get("validation.user.email.too-long", ValidationConstants.USER_EMAIL_MAX_LENGTH));
+        Assert.isTrue(email.length() <= ValidationConstants.USER_EMAIL_MAX_LENGTH, MessageUtils.get("validation.user.email.too-long", ValidationConstants.USER_EMAIL_MAX_LENGTH));
         this.email = email;
     }
 
-    public void changePassword(@NonNull String password) {
+    public void changePassword(String password) {
         Assert.hasText(password, MessageUtils.get("validation.user.password.required"));
         this.password = password;
     }
@@ -133,8 +135,8 @@ public class User implements Serializable {
     }
 
     public void verifyEmail() {
-        this.emailVerified = true;
-        this.emailVerifiedAt = LocalDateTime.now();
+        emailVerified = true;
+        emailVerifiedAt = LocalDateTime.now();
     }
 
     public boolean canAccessService() {
@@ -151,7 +153,7 @@ public class User implements Serializable {
      * @return 관리자 권한 보유 여부
      */
     public boolean hasAdminRole() {
-        return roles != null && roles.contains(Role.ADMIN);
+        return roles.contains(Role.ADMIN);
     }
 
     /**
@@ -162,9 +164,6 @@ public class User implements Serializable {
      * </p>
      */
     public void grantAdminRole() {
-        if (roles == null) {
-            roles = new java.util.HashSet<>();
-        }
         roles.add(Role.ADMIN);
     }
 
@@ -174,29 +173,9 @@ public class User implements Serializable {
      * 권한 집합에서 ADMIN 역할을 제거합니다.
      * 관리자 권한이 없는 경우 아무 작업도 수행하지 않습니다.
      * </p>
-     *
-     * @return 권한 철회 성공 여부
      */
-    public boolean revokeAdminRole() {
-        if (roles != null && roles.contains(Role.ADMIN)) {
-            roles.remove(Role.ADMIN);
-            return true;
-        }
-        return false;
+    public void revokeAdminRole() {
+        roles.remove(Role.ADMIN);
     }
-
-    /**
-     * 사용자의 이메일 인증 상태를 확인합니다.
-     * <p>
-     * 현재 구현에서는 기본적으로 false를 반환하며,
-     * 이메일 인증 시스템 구현 시 확장할 예정입니다.
-     * </p>
-     *
-     * @return 이메일 인증 상태 (현재는 항상 false)
-     */
-    public boolean isEmailVerified() {
-        return emailVerified;
-    }
-
 
 }

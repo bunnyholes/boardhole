@@ -1,17 +1,20 @@
 package bunny.boardhole.board.application.query;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import bunny.boardhole.board.application.mapper.BoardMapper;
 import bunny.boardhole.board.application.result.BoardResult;
 import bunny.boardhole.board.domain.Board;
 import bunny.boardhole.board.infrastructure.BoardRepository;
 import bunny.boardhole.shared.exception.ResourceNotFoundException;
 import bunny.boardhole.shared.util.MessageUtils;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.data.domain.*;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 게시글 조회 서비스
@@ -26,7 +29,6 @@ public class BoardQueryService {
     private final BoardMapper boardMapper;
     private final ApplicationEventPublisher eventPublisher;
 
-
     /**
      * 게시글 단일 조회 쿼리 처리
      *
@@ -36,8 +38,7 @@ public class BoardQueryService {
      */
     @Transactional(readOnly = true)
     public BoardResult handle(GetBoardQuery query) {
-        Board board = boardRepository.findById(query.id())
-                .orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.board.not-found.id", query.id())));
+        Board board = boardRepository.findById(query.id()).orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.board.not-found.id", query.id())));
         eventPublisher.publishEvent(boardMapper.toViewedEvent(query.id()));
         return boardMapper.toResult(board);
     }

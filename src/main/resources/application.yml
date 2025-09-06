@@ -77,24 +77,24 @@ spring:
 # 애플리케이션 도메인 설정
 # ========================================
 boardhole:
-  # 검증 규칙
-  validation:
-    board:
-      title-max-length: 200
-      content-max-length: 10000
-    user:
-      username-min-length: 3
-      username-max-length: 20
-      password-min-length: 8
-      password-max-length: 100
-      email-max-length: 255
-      name-min-length: 1
-      name-max-length: 50
-    email-verification:
-      # Unified units to milliseconds
-      expiration-ms: 7200000          # 2 hours
-      code-length: 6
-      signup-expiration-ms: 7200000   # 2 hours
+  # 검증 규칙 (현재 미사용 - @ConfigurationProperties 클래스 필요)
+  # validation:
+  #   board:
+  #     title-max-length: 200
+  #     content-max-length: 10000
+  #   user:
+  #     username-min-length: 3
+  #     username-max-length: 20
+  #     password-min-length: 8
+  #     password-max-length: 100
+  #     email-max-length: 255
+  #     name-min-length: 1
+  #     name-max-length: 50
+  email-verification:
+    # Unified units to milliseconds
+    expiration-ms: 7200000          # 2 hours
+    code-length: 6
+    signup-expiration-ms: 7200000   # 2 hours
   
   # 보안 설정
   security:

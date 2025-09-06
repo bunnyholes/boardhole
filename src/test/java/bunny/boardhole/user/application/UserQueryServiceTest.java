@@ -1,24 +1,40 @@
 package bunny.boardhole.user.application;
 
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.support.ResourceBundleMessageSource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.test.util.ReflectionTestUtils;
+
 import bunny.boardhole.shared.exception.ResourceNotFoundException;
 import bunny.boardhole.shared.util.MessageUtils;
 import bunny.boardhole.user.application.mapper.UserMapper;
 import bunny.boardhole.user.application.query.UserQueryService;
 import bunny.boardhole.user.application.result.UserResult;
-import bunny.boardhole.user.domain.*;
+import bunny.boardhole.user.domain.Role;
+import bunny.boardhole.user.domain.User;
 import bunny.boardhole.user.infrastructure.UserRepository;
-import org.junit.jupiter.api.*;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.context.support.ResourceBundleMessageSource;
-import org.springframework.data.domain.*;
-import org.springframework.test.util.ReflectionTestUtils;
 
-import java.util.*;
-
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -45,13 +61,7 @@ class UserQueryServiceTest {
     }
 
     private static User userWithName(String name) {
-        return User.builder()
-                .username(USERNAME)
-                .password(ENCODED_PASSWORD)
-                .name(name)
-                .email(EMAIL)
-                .roles(Set.of(Role.USER))
-                .build();
+        return User.builder().username(USERNAME).password(ENCODED_PASSWORD).name(name).email(EMAIL).roles(Set.of(Role.USER)).build();
     }
 
     private static UserResult userResult() {
@@ -59,7 +69,9 @@ class UserQueryServiceTest {
     }
 
     private static UserResult userResultWithName(String name) {
-        return new UserResult(USER_ID, USERNAME, name, EMAIL, null, null, null, Set.of(Role.USER));
+        // Suppress null warning: test record with null timestamps for testing purposes
+        @SuppressWarnings("DataFlowIssue") UserResult result = new UserResult(USER_ID, USERNAME, name, EMAIL, null, null, null, Set.of(Role.USER));
+        return result;
     }
 
     @BeforeEach
@@ -104,8 +116,7 @@ class UserQueryServiceTest {
             when(userRepository.findById(UserQueryServiceTest.USER_ID)).thenReturn(Optional.empty());
 
             // when & then
-            assertThatThrownBy(() -> userQueryService.get(UserQueryServiceTest.USER_ID))
-                    .isInstanceOf(ResourceNotFoundException.class);
+            assertThatThrownBy(() -> userQueryService.get(UserQueryServiceTest.USER_ID)).isInstanceOf(ResourceNotFoundException.class);
         }
     }
 
@@ -167,8 +178,7 @@ class UserQueryServiceTest {
             ReflectionTestUtils.setField(user, "id", UserQueryServiceTest.USER_ID);
 
             Page<User> page = new PageImpl<>(List.of(user));
-            when(userRepository.findByUsernameContainingIgnoreCaseOrNameContainingIgnoreCaseOrEmailContainingIgnoreCase(
-                    UserQueryServiceTest.USERNAME, UserQueryServiceTest.USERNAME, UserQueryServiceTest.USERNAME, pageable)).thenReturn(page);
+            when(userRepository.findByUsernameContainingIgnoreCaseOrNameContainingIgnoreCaseOrEmailContainingIgnoreCase(UserQueryServiceTest.USERNAME, UserQueryServiceTest.USERNAME, UserQueryServiceTest.USERNAME, pageable)).thenReturn(page);
             UserResult mapped = UserQueryServiceTest.userResult();
             when(userMapper.toResult(user)).thenReturn(mapped);
 
@@ -177,8 +187,7 @@ class UserQueryServiceTest {
 
             // then
             assertThat(result.getContent()).containsExactly(mapped);
-            verify(userRepository).findByUsernameContainingIgnoreCaseOrNameContainingIgnoreCaseOrEmailContainingIgnoreCase(
-                    UserQueryServiceTest.USERNAME, UserQueryServiceTest.USERNAME, UserQueryServiceTest.USERNAME, pageable);
+            verify(userRepository).findByUsernameContainingIgnoreCaseOrNameContainingIgnoreCaseOrEmailContainingIgnoreCase(UserQueryServiceTest.USERNAME, UserQueryServiceTest.USERNAME, UserQueryServiceTest.USERNAME, pageable);
         }
 
         @Test
@@ -186,16 +195,14 @@ class UserQueryServiceTest {
         void shouldReturnEmptyPageWhenNoSearchResults() {
             // given
             Pageable pageable = PageRequest.of(0, 10);
-            when(userRepository.findByUsernameContainingIgnoreCaseOrNameContainingIgnoreCaseOrEmailContainingIgnoreCase(
-                    UserQueryServiceTest.USERNAME, UserQueryServiceTest.USERNAME, UserQueryServiceTest.USERNAME, pageable)).thenReturn(Page.empty(pageable));
+            when(userRepository.findByUsernameContainingIgnoreCaseOrNameContainingIgnoreCaseOrEmailContainingIgnoreCase(UserQueryServiceTest.USERNAME, UserQueryServiceTest.USERNAME, UserQueryServiceTest.USERNAME, pageable)).thenReturn(Page.empty(pageable));
 
             // when
             Page<UserResult> result = userQueryService.listWithPaging(pageable, UserQueryServiceTest.USERNAME);
 
             // then
             assertThat(result).isEmpty();
-            verify(userRepository).findByUsernameContainingIgnoreCaseOrNameContainingIgnoreCaseOrEmailContainingIgnoreCase(
-                    UserQueryServiceTest.USERNAME, UserQueryServiceTest.USERNAME, UserQueryServiceTest.USERNAME, pageable);
+            verify(userRepository).findByUsernameContainingIgnoreCaseOrNameContainingIgnoreCaseOrEmailContainingIgnoreCase(UserQueryServiceTest.USERNAME, UserQueryServiceTest.USERNAME, UserQueryServiceTest.USERNAME, pageable);
         }
     }
 }

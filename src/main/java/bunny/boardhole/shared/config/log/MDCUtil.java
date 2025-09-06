@@ -1,32 +1,29 @@
 package bunny.boardhole.shared.config.log;
 
+import java.util.Optional;
+
 import jakarta.servlet.http.HttpServletRequest;
+
 import lombok.experimental.UtilityClass;
+
 import org.slf4j.MDC;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-
-import java.util.Optional;
 
 @UtilityClass
 class MDCUtil {
 
     void setUserId() {
-        Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication())
-                .filter(Authentication::isAuthenticated)
-                .map(Authentication::getName)
-                .ifPresent(username -> MDC.put("userId", username));
+        Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication()).filter(Authentication::isAuthenticated).map(Authentication::getName).ifPresent(username -> MDC.put("userId", username));
     }
 
     void setSessionId(HttpServletRequest request) {
-        Optional.ofNullable(request.getSession(false))
-                .ifPresent(session -> MDC.put("sessionId", session.getId()));
+        Optional.ofNullable(request.getSession(false)).ifPresent(session -> MDC.put("sessionId", session.getId()));
     }
 
     void setLayer(String layer) {
         MDC.put("layer", layer);
     }
-
 
     void clearRequest() {
         MDC.remove(LogConstants.TRACE_ID_KEY);

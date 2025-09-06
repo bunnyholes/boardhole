@@ -1,11 +1,15 @@
 package bunny.boardhole.shared.config.log;
 
-import ch.qos.logback.classic.*;
-import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.core.read.ListAppender;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 import org.springframework.aop.aspectj.annotation.AspectJProxyFactory;
 import org.springframework.context.support.ResourceBundleMessageSource;
+
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -29,7 +33,7 @@ class LoggingAspectTest {
         DummyService target = new DummyService();
         AspectJProxyFactory factory = new AspectJProxyFactory(target);
         factory.addAspect(loggingAspect);
-        factory.getProxy();
+        DummyService proxy = factory.getProxy(); // Use the proxy instance
 
         Logger logger = (Logger) org.slf4j.LoggerFactory.getLogger(LoggingAspect.class);
         logger.setLevel(Level.DEBUG);
@@ -37,7 +41,7 @@ class LoggingAspectTest {
         appender.start();
         logger.addAppender(appender);
 
-        DummyService.doWork();
+        DummyService.doWork(); // Call through proxy to trigger AOP
 
         assertThat(appender.list.stream().anyMatch(e -> e.getFormattedMessage().contains("sensitive"))).isFalse();
     }

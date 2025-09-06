@@ -1,13 +1,17 @@
 package bunny.boardhole.board.infrastructure;
 
-import bunny.boardhole.board.domain.Board;
-import org.springframework.data.domain.*;
-import org.springframework.data.jpa.repository.*;
+import java.util.Optional;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.validation.annotation.Validated;
 
-import java.util.Optional;
+import bunny.boardhole.board.domain.Board;
 
 /**
  * 게시글 데이터 접근 리포지토리
@@ -24,7 +28,6 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
     @Override
     @EntityGraph(attributePaths = "author")
     Page<Board> findAll(Pageable pageable);
-
 
     /**
      * 키워드로 게시글 검색 (JPQL 사용)

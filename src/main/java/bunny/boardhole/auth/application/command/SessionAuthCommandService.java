@@ -1,5 +1,20 @@
 package bunny.boardhole.auth.application.command;
 
+import jakarta.validation.Valid;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
+
 import bunny.boardhole.auth.application.AuthCommandService;
 import bunny.boardhole.auth.application.mapper.AuthMapper;
 import bunny.boardhole.auth.application.result.AuthResult;
@@ -7,15 +22,6 @@ import bunny.boardhole.shared.exception.UnauthorizedException;
 import bunny.boardhole.shared.security.AppUserPrincipal;
 import bunny.boardhole.shared.util.MessageUtils;
 import bunny.boardhole.user.domain.User;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.authentication.*;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.*;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.validation.annotation.Validated;
 
 /**
  * Session-based authentication provider implementation.
@@ -42,10 +48,7 @@ public class SessionAuthCommandService implements AuthCommandService {
     public AuthResult login(@Valid LoginCommand cmd) {
         try {
             // Spring Security를 통한 인증 처리
-            Authentication authRequest = new UsernamePasswordAuthenticationToken(
-                    cmd.username(),
-                    cmd.password()
-            );
+            Authentication authRequest = new UsernamePasswordAuthenticationToken(cmd.username(), cmd.password());
 
             Authentication authResult = authenticationManager.authenticate(authRequest);
 
@@ -75,7 +78,7 @@ public class SessionAuthCommandService implements AuthCommandService {
     public void logout(@Valid LogoutCommand cmd) {
         // 로그아웃 감사 로그
         log.info("User logout: userId={}", cmd.userId());
-        
+
         // SecurityContext 정리
         SecurityContextHolder.clearContext();
     }

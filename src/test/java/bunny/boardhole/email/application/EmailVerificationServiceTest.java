@@ -1,20 +1,41 @@
 package bunny.boardhole.email.application;
 
-import bunny.boardhole.shared.exception.ResourceNotFoundException;
-import bunny.boardhole.shared.util.MessageUtils;
-import bunny.boardhole.user.domain.*;
-import bunny.boardhole.user.infrastructure.*;
-import org.junit.jupiter.api.*;
-import org.mockito.*;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.List;
+import java.util.Optional;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.time.*;
-import java.util.*;
+import bunny.boardhole.shared.exception.ResourceNotFoundException;
+import bunny.boardhole.shared.util.MessageUtils;
+import bunny.boardhole.user.domain.EmailVerification;
+import bunny.boardhole.user.domain.EmailVerificationType;
+import bunny.boardhole.user.domain.User;
+import bunny.boardhole.user.infrastructure.EmailVerificationRepository;
+import bunny.boardhole.user.infrastructure.UserRepository;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyLong;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 @Tag("unit")
 class EmailVerificationServiceTest {
@@ -36,7 +57,11 @@ class EmailVerificationServiceTest {
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
+        try (var ignored = MockitoAnnotations.openMocks(this)) {
+            // Mocks will be cleaned up automatically
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to setup mocks", e);
+        }
 
         // MessageUtils 초기화
         ResourceBundleMessageSource ms = new ResourceBundleMessageSource();
@@ -49,22 +74,11 @@ class EmailVerificationServiceTest {
         ReflectionTestUtils.setField(service, "verificationExpirationMs", 3600000L); // 1시간
 
         // 테스트 데이터 준비
-        user = User.builder()
-                .username("testuser")
-                .password("password")
-                .name("Test User")
-                .email("test@example.com")
-                .build();
+        user = User.builder().username("testuser").password("password").name("Test User").email("test@example.com").build();
         ReflectionTestUtils.setField(user, "id", 1L);
         ReflectionTestUtils.setField(user, "emailVerified", false);
 
-        emailVerification = EmailVerification.builder()
-                .code("test-token-123")
-                .userId(1L)
-                .newEmail("test@example.com")
-                .expiresAt(LocalDateTime.now(ZoneId.systemDefault()).plusHours(1))
-                .verificationType(EmailVerificationType.SIGNUP)
-                .build();
+        emailVerification = EmailVerification.builder().code("test-token-123").userId(1L).newEmail("test@example.com").expiresAt(LocalDateTime.now(ZoneId.systemDefault()).plusHours(1)).verificationType(EmailVerificationType.SIGNUP).build();
         ReflectionTestUtils.setField(emailVerification, "used", false);
     }
 
@@ -83,15 +97,13 @@ class EmailVerificationServiceTest {
             User spyUser = spy(user);
             EmailVerification spyVerification = spy(emailVerification);
 
-            given(emailVerificationRepository.findByCodeAndUsedFalse(token))
-                    .willReturn(Optional.of(spyVerification));
+            given(emailVerificationRepository.findByCodeAndUsedFalse(token)).willReturn(Optional.of(spyVerification));
             given(userRepository.findById(userId)).willReturn(Optional.of(spyUser));
             given(userRepository.save(any(User.class))).willReturn(spyUser);
-            given(emailVerificationRepository.save(any(EmailVerification.class)))
-                    .willReturn(spyVerification);
+            given(emailVerificationRepository.save(any(EmailVerification.class))).willReturn(spyVerification);
 
             // When
-            String result = service.verifyEmail(userId, token);
+            String result = service.verifyEmail(token);
 
             // Then
             assertThat(result).contains("이메일 인증이 완료되었습니다");
@@ -118,28 +130,20 @@ class EmailVerificationServiceTest {
             final String token = "change-token-456";
             final String newEmail = "newemail@example.com";
 
-            EmailVerification changeVerification = EmailVerification.builder()
-                    .code(token)
-                    .userId(userId)
-                    .newEmail(newEmail)
-                    .expiresAt(LocalDateTime.now(ZoneId.systemDefault()).plusHours(1))
-                    .verificationType(EmailVerificationType.CHANGE_EMAIL)
-                    .build();
+            EmailVerification changeVerification = EmailVerification.builder().code(token).userId(userId).newEmail(newEmail).expiresAt(LocalDateTime.now(ZoneId.systemDefault()).plusHours(1)).verificationType(EmailVerificationType.CHANGE_EMAIL).build();
             ReflectionTestUtils.setField(changeVerification, "used", false);
 
             // User와 EmailVerification을 spy로 생성
             User spyUser = spy(user);
             EmailVerification spyVerification = spy(changeVerification);
 
-            given(emailVerificationRepository.findByCodeAndUsedFalse(token))
-                    .willReturn(Optional.of(spyVerification));
+            given(emailVerificationRepository.findByCodeAndUsedFalse(token)).willReturn(Optional.of(spyVerification));
             given(userRepository.findById(userId)).willReturn(Optional.of(spyUser));
             given(userRepository.save(any(User.class))).willReturn(spyUser);
-            given(emailVerificationRepository.save(any(EmailVerification.class)))
-                    .willReturn(spyVerification);
+            given(emailVerificationRepository.save(any(EmailVerification.class))).willReturn(spyVerification);
 
             // When
-            String result = service.verifyEmail(userId, token);
+            String result = service.verifyEmail(token);
 
             // Then
             assertThat(result).contains("이메일 인증이 완료되었습니다");
@@ -158,13 +162,10 @@ class EmailVerificationServiceTest {
             final Long userId = 1L;
             final String invalidToken = "invalid-token";
 
-            given(emailVerificationRepository.findByCodeAndUsedFalse(invalidToken))
-                    .willReturn(Optional.empty());
+            given(emailVerificationRepository.findByCodeAndUsedFalse(invalidToken)).willReturn(Optional.empty());
 
             // When & Then
-            assertThatThrownBy(() -> service.verifyEmail(userId, invalidToken))
-                    .isInstanceOf(ResourceNotFoundException.class)
-                    .hasMessageContaining("유효하지 않은 인증 토큰");
+            assertThatThrownBy(() -> service.verifyEmail(invalidToken)).isInstanceOf(ResourceNotFoundException.class).hasMessageContaining("유효하지 않은 인증 토큰");
 
             verify(emailVerificationRepository).findByCodeAndUsedFalse(invalidToken);
             verify(userRepository, never()).findById(anyLong());
@@ -178,22 +179,14 @@ class EmailVerificationServiceTest {
             final Long userId = 1L;
             final String token = "expired-token";
 
-            EmailVerification expiredVerification = EmailVerification.builder()
-                    .code(token)
-                    .userId(userId)
-                    .newEmail("test@example.com")
-                    .expiresAt(LocalDateTime.now(ZoneId.systemDefault()).minusHours(1)) // 만료됨
-                    .verificationType(EmailVerificationType.SIGNUP)
-                    .build();
+            EmailVerification expiredVerification = EmailVerification.builder().code(token).userId(userId).newEmail("test@example.com").expiresAt(LocalDateTime.now(ZoneId.systemDefault()).minusHours(1)) // 만료됨
+                    .verificationType(EmailVerificationType.SIGNUP).build();
             ReflectionTestUtils.setField(expiredVerification, "used", false);
 
-            given(emailVerificationRepository.findByCodeAndUsedFalse(token))
-                    .willReturn(Optional.of(expiredVerification));
+            given(emailVerificationRepository.findByCodeAndUsedFalse(token)).willReturn(Optional.of(expiredVerification));
 
             // When & Then
-            assertThatThrownBy(() -> service.verifyEmail(userId, token))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("만료된 인증 토큰");
+            assertThatThrownBy(() -> service.verifyEmail(token)).isInstanceOf(IllegalArgumentException.class).hasMessageContaining("만료된 인증 토큰");
 
             verify(emailVerificationRepository).findByCodeAndUsedFalse(token);
             verify(userRepository, never()).findById(anyLong());
@@ -207,14 +200,11 @@ class EmailVerificationServiceTest {
             final Long userId = 999L;
             final String token = "test-token-123";
 
-            given(emailVerificationRepository.findByCodeAndUsedFalse(token))
-                    .willReturn(Optional.of(emailVerification));
+            given(emailVerificationRepository.findByCodeAndUsedFalse(token)).willReturn(Optional.of(emailVerification));
             given(userRepository.findById(1L)).willReturn(Optional.empty());
 
             // When & Then
-            assertThatThrownBy(() -> service.verifyEmail(userId, token))
-                    .isInstanceOf(ResourceNotFoundException.class)
-                    .hasMessageContaining("User not found");
+            assertThatThrownBy(() -> service.verifyEmail(token)).isInstanceOf(ResourceNotFoundException.class).hasMessageContaining("User not found");
 
             verify(emailVerificationRepository).findByCodeAndUsedFalse(token);
             verify(userRepository).findById(1L);
@@ -229,13 +219,10 @@ class EmailVerificationServiceTest {
             final String token = "used-token";
 
             // findByCodeAndUsedFalse는 사용되지 않은 토큰만 반환하므로 빈 결과
-            given(emailVerificationRepository.findByCodeAndUsedFalse(token))
-                    .willReturn(Optional.empty());
+            given(emailVerificationRepository.findByCodeAndUsedFalse(token)).willReturn(Optional.empty());
 
             // When & Then
-            assertThatThrownBy(() -> service.verifyEmail(userId, token))
-                    .isInstanceOf(ResourceNotFoundException.class)
-                    .hasMessageContaining("유효하지 않은 인증 토큰");
+            assertThatThrownBy(() -> service.verifyEmail(token)).isInstanceOf(ResourceNotFoundException.class).hasMessageContaining("유효하지 않은 인증 토큰");
 
             verify(emailVerificationRepository).findByCodeAndUsedFalse(token);
             verify(userRepository, never()).findById(anyLong());
@@ -255,10 +242,8 @@ class EmailVerificationServiceTest {
             List<EmailVerification> existingVerifications = List.of(spyVerification);
 
             given(userRepository.findById(userId)).willReturn(Optional.of(user));
-            given(emailVerificationRepository.findByUserIdAndUsedFalse(userId))
-                    .willReturn(existingVerifications);
-            given(emailVerificationRepository.save(any(EmailVerification.class)))
-                    .willAnswer(invocation -> invocation.getArgument(0));
+            given(emailVerificationRepository.findByUserIdAndUsedFalse(userId)).willReturn(existingVerifications);
+            given(emailVerificationRepository.save(any(EmailVerification.class))).willAnswer(invocation -> invocation.getArgument(0));
 
             // When
             String result = service.resendVerificationEmail(userId);
@@ -284,21 +269,14 @@ class EmailVerificationServiceTest {
         void resendVerificationEmail_AlreadyVerified_ThrowsIllegalArgumentException() {
             // Given
             final Long userId = 1L;
-            User verifiedUser = User.builder()
-                    .username("verified")
-                    .password("password")
-                    .name("Verified User")
-                    .email("verified@example.com")
-                    .build();
+            User verifiedUser = User.builder().username("verified").password("password").name("Verified User").email("verified@example.com").build();
             ReflectionTestUtils.setField(verifiedUser, "id", userId);
             ReflectionTestUtils.setField(verifiedUser, "emailVerified", true);
 
             given(userRepository.findById(userId)).willReturn(Optional.of(verifiedUser));
 
             // When & Then
-            assertThatThrownBy(() -> service.resendVerificationEmail(userId))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("이미 인증된 사용자");
+            assertThatThrownBy(() -> service.resendVerificationEmail(userId)).isInstanceOf(IllegalArgumentException.class).hasMessageContaining("이미 인증된 사용자");
 
             verify(userRepository).findById(userId);
             verify(emailVerificationRepository, never()).findByUserIdAndUsedFalse(anyLong());
@@ -314,9 +292,7 @@ class EmailVerificationServiceTest {
             given(userRepository.findById(userId)).willReturn(Optional.empty());
 
             // When & Then
-            assertThatThrownBy(() -> service.resendVerificationEmail(userId))
-                    .isInstanceOf(ResourceNotFoundException.class)
-                    .hasMessageContaining("User not found");
+            assertThatThrownBy(() -> service.resendVerificationEmail(userId)).isInstanceOf(ResourceNotFoundException.class).hasMessageContaining("User not found");
 
             verify(userRepository).findById(userId);
             verify(emailVerificationRepository, never()).findByUserIdAndUsedFalse(anyLong());
@@ -331,10 +307,8 @@ class EmailVerificationServiceTest {
             List<EmailVerification> emptyList = List.of();
 
             given(userRepository.findById(userId)).willReturn(Optional.of(user));
-            given(emailVerificationRepository.findByUserIdAndUsedFalse(userId))
-                    .willReturn(emptyList);
-            given(emailVerificationRepository.save(any(EmailVerification.class)))
-                    .willAnswer(invocation -> invocation.getArgument(0));
+            given(emailVerificationRepository.findByUserIdAndUsedFalse(userId)).willReturn(emptyList);
+            given(emailVerificationRepository.save(any(EmailVerification.class))).willAnswer(invocation -> invocation.getArgument(0));
 
             // When
             String result = service.resendVerificationEmail(userId);
@@ -362,15 +336,11 @@ class EmailVerificationServiceTest {
             EmailVerification verification2 = mock(EmailVerification.class);
             EmailVerification verification3 = mock(EmailVerification.class);
 
-            List<EmailVerification> existingVerifications = List.of(
-                    verification1, verification2, verification3
-            );
+            List<EmailVerification> existingVerifications = List.of(verification1, verification2, verification3);
 
             given(userRepository.findById(userId)).willReturn(Optional.of(user));
-            given(emailVerificationRepository.findByUserIdAndUsedFalse(userId))
-                    .willReturn(existingVerifications);
-            given(emailVerificationRepository.save(any(EmailVerification.class)))
-                    .willAnswer(invocation -> invocation.getArgument(0));
+            given(emailVerificationRepository.findByUserIdAndUsedFalse(userId)).willReturn(existingVerifications);
+            given(emailVerificationRepository.save(any(EmailVerification.class))).willAnswer(invocation -> invocation.getArgument(0));
 
             // When
             String result = service.resendVerificationEmail(userId);

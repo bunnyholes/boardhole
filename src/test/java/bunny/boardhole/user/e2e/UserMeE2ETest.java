@@ -1,9 +1,15 @@
 package bunny.boardhole.user.e2e;
 
-import bunny.boardhole.testsupport.config.*;
-import bunny.boardhole.testsupport.e2e.*;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.Import;
+
+import bunny.boardhole.testsupport.config.TestEmailConfig;
+import bunny.boardhole.testsupport.config.TestSecurityOverrides;
+import bunny.boardhole.testsupport.e2e.AuthSteps;
+import bunny.boardhole.testsupport.e2e.E2ETestBase;
+import bunny.boardhole.testsupport.e2e.SessionCookie;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
@@ -17,12 +23,7 @@ class UserMeE2ETest extends E2ETestBase {
     @Test
     @DisplayName("미인증은 401 ProblemDetails")
     void me_Unauthorized() {
-        given()
-                .when()
-                .get("users/me")
-                .then()
-                .statusCode(401)
-                .body("type", equalTo("urn:problem-type:unauthorized"));
+        given().when().get("users/me").then().statusCode(401).body("type", equalTo("urn:problem-type:unauthorized"));
     }
 
     @Test
@@ -35,14 +36,7 @@ class UserMeE2ETest extends E2ETestBase {
         AuthSteps.signup(u, p, "Me User", e);
         SessionCookie sc = AuthSteps.login(u, p);
 
-        given()
-                .cookie(sc.name(), sc.value())
-                .when()
-                .get("users/me")
-                .then()
-                .statusCode(200)
-                .body("username", equalTo(u))
-                .body("email", equalTo(e));
+        given().cookie(sc.name(), sc.value()).when().get("users/me").then().statusCode(200).body("username", equalTo(u)).body("email", equalTo(e));
     }
 }
 

@@ -1,22 +1,33 @@
 package bunny.boardhole.user.domain;
 
-import bunny.boardhole.shared.domain.BaseEntity;
-import bunny.boardhole.shared.util.MessageUtils;
-import jakarta.persistence.*;
-import lombok.*;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
 import org.springframework.util.Assert;
 
-import java.time.*;
+import bunny.boardhole.shared.domain.BaseEntity;
+import bunny.boardhole.shared.util.MessageUtils;
 
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 @Entity
-@Table(name = "email_verifications", indexes = {
-        @Index(name = "idx_email_verification_user_id", columnList = "user_id"),
-        @Index(name = "idx_email_verification_expires_at", columnList = "expires_at")
-})
+@Table(name = "email_verifications", indexes = {@Index(name = "idx_email_verification_user_id", columnList = "user_id"), @Index(name = "idx_email_verification_expires_at", columnList = "expires_at")})
 public class EmailVerification extends BaseEntity {
 
     @Id
@@ -40,8 +51,7 @@ public class EmailVerification extends BaseEntity {
     private boolean used;
 
     @Builder
-    public EmailVerification(String code, Long userId, String newEmail,
-                             LocalDateTime expiresAt, EmailVerificationType verificationType) {
+    public EmailVerification(String code, Long userId, String newEmail, LocalDateTime expiresAt, EmailVerificationType verificationType) {
         Assert.hasText(code, MessageUtils.get("validation.email.verification.code.required"));
         Assert.notNull(userId, MessageUtils.get("validation.email.verification.userId.required"));
         Assert.hasText(newEmail, MessageUtils.get("validation.email.verification.newEmail.required"));
@@ -55,7 +65,6 @@ public class EmailVerification extends BaseEntity {
         this.verificationType = verificationType;
         used = false;
     }
-
 
     public void markAsUsed() {
         Assert.state(!used, MessageUtils.get("validation.email.verification.already-used"));

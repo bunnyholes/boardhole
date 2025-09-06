@@ -1,16 +1,26 @@
 package bunny.boardhole.user.infrastructure;
 
-import bunny.boardhole.shared.config.TestJpaConfig;
-import bunny.boardhole.user.domain.*;
-import org.junit.jupiter.api.*;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.List;
+import java.util.Optional;
+
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.time.*;
-import java.util.*;
+import bunny.boardhole.shared.config.TestJpaConfig;
+import bunny.boardhole.user.domain.EmailVerification;
+import bunny.boardhole.user.domain.EmailVerificationType;
+import bunny.boardhole.user.domain.User;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -36,53 +46,25 @@ class EmailVerificationRepositoryTest {
     @BeforeEach
     void setUp() {
         // 테스트 사용자 생성
-        user1 = User.builder()
-                .username("testuser1")
-                .password("password123")
-                .name("Test User 1")
-                .email("test1@example.com")
-                .build();
+        user1 = User.builder().username("testuser1").password("password123").name("Test User 1").email("test1@example.com").build();
         user1 = userRepository.save(user1);
 
-        user2 = User.builder()
-                .username("testuser2")
-                .password("password456")
-                .name("Test User 2")
-                .email("test2@example.com")
-                .build();
+        user2 = User.builder().username("testuser2").password("password456").name("Test User 2").email("test2@example.com").build();
         user2 = userRepository.save(user2);
 
         // 테스트 이메일 검증 데이터 생성
         LocalDateTime now = LocalDateTime.now(ZoneId.systemDefault());
 
         // 유효한 검증 정보
-        verification1 = EmailVerification.builder()
-                .code("valid-token-123")
-                .userId(user1.getId())
-                .newEmail("test1@example.com")
-                .expiresAt(now.plusHours(1))
-                .verificationType(EmailVerificationType.SIGNUP)
-                .build();
+        verification1 = EmailVerification.builder().code("valid-token-123").userId(user1.getId()).newEmail("test1@example.com").expiresAt(now.plusHours(1)).verificationType(EmailVerificationType.SIGNUP).build();
         verification1 = emailVerificationRepository.save(verification1);
 
         // 만료된 검증 정보
-        verification2 = EmailVerification.builder()
-                .code("expired-token-456")
-                .userId(user1.getId())
-                .newEmail("test1@example.com")
-                .expiresAt(now.minusHours(1))
-                .verificationType(EmailVerificationType.SIGNUP)
-                .build();
+        verification2 = EmailVerification.builder().code("expired-token-456").userId(user1.getId()).newEmail("test1@example.com").expiresAt(now.minusHours(1)).verificationType(EmailVerificationType.SIGNUP).build();
         verification2 = emailVerificationRepository.save(verification2);
 
         // 다른 사용자의 검증 정보
-        verification3 = EmailVerification.builder()
-                .code("another-token-789")
-                .userId(user2.getId())
-                .newEmail("new@example.com")
-                .expiresAt(now.plusHours(2))
-                .verificationType(EmailVerificationType.CHANGE_EMAIL)
-                .build();
+        verification3 = EmailVerification.builder().code("another-token-789").userId(user2.getId()).newEmail("new@example.com").expiresAt(now.plusHours(2)).verificationType(EmailVerificationType.CHANGE_EMAIL).build();
         verification3 = emailVerificationRepository.save(verification3);
     }
 
@@ -103,8 +85,7 @@ class EmailVerificationRepositoryTest {
             LocalDateTime now = LocalDateTime.now(ZoneId.systemDefault());
 
             // When
-            Optional<EmailVerification> found = emailVerificationRepository.findValidVerification(
-                    user1.getId(), "valid-token-123", now);
+            Optional<EmailVerification> found = emailVerificationRepository.findValidVerification(user1.getId(), "valid-token-123", now);
 
             // Then
             assertThat(found).isPresent();
@@ -121,8 +102,7 @@ class EmailVerificationRepositoryTest {
             LocalDateTime now = LocalDateTime.now(ZoneId.systemDefault());
 
             // When
-            Optional<EmailVerification> found = emailVerificationRepository.findValidVerification(
-                    user1.getId(), "expired-token-456", now);
+            Optional<EmailVerification> found = emailVerificationRepository.findValidVerification(user1.getId(), "expired-token-456", now);
 
             // Then
             assertThat(found).isEmpty();
@@ -137,8 +117,7 @@ class EmailVerificationRepositoryTest {
             LocalDateTime now = LocalDateTime.now(ZoneId.systemDefault());
 
             // When
-            Optional<EmailVerification> found = emailVerificationRepository.findValidVerification(
-                    user1.getId(), "valid-token-123", now);
+            Optional<EmailVerification> found = emailVerificationRepository.findValidVerification(user1.getId(), "valid-token-123", now);
 
             // Then
             assertThat(found).isEmpty();
@@ -151,8 +130,7 @@ class EmailVerificationRepositoryTest {
             LocalDateTime now = LocalDateTime.now(ZoneId.systemDefault());
 
             // When
-            Optional<EmailVerification> found = emailVerificationRepository.findValidVerification(
-                    user2.getId(), "valid-token-123", now);
+            Optional<EmailVerification> found = emailVerificationRepository.findValidVerification(user2.getId(), "valid-token-123", now);
 
             // Then
             assertThat(found).isEmpty();
@@ -212,9 +190,7 @@ class EmailVerificationRepositoryTest {
 
             // Then
             assertThat(verifications).hasSize(2); // valid-token-123, expired-token-456
-            assertThat(verifications)
-                    .extracting(EmailVerification::getCode)
-                    .containsExactlyInAnyOrder("valid-token-123", "expired-token-456");
+            assertThat(verifications).extracting(EmailVerification::getCode).containsExactlyInAnyOrder("valid-token-123", "expired-token-456");
         }
 
         @Test
@@ -229,19 +205,14 @@ class EmailVerificationRepositoryTest {
 
             // Then
             assertThat(verifications).hasSize(1);
-            assertThat(verifications.get(0).getCode()).isEqualTo("expired-token-456");
+            assertThat(verifications.getFirst().getCode()).isEqualTo("expired-token-456");
         }
 
         @Test
         @DisplayName("검증 정보가 없는 사용자 조회 시 빈 목록")
         void findByUserIdAndUsedFalse_NoVerifications_ReturnsEmptyList() {
             // Given
-            User newUser = User.builder()
-                    .username("newuser")
-                    .password("password")
-                    .name("New User")
-                    .email("new@example.com")
-                    .build();
+            User newUser = User.builder().username("newuser").password("password").name("New User").email("new@example.com").build();
             newUser = userRepository.save(newUser);
 
             // When
@@ -274,7 +245,7 @@ class EmailVerificationRepositoryTest {
 
             List<EmailVerification> remaining = emailVerificationRepository.findAll();
             assertThat(remaining).hasSize(1);
-            assertThat(remaining.get(0).getCode()).isEqualTo("valid-token-123");
+            assertThat(remaining.getFirst().getCode()).isEqualTo("valid-token-123");
         }
 
         @Test
@@ -341,13 +312,7 @@ class EmailVerificationRepositoryTest {
         void save_NewVerification_CreatesSuccessfully() {
             // Given
             LocalDateTime expiresAt = LocalDateTime.now(ZoneId.systemDefault()).plusHours(1);
-            EmailVerification newVerification = EmailVerification.builder()
-                    .code("new-token-999")
-                    .userId(user1.getId())
-                    .newEmail("newemail@example.com")
-                    .expiresAt(expiresAt)
-                    .verificationType(EmailVerificationType.CHANGE_EMAIL)
-                    .build();
+            EmailVerification newVerification = EmailVerification.builder().code("new-token-999").userId(user1.getId()).newEmail("newemail@example.com").expiresAt(expiresAt).verificationType(EmailVerificationType.CHANGE_EMAIL).build();
 
             // When
             EmailVerification saved = emailVerificationRepository.save(newVerification);

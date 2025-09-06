@@ -1,19 +1,30 @@
 package bunny.boardhole.email.application;
 
-import bunny.boardhole.email.domain.EmailTemplate;
-import bunny.boardhole.email.infrastructure.SmtpEmailService;
-import bunny.boardhole.user.domain.*;
+import java.util.Set;
+
 import jakarta.mail.internet.MimeMessage;
-import org.junit.jupiter.api.*;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.*;
+import org.mockito.ArgumentMatchers;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.util.Set;
+import bunny.boardhole.email.domain.EmailTemplate;
+import bunny.boardhole.email.infrastructure.SmtpEmailService;
+import bunny.boardhole.user.domain.Role;
+import bunny.boardhole.user.domain.User;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class EmailServiceMockTest {
@@ -23,7 +34,6 @@ class EmailServiceMockTest {
 
     @Mock
     private EmailTemplateService templateService;
-
 
     @Mock
     private MimeMessage mimeMessage;
@@ -35,13 +45,7 @@ class EmailServiceMockTest {
 
     @BeforeEach
     void setUp() {
-        testUser = User.builder()
-                .username("testuser")
-                .password("password")
-                .name("테스트 사용자")
-                .email("test@example.com")
-                .roles(Set.of(Role.USER))
-                .build();
+        testUser = User.builder().username("testuser").password("password").name("테스트 사용자").email("test@example.com").roles(Set.of(Role.USER)).build();
 
         when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
         doNothing().when(mailSender).send(any(MimeMessage.class));
@@ -58,8 +62,7 @@ class EmailServiceMockTest {
         final String verificationToken = "test-token-123";
         final String processedTemplate = "<html>인증 이메일 내용</html>";
 
-        when(templateService.processTemplate(eq(EmailTemplate.SIGNUP_VERIFICATION), ArgumentMatchers.any()))
-                .thenReturn(processedTemplate);
+        when(templateService.processTemplate(eq(EmailTemplate.SIGNUP_VERIFICATION), ArgumentMatchers.any())).thenReturn(processedTemplate);
 
         // when
         emailService.sendSignupVerificationEmail(testUser, verificationToken);
@@ -75,8 +78,7 @@ class EmailServiceMockTest {
         // given
         final String processedTemplate = "<html>환영 이메일 내용</html>";
 
-        when(templateService.processTemplate(eq(EmailTemplate.WELCOME), ArgumentMatchers.any()))
-                .thenReturn(processedTemplate);
+        when(templateService.processTemplate(eq(EmailTemplate.WELCOME), ArgumentMatchers.any())).thenReturn(processedTemplate);
 
         // when
         emailService.sendWelcomeEmail(testUser);
@@ -94,8 +96,7 @@ class EmailServiceMockTest {
         final String verificationToken = "change-token-123";
         final String processedTemplate = "<html>이메일 변경 인증 내용</html>";
 
-        when(templateService.processTemplate(eq(EmailTemplate.EMAIL_CHANGE_VERIFICATION), ArgumentMatchers.any()))
-                .thenReturn(processedTemplate);
+        when(templateService.processTemplate(eq(EmailTemplate.EMAIL_CHANGE_VERIFICATION), ArgumentMatchers.any())).thenReturn(processedTemplate);
 
         // when
         emailService.sendEmailChangeVerificationEmail(testUser, newEmail, verificationToken);

@@ -1,15 +1,21 @@
 package bunny.boardhole.shared.config.log;
 
-import bunny.boardhole.shared.util.MessageUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.aspectj.lang.JoinPoint;
-import org.aspectj.lang.annotation.*;
+import org.aspectj.lang.annotation.AfterReturning;
+import org.aspectj.lang.annotation.AfterThrowing;
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Before;
+import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+
+import bunny.boardhole.shared.util.MessageUtils;
 
 @Slf4j
 @Aspect
@@ -19,7 +25,6 @@ import org.springframework.stereotype.Component;
 // 보안 로깅은 높은 우선순위
 @RequiredArgsConstructor
 public class SecurityLoggingAspect {
-
 
     /**
      * 인증 관련 메소드 포인트컷
@@ -71,8 +76,7 @@ public class SecurityLoggingAspect {
         String username = getCurrentUsername();
         String clientIp = MDCUtil.getClientIp();
 
-        log.warn(MessageUtils.get("log.security.auth.failure",
-                method, username, ex.getMessage(), clientIp));
+        log.warn(MessageUtils.get("log.security.auth.failure", method, username, ex.getMessage(), clientIp));
     }
 
     @Before("authorizedMethods()")
@@ -80,7 +84,8 @@ public class SecurityLoggingAspect {
         String method = joinPoint.getSignature().toShortString();
         String username = getCurrentUsername();
 
-        if (log.isDebugEnabled()) log.debug(MessageUtils.get("log.security.authorized.access", method, username));
+        if (log.isDebugEnabled())
+            log.debug(MessageUtils.get("log.security.authorized.access", method, username));
     }
 
     private String getCurrentUsername() {

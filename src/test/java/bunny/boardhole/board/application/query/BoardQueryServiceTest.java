@@ -1,5 +1,26 @@
 package bunny.boardhole.board.application.query;
 
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.support.ResourceBundleMessageSource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.test.util.ReflectionTestUtils;
+
 import bunny.boardhole.board.application.event.ViewedEvent;
 import bunny.boardhole.board.application.mapper.BoardMapper;
 import bunny.boardhole.board.application.result.BoardResult;
@@ -8,19 +29,13 @@ import bunny.boardhole.board.infrastructure.BoardRepository;
 import bunny.boardhole.shared.exception.ResourceNotFoundException;
 import bunny.boardhole.shared.util.MessageUtils;
 import bunny.boardhole.user.domain.User;
-import org.junit.jupiter.api.*;
-import org.mockito.*;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.support.ResourceBundleMessageSource;
-import org.springframework.data.domain.*;
-import org.springframework.test.util.ReflectionTestUtils;
 
-import java.time.LocalDateTime;
-import java.util.*;
-
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 @Tag("unit")
 class BoardQueryServiceTest {
@@ -37,13 +52,16 @@ class BoardQueryServiceTest {
     @InjectMocks
     private BoardQueryService service;
 
-    private User author;
     private Board board;
     private BoardResult boardResult;
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
+        try (var ignored = MockitoAnnotations.openMocks(this)) {
+            // Mocks will be cleaned up automatically
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to setup mocks", e);
+        }
 
         // MessageUtils 초기화
         ResourceBundleMessageSource ms = new ResourceBundleMessageSource();
@@ -53,32 +71,15 @@ class BoardQueryServiceTest {
         ReflectionTestUtils.setField(MessageUtils.class, "messageSource", ms);
 
         // 테스트 데이터 준비
-        author = User.builder()
-                .username("testuser")
-                .password("password")
-                .name("Test User")
-                .email("test@example.com")
-                .build();
+        User author = User.builder().username("testuser").password("password").name("Test User").email("test@example.com").build();
         ReflectionTestUtils.setField(author, "id", 1L);
 
-        board = Board.builder()
-                .title("Test Board")
-                .content("Test Content")
-                .author(author)
-                .build();
+        board = Board.builder().title("Test Board").content("Test Content").author(author).build();
         ReflectionTestUtils.setField(board, "id", 1L);
         ReflectionTestUtils.setField(board, "viewCount", 0);
         ReflectionTestUtils.setField(board, "createdAt", LocalDateTime.now());
 
-        boardResult = new BoardResult(
-                1L,
-                "Test Board",
-                "Test Content",
-                1L,
-                "testuser",
-                0,
-                LocalDateTime.now(),
-                LocalDateTime.now());
+        boardResult = new BoardResult(1L, "Test Board", "Test Content", 1L, "testuser", 0, LocalDateTime.now(), LocalDateTime.now());
     }
 
     @Nested
@@ -89,7 +90,7 @@ class BoardQueryServiceTest {
         @DisplayName("존재하는 게시글 조회 시 결과 반환 및 조회 이벤트 발행")
         void handle_ExistingBoard_ReturnsResultAndPublishesEvent() {
             // Given
-            Long boardId = 1L;
+            final Long boardId = 1L;
             GetBoardQuery query = new GetBoardQuery(boardId);
             ViewedEvent viewedEvent = new ViewedEvent(boardId);
 
@@ -117,15 +118,13 @@ class BoardQueryServiceTest {
         @DisplayName("존재하지 않는 게시글 조회 시 ResourceNotFoundException 발생")
         void handle_NonExistingBoard_ThrowsResourceNotFoundException() {
             // Given
-            Long boardId = 999L;
+            final Long boardId = 999L;
             GetBoardQuery query = new GetBoardQuery(boardId);
 
             given(boardRepository.findById(boardId)).willReturn(Optional.empty());
 
             // When & Then
-            assertThatThrownBy(() -> service.handle(query))
-                    .isInstanceOf(ResourceNotFoundException.class)
-                    .hasMessageContaining("999");
+            assertThatThrownBy(() -> service.handle(query)).isInstanceOf(ResourceNotFoundException.class).hasMessageContaining("999");
 
             verify(boardRepository).findById(boardId);
             verify(boardMapper, never()).toResult(any());
@@ -158,7 +157,7 @@ class BoardQueryServiceTest {
             assertThat(result.getNumber()).isEqualTo(0);
             assertThat(result.getSize()).isEqualTo(10);
 
-            BoardResult firstResult = result.getContent().get(0);
+            BoardResult firstResult = result.getContent().getFirst();
             assertThat(firstResult.title()).isEqualTo("Test Board");
 
             verify(boardRepository).findAll(pageable);
@@ -195,7 +194,7 @@ class BoardQueryServiceTest {
         @DisplayName("검색어로 게시글 목록 조회")
         void listWithPaging_WithSearch_ReturnsFilteredResults() {
             // Given
-            String searchKeyword = "Test";
+            final String searchKeyword = "Test";
             Pageable pageable = PageRequest.of(0, 10);
             List<Board> boards = List.of(board);
             Page<Board> boardPage = new PageImpl<>(boards, pageable, 1);
@@ -209,7 +208,7 @@ class BoardQueryServiceTest {
             // Then
             assertThat(result).isNotNull();
             assertThat(result.getContent()).hasSize(1);
-            assertThat(result.getContent().get(0).title()).contains("Test");
+            assertThat(result.getContent().getFirst().title()).contains("Test");
 
             verify(boardRepository).searchByKeyword(searchKeyword, pageable);
             verify(boardMapper).toResult(board);
@@ -219,7 +218,7 @@ class BoardQueryServiceTest {
         @DisplayName("검색 결과가 없는 경우 빈 페이지 반환")
         void listWithPaging_NoSearchResults_ReturnsEmptyPage() {
             // Given
-            String searchKeyword = "NonExistent";
+            final String searchKeyword = "NonExistent";
             Pageable pageable = PageRequest.of(0, 10);
             Page<Board> emptyPage = Page.empty(pageable);
 
@@ -241,7 +240,7 @@ class BoardQueryServiceTest {
         @DisplayName("빈 검색어로 검색 시 전체 목록 반환")
         void listWithPaging_EmptySearch_ReturnsAllResults() {
             // Given
-            String searchKeyword = "";
+            final String searchKeyword = "";
             Pageable pageable = PageRequest.of(0, 10);
             List<Board> boards = List.of(board);
             Page<Board> boardPage = new PageImpl<>(boards, pageable, 1);

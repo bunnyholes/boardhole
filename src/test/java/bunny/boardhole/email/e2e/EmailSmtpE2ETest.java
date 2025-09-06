@@ -1,23 +1,34 @@
 package bunny.boardhole.email.e2e;
 
+import java.util.List;
+
+import jakarta.mail.internet.MimeUtility;
+
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
+
 import bunny.boardhole.email.application.EmailService;
 import bunny.boardhole.email.domain.EmailMessage;
 import bunny.boardhole.email.infrastructure.SmtpEmailService;
 import bunny.boardhole.user.domain.User;
 import bunny.boardhole.user.infrastructure.UserRepository;
-import io.restassured.RestAssured;
-import io.restassured.response.Response;
-import jakarta.mail.internet.MimeUtility;
-import org.junit.jupiter.api.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.test.context.*;
-import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.junit.jupiter.*;
-import org.testcontainers.utility.DockerImageName;
 
-import java.util.*;
+import io.restassured.RestAssured;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -33,10 +44,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class EmailSmtpE2ETest {
 
     @Container
-    private static final GenericContainer<?> mailhog =
-            new GenericContainer<>(DockerImageName.parse("mailhog/mailhog:latest"))
-                    .withExposedPorts(1025, 8025); // SMTP: 1025, HTTP API: 8025
-
+    private static final GenericContainer<?> mailhog = createMailhogContainer();
     @LocalServerPort
     private int port;
     @Autowired
@@ -45,6 +53,11 @@ class EmailSmtpE2ETest {
     private UserRepository userRepository;
     private User testUser;
     private String mailhogApiUrl;
+
+    @SuppressWarnings("resource") // Testcontainers @Container annotation manages lifecycle automatically
+    private static GenericContainer<?> createMailhogContainer() {
+        return new GenericContainer<>(DockerImageName.parse("mailhog/mailhog:latest")).withExposedPorts(1025, 8025); // SMTP: 1025, HTTP API: 8025
+    }
 
     @DynamicPropertySource
     static void mailProperties(DynamicPropertyRegistry registry) {
@@ -82,13 +95,7 @@ class EmailSmtpE2ETest {
 
         // 테스트 사용자 생성 (username 길이 제한 고려)
         String uniquePrefix = "smtp_" + (System.currentTimeMillis() % 10000);
-        testUser =
-                User.builder()
-                        .username(uniquePrefix)
-                        .email(uniquePrefix + "@test.com")
-                        .name("SMTP 테스트")
-                        .password("Password123!")
-                        .build();
+        testUser = User.builder().username(uniquePrefix).email(uniquePrefix + "@test.com").name("SMTP 테스트").password("Password123!").build();
         testUser = userRepository.save(testUser);
     }
 
@@ -108,23 +115,19 @@ class EmailSmtpE2ETest {
     @DisplayName("2️⃣ 실제 SMTP로 이메일이 발송됨")
     void sendEmailViaSmtp() throws Exception {
         // given
-        EmailMessage emailMessage =
-                EmailMessage.create("recipient@test.com", "SMTP 테스트 제목", "<p>SMTP 테스트 내용입니다.</p>");
+        EmailMessage emailMessage = EmailMessage.create("recipient@test.com", "SMTP 테스트 제목", "<p>SMTP 테스트 내용입니다.</p>");
 
         // when
         emailService.sendEmail(emailMessage);
         Thread.sleep(2000); // 이메일 발송 대기
 
         // then
-        List<Map<String, Object>> messages = getMailHogMessages();
+        List<MailHogMessage> messages = getMailHogMessages();
         assertThat(messages).hasSize(1);
 
-        Map<String, Object> message = messages.getFirst();
-        Map<String, Object> content = (Map<String, Object>) message.get("Content");
-        Map<String, List<String>> headers = (Map<String, List<String>>) content.get("Headers");
-
-        assertThat(decodeMimeHeader(headers.get("Subject").getFirst())).isEqualTo("SMTP 테스트 제목");
-        assertThat(headers.get("To").getFirst()).contains("recipient@test.com");
+        MailHogMessage message = messages.getFirst();
+        assertThat(decodeMimeHeader(message.content().getSubject())).isEqualTo("SMTP 테스트 제목");
+        assertThat(message.content().getToHeader()).contains("recipient@test.com");
     }
 
     @Test
@@ -138,18 +141,14 @@ class EmailSmtpE2ETest {
         Thread.sleep(2000); // 이메일 발송 대기
 
         // then
-        List<Map<String, Object>> messages = getMailHogMessages();
+        List<MailHogMessage> messages = getMailHogMessages();
         assertThat(messages).hasSize(1);
 
-        Map<String, Object> message = messages.getFirst();
-        Map<String, Object> content = (Map<String, Object>) message.get("Content");
-        Map<String, List<String>> headers = (Map<String, List<String>>) content.get("Headers");
-        String body = (String) content.get("Body");
-
-        assertThat(decodeMimeHeader(headers.get("Subject").getFirst())).isEqualTo("이메일 인증을 완료해주세요");
-        assertThat(headers.get("To").getFirst()).contains(testUser.getEmail());
-        assertThat(body).contains(token);
-        assertThat(body).contains("verify-email");
+        MailHogMessage message = messages.getFirst();
+        assertThat(decodeMimeHeader(message.content().getSubject())).isEqualTo("이메일 인증을 완료해주세요");
+        assertThat(message.content().getToHeader()).contains(testUser.getEmail());
+        assertThat(message.content().body()).contains(token);
+        assertThat(message.content().body()).contains("verify-email");
     }
 
     @Test
@@ -164,15 +163,12 @@ class EmailSmtpE2ETest {
         Thread.sleep(2000); // 이메일 발송 대기
 
         // then
-        List<Map<String, Object>> messages = getMailHogMessages();
+        List<MailHogMessage> messages = getMailHogMessages();
         assertThat(messages).hasSize(1);
 
-        Map<String, Object> message = messages.getFirst();
-        Map<String, Object> content = (Map<String, Object>) message.get("Content");
-        Map<String, List<String>> headers = (Map<String, List<String>>) content.get("Headers");
-
-        assertThat(decodeMimeHeader(headers.get("Subject").getFirst())).isEqualTo("이메일 변경 인증을 완료해주세요");
-        assertThat(headers.get("To").getFirst()).contains(newEmail);
+        MailHogMessage message = messages.getFirst();
+        assertThat(decodeMimeHeader(message.content().getSubject())).isEqualTo("이메일 변경 인증을 완료해주세요");
+        assertThat(message.content().getToHeader()).contains(newEmail);
     }
 
     @Test
@@ -183,16 +179,12 @@ class EmailSmtpE2ETest {
         Thread.sleep(2000); // 이메일 발송 대기
 
         // then
-        List<Map<String, Object>> messages = getMailHogMessages();
+        List<MailHogMessage> messages = getMailHogMessages();
         assertThat(messages).hasSize(1);
 
-        Map<String, Object> message = messages.getFirst();
-        Map<String, Object> content = (Map<String, Object>) message.get("Content");
-        Map<String, List<String>> headers = (Map<String, List<String>>) content.get("Headers");
-
-        assertThat(decodeMimeHeader(headers.get("Subject").getFirst()))
-                .isEqualTo("Board-Hole에 오신 것을 환영합니다!");
-        assertThat(headers.get("To").getFirst()).contains(testUser.getEmail());
+        MailHogMessage message = messages.getFirst();
+        assertThat(decodeMimeHeader(message.content().getSubject())).isEqualTo("Board-Hole에 오신 것을 환영합니다!");
+        assertThat(message.content().getToHeader()).contains(testUser.getEmail());
     }
 
     @Test
@@ -206,15 +198,12 @@ class EmailSmtpE2ETest {
         Thread.sleep(2000); // 이메일 발송 대기
 
         // then
-        List<Map<String, Object>> messages = getMailHogMessages();
+        List<MailHogMessage> messages = getMailHogMessages();
         assertThat(messages).hasSize(1);
 
-        Map<String, Object> message = messages.getFirst();
-        Map<String, Object> content = (Map<String, Object>) message.get("Content");
-        Map<String, List<String>> headers = (Map<String, List<String>>) content.get("Headers");
-
-        assertThat(decodeMimeHeader(headers.get("Subject").getFirst())).isEqualTo("이메일 주소가 성공적으로 변경되었습니다");
-        assertThat(headers.get("To").getFirst()).contains(newEmail);
+        MailHogMessage message = messages.getFirst();
+        assertThat(decodeMimeHeader(message.content().getSubject())).isEqualTo("이메일 주소가 성공적으로 변경되었습니다");
+        assertThat(message.content().getToHeader()).contains(newEmail);
     }
 
     @Test
@@ -224,13 +213,7 @@ class EmailSmtpE2ETest {
 
         // given
         String uniqueId = "unverified_" + (System.currentTimeMillis() % 1000);
-        User unverifiedUser =
-                User.builder()
-                        .username(uniqueId)
-                        .email(uniqueId + "@test.com")
-                        .name("미인증 사용자")
-                        .password("Password123!")
-                        .build();
+        User unverifiedUser = User.builder().username(uniqueId).email(uniqueId + "@test.com").name("미인증 사용자").password("Password123!").build();
 
         // when
         User saved = userRepository.save(unverifiedUser);
@@ -244,22 +227,13 @@ class EmailSmtpE2ETest {
     }
 
     /**
-     * MailHog API를 통해 메시지 조회
+     * MailHog API를 통해 메시지 조회 (Type-safe with DTO)
      */
-    private List<Map<String, Object>> getMailHogMessages() {
+    private List<MailHogMessage> getMailHogMessages() {
         try {
-            Response response =
-                    RestAssured.given()
-                            .baseUri(mailhogApiUrl)
-                            .when()
-                            .get("/api/v2/messages")
-                            .then()
-                            .statusCode(200)
-                            .extract()
-                            .response();
+            MailHogResponse response = RestAssured.given().baseUri(mailhogApiUrl).when().get("/api/v2/messages").then().statusCode(200).extract().as(MailHogResponse.class);
 
-            Map<String, Object> body = response.as(Map.class);
-            if (body != null && body.containsKey("items")) return (List<Map<String, Object>>) body.get("items");
+            return response.items();
         } catch (Exception e) {
             // 에러 발생 시 빈 리스트 반환
         }
@@ -271,14 +245,10 @@ class EmailSmtpE2ETest {
      */
     private void clearMailHogMessages() {
         try {
-            RestAssured.given()
-                    .baseUri(mailhogApiUrl)
-                    .when()
-                    .delete("/api/v1/messages")
-                    .then()
-                    .statusCode(200);
+            RestAssured.given().baseUri(mailhogApiUrl).when().delete("/api/v1/messages").then().statusCode(200);
         } catch (Exception e) {
             // 삭제 실패 무시 (테스트는 계속 진행)
         }
     }
+
 }

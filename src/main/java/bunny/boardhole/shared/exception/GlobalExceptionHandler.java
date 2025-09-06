@@ -1,30 +1,43 @@
 package bunny.boardhole.shared.exception;
 
-import bunny.boardhole.shared.config.log.RequestLoggingFilter;
-import bunny.boardhole.shared.constants.ErrorCode;
-import io.swagger.v3.oas.annotations.tags.Tag;
+import java.net.URI;
+import java.time.Instant;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
+
 import lombok.RequiredArgsConstructor;
+
 import org.slf4j.MDC;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.http.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.lang.Nullable;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.validation.*;
-import org.springframework.web.*;
-import org.springframework.web.bind.*;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.net.URI;
-import java.time.Instant;
-import java.util.*;
-import java.util.stream.Collectors;
+import bunny.boardhole.shared.config.log.RequestLoggingFilter;
+import bunny.boardhole.shared.constants.ErrorCode;
+
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestControllerAdvice
 @org.springframework.core.annotation.Order(org.springframework.core.Ordered.HIGHEST_PRECEDENCE)
@@ -38,19 +51,16 @@ public class GlobalExceptionHandler {
 
     private static void addCommon(ProblemDetail pd, @Nullable HttpServletRequest request) {
         // Optional을 사용한 null 체크 제거
-        Optional.ofNullable(MDC.get(RequestLoggingFilter.TRACE_ID))
-                .filter(traceId -> !traceId.isBlank())
-                .ifPresent(traceId -> pd.setProperty("traceId", traceId));
+        Optional.ofNullable(MDC.get(RequestLoggingFilter.TRACE_ID)).filter(traceId -> !traceId.isBlank()).ifPresent(traceId -> pd.setProperty("traceId", traceId));
 
-        Optional.ofNullable(request)
-                .ifPresent(req -> {
-                    pd.setProperty("path", req.getRequestURI());
-                    pd.setProperty("method", req.getMethod());
-                    try {
-                        pd.setInstance(URI.create(req.getRequestURI()));
-                    } catch (IllegalArgumentException ignored) {
-                    }
-                });
+        Optional.ofNullable(request).ifPresent(req -> {
+            pd.setProperty("path", req.getRequestURI());
+            pd.setProperty("method", req.getMethod());
+            try {
+                pd.setInstance(URI.create(req.getRequestURI()));
+            } catch (IllegalArgumentException ignored) {
+            }
+        });
 
         pd.setProperty("timestamp", Instant.now().toString());
     }
@@ -139,8 +149,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ProblemDetail handleMessageNotReadable(HttpMessageNotReadableException ex, HttpServletRequest request) {
-        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST,
-                messageSource.getMessage("error.invalid-json", null, LocaleContextHolder.getLocale()));
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, messageSource.getMessage("error.invalid-json", null, LocaleContextHolder.getLocale()));
         pd.setTitle(messageSource.getMessage("exception.title.bad-request", null, LocaleContextHolder.getLocale()));
         pd.setProperty("code", ErrorCode.INVALID_JSON.getCode());
         pd.setType(buildType("invalid-json"));
@@ -152,9 +161,7 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleMethodNotSupported(HttpRequestMethodNotSupportedException ex, HttpServletRequest request) {
         String[] methods = ex.getSupportedMethods();
         String supportedMethods = methods != null ? String.join(", ", methods) : "None";
-        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.METHOD_NOT_ALLOWED,
-                messageSource.getMessage("error.method-not-allowed.detail",
-                        new Object[]{supportedMethods}, LocaleContextHolder.getLocale()));
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.METHOD_NOT_ALLOWED, messageSource.getMessage("error.method-not-allowed.detail", new Object[]{supportedMethods}, LocaleContextHolder.getLocale()));
         pd.setTitle(messageSource.getMessage("exception.title.method-not-allowed", null, LocaleContextHolder.getLocale()));
         pd.setProperty("code", ErrorCode.METHOD_NOT_ALLOWED.getCode());
         pd.setProperty("supportedMethods", ex.getSupportedMethods());
@@ -165,8 +172,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
     public ProblemDetail handleMediaTypeNotSupported(HttpMediaTypeNotSupportedException ex, HttpServletRequest request) {
-        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.UNSUPPORTED_MEDIA_TYPE,
-                messageSource.getMessage("error.unsupported-media-type", null, LocaleContextHolder.getLocale()));
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.UNSUPPORTED_MEDIA_TYPE, messageSource.getMessage("error.unsupported-media-type", null, LocaleContextHolder.getLocale()));
         pd.setTitle(messageSource.getMessage("exception.title.unsupported-media-type", null, LocaleContextHolder.getLocale()));
         pd.setProperty("code", ErrorCode.UNSUPPORTED_MEDIA_TYPE.getCode());
         pd.setType(buildType("unsupported-media-type"));
@@ -176,9 +182,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public ProblemDetail handleMissingParameter(MissingServletRequestParameterException ex, HttpServletRequest request) {
-        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST,
-                messageSource.getMessage("error.missing-parameter.detail",
-                        new Object[]{ex.getParameterName()}, LocaleContextHolder.getLocale()));
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, messageSource.getMessage("error.missing-parameter.detail", new Object[]{ex.getParameterName()}, LocaleContextHolder.getLocale()));
         pd.setTitle(messageSource.getMessage("exception.title.missing-parameter", null, LocaleContextHolder.getLocale()));
         pd.setProperty("code", ErrorCode.MISSING_PARAMETER.getCode());
         pd.setProperty("parameter", ex.getParameterName());
@@ -191,15 +195,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(TypeMismatchException.class)
     public ProblemDetail handleTypeMismatch(TypeMismatchException ex, HttpServletRequest request) {
         String propertyName = ex.getPropertyName() != null ? ex.getPropertyName() : "unknown";
-        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST,
-                messageSource.getMessage("error.type-mismatch.detail",
-                        new Object[]{propertyName}, LocaleContextHolder.getLocale()));
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, messageSource.getMessage("error.type-mismatch.detail", new Object[]{propertyName}, LocaleContextHolder.getLocale()));
         pd.setTitle(messageSource.getMessage("exception.title.type-mismatch", null, LocaleContextHolder.getLocale()));
         pd.setProperty("code", ErrorCode.TYPE_MISMATCH.getCode());
         pd.setProperty("property", propertyName);
-        Optional.ofNullable(ex.getRequiredType())
-                .map(Class::getSimpleName)
-                .ifPresent(type -> pd.setProperty("requiredType", type));
+        Optional.ofNullable(ex.getRequiredType()).map(Class::getSimpleName).ifPresent(type -> pd.setProperty("requiredType", type));
         pd.setType(buildType("type-mismatch"));
         addCommon(pd, request);
         return pd;
@@ -207,8 +207,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ProblemDetail handleUnexpected(Exception ex, HttpServletRequest request) {
-        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR,
-                messageSource.getMessage("error.internal", null, LocaleContextHolder.getLocale()));
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, messageSource.getMessage("error.internal", null, LocaleContextHolder.getLocale()));
         pd.setTitle(messageSource.getMessage("exception.title.internal-error", null, LocaleContextHolder.getLocale()));
         pd.setType(buildType("internal-error"));
         pd.setProperty("code", ErrorCode.INTERNAL_ERROR.getCode());
@@ -217,30 +216,20 @@ public class GlobalExceptionHandler {
     }
 
     private URI buildType(String slug) {
-        return Optional.ofNullable(problemBaseUri)
-                .filter(base -> !base.isBlank())
-                .map(base -> base.endsWith("/") ? base : base + "/")
-                .map(base -> {
-                    try {
-                        return URI.create(base + slug);
-                    } catch (IllegalArgumentException ignored) {
-                        return null;
-                    }
-                })
-                .orElse(URI.create("urn:problem-type:" + slug));
+        return Optional.of(problemBaseUri).filter(base -> !base.isBlank()).map(base -> base.endsWith("/") ? base : base + "/").map(base -> {
+            try {
+                return URI.create(base + slug);
+            } catch (IllegalArgumentException ignored) {
+                return null;
+            }
+        }).orElse(URI.create("urn:problem-type:" + slug));
     }
 
     private ResponseEntity<ProblemDetail> handleValidationException(BindingResult bindingResult, HttpServletRequest request) {
         ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
         pd.setTitle(messageSource.getMessage("exception.title.validation-failed", null, LocaleContextHolder.getLocale()));
         pd.setDetail(messageSource.getMessage("error.validation-failed", null, LocaleContextHolder.getLocale()));
-        List<Map<String, Object>> errors = bindingResult.getFieldErrors().stream()
-                .map(fe -> Map.of(
-                        "field", fe.getField(),
-                        "message", Optional.ofNullable(fe.getDefaultMessage()).orElse("Invalid value"),
-                        "rejectedValue", Optional.ofNullable(fe.getRejectedValue()).orElse("")
-                ))
-                .collect(Collectors.toList());
+        List<Map<String, Object>> errors = bindingResult.getFieldErrors().stream().map(fe -> Map.of("field", fe.getField(), "message", Optional.ofNullable(fe.getDefaultMessage()).orElse("Invalid value"), "rejectedValue", Optional.ofNullable(fe.getRejectedValue()).orElse(""))).collect(Collectors.toList());
         pd.setProperty("errors", errors);
         pd.setProperty("code", ErrorCode.VALIDATION_ERROR.getCode());
         pd.setType(buildType("validation-error"));
