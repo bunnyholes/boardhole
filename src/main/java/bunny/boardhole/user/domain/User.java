@@ -69,7 +69,6 @@ public class User extends BaseEntity implements Serializable {
     @Schema(description = "이메일 주소 (고유값)", example = "john@example.com")
     private String email;
 
-
     @Column(name = "last_login")
     @Schema(description = "마지막 로그인 일시", example = "2024-01-16T14:20:15")
     private LocalDateTime lastLogin;

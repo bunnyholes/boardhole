@@ -26,6 +26,56 @@ class LogFormatter {
         this.loggingProperties = loggingProperties;
     }
 
+    // 레이어별 색상
+    private static String getLayerColor(String signature) {
+        if (signature.contains("Controller"))
+            return LogConstants.BLUE;
+        else if (signature.contains("Service"))
+            return LogConstants.CYAN;
+        else if (signature.contains("Repository"))
+            return LogConstants.PURPLE;
+        else
+            return LogConstants.RESET;
+    }
+
+    // 레이어별 아이콘
+    private static String getLayerIcon(String signature) {
+        if (signature.contains("Controller"))
+            return LogConstants.CONTROLLER_ICON;
+        else if (signature.contains("Service"))
+            return LogConstants.SERVICE_ICON;
+        else if (signature.contains("Repository"))
+            return LogConstants.REPOSITORY_ICON;
+        else
+            return LogConstants.DEFAULT_ICON;
+    }
+
+    // HTTP 상태별 색상
+    private static String getStatusColor(int status) {
+        if (status >= 200 && status < 300)
+            return LogConstants.GREEN;
+        else if (status >= 300 && status < 400)
+            return LogConstants.YELLOW;
+        else if (status >= 400 && status < 500)
+            return LogConstants.RED;
+        else if (status >= 500)
+            return LogConstants.PURPLE;
+        else
+            return LogConstants.RESET;
+    }
+
+    // 문제가 될 수 있는 타입 체크
+    private static boolean isProblematicType(Object o) {
+        return o instanceof jakarta.servlet.ServletRequest || o instanceof jakarta.servlet.ServletResponse || o instanceof org.springframework.web.multipart.MultipartFile || o instanceof byte[] || o instanceof java.io.InputStream || o instanceof java.io.OutputStream || o instanceof java.io.File;
+    }
+
+    // JDK 타입 체크
+    private static boolean isJdkType(Class<?> cls) {
+        Package pkg = cls.getPackage();
+        String packageName = (pkg != null) ? pkg.getName() : "";
+        return cls.isPrimitive() || packageName.startsWith("java.") || packageName.startsWith("jakarta.") || packageName.startsWith("org.springframework.");
+    }
+
     String formatMethodStart(String signature, Object[] args) {
         String layerColor = getLayerColor(signature);
         String layerIcon = getLayerIcon(signature);
@@ -58,30 +108,6 @@ class LogFormatter {
         return messageSource.getMessage("log.request.end", new Object[]{method, uri, statusColor + status + LogConstants.RESET, perfIcon + tookMs}, LocaleContextHolder.getLocale());
     }
 
-    // 레이어별 색상
-    private static String getLayerColor(String signature) {
-        if (signature.contains("Controller"))
-            return LogConstants.BLUE;
-        else if (signature.contains("Service"))
-            return LogConstants.CYAN;
-        else if (signature.contains("Repository"))
-            return LogConstants.PURPLE;
-        else
-            return LogConstants.RESET;
-    }
-
-    // 레이어별 아이콘
-    private static String getLayerIcon(String signature) {
-        if (signature.contains("Controller"))
-            return LogConstants.CONTROLLER_ICON;
-        else if (signature.contains("Service"))
-            return LogConstants.SERVICE_ICON;
-        else if (signature.contains("Repository"))
-            return LogConstants.REPOSITORY_ICON;
-        else
-            return LogConstants.DEFAULT_ICON;
-    }
-
     // 성능 기반 색상 (설정 값 활용)
     private String getPerformanceColor(long ms) {
         if (loggingProperties.isFast(ms))
@@ -107,20 +133,6 @@ class LogFormatter {
         return loggingProperties.isSlow(ms);
     }
 
-    // HTTP 상태별 색상
-    private static String getStatusColor(int status) {
-        if (status >= 200 && status < 300)
-            return LogConstants.GREEN;
-        else if (status >= 300 && status < 400)
-            return LogConstants.YELLOW;
-        else if (status >= 400 && status < 500)
-            return LogConstants.RED;
-        else if (status >= 500)
-            return LogConstants.PURPLE;
-        else
-            return LogConstants.RESET;
-    }
-
     // 안전한 객체 문자열 변환
     private String safeToString(Object arg) {
         if (isProblematicType(arg))
@@ -130,11 +142,6 @@ class LogFormatter {
         } catch (Exception e) {
             return arg.getClass().getName();
         }
-    }
-
-    // 문제가 될 수 있는 타입 체크
-    private static boolean isProblematicType(Object o) {
-        return o instanceof jakarta.servlet.ServletRequest || o instanceof jakarta.servlet.ServletResponse || o instanceof org.springframework.web.multipart.MultipartFile || o instanceof byte[] || o instanceof java.io.InputStream || o instanceof java.io.OutputStream || o instanceof java.io.File;
     }
 
     // 객체 정보 안전하게 추출 (StringBuilder 최적화)
@@ -181,13 +188,6 @@ class LogFormatter {
         }
         sb.append('}');
         return sb.toString();
-    }
-
-    // JDK 타입 체크
-    private static boolean isJdkType(Class<?> cls) {
-        Package pkg = cls.getPackage();
-        String packageName = (pkg != null) ? pkg.getName() : "";
-        return cls.isPrimitive() || packageName.startsWith("java.") || packageName.startsWith("jakarta.") || packageName.startsWith("org.springframework.");
     }
 
     // 민감정보 마스킹 (강화된 보안)
