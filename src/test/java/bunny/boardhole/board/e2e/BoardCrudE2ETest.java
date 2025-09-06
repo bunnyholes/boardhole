@@ -11,7 +11,7 @@ import static org.hamcrest.Matchers.*;
 @Tag("e2e")
 @Tag("board")
 @Import({TestEmailConfig.class, TestSecurityOverrides.class})
-public class BoardCrudE2ETest extends E2ETestBase {
+class BoardCrudE2ETest extends E2ETestBase {
 
     @Test
     @DisplayName("작성자 생성→게시글 작성→조회→타 사용자 수정 불가→작성자 삭제")

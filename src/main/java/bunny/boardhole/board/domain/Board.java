@@ -71,12 +71,4 @@ public class Board extends BaseEntity {
     public void increaseViewCount() {
         viewCount++;
     }
-
-    public boolean isAuthor(User user) {
-        return user != null && user.equals(author);
-    }
-
-    public boolean isAuthor(Long userId) {
-        return userId != null && userId.equals(author.getId());
-    }
 }

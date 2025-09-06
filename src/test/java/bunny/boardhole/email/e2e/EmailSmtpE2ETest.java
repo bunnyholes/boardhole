@@ -33,7 +33,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class EmailSmtpE2ETest {
 
     @Container
-    private static GenericContainer<?> mailhog =
+    private static final GenericContainer<?> mailhog =
             new GenericContainer<>(DockerImageName.parse("mailhog/mailhog:latest"))
                     .withExposedPorts(1025, 8025); // SMTP: 1025, HTTP API: 8025
 
@@ -119,12 +119,12 @@ class EmailSmtpE2ETest {
         List<Map<String, Object>> messages = getMailHogMessages();
         assertThat(messages).hasSize(1);
 
-        Map<String, Object> message = messages.get(0);
+        Map<String, Object> message = messages.getFirst();
         Map<String, Object> content = (Map<String, Object>) message.get("Content");
         Map<String, List<String>> headers = (Map<String, List<String>>) content.get("Headers");
 
-        assertThat(decodeMimeHeader(headers.get("Subject").get(0))).isEqualTo("SMTP 테스트 제목");
-        assertThat(headers.get("To").get(0)).contains("recipient@test.com");
+        assertThat(decodeMimeHeader(headers.get("Subject").getFirst())).isEqualTo("SMTP 테스트 제목");
+        assertThat(headers.get("To").getFirst()).contains("recipient@test.com");
     }
 
     @Test
@@ -141,13 +141,13 @@ class EmailSmtpE2ETest {
         List<Map<String, Object>> messages = getMailHogMessages();
         assertThat(messages).hasSize(1);
 
-        Map<String, Object> message = messages.get(0);
+        Map<String, Object> message = messages.getFirst();
         Map<String, Object> content = (Map<String, Object>) message.get("Content");
         Map<String, List<String>> headers = (Map<String, List<String>>) content.get("Headers");
         String body = (String) content.get("Body");
 
-        assertThat(decodeMimeHeader(headers.get("Subject").get(0))).isEqualTo("이메일 인증을 완료해주세요");
-        assertThat(headers.get("To").get(0)).contains(testUser.getEmail());
+        assertThat(decodeMimeHeader(headers.get("Subject").getFirst())).isEqualTo("이메일 인증을 완료해주세요");
+        assertThat(headers.get("To").getFirst()).contains(testUser.getEmail());
         assertThat(body).contains(token);
         assertThat(body).contains("verify-email");
     }
@@ -167,12 +167,12 @@ class EmailSmtpE2ETest {
         List<Map<String, Object>> messages = getMailHogMessages();
         assertThat(messages).hasSize(1);
 
-        Map<String, Object> message = messages.get(0);
+        Map<String, Object> message = messages.getFirst();
         Map<String, Object> content = (Map<String, Object>) message.get("Content");
         Map<String, List<String>> headers = (Map<String, List<String>>) content.get("Headers");
 
-        assertThat(decodeMimeHeader(headers.get("Subject").get(0))).isEqualTo("이메일 변경 인증을 완료해주세요");
-        assertThat(headers.get("To").get(0)).contains(newEmail);
+        assertThat(decodeMimeHeader(headers.get("Subject").getFirst())).isEqualTo("이메일 변경 인증을 완료해주세요");
+        assertThat(headers.get("To").getFirst()).contains(newEmail);
     }
 
     @Test
@@ -186,13 +186,13 @@ class EmailSmtpE2ETest {
         List<Map<String, Object>> messages = getMailHogMessages();
         assertThat(messages).hasSize(1);
 
-        Map<String, Object> message = messages.get(0);
+        Map<String, Object> message = messages.getFirst();
         Map<String, Object> content = (Map<String, Object>) message.get("Content");
         Map<String, List<String>> headers = (Map<String, List<String>>) content.get("Headers");
 
-        assertThat(decodeMimeHeader(headers.get("Subject").get(0)))
+        assertThat(decodeMimeHeader(headers.get("Subject").getFirst()))
                 .isEqualTo("Board-Hole에 오신 것을 환영합니다!");
-        assertThat(headers.get("To").get(0)).contains(testUser.getEmail());
+        assertThat(headers.get("To").getFirst()).contains(testUser.getEmail());
     }
 
     @Test
@@ -209,12 +209,12 @@ class EmailSmtpE2ETest {
         List<Map<String, Object>> messages = getMailHogMessages();
         assertThat(messages).hasSize(1);
 
-        Map<String, Object> message = messages.get(0);
+        Map<String, Object> message = messages.getFirst();
         Map<String, Object> content = (Map<String, Object>) message.get("Content");
         Map<String, List<String>> headers = (Map<String, List<String>>) content.get("Headers");
 
-        assertThat(decodeMimeHeader(headers.get("Subject").get(0))).isEqualTo("이메일 주소가 성공적으로 변경되었습니다");
-        assertThat(headers.get("To").get(0)).contains(newEmail);
+        assertThat(decodeMimeHeader(headers.get("Subject").getFirst())).isEqualTo("이메일 주소가 성공적으로 변경되었습니다");
+        assertThat(headers.get("To").getFirst()).contains(newEmail);
     }
 
     @Test
@@ -259,8 +259,7 @@ class EmailSmtpE2ETest {
                             .response();
 
             Map<String, Object> body = response.as(Map.class);
-            if (body != null && body.containsKey("items"))
-                return (List<Map<String, Object>>) body.get("items");
+            if (body != null && body.containsKey("items")) return (List<Map<String, Object>>) body.get("items");
         } catch (Exception e) {
             // 에러 발생 시 빈 리스트 반환
         }

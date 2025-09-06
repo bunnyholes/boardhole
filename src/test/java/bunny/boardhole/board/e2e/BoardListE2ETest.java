@@ -12,7 +12,7 @@ import static org.hamcrest.Matchers.*;
 @Tag("e2e")
 @Tag("board")
 @Import({TestEmailConfig.class, TestSecurityOverrides.class})
-public class BoardListE2ETest extends E2ETestBase {
+class BoardListE2ETest extends E2ETestBase {
 
     private String uid;
     private SessionCookie owner;

@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 @ConditionalOnProperty(name = "boardhole.logging.enabled", havingValue = "true", matchIfMissing = true)
-public class LogFormatter {
+class LogFormatter {
 
     private static final Set<String> SENSITIVE_FIELD_NAMES = Set.of(LogConstants.SENSITIVE_FIELDS);
     private final MessageSource messageSource;

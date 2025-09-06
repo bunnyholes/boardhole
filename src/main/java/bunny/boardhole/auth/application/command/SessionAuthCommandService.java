@@ -73,6 +73,9 @@ public class SessionAuthCommandService implements AuthCommandService {
      */
     @Override
     public void logout(@Valid LogoutCommand cmd) {
+        // 로그아웃 감사 로그
+        log.info("User logout: userId={}", cmd.userId());
+        
         // SecurityContext 정리
         SecurityContextHolder.clearContext();
     }

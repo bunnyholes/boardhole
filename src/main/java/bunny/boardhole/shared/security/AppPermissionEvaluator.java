@@ -4,7 +4,7 @@ import bunny.boardhole.board.infrastructure.BoardRepository;
 import bunny.boardhole.shared.constants.PermissionType;
 import bunny.boardhole.user.domain.User;
 import lombok.RequiredArgsConstructor;
-import org.jspecify.annotations.Nullable;
+import org.springframework.lang.Nullable;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.*;

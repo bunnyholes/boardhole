@@ -6,10 +6,10 @@ import org.junit.jupiter.api.*;
 import static io.restassured.RestAssured.given;
 
 @Tag("e2e")
-public class SimpleRestAssuredTest extends E2ETestBase {
+class SimpleRestAssuredTest extends E2ETestBase {
 
     @Test
-    public void testHealthEndpoint() {
+    void testHealthEndpoint() {
         given()
                 .when()
                 .get("auth/public-access")

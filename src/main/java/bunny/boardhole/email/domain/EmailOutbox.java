@@ -3,7 +3,7 @@ package bunny.boardhole.email.domain;
 import bunny.boardhole.shared.domain.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
-import org.jspecify.annotations.Nullable;
+import org.springframework.lang.Nullable;
 
 import java.time.*;
 
@@ -81,7 +81,7 @@ public class EmailOutbox extends BaseEntity {
      * @param error      실패 원인
      * @param maxRetries 최대 재시도 횟수
      */
-    public void recordFailure(String error, int maxRetries) {
+    public void recordFailure(@Nullable String error, int maxRetries) {
         retryCount++;
         lastError = error;
 

@@ -9,7 +9,7 @@ import static io.restassured.RestAssured.given;
  * RestAssured 테스트를 위한 공통 RequestSpecification 팩토리
  * 인증 상태별로 사전 구성된 요청 스펙을 제공합니다.
  */
-public final class RestSpecs {
+final class RestSpecs {
     private RestSpecs() {
     }
 

@@ -20,7 +20,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DisplayName("CORS 통합 테스트")
 @Tag("integration")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class CorsIntegrationTest extends MvcTestBase {
+class CorsIntegrationTest extends MvcTestBase {
 
     private static final String ALLOWED_ORIGIN = "http://localhost:8080";
     private static final String DISALLOWED_ORIGIN = "http://evil.com";

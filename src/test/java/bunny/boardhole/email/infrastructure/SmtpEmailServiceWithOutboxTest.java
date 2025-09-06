@@ -8,18 +8,17 @@ import jakarta.mail.internet.MimeMessage;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.*;
 import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.mail.MailSendException;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @DisplayName("SmtpEmailService Outbox 통합 테스트")
@@ -32,10 +31,10 @@ class SmtpEmailServiceWithOutboxTest extends IntegrationTestBase {
     @Autowired
     private AtomicInteger attemptCounter;
 
-    @MockBean
+    @MockitoBean
     private EmailOutboxService emailOutboxService;
 
-    @MockBean
+    @MockitoBean
     private EmailTemplateService templateService;
 
     @Test

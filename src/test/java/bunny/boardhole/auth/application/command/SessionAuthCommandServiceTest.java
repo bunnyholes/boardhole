@@ -15,7 +15,6 @@ import org.springframework.security.core.context.*;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
@@ -168,10 +167,10 @@ class SessionAuthCommandServiceTest {
         }
 
         @Test
-        @DisplayName("null 사용자명으로 로그인 시도")
-        void login_NullUsername_HandledByValidation() {
+        @DisplayName("빈 사용자명으로 로그인 시도")
+        void login_EmptyUsername_HandledByValidation() {
             // Given
-            LoginCommand command = new LoginCommand(null, "password");
+            LoginCommand command = new LoginCommand("", "password");
 
             given(authenticationManager.authenticate(any(Authentication.class)))
                     .willThrow(new BadCredentialsException("Invalid credentials"));

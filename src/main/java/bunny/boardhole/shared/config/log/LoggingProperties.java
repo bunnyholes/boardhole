@@ -29,7 +29,7 @@ public record LoggingProperties(
         return ms >= performance.normalThreshold();
     }
 
-    public record Performance(
+    record Performance(
             long fastThreshold,
             long normalThreshold
     ) {

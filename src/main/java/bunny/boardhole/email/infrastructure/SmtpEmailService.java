@@ -7,6 +7,7 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.lang.NonNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.*;
 import org.springframework.mail.MailException;
@@ -47,7 +48,7 @@ public class SmtpEmailService implements EmailService {
             maxAttempts = 5,
             backoff = @Backoff(delay = 500, multiplier = 2.0, random = true)
     )
-    public void sendEmail(final EmailMessage emailMessage) {
+    public void sendEmail(@NonNull final EmailMessage emailMessage) {
         try {
             final MimeMessage mimeMessage = mailSender.createMimeMessage();
             final MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
@@ -85,14 +86,14 @@ public class SmtpEmailService implements EmailService {
     }
 
     @Override
-    public void sendTemplatedEmail(final String recipientEmail, final EmailTemplate emailTemplate, final Map<String, Object> templateVariables) {
+    public void sendTemplatedEmail(@NonNull final String recipientEmail, @NonNull final EmailTemplate emailTemplate, @NonNull final Map<String, Object> templateVariables) {
         final String processedContent = templateService.processTemplate(emailTemplate, templateVariables);
         final EmailMessage emailMessage = EmailMessage.create(recipientEmail, emailTemplate.getDefaultSubject(), processedContent);
         sendEmail(emailMessage);
     }
 
     @Override
-    public void sendSignupVerificationEmail(final User user, final String verificationToken) {
+    public void sendSignupVerificationEmail(@NonNull final User user, @NonNull final String verificationToken) {
         final String verificationUrl = baseUrl + "/api/auth/verify-email?token=" + verificationToken;
 
         final Map<String, Object> templateVariables = Map.of(
@@ -107,7 +108,7 @@ public class SmtpEmailService implements EmailService {
     }
 
     @Override
-    public void sendEmailChangeVerificationEmail(final User user, final String newEmail, final String verificationToken) {
+    public void sendEmailChangeVerificationEmail(@NonNull final User user, @NonNull final String newEmail, @NonNull final String verificationToken) {
         final String verificationUrl = baseUrl + "/api/auth/verify-email?token=" + verificationToken;
 
         final Map<String, Object> templateVariables = Map.of(
@@ -123,7 +124,7 @@ public class SmtpEmailService implements EmailService {
     }
 
     @Override
-    public void sendWelcomeEmail(final User user) {
+    public void sendWelcomeEmail(@NonNull final User user) {
         final Map<String, Object> templateVariables = Map.of(
                 "userName", user.getName(),
                 "userEmail", user.getEmail(),
@@ -135,7 +136,7 @@ public class SmtpEmailService implements EmailService {
     }
 
     @Override
-    public void sendEmailChangedNotification(final User user, final String newEmail) {
+    public void sendEmailChangedNotification(@NonNull final User user, @NonNull final String newEmail) {
         final Map<String, Object> templateVariables = Map.of(
                 "userName", user.getName(),
                 "newEmail", newEmail,
