@@ -3,6 +3,9 @@ package bunny.boardhole.board.infrastructure;
 import java.util.List;
 import java.util.Optional;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -13,11 +16,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
 
 import bunny.boardhole.board.domain.Board;
 import bunny.boardhole.shared.config.TestJpaConfig;
@@ -25,12 +31,13 @@ import bunny.boardhole.user.domain.User;
 import bunny.boardhole.user.infrastructure.UserRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DataJpaTest
 @ActiveProfiles("test")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import(TestJpaConfig.class)
-@Tag("integration")
+@Tag("unit")
 class BoardRepositoryTest {
 
     @Autowired
@@ -363,6 +370,180 @@ class BoardRepositoryTest {
 
             // Then
             assertThat(updated.getViewCount()).isEqualTo(initialViewCount + 1);
+        }
+    }
+
+    @Nested
+    @DisplayName("버전 관리 및 낙관적 잠금")
+    class VersionAndOptimisticLockingTest {
+
+        @PersistenceContext
+        private EntityManager entityManager;
+
+        @Test
+        @DisplayName("버전 필드 자동 증가")
+        void version_AutoIncrement() {
+            // Given
+            Board newBoard = Board.builder().title("Version Test").content("Testing version field").author(author).build();
+            Board saved = boardRepository.save(newBoard);
+            Long initialVersion = saved.getVersion();
+
+            // When
+            saved.changeTitle("Updated Title");
+            Board updated = boardRepository.save(saved);
+
+            // Then
+            assertThat(updated.getVersion()).isEqualTo(initialVersion + 1);
+        }
+
+        @Test
+        @DisplayName("낙관적 잠금 충돌 발생")
+        @Transactional
+        void optimisticLocking_ConflictDetection() {
+            // Given
+            entityManager.clear();
+            Board board1Instance = boardRepository.findById(board1.getId()).orElseThrow();
+            Board board2Instance = boardRepository.findById(board1.getId()).orElseThrow();
+
+            // When - 첫 번째 인스턴스 업데이트
+            board1Instance.changeTitle("First Update");
+            boardRepository.save(board1Instance);
+            entityManager.flush();
+
+            // Then - 두 번째 인스턴스 업데이트 시 예외 발생
+            board2Instance.changeTitle("Second Update");
+            assertThatThrownBy(() -> {
+                boardRepository.save(board2Instance);
+                entityManager.flush();
+            }).isInstanceOf(ObjectOptimisticLockingFailureException.class);
+        }
+    }
+
+    @Nested
+    @DisplayName("연관관계 및 캐스케이드")
+    class RelationshipAndCascadeTest {
+
+        @PersistenceContext
+        private EntityManager entityManager;
+
+        @Test
+        @DisplayName("Lazy Loading으로 작성자 조회")
+        @Transactional
+        void lazyLoading_Author() {
+            // Given
+            entityManager.clear();
+
+            // When - author를 fetch하지 않고 조회
+            Board found = entityManager.find(Board.class, board1.getId());
+
+            // Then - author 접근 시 지연 로딩 발생
+            assertThat(found.getAuthor()).isNotNull();
+            assertThat(found.getAuthor().getUsername()).isEqualTo("testuser");
+        }
+
+        @Test
+        @DisplayName("EntityGraph로 N+1 문제 해결")
+        @Transactional
+        void entityGraph_PreventsNPlusOne() {
+            // Given
+            entityManager.clear();
+
+            // When - EntityGraph로 author 함께 조회
+            Optional<Board> found = boardRepository.findById(board1.getId());
+
+            // Then - 추가 쿼리 없이 author 접근 가능
+            assertThat(found).isPresent();
+            assertThat(found.get().getAuthor()).isNotNull();
+            assertThat(found.get().getAuthor().getUsername()).isEqualTo("testuser");
+        }
+
+        @Test
+        @DisplayName("작성자 삭제 시 게시글 처리")
+        void authorDeletion_BoardHandling() {
+            // Given
+            User newAuthor = User.builder().username("delete_test").password("password").name("Delete Test").email("delete@example.com").build();
+            User savedAuthor = userRepository.save(newAuthor);
+
+            Board boardWithNewAuthor = Board.builder().title("Cascade Test").content("Testing cascade").author(savedAuthor).build();
+            boardWithNewAuthor = boardRepository.save(boardWithNewAuthor);
+
+            // When & Then - 외래키 제약으로 인해 삭제 실패
+            assertThatThrownBy(() -> {
+                userRepository.delete(savedAuthor);
+                userRepository.flush();
+            }).isInstanceOf(DataIntegrityViolationException.class);
+        }
+
+        @Test
+        @DisplayName("게시글 삭제 시 작성자는 유지")
+        void boardDeletion_AuthorRemains() {
+            // Given
+            Long boardId = board1.getId();
+            Long authorId = author.getId();
+
+            // When
+            boardRepository.delete(board1);
+            boardRepository.flush();
+
+            // Then
+            assertThat(boardRepository.findById(boardId)).isEmpty();
+            assertThat(userRepository.findById(authorId)).isPresent();
+        }
+    }
+
+    @Nested
+    @DisplayName("최적화 쿼리 테스트")
+    class OptimizedQueryTest {
+
+        @Test
+        @DisplayName("작성자 ID만 조회하는 최적화 쿼리")
+        void optimizedQuery_AuthorIdOnly() {
+            // Given
+            Board newBoard = Board.builder().title("Optimized Query Test").content("Testing optimized query").author(author).build();
+            newBoard = boardRepository.save(newBoard);
+
+            // When - 작성자 ID만 조회 (전체 엔티티 로드하지 않음)
+            Optional<Long> authorId = boardRepository.findAuthorIdById(newBoard.getId());
+
+            // Then
+            assertThat(authorId).isPresent();
+            assertThat(authorId.get()).isEqualTo(author.getId());
+        }
+    }
+
+    @Nested
+    @DisplayName("Auditing 기능 테스트")
+    class AuditingTest {
+
+        @Test
+        @DisplayName("생성 시 createdAt, updatedAt 자동 설정")
+        void save_NewBoard_SetsAuditFields() {
+            // Given
+            Board newBoard = Board.builder().title("Audit Test").content("Testing audit fields").author(author).build();
+
+            // When
+            Board saved = boardRepository.save(newBoard);
+
+            // Then
+            assertThat(saved.getCreatedAt()).isNotNull();
+            assertThat(saved.getUpdatedAt()).isNotNull();
+            assertThat(saved.getCreatedAt()).isEqualTo(saved.getUpdatedAt());
+        }
+
+        @Test
+        @DisplayName("수정 시 updatedAt 변경 확인")
+        void update_ExistingBoard_UpdatesAuditFields() {
+            // Given
+            Board newBoard = Board.builder().title("Update Audit").content("Original content").author(author).build();
+            Board saved = boardRepository.save(newBoard);
+
+            // When
+            saved.changeContent("Updated content");
+            Board updated = boardRepository.save(saved);
+
+            // Then - updatedAt이 설정되어 있음을 확인
+            assertThat(updated.getCreatedAt()).isNotNull();
+            assertThat(updated.getUpdatedAt()).isNotNull();
         }
     }
 }

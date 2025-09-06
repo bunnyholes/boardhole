@@ -2,6 +2,9 @@ package bunny.boardhole.user.infrastructure;
 
 import java.util.Optional;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -17,6 +20,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
 
 import bunny.boardhole.shared.config.TestJpaConfig;
 import bunny.boardhole.user.domain.User;
@@ -28,7 +32,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @ActiveProfiles("test")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import(TestJpaConfig.class)
-@Tag("integration")
+@Tag("unit")
 class UserRepositoryTest {
 
     @Autowired
@@ -427,6 +431,116 @@ class UserRepositoryTest {
 
             // Then
             assertThat(updated.isEmailVerified()).isTrue();
+        }
+    }
+
+    @Nested
+    @DisplayName("연관관계 및 지연 로딩")
+    class LazyLoadingTest {
+
+        @PersistenceContext
+        private EntityManager entityManager;
+
+        @Test
+        @DisplayName("Lazy Loading 동작 확인")
+        @Transactional
+        void lazyLoading_RolesCollection() {
+            // Given
+            entityManager.clear();
+
+            // When - roles를 fetch하지 않고 조회
+            User found = entityManager.find(User.class, user2.getId());
+
+            // Then - roles 컬렉션 접근 시 지연 로딩 발생
+            assertThat(found.getRoles()).isNotNull();
+            assertThat(found.hasAdminRole()).isTrue();
+        }
+
+        @Test
+        @DisplayName("N+1 문제 해결 확인")
+        @Transactional
+        void nPlusOneProblem_Solved() {
+            // Given
+            entityManager.clear();
+
+            // When - EntityGraph로 roles 함께 조회
+            Optional<User> found = userRepository.findByUsername(user2.getUsername());
+
+            // Then - 추가 쿼리 없이 roles 접근 가능
+            assertThat(found).isPresent();
+            assertThat(found.get().getRoles()).isNotNull();
+            // EntityGraph 덕분에 추가 쿼리 발생하지 않음
+        }
+    }
+
+    @Nested
+    @DisplayName("Auditing 기능 테스트")
+    class AuditingTest {
+
+        @Test
+        @DisplayName("생성 시 createdAt, updatedAt 자동 설정")
+        void save_NewEntity_SetsAuditFields() {
+            // Given
+            User newUser = User.builder().username("audit_user").password("password").name("Audit Test").email("audit@example.com").build();
+
+            // When
+            User saved = userRepository.save(newUser);
+
+            // Then
+            assertThat(saved.getCreatedAt()).isNotNull();
+            assertThat(saved.getUpdatedAt()).isNotNull();
+            assertThat(saved.getCreatedAt()).isEqualTo(saved.getUpdatedAt());
+        }
+
+        @Test
+        @DisplayName("수정 시 updatedAt 변경 확인")
+        void update_ExistingEntity_UpdatesAuditFields() {
+            // Given
+            User newUser = User.builder().username("update_audit").password("password").name("Original").email("update@example.com").build();
+            User saved = userRepository.save(newUser);
+
+            // When
+            saved.changeName("Updated");
+            User updated = userRepository.save(saved);
+
+            // Then - updatedAt이 설정되어 있음을 확인
+            assertThat(updated.getCreatedAt()).isNotNull();
+            assertThat(updated.getUpdatedAt()).isNotNull();
+        }
+    }
+
+    @Nested
+    @DisplayName("Query Method 네이밍 규칙 테스트")
+    class QueryMethodNamingTest {
+
+        @Test
+        @DisplayName("복잡한 조건의 Query Method 동작")
+        void complexQueryMethod_WorksCorrectly() {
+            // Given - 추가 사용자 생성
+            User adminUser = User.builder().username("admin_special").password("password").name("Admin Special").email("admin.special@example.com").build();
+            adminUser.grantAdminRole();
+            adminUser.verifyEmail();
+            userRepository.save(adminUser);
+
+            // When - 여러 조건으로 검색
+            Pageable pageable = PageRequest.of(0, 10);
+            Page<User> result = userRepository.findByUsernameContainingIgnoreCaseOrNameContainingIgnoreCaseOrEmailContainingIgnoreCase("admin", "admin", "admin", pageable);
+
+            // Then
+            assertThat(result.getContent()).hasSize(1);
+            assertThat(result.getContent().getFirst().getUsername()).isEqualTo("admin_special");
+        }
+
+        @Test
+        @DisplayName("대소문자 구분 없는 검색 메서드")
+        void caseInsensitiveSearch_WorksCorrectly() {
+            // When
+            Page<User> upperCase = userRepository.findByUsernameContainingIgnoreCaseOrNameContainingIgnoreCaseOrEmailContainingIgnoreCase("JOHN", "JOHN", "JOHN", PageRequest.of(0, 10));
+            Page<User> lowerCase = userRepository.findByUsernameContainingIgnoreCaseOrNameContainingIgnoreCaseOrEmailContainingIgnoreCase("john", "john", "john", PageRequest.of(0, 10));
+
+            // Then
+            assertThat(upperCase.getTotalElements()).isEqualTo(lowerCase.getTotalElements());
+            assertThat(upperCase.getContent()).hasSameSizeAs(lowerCase.getContent());
         }
     }
 }

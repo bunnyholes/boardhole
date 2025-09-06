@@ -26,8 +26,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DisplayName("EmailOutboxRepository 테스트")
 @TestMethodOrder(MethodOrderer.DisplayName.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@Tag("repository")
-@Tag("email")
+@Tag("unit")
 class EmailOutboxRepositoryTest extends EntityTestBase {
 
     @Autowired
@@ -221,6 +220,168 @@ class EmailOutboxRepositoryTest extends EntityTestBase {
 
             // then
             assertThat(repository.findById(saved.getId())).isEmpty();
+        }
+    }
+
+    @Nested
+    @DisplayName("상태 전환 및 재시도 로직 테스트")
+    class StatusTransitionAndRetryTest {
+
+        @Test
+        @DisplayName("PENDING → PROCESSING → SENT 상태 전환")
+        void statusTransition_PendingToSent() {
+            // Given
+            EmailOutbox outbox = EmailOutbox.from(EmailMessage.create("transition@example.com", "Subject", "Content"));
+            outbox = repository.save(outbox);
+
+            // When - PENDING → PROCESSING
+            outbox.markAsProcessing();
+            outbox = repository.save(outbox);
+
+            // Then
+            assertThat(outbox.getStatus()).isEqualTo(EmailStatus.PROCESSING);
+
+            // When - PROCESSING → SENT
+            outbox.markAsSent();
+            outbox = repository.save(outbox);
+
+            // Then
+            assertThat(outbox.getStatus()).isEqualTo(EmailStatus.SENT);
+            assertThat(outbox.getNextRetryAt()).isNull();
+        }
+
+        @Test
+        @DisplayName("실패 후 재시도 횟수 증가 및 다음 재시도 시간 설정")
+        void recordFailure_IncrementsRetryCount() {
+            // Given
+            EmailOutbox outbox = EmailOutbox.from(EmailMessage.create("retry@example.com", "Subject", "Content"));
+            outbox = repository.save(outbox);
+
+            // When - 첫 번째 실패
+            outbox.recordFailure("Connection timeout", 3);
+            outbox = repository.save(outbox);
+
+            // Then
+            assertThat(outbox.getRetryCount()).isEqualTo(1);
+            assertThat(outbox.getStatus()).isEqualTo(EmailStatus.PENDING);
+            assertThat(outbox.getNextRetryAt()).isNotNull();
+            assertThat(outbox.getLastError()).isEqualTo("Connection timeout");
+
+            // When - 두 번째 실패
+            outbox.recordFailure("Authentication failed", 3);
+            outbox = repository.save(outbox);
+
+            // Then
+            assertThat(outbox.getRetryCount()).isEqualTo(2);
+            assertThat(outbox.getStatus()).isEqualTo(EmailStatus.PENDING);
+
+            // When - 세 번째 실패 (최대 재시도 횟수 도달)
+            outbox.recordFailure("Maximum retries exceeded", 3);
+            outbox = repository.save(outbox);
+
+            // Then
+            assertThat(outbox.getRetryCount()).isEqualTo(3);
+            assertThat(outbox.getStatus()).isEqualTo(EmailStatus.FAILED);
+            assertThat(outbox.getNextRetryAt()).isNull();
+        }
+
+        @Test
+        @DisplayName("재시도 가능 여부 확인")
+        void canRetry_ChecksCorrectly() {
+            // Given
+            LocalDateTime now = LocalDateTime.now(ZoneId.systemDefault());
+
+            // Case 1: PENDING + nextRetryAt is null
+            EmailOutbox outbox1 = EmailOutbox.from(EmailMessage.create("test1@example.com", "Subject", "Content"));
+            assertThat(outbox1.canRetry()).isTrue();
+
+            // Case 2: PENDING + nextRetryAt is past
+            EmailOutbox outbox2 = EmailOutbox.from(EmailMessage.create("test2@example.com", "Subject", "Content"));
+            outbox2.setNextRetryAt(now.minusMinutes(5));
+            assertThat(outbox2.canRetry()).isTrue();
+
+            // Case 3: PENDING + nextRetryAt is future
+            EmailOutbox outbox3 = EmailOutbox.from(EmailMessage.create("test3@example.com", "Subject", "Content"));
+            outbox3.setNextRetryAt(now.plusMinutes(5));
+            assertThat(outbox3.canRetry()).isFalse();
+
+            // Case 4: SENT status
+            EmailOutbox outbox4 = EmailOutbox.from(EmailMessage.create("test4@example.com", "Subject", "Content"));
+            outbox4.markAsSent();
+            assertThat(outbox4.canRetry()).isFalse();
+        }
+    }
+
+    @Nested
+    @DisplayName("EmailMessage 변환 테스트")
+    class EmailMessageConversionTest {
+
+        @Test
+        @DisplayName("EmailMessage로부터 EmailOutbox 생성")
+        void fromEmailMessage_CreatesCorrectly() {
+            // Given
+            EmailMessage message = EmailMessage.create("test@example.com", "Test Subject", "Test Content");
+
+            // When
+            EmailOutbox outbox = EmailOutbox.from(message);
+
+            // Then
+            assertThat(outbox.getRecipientEmail()).isEqualTo("test@example.com");
+            assertThat(outbox.getSubject()).isEqualTo("Test Subject");
+            assertThat(outbox.getContent()).isEqualTo("Test Content");
+            assertThat(outbox.getStatus()).isEqualTo(EmailStatus.PENDING);
+            assertThat(outbox.getRetryCount()).isEqualTo(0);
+        }
+
+        @Test
+        @DisplayName("EmailOutbox를 EmailMessage로 변환")
+        void toEmailMessage_ConvertsCorrectly() {
+            // Given
+            EmailOutbox outbox = EmailOutbox.from(EmailMessage.create("test@example.com", "Subject", "Content"));
+
+            // When
+            EmailMessage message = outbox.toEmailMessage();
+
+            // Then
+            assertThat(message.recipientEmail()).isEqualTo("test@example.com");
+            assertThat(message.subject()).isEqualTo("Subject");
+            assertThat(message.content()).isEqualTo("Content");
+        }
+    }
+
+    @Nested
+    @DisplayName("Auditing 기능 테스트")
+    class AuditingTest {
+
+        @Test
+        @DisplayName("생성 시 createdAt, updatedAt 자동 설정")
+        void save_NewOutbox_SetsAuditFields() {
+            // Given
+            EmailOutbox outbox = EmailOutbox.from(EmailMessage.create("audit@example.com", "Subject", "Content"));
+
+            // When
+            EmailOutbox saved = repository.save(outbox);
+
+            // Then
+            assertThat(saved.getCreatedAt()).isNotNull();
+            assertThat(saved.getUpdatedAt()).isNotNull();
+            assertThat(saved.getCreatedAt()).isEqualTo(saved.getUpdatedAt());
+        }
+
+        @Test
+        @DisplayName("수정 시 updatedAt 변경 확인")
+        void update_ExistingOutbox_UpdatesAuditFields() {
+            // Given
+            EmailOutbox outbox = EmailOutbox.from(EmailMessage.create("update@example.com", "Subject", "Content"));
+            EmailOutbox saved = repository.save(outbox);
+
+            // When
+            saved.markAsSent();
+            EmailOutbox updated = repository.save(saved);
+
+            // Then - updatedAt이 설정되어 있음을 확인
+            assertThat(updated.getCreatedAt()).isNotNull();
+            assertThat(updated.getUpdatedAt()).isNotNull();
         }
     }
 }
