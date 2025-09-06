@@ -15,7 +15,7 @@ import static org.hamcrest.Matchers.*;
 @Tag("e2e")
 @Tag("scenario")
 @Import({TestEmailConfig.class, TestSecurityOverrides.class})
-public class UserJourneyE2ETest extends E2ETestBase {
+class UserJourneyE2ETest extends E2ETestBase {
 
     @Test
     @DisplayName("신규 유저 가입 후 로그인하고 /users/me 확인")

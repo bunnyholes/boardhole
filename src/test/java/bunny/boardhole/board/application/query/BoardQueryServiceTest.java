@@ -19,7 +19,6 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
@@ -281,7 +280,9 @@ class BoardQueryServiceTest {
 
             // Then
             assertThat(result.getSort().getOrderFor("viewCount")).isNotNull();
-            assertThat(result.getSort().getOrderFor("viewCount").getDirection()).isEqualTo(Sort.Direction.DESC);
+            var order = result.getSort().getOrderFor("viewCount");
+            assertThat(order).isNotNull();
+            assertThat(order.getDirection()).isEqualTo(Sort.Direction.DESC);
 
             verify(boardRepository).findAll(pageableByViewCount);
         }

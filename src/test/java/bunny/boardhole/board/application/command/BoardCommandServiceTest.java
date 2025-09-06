@@ -25,6 +25,8 @@ class BoardCommandServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private bunny.boardhole.board.application.mapper.BoardMapper boardMapper;
 
     private BoardCommandService service;
 
@@ -36,7 +38,7 @@ class BoardCommandServiceTest {
             ms.setDefaultEncoding("UTF-8");
             ms.setUseCodeAsDefaultMessage(true);
             ReflectionTestUtils.setField(MessageUtils.class, "messageSource", ms);
-            service = new BoardCommandService(boardRepository, userRepository, null);
+            service = new BoardCommandService(boardRepository, userRepository, boardMapper);
         } catch (Exception e) {
             throw new RuntimeException("Mock setup failed", e);
         }

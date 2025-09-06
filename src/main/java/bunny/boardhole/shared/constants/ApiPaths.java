@@ -6,7 +6,7 @@ package bunny.boardhole.shared.constants;
  */
 public final class ApiPaths {
     // 기본 경로
-    public static final String API_PREFIX = "/api";
+    private static final String API_PREFIX = "/api";
 
     // 메인 엔드포인트 (RequestMapping용)
     public static final String AUTH = API_PREFIX + "/auth";

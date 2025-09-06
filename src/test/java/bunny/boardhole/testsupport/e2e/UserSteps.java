@@ -2,7 +2,7 @@ package bunny.boardhole.testsupport.e2e;
 
 import io.restassured.response.Response;
 
-public final class UserSteps {
+final class UserSteps {
     private UserSteps() {
     }
 

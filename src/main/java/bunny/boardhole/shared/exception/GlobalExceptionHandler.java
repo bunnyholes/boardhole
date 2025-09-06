@@ -190,12 +190,13 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(TypeMismatchException.class)
     public ProblemDetail handleTypeMismatch(TypeMismatchException ex, HttpServletRequest request) {
+        String propertyName = ex.getPropertyName() != null ? ex.getPropertyName() : "unknown";
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST,
                 messageSource.getMessage("error.type-mismatch.detail",
-                        new Object[]{ex.getPropertyName()}, LocaleContextHolder.getLocale()));
+                        new Object[]{propertyName}, LocaleContextHolder.getLocale()));
         pd.setTitle(messageSource.getMessage("exception.title.type-mismatch", null, LocaleContextHolder.getLocale()));
         pd.setProperty("code", ErrorCode.TYPE_MISMATCH.getCode());
-        pd.setProperty("property", ex.getPropertyName());
+        pd.setProperty("property", propertyName);
         Optional.ofNullable(ex.getRequiredType())
                 .map(Class::getSimpleName)
                 .ifPresent(type -> pd.setProperty("requiredType", type));

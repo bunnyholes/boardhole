@@ -2,6 +2,7 @@ package bunny.boardhole.email.infrastructure;
 
 import bunny.boardhole.email.domain.*;
 import bunny.boardhole.testsupport.jpa.EntityTestBase;
+import org.springframework.lang.Nullable;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,7 +23,7 @@ class EmailOutboxRepositoryTest extends EntityTestBase {
     private EmailOutboxRepository repository;
 
     private EmailOutbox createAndSaveOutbox(
-            String email, EmailStatus status, LocalDateTime nextRetryAt) {
+            String email, EmailStatus status, @Nullable LocalDateTime nextRetryAt) {
         EmailOutbox outbox =
                 EmailOutbox.from(EmailMessage.create(email, "Test Subject", "Test Content"));
         outbox.setStatus(status);

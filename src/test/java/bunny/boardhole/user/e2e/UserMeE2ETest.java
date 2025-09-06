@@ -12,7 +12,7 @@ import static org.hamcrest.Matchers.equalTo;
 @Tag("e2e")
 @Tag("user")
 @Import({TestEmailConfig.class, TestSecurityOverrides.class})
-public class UserMeE2ETest extends E2ETestBase {
+class UserMeE2ETest extends E2ETestBase {
 
     @Test
     @DisplayName("미인증은 401 ProblemDetails")

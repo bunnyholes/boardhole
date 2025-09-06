@@ -1,6 +1,6 @@
 package bunny.boardhole.shared.config.log;
 
-public final class LogConstants {
+final class LogConstants {
 
     // ANSI 색상 코드
     public static final String RESET = "\u001B[0m";

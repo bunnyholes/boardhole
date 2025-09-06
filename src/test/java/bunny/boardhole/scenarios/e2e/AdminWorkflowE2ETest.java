@@ -13,7 +13,7 @@ import static org.hamcrest.Matchers.equalTo;
 @Tag("e2e")
 @Tag("scenario")
 @Import({TestEmailConfig.class, TestSecurityOverrides.class})
-public class AdminWorkflowE2ETest extends E2ETestBase {
+class AdminWorkflowE2ETest extends E2ETestBase {
 
     @Value("${boardhole.default-users.admin.username}")
     String adminUsername;

@@ -172,7 +172,7 @@ class BoardRepositoryTest {
         @DisplayName("제목에 키워드가 포함된 게시글 검색")
         void searchByKeyword_TitleMatch_ReturnsMatchingBoards() {
             // Given
-            String keyword = "Spring";
+            final String keyword = "Spring";
             Pageable pageable = PageRequest.of(0, 10);
 
             // When
@@ -189,7 +189,7 @@ class BoardRepositoryTest {
         @DisplayName("내용에 키워드가 포함된 게시글 검색")
         void searchByKeyword_ContentMatch_ReturnsMatchingBoards() {
             // Given
-            String keyword = "guide";
+            final String keyword = "guide";
             Pageable pageable = PageRequest.of(0, 10);
 
             // When
@@ -206,7 +206,7 @@ class BoardRepositoryTest {
         @DisplayName("대소문자 구분 없이 검색")
         void searchByKeyword_CaseInsensitive_ReturnsMatchingBoards() {
             // Given
-            String keyword = "JAVA";
+            final String keyword = "JAVA";
             Pageable pageable = PageRequest.of(0, 10);
 
             // When
@@ -214,14 +214,14 @@ class BoardRepositoryTest {
 
             // Then
             assertThat(page.getContent()).hasSize(1);
-            assertThat(page.getContent().get(0).getTitle()).isEqualTo("Java Best Practices");
+            assertThat(page.getContent().getFirst().getTitle()).isEqualTo("Java Best Practices");
         }
 
         @Test
         @DisplayName("검색 결과가 없는 경우")
         void searchByKeyword_NoMatch_ReturnsEmptyPage() {
             // Given
-            String keyword = "Python";
+            final String keyword = "Python";
             Pageable pageable = PageRequest.of(0, 10);
 
             // When
@@ -236,7 +236,7 @@ class BoardRepositoryTest {
         @DisplayName("빈 키워드로 검색 시 전체 목록 반환")
         void searchByKeyword_EmptyKeyword_ReturnsAllBoards() {
             // Given
-            String keyword = "";
+            final String keyword = "";
             Pageable pageable = PageRequest.of(0, 10);
 
             // When
@@ -260,7 +260,7 @@ class BoardRepositoryTest {
                 boardRepository.save(extraBoard);
             }
 
-            String keyword = "Spring";
+            final String keyword = "Spring";
             Pageable pageable = PageRequest.of(0, 3);
 
             // When

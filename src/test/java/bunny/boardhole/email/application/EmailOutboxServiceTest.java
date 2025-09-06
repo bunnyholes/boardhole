@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
 
 @DisplayName("EmailOutboxService 테스트")
@@ -72,7 +72,7 @@ class EmailOutboxServiceTest {
                                     outbox ->
                                             outbox.getRecipientEmail().equals("test@example.com")
                                                     && outbox.getSubject().equals("Test Subject")
-                                                    && outbox.getLastError().equals("SMTP connection failed")
+                                                    && "SMTP connection failed".equals(outbox.getLastError())
                                                     && outbox.getRetryCount() == 1));
         }
 
