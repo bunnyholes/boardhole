@@ -27,10 +27,10 @@ public class EmailOutboxService {
 
     private final EmailOutboxRepository repository;
 
-    @Value("${boardhole.email.outbox.max-retry-count:10}")
+    @Value("${boardhole.email.outbox.max-retry-count}")
     private int maxRetryCount;
 
-    @Value("${boardhole.email.outbox.retention-days:30}")
+    @Value("${boardhole.email.outbox.retention-days}")
     private int retentionDays;
 
     /**

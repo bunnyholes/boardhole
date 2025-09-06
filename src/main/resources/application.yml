@@ -125,6 +125,14 @@ boardhole:
     rate-limit:
       per-hour: 5
       per-day: 20
+    # Outbox 재시도 설정
+    outbox:
+      enabled: true
+      max-retry-count: 5                  # 총 5회 재시도 (최초 1회 + 4회 재시도)
+      scheduler-rate: 600000              # 10분마다 실행 (600,000ms = 10분)
+      retention-days: 30
+      cleanup-cron: "0 0 2 * * *"        # 매일 새벽 2시
+      stats-cron: "0 0 * * * *"          # 매시간
   
   # CORS 기본값 (환경별 프로필에서 오버라이드 권장)
   cors:

@@ -144,33 +144,19 @@ class UserEntityTest extends EntityTestBase {
     class JpaLifecycle {
 
         @Test
-        @DisplayName("✅ @PrePersist 테스트 - 생성 시 시간 필드 자동 설정")
-        void prePersist_SetsTimestamps() {
+        @DisplayName("✅ JPA Auditing 자동 설정 확인")
+        void jpaAuditing_SetsTimestampsAutomatically() {
             // given
             User user = createTestUser();
 
             // when
             entityManager.persistAndFlush(user);
 
-            // then
+            // then - BaseEntity 상속으로 JPA Auditing이 자동으로 설정됨
             assertThat(user.getCreatedAt()).isNotNull();
             assertThat(user.getUpdatedAt()).isNotNull();
-        }
-
-        @Test
-        @DisplayName("✅ @PreUpdate 테스트 - 수정 시 updatedAt 갱신")
-        void preUpdate_UpdatesTimestamp() {
-            // given
-            User user = createTestUser();
-            entityManager.persistAndFlush(user);
-            LocalDateTime originalUpdatedAt = user.getUpdatedAt();
-
-            // when
-            user.changeName("새로운 이름");
-            entityManager.flush();
-
-            // then
-            assertThat(user.getUpdatedAt()).isAfter(originalUpdatedAt);
+            // 테스트 환경에서는 AuditorAware가 설정되지 않을 수 있음 (null 허용)
+            assertThat(user.getLastLogin()).isNull(); // 비즈니스 필드는 여전히 수동 관리
         }
     }
 

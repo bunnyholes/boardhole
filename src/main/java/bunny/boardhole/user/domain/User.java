@@ -29,6 +29,7 @@ import org.hibernate.annotations.DynamicUpdate;
 import org.springframework.util.Assert;
 
 import bunny.boardhole.shared.constants.ValidationConstants;
+import bunny.boardhole.shared.domain.BaseEntity;
 import bunny.boardhole.shared.util.MessageUtils;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -36,13 +37,13 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 @ToString(exclude = {"password", "roles"})
 @Entity
 @DynamicUpdate
 @Table(name = "users", indexes = {@Index(name = "idx_user_username", columnList = "username"), @Index(name = "idx_user_email", columnList = "email"), @Index(name = "idx_user_name", columnList = "name")})
 @Schema(name = "User", description = "사용자 도메인 엔티티 - 시스템의 핵심 사용자 정보")
-public class User implements Serializable {
+public class User extends BaseEntity implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 2870948220832438912L;
@@ -68,13 +69,6 @@ public class User implements Serializable {
     @Schema(description = "이메일 주소 (고유값)", example = "john@example.com")
     private String email;
 
-    @Column(name = "created_at")
-    @Schema(description = "계정 생성 일시 (자동 설정)", example = "2024-01-15T10:30:00")
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
-    @Schema(description = "마지막 수정 일시 (자동 갱신)", example = "2024-01-16T14:20:15")
-    private LocalDateTime updatedAt;
 
     @Column(name = "last_login")
     @Schema(description = "마지막 로그인 일시", example = "2024-01-16T14:20:15")

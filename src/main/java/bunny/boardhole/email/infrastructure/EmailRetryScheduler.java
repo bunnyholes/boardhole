@@ -28,13 +28,13 @@ public class EmailRetryScheduler {
     private final EmailOutboxService outboxService;
     private final EmailService emailService;
 
-    @Value("${boardhole.email.outbox.max-retry-count:10}")
+    @Value("${boardhole.email.outbox.max-retry-count}")
     private int maxRetryCount;
 
     /**
-     * 실패한 이메일 재시도 기본 5분마다 실행
+     * 실패한 이메일 재시도 - 10분마다 실행
      */
-    @Scheduled(fixedDelayString = "${boardhole.email.outbox.scheduler-rate:300000}")
+    @Scheduled(fixedDelayString = "${boardhole.email.outbox.scheduler-rate}")
     public void retryFailedEmails() {
         List<EmailOutbox> pendingEmails = outboxService.findRetriableEmails();
 
