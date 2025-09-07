@@ -3,10 +3,7 @@ package bunny.boardhole.user.e2e;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.springframework.context.annotation.Import;
 
-import bunny.boardhole.testsupport.config.TestEmailConfig;
-import bunny.boardhole.testsupport.config.TestSecurityOverrides;
 import bunny.boardhole.testsupport.e2e.AuthSteps;
 import bunny.boardhole.testsupport.e2e.E2ETestBase;
 import bunny.boardhole.testsupport.e2e.SessionCookie;
@@ -17,7 +14,7 @@ import static org.hamcrest.Matchers.equalTo;
 @DisplayName("사용자 E2E — /users/me 인증/미인증")
 @Tag("e2e")
 @Tag("user")
-@Import({TestEmailConfig.class, TestSecurityOverrides.class})
+
 class UserMeE2ETest extends E2ETestBase {
 
     @Test
@@ -39,4 +36,3 @@ class UserMeE2ETest extends E2ETestBase {
         given().cookie(sc.name(), sc.value()).when().get("users/me").then().statusCode(200).body("username", equalTo(u)).body("email", equalTo(e));
     }
 }
-

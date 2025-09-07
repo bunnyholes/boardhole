@@ -96,7 +96,9 @@ class UserCommandServiceTest {
     }
 
     private static User userWithName(String name) {
-        return User.builder().username(USERNAME).password(ENCODED_PASSWORD).name(name).email(EMAIL).roles(Set.of(Role.USER)).build();
+        User user = User.builder().username(USERNAME).password(ENCODED_PASSWORD).name(name).email(EMAIL).roles(Set.of(Role.USER)).build();
+        user.verifyEmail();
+        return user;
     }
 
     private static UserResult userResult() {
@@ -110,7 +112,8 @@ class UserCommandServiceTest {
     }
 
     private static EmailVerification emailVerification() {
-        return EmailVerification.builder().code(VERIFICATION_CODE).userId(USER_ID).newEmail(NEW_EMAIL).expiresAt(LocalDateTime.now(ZoneId.systemDefault()).plusMinutes(10)).verificationType(EmailVerificationType.CHANGE_EMAIL).build();
+        User testUser = user();
+        return EmailVerification.builder().code(VERIFICATION_CODE).user(testUser).newEmail(NEW_EMAIL).expiresAt(LocalDateTime.now(ZoneId.systemDefault()).plusMinutes(10)).verificationType(EmailVerificationType.CHANGE_EMAIL).build();
     }
 
     @BeforeEach

@@ -16,8 +16,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.MDC;
-import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -29,6 +29,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
 import bunny.boardhole.shared.config.log.RequestLoggingFilter;
+import bunny.boardhole.shared.util.MessageUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.any;
@@ -49,14 +50,19 @@ class GlobalExceptionHandlerTest {
     @InjectMocks
     private GlobalExceptionHandler handler;
     @Mock
-    private MessageSource messageSource;
-    @Mock
     private HttpServletRequest request;
 
     @BeforeEach
     void setUp() {
         LocaleContextHolder.setLocale(Locale.KOREAN);
         MDC.put(RequestLoggingFilter.TRACE_ID, TRACE_ID);
+
+        // Initialize MessageUtils
+        ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
+        messageSource.setBasename("messages");
+        messageSource.setDefaultEncoding("UTF-8");
+        messageSource.setUseCodeAsDefaultMessage(true);
+        ReflectionTestUtils.setField(MessageUtils.class, "messageSource", messageSource);
 
         // Set problemBaseUri to empty string (will use urn format)
         ReflectionTestUtils.setField(handler, "problemBaseUri", "");
@@ -74,7 +80,6 @@ class GlobalExceptionHandlerTest {
         setupRequestMock();
         final String errorMessage = "게시글을 찾을 수 없습니다";
         ResourceNotFoundException ex = new ResourceNotFoundException(errorMessage);
-        when(messageSource.getMessage(eq("exception.title.not-found"), isNull(), any(Locale.class))).thenReturn("리소스를 찾을 수 없음");
 
         // When
         ProblemDetail result = handler.handleNotFound(ex, request);
@@ -100,7 +105,6 @@ class GlobalExceptionHandlerTest {
         setupRequestMock();
         final String errorMessage = "중복된 데이터입니다";
         ConflictException ex = new ConflictException(errorMessage);
-        when(messageSource.getMessage(eq("exception.title.conflict"), isNull(), any(Locale.class))).thenReturn("데이터 충돌");
 
         // When
         ProblemDetail result = handler.handleConflict(ex, request);
@@ -122,7 +126,6 @@ class GlobalExceptionHandlerTest {
         setupRequestMock();
         final String errorMessage = "이미 사용 중인 사용자명입니다";
         DuplicateUsernameException ex = new DuplicateUsernameException(errorMessage);
-        when(messageSource.getMessage(eq("exception.title.duplicate-username"), isNull(), any(Locale.class))).thenReturn("중복된 사용자명");
 
         // When
         ProblemDetail result = handler.handleDuplicateUsername(ex, request);
@@ -144,7 +147,6 @@ class GlobalExceptionHandlerTest {
         setupRequestMock();
         final String errorMessage = "이미 사용 중인 이메일입니다";
         DuplicateEmailException ex = new DuplicateEmailException(errorMessage);
-        when(messageSource.getMessage(eq("exception.title.duplicate-email"), isNull(), any(Locale.class))).thenReturn("중복된 이메일");
 
         // When
         ProblemDetail result = handler.handleDuplicateEmail(ex, request);
@@ -166,7 +168,6 @@ class GlobalExceptionHandlerTest {
         setupRequestMock();
         final String errorMessage = "인증이 필요합니다";
         UnauthorizedException ex = new UnauthorizedException(errorMessage);
-        when(messageSource.getMessage(eq("exception.title.unauthorized"), isNull(), any(Locale.class))).thenReturn("인증 실패");
 
         // When
         ProblemDetail result = handler.handleUnauthorized(ex, request);
@@ -188,7 +189,6 @@ class GlobalExceptionHandlerTest {
         setupRequestMock();
         final String errorMessage = "접근 권한이 없습니다";
         AccessDeniedException ex = new AccessDeniedException(errorMessage);
-        when(messageSource.getMessage(eq("exception.title.access-denied"), isNull(), any(Locale.class))).thenReturn("접근 거부");
 
         // When
         ProblemDetail result = handler.handleAccessDenied(ex, request);
@@ -216,7 +216,6 @@ class GlobalExceptionHandlerTest {
 
         when(ex.getBindingResult()).thenReturn(bindingResult);
         when(bindingResult.getFieldErrors()).thenReturn(List.of(fieldError1, fieldError2));
-        when(messageSource.getMessage(eq("exception.title.validation-failed"), isNull(), any(Locale.class))).thenReturn("유효성 검증 실패");
 
         // When
         ResponseEntity<ProblemDetail> response = handler.handleInvalid(ex, request);
@@ -245,7 +244,6 @@ class GlobalExceptionHandlerTest {
         setupRequestMock();
         final String errorMessage = "잘못된 인자입니다";
         IllegalArgumentException ex = new IllegalArgumentException(errorMessage);
-        when(messageSource.getMessage(eq("exception.title.bad-request"), isNull(), any(Locale.class))).thenReturn("잘못된 요청");
 
         // When
         ProblemDetail result = handler.handleBadRequest(ex, request);
@@ -267,7 +265,6 @@ class GlobalExceptionHandlerTest {
         setupRequestMock();
         final String errorMessage = "데이터 무결성 위반";
         DataIntegrityViolationException ex = new DataIntegrityViolationException(errorMessage);
-        when(messageSource.getMessage(eq("exception.title.conflict"), isNull(), any(Locale.class))).thenReturn("데이터 충돌");
 
         // When
         ProblemDetail result = handler.handleConflict(ex, request);
@@ -288,8 +285,6 @@ class GlobalExceptionHandlerTest {
         // Given
         setupRequestMock();
         Exception ex = new RuntimeException("Unexpected error");
-        when(messageSource.getMessage(eq("error.internal"), isNull(), any(Locale.class))).thenReturn("서버 내부 오류가 발생했습니다");
-        when(messageSource.getMessage(eq("exception.title.internal-error"), isNull(), any(Locale.class))).thenReturn("내부 서버 오류");
 
         // When
         ProblemDetail result = handler.handleUnexpected(ex, request);
@@ -312,7 +307,6 @@ class GlobalExceptionHandlerTest {
         ReflectionTestUtils.setField(handler, "problemBaseUri", "https://api.boardhole.com/problems");
         final String errorMessage = "테스트 오류";
         ResourceNotFoundException ex = new ResourceNotFoundException(errorMessage);
-        when(messageSource.getMessage(anyString(), isNull(), any(Locale.class))).thenReturn("테스트 제목");
 
         // When
         ProblemDetail result = handler.handleNotFound(ex, request);
@@ -329,7 +323,6 @@ class GlobalExceptionHandlerTest {
         ReflectionTestUtils.setField(handler, "problemBaseUri", "https://api.boardhole.com/problems/");
         final String errorMessage = "테스트 오류";
         ResourceNotFoundException ex = new ResourceNotFoundException(errorMessage);
-        when(messageSource.getMessage(anyString(), isNull(), any(Locale.class))).thenReturn("테스트 제목");
 
         // When
         ProblemDetail result = handler.handleNotFound(ex, request);
@@ -346,7 +339,6 @@ class GlobalExceptionHandlerTest {
         MDC.clear(); // Remove traceId
         final String errorMessage = "테스트 오류";
         ResourceNotFoundException ex = new ResourceNotFoundException(errorMessage);
-        when(messageSource.getMessage(anyString(), isNull(), any(Locale.class))).thenReturn("테스트 제목");
 
         // When
         ProblemDetail result = handler.handleNotFound(ex, request);

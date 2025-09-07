@@ -239,7 +239,7 @@ class BoardControllerTest extends MvcTestBase {
 
             @BeforeAll
             void setup() {
-                seedUser(boardOwner, "Board Owner", boardOwner + "@test.com", "password", java.util.Set.of(bunny.boardhole.user.domain.Role.USER));
+                seedUser(boardOwner, "Board Owner", boardOwner + "@test.com", "Password123!", java.util.Set.of(bunny.boardhole.user.domain.Role.USER));
                 boardId = seedBoardOwnedBy(boardOwner, "Original Title", "Original Content");
             }
 
@@ -277,7 +277,7 @@ class BoardControllerTest extends MvcTestBase {
         Stream<DynamicTest> deletePermissionTests() {
             return Stream.of(DynamicTest.dynamicTest("✅ 작성자 본인 → 삭제 성공", () -> {
                         String owner = "deleter_" + UUID.randomUUID().toString().substring(0, 8);
-                        seedUser(owner, "Deleter", owner + "@test.com", "password", java.util.Set.of(bunny.boardhole.user.domain.Role.USER));
+                        seedUser(owner, "Deleter", owner + "@test.com", "Password123!", java.util.Set.of(bunny.boardhole.user.domain.Role.USER));
                         Long boardId = seedBoardOwnedBy(owner, "To Delete", "Content");
                         var principal = new AppUserPrincipal(userRepository.findByUsername(owner).orElseThrow(() -> new IllegalStateException("Owner not found: " + owner)));
 

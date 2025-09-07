@@ -10,7 +10,7 @@ import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 import jakarta.validation.constraints.Size;
 
-import bunny.boardhole.shared.constants.ValidationConstants;
+import bunny.boardhole.user.domain.validation.UserValidationConstants;
 
 /**
  * 사용자 실명 검증 애너테이션 (선택적 필드)
@@ -20,7 +20,7 @@ import bunny.boardhole.shared.constants.ValidationConstants;
 @Target({ElementType.FIELD, ElementType.PARAMETER, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-@Size(min = ValidationConstants.USER_NAME_MIN_LENGTH, max = ValidationConstants.USER_NAME_MAX_LENGTH, message = "{validation.user.name.size}")
+@Size(min = UserValidationConstants.USER_NAME_MIN_LENGTH, max = UserValidationConstants.USER_NAME_MAX_LENGTH, message = "{validation.user.name.size}")
 @Constraint(validatedBy = {})
 public @interface OptionalName {
     String message() default "{validation.user.name.invalid}";

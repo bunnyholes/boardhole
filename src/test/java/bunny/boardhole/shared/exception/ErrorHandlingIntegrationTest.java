@@ -99,7 +99,7 @@ class ErrorHandlingIntegrationTest extends MvcTestBase {
     void test_403_forbidden_resource_owner() throws Exception {
         // 다른 사용자(현재 user가 아닌)의 게시글 데이터 시드
         String owner = "owner_" + UUID.randomUUID().toString().substring(0, 8);
-        var ownerUser = userRepository.save(bunny.boardhole.user.domain.User.builder().username(owner).password("plain").name("Owner").email(owner + "@example.com").roles(new java.util.HashSet<>(java.util.Set.of(bunny.boardhole.user.domain.Role.USER))).build());
+        var ownerUser = userRepository.save(bunny.boardhole.user.domain.User.builder().username(owner).password("plain").name("Owner").email(owner + "@example.com").roles(java.util.Set.of(bunny.boardhole.user.domain.Role.USER)).build());
 
         Long boardId = boardRepository.save(Board.builder().title("Owner's Board").content("Owner's Content").author(ownerUser).build()).getId();
 

@@ -61,7 +61,9 @@ class UserQueryServiceTest {
     }
 
     private static User userWithName(String name) {
-        return User.builder().username(USERNAME).password(ENCODED_PASSWORD).name(name).email(EMAIL).roles(Set.of(Role.USER)).build();
+        User user = User.builder().username(USERNAME).password(ENCODED_PASSWORD).name(name).email(EMAIL).roles(Set.of(Role.USER)).build();
+        user.verifyEmail();
+        return user;
     }
 
     private static UserResult userResult() {

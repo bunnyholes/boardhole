@@ -4,10 +4,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Import;
 
-import bunny.boardhole.testsupport.config.TestEmailConfig;
-import bunny.boardhole.testsupport.config.TestSecurityOverrides;
 import bunny.boardhole.testsupport.e2e.AuthSteps;
 import bunny.boardhole.testsupport.e2e.E2ETestBase;
 import bunny.boardhole.testsupport.e2e.SessionCookie;
@@ -18,7 +15,7 @@ import static org.hamcrest.Matchers.equalTo;
 @DisplayName("관리자 워크플로우 — 사용자 관리")
 @Tag("e2e")
 @Tag("scenario")
-@Import({TestEmailConfig.class, TestSecurityOverrides.class})
+
 class AdminWorkflowE2ETest extends E2ETestBase {
 
     @Value("${boardhole.default-users.admin.username}")

@@ -12,7 +12,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-import bunny.boardhole.shared.constants.ValidationConstants;
+import bunny.boardhole.user.domain.validation.UserValidationConstants;
 
 /**
  * 이메일 검증 애너테이션
@@ -25,7 +25,7 @@ import bunny.boardhole.shared.constants.ValidationConstants;
 @Documented
 @NotBlank(message = "{validation.user.email.required}")
 @Email(message = "{validation.user.email.format}")
-@Size(max = ValidationConstants.USER_EMAIL_MAX_LENGTH, message = "{validation.user.email.size}")
+@Size(max = UserValidationConstants.USER_EMAIL_MAX_LENGTH, message = "{validation.user.email.size}")
 @Constraint(validatedBy = {})
 public @interface ValidEmail {
     String message() default "{validation.user.email.invalid}";

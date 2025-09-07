@@ -1,0 +1,115 @@
+# ========================================
+# OpenAPI/Swagger 전용 설정
+# 개발 환경에서 API 문서 자동 활성화
+# ========================================
+
+# OpenAPI / Swagger UI 설정
+springdoc:
+  # 스캔 범위 제한 (필요한 API만 포함)
+  paths-to-match:
+    - /api/**
+  # Swagger UI 설정
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    operations-sorter: alpha
+    tags-sorter: alpha
+  # API 문서 경로
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+
+# OpenAPI 문서 메타데이터
+boardhole:
+  api:
+    title: Board-Hole API
+    version: 0.0.1-SNAPSHOT
+    description: |
+      ## Board-Hole - Spring Boot Sample Code Repository
+      
+      Board-Hole은 "구덩이(Hole)"라는 의미로, 다양한 Spring Boot 샘플 코드를 모아둔 코드 저장소입니다.
+      실무에서 자주 사용되는 패턴과 기술들을 한곳에 모아 학습과 참고 목적으로 제공합니다.
+      
+      ### 아키텍처 구성
+      
+      도메인별 모듈화된 레이어드 아키텍처를 적용했습니다.
+      
+      ```
+      presentation → application → domain → infrastructure
+      
+      - presentation:  REST API Controller, DTO  
+      - application:   Command/Query Service, MapStruct Mapper
+      - domain:        Entity, Validation, Business Logic
+      - infrastructure: Repository, External API
+      
+      각 도메인(user, board, email)별로 독립적인 모듈 구성
+      ```
+      
+      ### 주요 샘플 코드 패턴
+      
+      #### 세션 기반 인증 시스템
+      - Spring Security + Redis Session Store
+      - 메소드 레벨 권한 제어(`@PreAuthorize` 활용)
+      - 권한별 접근 제어(PUBLIC, AUTH, ROLE:USER, ROLE:ADMIN, OWNER)
+      
+      #### 게시판 CRUD 시스템
+      - 페이지네이션 + 검색 기능 구현
+      - Event-Driven(`@EventListener`로 조회수 증가 비동기 처리)
+      - 커스텀 검증(`@Valid*` / `@Optional*` 어노테이션)
+      
+      #### 사용자 관리 시스템
+      - 사용자 CRUD + 프로필 관리
+      - 패스워드 정책 검증 및 이메일 변경 플로우
+      
+      #### 이메일 인증 시스템
+      - 이메일 템플릿 시스템(HTML/Text)
+      - Dummy/SMTP 이메일 서비스 구현체
+      - Rate Limiting(시간당 5회, 일일 20회)
+      - 검증 코드 만료 관리(2시간)
+      
+      ### 프로파일별 활성화 기능
+      
+      #### dev 프로파일(기본값)
+      - Docker Compose: MySQL(13306) + Redis(16379) 자동 실행
+      - 더미 이메일: 실제 발송 없이 로그로만 출력
+      - 개발 도구: SQL 로깅, DDL 자동 업데이트, 디버그 로깅
+      - 컬러 로깅: 콘솔에서 색상 출력으로 가독성 향상
+      - 로컬 CORS: localhost/127.0.0.1 허용
+      - 간단 비밀번호: admin123, user123
+      
+      #### prod 프로파일
+      - 보안 강화: 환경변수 기반 설정, Secure Cookie
+      - 운영 최적화: DDL 검증만, SQL 로깅 비활성화
+      - 파일 로깅: 구조화된 로그 파일(10MB 롤링)
+      - CORS 제한: 환경변수로 허용 도메인 제한
+      - 환경변수 비밀번호: DATABASE_URL, ADMIN_PASSWORD 등
+      
+      #### smtp 프로파일
+      - 실제 이메일 발송: Gmail SMTP 서버 사용
+      - 재시도 메커니즘: 발송 실패 시 자동 재시도
+      - 비동기 처리: 이메일 발송 비동기 처리로 성능 향상
+      
+      ### 기술 스택
+      
+      ```
+      Framework:  Spring Boot 3.5.5 + Java 21
+      Database:   MySQL 9.4 + Redis 8.0
+      Security:   Spring Security + Session
+      ORM:        Spring Data JPA + Hibernate
+      Mapping:    MapStruct 1.6.3
+      Testing:    JUnit 5 + Testcontainers + ArchUnit
+      Quality:    Checkstyle + PMD + SpotBugs + SonarCloud
+      API Doc:    SpringDoc OpenAPI 3
+      ```
+      
+      ---
+      
+      이 API는 학습 목적의 샘플 코드입니다. 실무 프로젝트 구축 시 참고자료로 활용하세요.
+    terms-of-service: https://boardhole.com/terms
+    contact:
+      name: XIYO
+      email: bunny@xiyo.dev
+      url: https://github.com/XIYO/board-hole
+    license:
+      name: Apache 2.0
+      url: https://www.apache.org/licenses/LICENSE-2.0

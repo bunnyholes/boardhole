@@ -19,8 +19,8 @@ http://localhost:8080
 
 Docker Compose가 자동으로 처리하는 것들:
 
-- ✅ MySQL 이미지 자동 다운로드 및 실행 (포트: 13306)
-- ✅ Redis 이미지 자동 다운로드 및 실행 (포트: 16379)
+- ✅ MySQL 이미지 자동 다운로드 및 실행 (동적 포트)
+- ✅ Redis 이미지 자동 다운로드 및 실행 (동적 포트)
 - ✅ 데이터베이스 스키마 자동 생성
 - ✅ 모든 환경 변수 자동 설정
 - ✅ 네트워크 및 볼륨 자동 구성
@@ -50,7 +50,7 @@ Docker Compose가 자동으로 처리하는 것들:
 ## 🏗️ 기술 스택
 
 - **Backend**: Spring Boot 3.5.5, Java 21
-- **Database**: MySQL 9.0 (Docker)
+- **Database**: MySQL 9.4 (Docker)
 - **Session**: Redis (Docker)
 - **Build**: Gradle 8.14
 - **Testing**: JUnit 5, Testcontainers, RestAssured
@@ -112,6 +112,40 @@ docker-compose down -v
 ## 📄 라이선스
 
 MIT License
+
+## 📚 개발 가이드
+
+### 상세한 테스트 명령어
+```bash
+# 특정 패키지 테스트
+./gradlew test --tests "bunny.boardhole.board.*"
+
+# 특정 테스트 클래스 실행
+./gradlew test --tests BoardControllerTest
+
+# 모든 테스트 스위트 실행
+./gradlew allTests          # unit + integration + e2e
+
+# 커버리지 검증
+./gradlew jacocoTestCoverageVerification
+```
+
+### 아키텍처 구조
+
+각 도메인은 레이어드 아키텍처를 따릅니다:
+- **presentation**: REST API 컨트롤러 및 DTO
+- **application**: 비즈니스 로직 (Command/Query 분리)
+- **domain**: 엔티티 및 도메인 규칙 
+- **infrastructure**: 데이터 접근 계층
+
+### 코드 스타일 설정
+
+IntelliJ IDEA 자동 설정:
+1. 프로젝트 열기 시 `.idea/codeStyles/` 자동 감지
+2. Settings → Tools → Actions on Save 에서 다음 활성화:
+   - ✅ 코드 자동 포맷팅
+   - ✅ import 최적화
+   - ✅ 코드 재정렬 (선택사항)
 
 ## 👥 기여하기
 

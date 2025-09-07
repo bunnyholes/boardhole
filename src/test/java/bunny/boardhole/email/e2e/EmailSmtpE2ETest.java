@@ -25,6 +25,7 @@ import org.testcontainers.utility.DockerImageName;
 import bunny.boardhole.email.application.EmailService;
 import bunny.boardhole.email.domain.EmailMessage;
 import bunny.boardhole.email.infrastructure.SmtpEmailService;
+import bunny.boardhole.user.domain.Role;
 import bunny.boardhole.user.domain.User;
 import bunny.boardhole.user.infrastructure.UserRepository;
 
@@ -95,7 +96,7 @@ class EmailSmtpE2ETest {
 
         // 테스트 사용자 생성 (username 길이 제한 고려)
         String uniquePrefix = "smtp_" + (System.currentTimeMillis() % 10000);
-        testUser = User.builder().username(uniquePrefix).email(uniquePrefix + "@test.com").name("SMTP 테스트").password("Password123!").build();
+        testUser = User.builder().username(uniquePrefix).email(uniquePrefix + "@test.com").name("SMTP 테스트").password("Password123!").roles(java.util.Set.of(Role.USER)).build();
         testUser = userRepository.save(testUser);
     }
 
@@ -213,7 +214,7 @@ class EmailSmtpE2ETest {
 
         // given
         String uniqueId = "unverified_" + (System.currentTimeMillis() % 1000);
-        User unverifiedUser = User.builder().username(uniqueId).email(uniqueId + "@test.com").name("미인증 사용자").password("Password123!").build();
+        User unverifiedUser = User.builder().username(uniqueId).email(uniqueId + "@test.com").name("미인증 사용자").password("Password123!").roles(java.util.Set.of(Role.USER)).build();
 
         // when
         User saved = userRepository.save(unverifiedUser);

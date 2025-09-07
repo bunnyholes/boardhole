@@ -10,7 +10,7 @@ import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 import jakarta.validation.constraints.Size;
 
-import bunny.boardhole.shared.constants.ValidationConstants;
+import bunny.boardhole.board.domain.validation.BoardValidationConstants;
 
 /**
  * 게시글 내용 검증 애너테이션 (선택적 필드)
@@ -20,7 +20,7 @@ import bunny.boardhole.shared.constants.ValidationConstants;
 @Target({ElementType.FIELD, ElementType.PARAMETER, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-@Size(max = ValidationConstants.BOARD_CONTENT_MAX_LENGTH, message = "{validation.board.content.size}")
+@Size(max = BoardValidationConstants.BOARD_CONTENT_MAX_LENGTH, message = "{validation.board.content.size}")
 @Constraint(validatedBy = {})
 public @interface OptionalBoardContent {
     String message() default "{validation.board.content.invalid}";

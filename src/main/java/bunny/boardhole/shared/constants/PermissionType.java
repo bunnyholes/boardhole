@@ -16,4 +16,5 @@ public final class PermissionType {
     // 권한 대상 타입
     public static final String TARGET_BOARD = "BOARD";
     public static final String TARGET_USER = "USER";
+    public static final String TARGET_EMAIL_VERIFICATION = "EMAIL_VERIFICATION";
 }

@@ -25,6 +25,7 @@ import bunny.boardhole.auth.application.result.AuthResult;
 import bunny.boardhole.shared.exception.UnauthorizedException;
 import bunny.boardhole.shared.security.AppUserPrincipal;
 import bunny.boardhole.shared.util.MessageUtils;
+import bunny.boardhole.user.domain.Role;
 import bunny.boardhole.user.domain.User;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -69,8 +70,9 @@ class SessionAuthCommandServiceTest {
         // SecurityContext 초기화
         SecurityContextHolder.clearContext();
 
-        // 테스트 데이터 준비
-        user = User.builder().username("testuser").password("password").name("Test User").email("test@example.com").build();
+        // 테스트 데이터 준비 - 이메일 인증 완료된 사용자
+        user = User.builder().username("testuser").password("password").name("Test User").email("test@example.com").roles(java.util.Set.of(Role.USER)).build();
+        user.verifyEmail();
         ReflectionTestUtils.setField(user, "id", 1L);
         // User는 기본적으로 권한을 가짐
 

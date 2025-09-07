@@ -12,12 +12,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestMethodOrder;
 
-import bunny.boardhole.shared.constants.ValidationConstants;
+import bunny.boardhole.user.domain.validation.UserValidationConstants;
 import bunny.boardhole.shared.util.MessageUtils;
 import bunny.boardhole.testsupport.jpa.EntityTestBase;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import jakarta.validation.ConstraintViolationException;
 
 @DisplayName("User 엔티티 테스트")
 @TestMethodOrder(MethodOrderer.DisplayName.class)
@@ -65,7 +67,10 @@ class UserEntityTest extends EntityTestBase {
             String expectedMessage = MessageUtils.get("validation.user.username.required");
 
             // when & then
-            assertThatThrownBy(() -> User.builder().username("").password(testData.password()).name(testData.name()).email(testData.email()).roles(Set.of(Role.USER)).build()).isInstanceOf(IllegalArgumentException.class).hasMessage(expectedMessage);
+            assertThatThrownBy(() -> {
+                User user = User.builder().username("").password(testData.password()).name(testData.name()).email(testData.email()).roles(Set.of(Role.USER)).build();
+                entityManager.persistAndFlush(user);
+            }).isInstanceOf(ConstraintViolationException.class);
         }
 
         @Test
@@ -75,7 +80,10 @@ class UserEntityTest extends EntityTestBase {
             String expectedMessage = MessageUtils.get("validation.user.password.required");
 
             // when & then
-            assertThatThrownBy(() -> User.builder().username(createUniqueUsername()).password("").name(testData.name()).email(testData.email()).roles(Set.of(Role.USER)).build()).isInstanceOf(IllegalArgumentException.class).hasMessage(expectedMessage);
+            assertThatThrownBy(() -> {
+                User user = User.builder().username(createUniqueUsername()).password("").name(testData.name()).email(testData.email()).roles(Set.of(Role.USER)).build();
+                entityManager.persistAndFlush(user);
+            }).isInstanceOf(ConstraintViolationException.class);
         }
 
         @Test
@@ -85,7 +93,10 @@ class UserEntityTest extends EntityTestBase {
             String expectedMessage = MessageUtils.get("validation.user.name.required");
 
             // when & then
-            assertThatThrownBy(() -> User.builder().username(createUniqueUsername()).password(testData.password()).name("").email(testData.email()).roles(Set.of(Role.USER)).build()).isInstanceOf(IllegalArgumentException.class).hasMessage(expectedMessage);
+            assertThatThrownBy(() -> {
+                User user = User.builder().username(createUniqueUsername()).password(testData.password()).name("").email(testData.email()).roles(Set.of(Role.USER)).build();
+                entityManager.persistAndFlush(user);
+            }).isInstanceOf(ConstraintViolationException.class);
         }
 
         @Test
@@ -95,7 +106,10 @@ class UserEntityTest extends EntityTestBase {
             String expectedMessage = MessageUtils.get("validation.user.email.required");
 
             // when & then
-            assertThatThrownBy(() -> User.builder().username(createUniqueUsername()).password(testData.password()).name(testData.name()).email("").roles(Set.of(Role.USER)).build()).isInstanceOf(IllegalArgumentException.class).hasMessage(expectedMessage);
+            assertThatThrownBy(() -> {
+                User user = User.builder().username(createUniqueUsername()).password(testData.password()).name(testData.name()).email("").roles(Set.of(Role.USER)).build();
+                entityManager.persistAndFlush(user);
+            }).isInstanceOf(ConstraintViolationException.class);
         }
     }
 
@@ -108,33 +122,42 @@ class UserEntityTest extends EntityTestBase {
         @DisplayName("❌ 사용자명이 최대 길이를 초과할 때 예외 발생")
         void createUser_WithUsernameTooLong_ThrowsException() {
             // given
-            String longUsername = "a".repeat(ValidationConstants.USER_USERNAME_MAX_LENGTH + 1);
-            String expectedMessage = MessageUtils.get("validation.user.username.too-long", ValidationConstants.USER_USERNAME_MAX_LENGTH);
+            String longUsername = "a".repeat(UserValidationConstants.USER_USERNAME_MAX_LENGTH + 1);
+            String expectedMessage = MessageUtils.get("validation.user.username.too-long", UserValidationConstants.USER_USERNAME_MAX_LENGTH);
 
             // when & then
-            assertThatThrownBy(() -> User.builder().username(longUsername).password(testData.password()).name(testData.name()).email(testData.email()).roles(Set.of(Role.USER)).build()).isInstanceOf(IllegalArgumentException.class).hasMessage(expectedMessage);
+            assertThatThrownBy(() -> {
+                User user = User.builder().username(longUsername).password(testData.password()).name(testData.name()).email(testData.email()).roles(Set.of(Role.USER)).build();
+                entityManager.persistAndFlush(user);
+            }).isInstanceOf(ConstraintViolationException.class);
         }
 
         @Test
         @DisplayName("❌ 이름이 최대 길이를 초과할 때 예외 발생")
         void createUser_WithNameTooLong_ThrowsException() {
             // given
-            String longName = "a".repeat(ValidationConstants.USER_NAME_MAX_LENGTH + 1);
-            String expectedMessage = MessageUtils.get("validation.user.name.too-long", ValidationConstants.USER_NAME_MAX_LENGTH);
+            String longName = "a".repeat(UserValidationConstants.USER_NAME_MAX_LENGTH + 1);
+            String expectedMessage = MessageUtils.get("validation.user.name.too-long", UserValidationConstants.USER_NAME_MAX_LENGTH);
 
             // when & then
-            assertThatThrownBy(() -> User.builder().username(createUniqueUsername()).password(testData.password()).name(longName).email(testData.email()).roles(Set.of(Role.USER)).build()).isInstanceOf(IllegalArgumentException.class).hasMessage(expectedMessage);
+            assertThatThrownBy(() -> {
+                User user = User.builder().username(createUniqueUsername()).password(testData.password()).name(longName).email(testData.email()).roles(Set.of(Role.USER)).build();
+                entityManager.persistAndFlush(user);
+            }).isInstanceOf(ConstraintViolationException.class);
         }
 
         @Test
         @DisplayName("❌ 이메일이 최대 길이를 초과할 때 예외 발생")
         void createUser_WithEmailTooLong_ThrowsException() {
             // given
-            String longEmail = "a".repeat(ValidationConstants.USER_EMAIL_MAX_LENGTH) + "@example.com";
-            String expectedMessage = MessageUtils.get("validation.user.email.too-long", ValidationConstants.USER_EMAIL_MAX_LENGTH);
+            String longEmail = "a".repeat(UserValidationConstants.USER_EMAIL_MAX_LENGTH) + "@example.com";
+            String expectedMessage = MessageUtils.get("validation.user.email.too-long", UserValidationConstants.USER_EMAIL_MAX_LENGTH);
 
             // when & then
-            assertThatThrownBy(() -> User.builder().username(createUniqueUsername()).password(testData.password()).name(testData.name()).email(longEmail).roles(Set.of(Role.USER)).build()).isInstanceOf(IllegalArgumentException.class).hasMessage(expectedMessage);
+            assertThatThrownBy(() -> {
+                User user = User.builder().username(createUniqueUsername()).password(testData.password()).name(testData.name()).email(longEmail).roles(Set.of(Role.USER)).build();
+                entityManager.persistAndFlush(user);
+            }).isInstanceOf(ConstraintViolationException.class);
         }
     }
 
@@ -187,7 +210,10 @@ class UserEntityTest extends EntityTestBase {
             String expectedMessage = MessageUtils.get("validation.user.name.required");
 
             // when & then
-            assertThatThrownBy(() -> user.changeName("")).isInstanceOf(IllegalArgumentException.class).hasMessage(expectedMessage);
+            assertThatThrownBy(() -> {
+                user.changeName("");
+                entityManager.persistAndFlush(user);
+            }).isInstanceOf(ConstraintViolationException.class);
         }
 
         @Test
@@ -209,7 +235,7 @@ class UserEntityTest extends EntityTestBase {
         void changePassword_WithValidPassword_Success() {
             // given
             User user = createTestUser();
-            final String newPassword = "newpassword123";
+            final String newPassword = "NewPassword123!";
 
             // when
             user.changePassword(newPassword);
@@ -223,13 +249,13 @@ class UserEntityTest extends EntityTestBase {
         void recordLastLogin_UpdatesLastLoginTime() {
             // given
             User user = createTestUser();
-            LocalDateTime loginTime = LocalDateTime.now(ZoneId.systemDefault());
 
             // when
-            user.recordLastLogin(loginTime);
+            user.recordLastLogin();
 
             // then
-            assertThat(user.getLastLogin()).isEqualTo(loginTime);
+            assertThat(user.getLastLogin()).isNotNull();
+            assertThat(user.getLastLogin()).isBeforeOrEqualTo(LocalDateTime.now());
         }
     }
 
@@ -265,7 +291,7 @@ class UserEntityTest extends EntityTestBase {
             // given
             User user1 = User.builder().username(createUniqueUsername()).password(testData.password()).name("사용자1").email(createUniqueEmail()).roles(Set.of(Role.USER)).build();
 
-            User user2 = User.builder().username(createUniqueUsername()).password("password456").name("사용자2").email(createUniqueEmail()).roles(Set.of(Role.ADMIN)).build();
+            User user2 = User.builder().username(createUniqueUsername()).password("Password456!").name("사용자2").email(createUniqueEmail()).roles(Set.of(Role.ADMIN)).build();
 
             // when
             entityManager.persistAndFlush(user1);
@@ -306,13 +332,13 @@ class UserEntityTest extends EntityTestBase {
         @DisplayName("✅ toString 테스트 - 민감한 정보 제외")
         void toString_ExcludesSensitiveFields() {
             // given
-            User user = User.builder().username(createUniqueUsername()).password("secretpassword").name(testData.name()).email(createUniqueEmail()).roles(Set.of(Role.USER)).build();
+            User user = User.builder().username(createUniqueUsername()).password("SecretPassword123!").name(testData.name()).email(createUniqueEmail()).roles(Set.of(Role.USER)).build();
 
             // when
             String userString = user.toString();
 
             // then
-            assertThat(userString).doesNotContain("secretpassword");
+            assertThat(userString).doesNotContain("SecretPassword123!");
             assertThat(userString).doesNotContain("password");
             assertThat(userString).contains(user.getUsername());
             assertThat(userString).contains(testData.name());

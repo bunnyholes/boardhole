@@ -23,7 +23,7 @@ public interface EmailVerificationRepository extends JpaRepository<EmailVerifica
      * @param code   검증 코드
      * @return 검증 정보
      */
-    @Query("SELECT ev FROM EmailVerification ev WHERE ev.userId = :userId AND ev.code = :code AND ev.used = false AND ev.expiresAt > :now")
+    @Query("SELECT ev FROM EmailVerification ev WHERE ev.user.id = :userId AND ev.code = :code AND ev.used = false AND ev.expiresAt > :now")
     Optional<EmailVerification> findValidVerification(@Param("userId") Long userId, @Param("code") String code, @Param("now") LocalDateTime now);
 
     /**
@@ -44,7 +44,7 @@ public interface EmailVerificationRepository extends JpaRepository<EmailVerifica
      */
     @Modifying
     @Transactional
-    @Query("UPDATE EmailVerification ev SET ev.used = true WHERE ev.userId = :userId AND ev.used = false")
+    @Query("UPDATE EmailVerification ev SET ev.used = true WHERE ev.user.id = :userId AND ev.used = false")
     void invalidateUserVerifications(@Param("userId") Long userId);
 
     /**
@@ -61,5 +61,6 @@ public interface EmailVerificationRepository extends JpaRepository<EmailVerifica
      * @param userId 사용자 ID
      * @return 검증 정보 목록
      */
-    List<EmailVerification> findByUserIdAndUsedFalse(Long userId);
+    @Query("SELECT ev FROM EmailVerification ev WHERE ev.user.id = :userId AND ev.used = false")
+    List<EmailVerification> findByUserIdAndUsedFalse(@Param("userId") Long userId);
 }

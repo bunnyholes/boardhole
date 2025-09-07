@@ -61,7 +61,11 @@ public class AuthController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PermitAll
     @Operation(summary = "회원가입", description = "[PUBLIC] 새로운 사용자 계정을 생성합니다.", requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content = @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE, schema = @Schema(implementation = UserCreateRequest.class))))
-    @ApiResponses({@ApiResponse(responseCode = "204", description = "회원가입 성공"), @ApiResponse(responseCode = "400", description = "잘못된 요청 데이터 또는 중복된 사용자명/이메일")})
+    @ApiResponses({
+        @ApiResponse(responseCode = "204", description = "회원가입 성공"),
+        @ApiResponse(responseCode = "400", description = "유효성 검증 실패 (필수 필드 누락, 패스워드 패턴 불일치 등)"),
+        @ApiResponse(responseCode = "409", description = "중복된 사용자명 또는 이메일")
+    })
     public void signup(@Validated @ModelAttribute UserCreateRequest req) {
         // Map request to command; keep repository returning entities in service
         var cmd = userWebMapper.toCreateCommand(req);

@@ -1,13 +1,15 @@
 package bunny.boardhole.user.domain;
 
-import java.io.Serial;
-import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
@@ -17,8 +19,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotEmpty;
 
-import lombok.AllArgsConstructor;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -26,105 +29,86 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import org.hibernate.annotations.DynamicUpdate;
-import org.springframework.util.Assert;
+import org.springframework.lang.Nullable;
 
-import bunny.boardhole.shared.constants.ValidationConstants;
 import bunny.boardhole.shared.domain.BaseEntity;
-import bunny.boardhole.shared.util.MessageUtils;
-
-import io.swagger.v3.oas.annotations.media.Schema;
+import bunny.boardhole.shared.domain.listener.ValidationListener;
+import bunny.boardhole.user.domain.validation.required.ValidEmail;
+import bunny.boardhole.user.domain.validation.required.ValidName;
+import bunny.boardhole.user.domain.validation.required.ValidPassword;
+import bunny.boardhole.user.domain.validation.required.ValidUsername;
 
 @Getter
 @NoArgsConstructor
-@AllArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 @ToString(exclude = {"password", "roles"})
 @Entity
+@EntityListeners(ValidationListener.class)
 @DynamicUpdate
 @Table(name = "users", indexes = {@Index(name = "idx_user_username", columnList = "username"), @Index(name = "idx_user_email", columnList = "email"), @Index(name = "idx_user_name", columnList = "name")})
-@Schema(name = "User", description = "사용자 도메인 엔티티 - 시스템의 핵심 사용자 정보")
-public class User extends BaseEntity implements Serializable {
-
-    @Serial
-    private static final long serialVersionUID = 2870948220832438912L;
+public class User extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @EqualsAndHashCode.Include
-    @Schema(description = "사용자 고유 ID (자동 생성)", example = "1")
     private Long id;
 
-    @Column(nullable = false, unique = true, length = ValidationConstants.USER_USERNAME_MAX_LENGTH)
-    @Schema(description = "사용자명 (고유값, 3-20자)", example = "johndoe")
+    @ValidUsername
+    @Column(nullable = false, unique = true)
     private String username;
 
-    @Column(nullable = false, length = ValidationConstants.USER_PASSWORD_MAX_LENGTH)
-    @Schema(description = "암호화된 비밀번호", example = "$2a$10$encrypted...")
+    @ValidPassword
+    @Column(nullable = false)
     private String password;
 
-    @Column(nullable = false, length = ValidationConstants.USER_NAME_MAX_LENGTH)
-    @Schema(description = "사용자 실명 (1-50자)", example = "홍길동")
+    @ValidName
+    @Column(nullable = false)
     private String name;
 
+    @ValidEmail
     @Column(nullable = false, unique = true)
-    @Schema(description = "이메일 주소 (고유값)", example = "john@example.com")
     private String email;
 
-    @Column(name = "last_login")
-    @Schema(description = "마지막 로그인 일시", example = "2024-01-16T14:20:15")
-    private LocalDateTime lastLogin;
+    @Column
+    private @Nullable LocalDateTime lastLogin;
 
-    @Column(name = "email_verified", nullable = false)
-    @Schema(description = "이메일 인증 여부", example = "false")
+    @Column(nullable = false)
     private boolean emailVerified = false;
 
-    @Column(name = "email_verified_at")
-    @Schema(description = "이메일 인증 완료 일시", example = "2024-01-16T14:20:15")
-    private LocalDateTime emailVerifiedAt;
+    @Column
+    private @Nullable LocalDateTime emailVerifiedAt;
 
-    @ElementCollection(fetch = FetchType.LAZY)
-    @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"))
+    @Getter(AccessLevel.NONE)
+    @NotEmpty(message = "{validation.user.roles.empty}")
+    @ElementCollection
+    @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
     @Enumerated(EnumType.STRING)
-    @Column(name = "role")
-    @Schema(description = "사용자 권한 목록 (USER, ADMIN)", example = "[\"USER\", \"ADMIN\"]")
-    private java.util.Set<Role> roles;
+    @Column
+    private Set<Role> roles;
 
     // 필요한 필드만 받는 생성자에 @Builder 적용
     @Builder
-    public User(String username, String password, String name, String email, java.util.Set<Role> roles) {
-        Assert.hasText(username, MessageUtils.get("validation.user.username.required"));
-        Assert.isTrue(username.length() <= ValidationConstants.USER_USERNAME_MAX_LENGTH, MessageUtils.get("validation.user.username.too-long", ValidationConstants.USER_USERNAME_MAX_LENGTH));
-        Assert.hasText(password, MessageUtils.get("validation.user.password.required"));
-        Assert.hasText(name, MessageUtils.get("validation.user.name.required"));
-        Assert.isTrue(name.length() <= ValidationConstants.USER_NAME_MAX_LENGTH, MessageUtils.get("validation.user.name.too-long", ValidationConstants.USER_NAME_MAX_LENGTH));
-        Assert.hasText(email, MessageUtils.get("validation.user.email.required"));
-        Assert.isTrue(email.length() <= ValidationConstants.USER_EMAIL_MAX_LENGTH, MessageUtils.get("validation.user.email.too-long", ValidationConstants.USER_EMAIL_MAX_LENGTH));
-
+    private User(String username, String password, String name, String email, Set<Role> roles) {
         this.username = username;
         this.password = password;
         this.name = name;
         this.email = email;
-        this.roles = roles;
+        this.roles = new HashSet<>(roles);
     }
 
     public void changeName(String name) {
-        Assert.hasText(name, MessageUtils.get("validation.user.name.required"));
-        Assert.isTrue(name.length() <= ValidationConstants.USER_NAME_MAX_LENGTH, MessageUtils.get("validation.user.name.too-long", ValidationConstants.USER_NAME_MAX_LENGTH));
         this.name = name;
     }
 
     public void changeEmail(String email) {
-        Assert.hasText(email, MessageUtils.get("validation.user.email.required"));
-        Assert.isTrue(email.length() <= ValidationConstants.USER_EMAIL_MAX_LENGTH, MessageUtils.get("validation.user.email.too-long", ValidationConstants.USER_EMAIL_MAX_LENGTH));
         this.email = email;
     }
 
     public void changePassword(String password) {
-        Assert.hasText(password, MessageUtils.get("validation.user.password.required"));
         this.password = password;
     }
 
-    public void recordLastLogin(LocalDateTime lastLogin) {
-        this.lastLogin = lastLogin;
+    public void recordLastLogin() {
+        lastLogin = LocalDateTime.now();
     }
 
     public void verifyEmail() {
@@ -137,38 +121,43 @@ public class User extends BaseEntity implements Serializable {
     }
 
     /**
-     * 사용자가 관리자 권한을 가지고 있는지 확인합니다.
+     * 사용자가 특정 권한을 가지고 있는지 확인합니다.
+     *
+     * @param role 확인할 권한
+     * @return 해당 권한을 가지고 있으면 true
+     */
+    public boolean hasRole(Role role) {
+        return roles.contains(role);
+    }
+
+    /**
+     * 사용자에게 특정 권한을 부여합니다.
      * <p>
-     * ADMIN 역할이 사용자의 권한 집합에 포함되어 있는지 검증하여
-     * 관리자 권한 여부를 판단합니다.
+     * 기존 권한을 유지하면서 새로운 역할을 추가합니다.
+     * 이미 해당 권한이 있는 경우 중복 추가되지 않습니다.
      * </p>
      *
-     * @return 관리자 권한 보유 여부
+     * @param role 부여할 권한
      */
-    public boolean hasAdminRole() {
-        return roles.contains(Role.ADMIN);
+    public void grantRole(Role role) {
+        roles.add(role);  // HashSet이므로 중복은 자동으로 방지됨
     }
 
     /**
-     * 사용자에게 관리자 권한을 부여합니다.
+     * 사용자의 특정 권한을 철회합니다.
      * <p>
-     * 기존 권한을 유지하면서 ADMIN 역할을 추가합니다.
-     * 이미 관리자 권한이 있는 경우 중복 추가되지 않습니다.
+     * 권한 집합에서 특정 역할을 제거합니다.
+     * 해당 권한이 없는 경우 아무 작업도 수행하지 않습니다.
      * </p>
+     *
+     * @param role 철회할 권한
      */
-    public void grantAdminRole() {
-        roles.add(Role.ADMIN);
+    public void revokeRole(Role role) {
+        roles.remove(role);  // 없으면 아무 일도 일어나지 않음
     }
 
-    /**
-     * 사용자의 관리자 권한을 철회합니다.
-     * <p>
-     * 권한 집합에서 ADMIN 역할을 제거합니다.
-     * 관리자 권한이 없는 경우 아무 작업도 수행하지 않습니다.
-     * </p>
-     */
-    public void revokeAdminRole() {
-        roles.remove(Role.ADMIN);
+    public Set<Role> getRoles() {
+        return Collections.unmodifiableSet(roles);
     }
 
 }

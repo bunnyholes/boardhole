@@ -5,70 +5,77 @@ import java.time.ZoneId;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
-import org.springframework.util.Assert;
+import org.hibernate.annotations.DynamicUpdate;
 
 import bunny.boardhole.shared.domain.BaseEntity;
-import bunny.boardhole.shared.util.MessageUtils;
+import bunny.boardhole.shared.domain.listener.ValidationListener;
+import bunny.boardhole.user.domain.validation.required.ValidNewEmail;
+import bunny.boardhole.user.domain.validation.required.ValidVerificationCode;
 
 @Getter
 @NoArgsConstructor
-@AllArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
+@ToString(exclude = "user")
 @Entity
-@Table(name = "email_verifications", indexes = {@Index(name = "idx_email_verification_user_id", columnList = "user_id"), @Index(name = "idx_email_verification_expires_at", columnList = "expires_at")})
+@EntityListeners(ValidationListener.class)
+@DynamicUpdate
+@Table(name = "email_verifications", indexes = {@Index(name = "idx_email_verification_user_id", columnList = "user_id"), @Index(name = "idx_email_verification_expires_at", columnList = "expires_at"), @Index(name = "idx_email_verification_type_used", columnList = "verification_type, used")})
 public class EmailVerification extends BaseEntity {
 
     @Id
+    @ValidVerificationCode
     @EqualsAndHashCode.Include
     private String code;
 
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
+    @NotNull(message = "{validation.email.verification.user.required}")
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
-    @Column(name = "new_email", nullable = false)
+    @ValidNewEmail
+    @Column(nullable = false)
     private String newEmail;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "verification_type", nullable = false)
+    @Column(nullable = false)
     private EmailVerificationType verificationType;
 
-    @Column(name = "expires_at", nullable = false)
+    @Column(nullable = false)
     private LocalDateTime expiresAt;
 
     @Column(nullable = false)
-    private boolean used;
+    private boolean used = false;
 
     @Builder
-    public EmailVerification(String code, Long userId, String newEmail, LocalDateTime expiresAt, EmailVerificationType verificationType) {
-        Assert.hasText(code, MessageUtils.get("validation.email.verification.code.required"));
-        Assert.notNull(userId, MessageUtils.get("validation.email.verification.userId.required"));
-        Assert.hasText(newEmail, MessageUtils.get("validation.email.verification.newEmail.required"));
-        Assert.notNull(expiresAt, MessageUtils.get("validation.email.verification.expiresAt.required"));
-        Assert.notNull(verificationType, MessageUtils.get("validation.email.verification.type.required"));
-
+    public EmailVerification(String code, User user, String newEmail, LocalDateTime expiresAt, EmailVerificationType verificationType) {
         this.code = code;
-        this.userId = userId;
+        this.user = user;
         this.newEmail = newEmail;
         this.expiresAt = expiresAt;
         this.verificationType = verificationType;
-        used = false;
     }
 
     public void markAsUsed() {
-        Assert.state(!used, MessageUtils.get("validation.email.verification.already-used"));
-        Assert.state(LocalDateTime.now(ZoneId.systemDefault()).isBefore(expiresAt), MessageUtils.get("validation.email.verification.expired"));
+        if (used)
+            throw new IllegalStateException("Email verification code has already been used");
+        if (isExpired())
+            throw new IllegalStateException("Email verification code has expired");
         used = true;
     }
 

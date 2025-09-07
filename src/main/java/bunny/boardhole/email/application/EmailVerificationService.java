@@ -32,7 +32,7 @@ public class EmailVerificationService {
     private final EmailVerificationRepository emailVerificationRepository;
     private final EmailService emailService;
 
-    @Value("${boardhole.email.verification-expiration-ms}")
+    @Value("${boardhole.validation.email-verification.expiration-ms}")
     private long verificationExpirationMs;
 
     /**
@@ -48,7 +48,7 @@ public class EmailVerificationService {
         if (verification.isExpired())
             throw new IllegalArgumentException(MessageUtils.get("error.email-verification.expired"));
 
-        User user = userRepository.findById(verification.getUserId()).orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.user.not-found.id", verification.getUserId())));
+        User user = verification.getUser();
 
         // 인증 타입에 따른 처리
         if (verification.getVerificationType() == EmailVerificationType.SIGNUP) {
@@ -94,7 +94,7 @@ public class EmailVerificationService {
         String newToken = TokenGenerator.generateToken();
         LocalDateTime expiresAt = LocalDateTime.now(ZoneId.systemDefault()).plus(java.time.Duration.ofMillis(verificationExpirationMs));
 
-        EmailVerification newVerification = EmailVerification.builder().code(newToken).userId(user.getId()).newEmail(user.getEmail()).expiresAt(expiresAt).verificationType(EmailVerificationType.SIGNUP).build();
+        EmailVerification newVerification = EmailVerification.builder().code(newToken).user(user).newEmail(user.getEmail()).expiresAt(expiresAt).verificationType(EmailVerificationType.SIGNUP).build();
 
         emailVerificationRepository.save(newVerification);
         emailService.sendSignupVerificationEmail(user, newToken);

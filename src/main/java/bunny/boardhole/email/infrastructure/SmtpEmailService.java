@@ -41,7 +41,7 @@ public class SmtpEmailService implements EmailService {
     /**
      * 인증 토큰 만료 시간 (시간)
      */
-    @Value("${boardhole.email.verification-expiration-ms}")
+    @Value("${boardhole.validation.email-verification.expiration-ms}")
     private long verificationExpirationMs;
     @Value("${spring.mail.username}")
     private String fromEmail;

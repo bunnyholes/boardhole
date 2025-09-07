@@ -11,7 +11,7 @@ import jakarta.validation.Payload;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-import bunny.boardhole.shared.constants.ValidationConstants;
+import bunny.boardhole.user.domain.validation.UserValidationConstants;
 
 /**
  * 사용자명(username) 검증 애너테이션
@@ -22,7 +22,7 @@ import bunny.boardhole.shared.constants.ValidationConstants;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @NotBlank(message = "{validation.user.username.required}")
-@Size(min = ValidationConstants.USER_USERNAME_MIN_LENGTH, max = ValidationConstants.USER_USERNAME_MAX_LENGTH, message = "{validation.user.username.size}")
+@Size(min = UserValidationConstants.USER_USERNAME_MIN_LENGTH, max = UserValidationConstants.USER_USERNAME_MAX_LENGTH, message = "{validation.user.username.size}")
 @Constraint(validatedBy = {})
 public @interface ValidUsername {
     String message() default "{validation.user.username.invalid}";

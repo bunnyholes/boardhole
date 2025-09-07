@@ -4,10 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.springframework.context.annotation.Import;
 
-import bunny.boardhole.testsupport.config.TestEmailConfig;
-import bunny.boardhole.testsupport.config.TestSecurityOverrides;
 import bunny.boardhole.testsupport.e2e.AuthSteps;
 import bunny.boardhole.testsupport.e2e.BoardSteps;
 import bunny.boardhole.testsupport.e2e.E2ETestBase;
@@ -21,7 +18,7 @@ import static org.hamcrest.Matchers.notNullValue;
 @DisplayName("게시판 E2E — 목록/검색/페이지네이션")
 @Tag("e2e")
 @Tag("board")
-@Import({TestEmailConfig.class, TestSecurityOverrides.class})
+
 class BoardListE2ETest extends E2ETestBase {
 
     private String uid;

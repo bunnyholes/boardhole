@@ -54,11 +54,21 @@ public abstract class EntityTestBase {
     }
 
     protected String createUniqueCode() {
-        return testData.verificationCode() + "_" + UUID.randomUUID().toString().substring(0, 8).toUpperCase(Locale.ROOT);
+        // Generate 6-character alphanumeric code to meet @ValidVerificationCode requirements (exactly 6 chars, A-Z0-9)
+        String uuid = UUID.randomUUID().toString().replace("-", "").toUpperCase(Locale.ROOT);
+        return uuid.substring(0, 6); // Take first 6 characters
     }
 
     protected User createTestUser() {
-        return User.builder().username(createUniqueUsername()).password(testData.password()).name(testData.name()).email(createUniqueEmail()).roles(Set.of(Role.USER)).build();
+        User user = User.builder()
+                .username(createUniqueUsername())
+                .password(testData.password())
+                .name(testData.name())
+                .email(createUniqueEmail())
+                .roles(Set.of(Role.USER))
+                .build();
+        user.verifyEmail();
+        return user;
     }
 
     protected User createAndPersistUser() {

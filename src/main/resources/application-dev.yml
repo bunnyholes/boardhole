@@ -4,29 +4,6 @@
 # ========================================
 
 spring:
-  # Docker Compose 지원 (로컬 개발용)
-  docker:
-    compose:
-      enabled: true
-  
-  # 개발 데이터베이스 설정 (Docker MySQL)
-  datasource:
-    url: jdbc:mysql://localhost:13306/boardhole?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Seoul
-    username: root
-    password: root
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    
-    # TODO: 성능 최적화 - 실제 부하 발생 시 아래 HikariCP 설정 활성화
-    # DB 연결 부족으로 성능 저하가 발생할 경우:
-    # hikari:
-    #   maximum-pool-size: 20          # 최대 연결 수 (기본 10 → 20)
-    #   minimum-idle: 8                 # 최소 유휴 연결 수
-    #   idle-timeout: 600000            # 10분 (유휴 연결 타임아웃)
-    #   max-lifetime: 1800000           # 30분 (연결 최대 수명)
-    #   connection-timeout: 30000       # 30초 (연결 타임아웃)
-    #   leak-detection-threshold: 60000 # 60초 (연결 누수 감지)
-    #   connection-test-query: SELECT 1 # 연결 검증 쿼리
-  
   # JPA 개발 설정
   jpa:
     hibernate:
@@ -35,41 +12,18 @@ spring:
     properties:
       hibernate:
         format_sql: true  # SQL 포맷팅
-        session:
-          events:
-            log:
-              LOG_QUERIES_SLOWER_THAN_MS: 300  # 느린 쿼리 감지
   
-  # Redis 개발 설정
-  data:
-    redis:
-      host: localhost
-      port: 16379
-      timeout: 2000ms
-      connect-timeout: 5000ms
-      lettuce:
-        pool:
-          max-active: 8
-          max-idle: 8
-          min-idle: 0
-          max-wait: -1ms
+  # DevTools 설정
+  devtools:
+    livereload:
+      enabled: true     # 라이브 리로드 활성화
+    restart:
+      enabled: true     # 자동 재시작 활성화
 
-# 개발 환경 로깅 설정 (컬러풀 & 상세)
+# 개발 환경 로깅 설정 - 루트 프로파일에서 상속
 logging:
-  pattern:
-    # 개발용 심플하고 컬러풀한 패턴
-    console: "%clr(%d{HH:mm:ss}){cyan} %highlight(%-5level) %clr([%15.15t]){blue} %clr(%-30.30logger{29}){yellow} %clr(→){faint} %msg%n%wEx"
-    # 더 간단한 대안 패턴들 (원하는 것 선택)
-    # console: "%clr(%d{HH:mm:ss}){cyan} %highlight(%-5level) %clr(%logger{0}){yellow} : %msg%n"
-    # console: "%d{HH:mm:ss} %clr(%-5level) %clr(%-40.40logger{39}){cyan} : %highlight(%msg) %n"
-  
   level:
-    org.hibernate.SQL: DEBUG                 # SQL 로깅
-    org.hibernate.orm.jdbc.bind: TRACE       # 파라미터 바인딩 로깅
-    org.hibernate.SQL_SLOW: INFO            # 느린 쿼리 로깅
-    bunny.boardhole: DEBUG                   # 애플리케이션 디버그 로깅
-    org.springframework.web: DEBUG            # 웹 요청 디버그
-    org.springframework.security: DEBUG      # 보안 디버그
+    root: info
 
 # 개발 환경 서버 설정
 server:
@@ -84,16 +38,4 @@ server:
 boardhole:
   # 개발 환경 CORS 설정 (로컬 호스트 허용)
   cors:
-    path-patterns: "/api/**"
     allowed-origins: "http://localhost:8080,http://127.0.0.1:8080,http://localhost:3000"
-    allowed-methods: "GET,POST,PUT,DELETE,OPTIONS"
-    allowed-headers: "Origin,Content-Type,Accept,Authorization,X-Requested-With"
-    exposed-headers: ""
-    allow-credentials: true
-    max-age: 3600
-  # 개발용 간단한 비밀번호
-  default-users:
-    admin:
-      password: admin123
-    regular:
-      password: user123

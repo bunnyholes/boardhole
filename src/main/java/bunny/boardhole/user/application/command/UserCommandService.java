@@ -1,7 +1,6 @@
 package bunny.boardhole.user.application.command;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -24,7 +23,6 @@ import bunny.boardhole.shared.exception.ResourceNotFoundException;
 import bunny.boardhole.shared.exception.UnauthorizedException;
 import bunny.boardhole.shared.exception.ValidationException;
 import bunny.boardhole.shared.util.MessageUtils;
-import bunny.boardhole.shared.util.TokenGenerator;
 import bunny.boardhole.shared.util.VerificationCodeGenerator;
 import bunny.boardhole.user.application.mapper.UserMapper;
 import bunny.boardhole.user.application.result.UserResult;
@@ -52,9 +50,6 @@ public class UserCommandService {
     private final VerificationCodeGenerator verificationCodeGenerator;
     private final ApplicationEventPublisher eventPublisher;
 
-    @Value("${boardhole.validation.email-verification.signup-expiration-ms}")
-    private long signupExpirationMs;
-
     @Value("${boardhole.validation.email-verification.expiration-ms}")
     private long expirationMs;
 
@@ -75,16 +70,16 @@ public class UserCommandService {
         User user = User.builder().username(cmd.username()).password(passwordEncoder.encode(cmd.password())).name(cmd.name()).email(cmd.email()).roles(java.util.Set.of(Role.USER)).build();
         User saved = userRepository.save(user);
 
-        // 회원가입 이메일 인증 토큰 생성 및 발송
-        String verificationToken = TokenGenerator.generateToken();
-        LocalDateTime expiresAt = LocalDateTime.now(ZoneId.systemDefault()).plus(java.time.Duration.ofMillis(signupExpirationMs));
+        // 회원가입 이메일 인증 코드 생성 및 발송
+        String verificationCode = verificationCodeGenerator.generate();
+        LocalDateTime expiresAt = LocalDateTime.now().plus(java.time.Duration.ofMillis(expirationMs));
 
-        EmailVerification verification = EmailVerification.builder().code(verificationToken).userId(saved.getId()).newEmail(saved.getEmail()).expiresAt(expiresAt).verificationType(EmailVerificationType.SIGNUP).build();
+        EmailVerification verification = EmailVerification.builder().code(verificationCode).user(saved).newEmail(saved.getEmail()).expiresAt(expiresAt).verificationType(EmailVerificationType.SIGNUP).build();
 
         emailVerificationRepository.save(verification);
 
         // 이메일 발송을 위한 이벤트 발행 (비동기 처리)
-        eventPublisher.publishEvent(userMapper.toUserCreatedEvent(saved, verificationToken, expiresAt));
+        eventPublisher.publishEvent(userMapper.toUserCreatedEvent(saved, verificationCode, expiresAt));
 
         return userMapper.toResult(saved);
     }
@@ -135,7 +130,7 @@ public class UserCommandService {
     @Transactional
     public void updateLastLogin(@NotNull @Positive Long userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.user.not-found.id", userId)));
-        user.recordLastLogin(LocalDateTime.now(ZoneId.systemDefault()));
+        user.recordLastLogin();
         userRepository.save(user);
     }
 
@@ -193,7 +188,7 @@ public class UserCommandService {
         String verificationCode = verificationCodeGenerator.generate();
 
         // 검증 정보 저장
-        EmailVerification verification = EmailVerification.builder().code(verificationCode).userId(cmd.userId()).newEmail(cmd.newEmail()).expiresAt(LocalDateTime.now(ZoneId.systemDefault()).plus(java.time.Duration.ofMillis(expirationMs))).build();
+        EmailVerification verification = EmailVerification.builder().code(verificationCode).user(user).newEmail(cmd.newEmail()).expiresAt(LocalDateTime.now().plus(java.time.Duration.ofMillis(expirationMs))).verificationType(EmailVerificationType.CHANGE_EMAIL).build();
         emailVerificationRepository.save(verification);
 
         // 이메일 발송을 위한 이벤트 발행 (비동기 처리)
@@ -217,7 +212,7 @@ public class UserCommandService {
         User user = userRepository.findById(cmd.userId()).orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.user.not-found.id", cmd.userId())));
 
         // 검증 코드 확인
-        EmailVerification verification = emailVerificationRepository.findValidVerification(cmd.userId(), cmd.verificationCode(), LocalDateTime.now(ZoneId.systemDefault())).orElseThrow(() -> new ValidationException(MessageUtils.get("error.user.email.verification.invalid")));
+        EmailVerification verification = emailVerificationRepository.findValidVerification(cmd.userId(), cmd.verificationCode(), LocalDateTime.now()).orElseThrow(() -> new ValidationException(MessageUtils.get("error.user.email.verification.invalid")));
 
         // 변경 전 이메일 저장 (이벤트 발행용)
         String oldEmail = user.getEmail();

@@ -3,7 +3,7 @@ services:
     image: mysql:9.4
     container_name: boardhole-mysql
     ports:
-      - "13306:3306"
+      - "3306"
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: boardhole
@@ -12,12 +12,18 @@ services:
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     volumes:
       - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
   
   redis:
     image: redis:8-alpine
     container_name: boardhole-redis
     ports:
-      - "16379:6379"
+      - "6379"
     command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
     volumes:
       - redis-data:/data
@@ -26,6 +32,7 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
+      start_period: 10s
 
 volumes:
   redis-data:

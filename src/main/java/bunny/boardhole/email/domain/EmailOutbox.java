@@ -46,7 +46,7 @@ public class EmailOutbox extends BaseEntity {
     private String content;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    @Column(nullable = false)
     private EmailStatus status = EmailStatus.PENDING;
 
     @Column(nullable = false)

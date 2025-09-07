@@ -8,9 +8,8 @@ public final class MatchersUtil {
 
     public static ResultMatcher all(ResultMatcher... matchers) {
         return result -> {
-            for (ResultMatcher m : matchers) {
+            for (ResultMatcher m : matchers)
                 m.match(result);
-            }
         };
     }
 }

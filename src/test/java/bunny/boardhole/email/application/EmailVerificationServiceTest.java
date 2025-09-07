@@ -75,11 +75,13 @@ class EmailVerificationServiceTest {
         ReflectionTestUtils.setField(service, "verificationExpirationMs", 7200000L); // 2시간
 
         // 테스트 데이터 준비
-        user = User.builder().username("testuser").password("password").name("Test User").email("test@example.com").build();
+        user = User.builder().username("testuser").password("password").name("Test User").email("test@example.com").roles(java.util.Set.of(bunny.boardhole.user.domain.Role.USER)).build();
+        user.verifyEmail();
         ReflectionTestUtils.setField(user, "id", 1L);
         ReflectionTestUtils.setField(user, "emailVerified", false);
 
-        emailVerification = EmailVerification.builder().code("test-token-123").userId(1L).newEmail("test@example.com").expiresAt(LocalDateTime.now(ZoneId.systemDefault()).plusHours(1)).verificationType(EmailVerificationType.SIGNUP).build();
+        emailVerification = EmailVerification.builder().code("test-token-123").user(user).newEmail("test@example.com").expiresAt(LocalDateTime.now(ZoneId.systemDefault()).plusHours(1)).verificationType(EmailVerificationType.SIGNUP).build();
+        user.verifyEmail();
         ReflectionTestUtils.setField(emailVerification, "used", false);
     }
 
@@ -132,7 +134,7 @@ class EmailVerificationServiceTest {
             final String token = "change-token-456";
             final String newEmail = "newemail@example.com";
 
-            EmailVerification changeVerification = EmailVerification.builder().code(token).userId(userId).newEmail(newEmail).expiresAt(LocalDateTime.now(ZoneId.systemDefault()).plusHours(1)).verificationType(EmailVerificationType.CHANGE_EMAIL).build();
+            EmailVerification changeVerification = EmailVerification.builder().code(token).user(user).newEmail(newEmail).expiresAt(LocalDateTime.now(ZoneId.systemDefault()).plusHours(1)).verificationType(EmailVerificationType.CHANGE_EMAIL).build();
             ReflectionTestUtils.setField(changeVerification, "used", false);
 
             // User와 EmailVerification을 spy로 생성
@@ -182,7 +184,7 @@ class EmailVerificationServiceTest {
             final Long userId = 1L;
             final String token = "expired-token";
 
-            EmailVerification expiredVerification = EmailVerification.builder().code(token).userId(userId).newEmail("test@example.com").expiresAt(LocalDateTime.now(ZoneId.systemDefault()).minusHours(1)) // 만료됨
+            EmailVerification expiredVerification = EmailVerification.builder().code(token).user(user).newEmail("test@example.com").expiresAt(LocalDateTime.now(ZoneId.systemDefault()).minusHours(1)) // 만료됨
                     .verificationType(EmailVerificationType.SIGNUP).build();
             ReflectionTestUtils.setField(expiredVerification, "used", false);
 
@@ -273,7 +275,8 @@ class EmailVerificationServiceTest {
         void resendVerificationEmail_AlreadyVerified_ThrowsIllegalArgumentException() {
             // Given
             final Long userId = 1L;
-            User verifiedUser = User.builder().username("verified").password("password").name("Verified User").email("verified@example.com").build();
+            User verifiedUser = User.builder().username("verified").password("password").name("Verified User").email("verified@example.com").roles(java.util.Set.of(bunny.boardhole.user.domain.Role.USER)).build();
+        user.verifyEmail();
             ReflectionTestUtils.setField(verifiedUser, "id", userId);
             ReflectionTestUtils.setField(verifiedUser, "emailVerified", true);
 

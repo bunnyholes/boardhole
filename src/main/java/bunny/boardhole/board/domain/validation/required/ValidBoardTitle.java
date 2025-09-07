@@ -11,7 +11,7 @@ import jakarta.validation.Payload;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-import bunny.boardhole.shared.constants.ValidationConstants;
+import bunny.boardhole.board.domain.validation.BoardValidationConstants;
 
 /**
  * 게시글 제목 검증 애너테이션
@@ -22,7 +22,7 @@ import bunny.boardhole.shared.constants.ValidationConstants;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @NotBlank(message = "{validation.board.title.required}")
-@Size(max = ValidationConstants.BOARD_TITLE_MAX_LENGTH, message = "{validation.board.title.size}")
+@Size(max = BoardValidationConstants.BOARD_TITLE_MAX_LENGTH, message = "{validation.board.title.size}")
 @Constraint(validatedBy = {})
 public @interface ValidBoardTitle {
     String message() default "{validation.board.title.invalid}";
