@@ -17,7 +17,7 @@ boardhole:
   test-data:
     user:
       username: testuser
-      password: Plain123!
+      password: Password123!
       name: Test User
       email: test@example.com
     board:
@@ -34,4 +34,3 @@ boardhole:
   cors:
     allow-credentials: true
 
-  

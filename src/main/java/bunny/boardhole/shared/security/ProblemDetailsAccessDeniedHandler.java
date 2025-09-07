@@ -9,8 +9,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.MessageSource;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
@@ -20,6 +18,7 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import bunny.boardhole.shared.constants.ErrorCode;
+import bunny.boardhole.shared.util.MessageUtils;
 
 /**
  * 접근 거부 처리 핸들러
@@ -30,15 +29,14 @@ import bunny.boardhole.shared.constants.ErrorCode;
 public class ProblemDetailsAccessDeniedHandler implements AccessDeniedHandler {
 
     private final ObjectMapper objectMapper;
-    private final MessageSource messageSource;
     @Value("${boardhole.problem.base-uri:}")
     private String problemBaseUri;
 
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException {
         ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.FORBIDDEN);
-        pd.setTitle(messageSource.getMessage("exception.title.access-denied", null, LocaleContextHolder.getLocale()));
-        pd.setDetail(messageSource.getMessage("error.auth.access-denied", null, LocaleContextHolder.getLocale()));
+        pd.setTitle(MessageUtils.get("exception.title.access-denied"));
+        pd.setDetail(MessageUtils.get("error.auth.access-denied"));
         pd.setType(ProblemDetailsHelper.buildType(problemBaseUri, "forbidden"));
         ProblemDetailsHelper.addCommonProperties(pd, request, ErrorCode.FORBIDDEN.getCode());
 

@@ -11,6 +11,7 @@ import bunny.boardhole.testsupport.e2e.SessionCookie;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
+import bunny.boardhole.shared.util.MessageUtils;
 
 @DisplayName("게시판 E2E — 작성/조회/권한/삭제")
 @Tag("e2e")
@@ -46,10 +47,16 @@ class BoardCrudE2ETest extends E2ETestBase {
         String otherE = otherU + "@example.com";
         AuthSteps.signup(otherU, otherP, "Other", otherE);
         SessionCookie other = AuthSteps.login(otherU, otherP);
-        BoardSteps.update(other, id, "Hacked", "Hacked").then().statusCode(403);
+        BoardSteps.update(other, id, "Hacked", "Hacked").then()
+                .statusCode(403)
+                .body("title", equalTo(MessageUtils.get("exception.title.access-denied")))
+                .body("code", equalTo("FORBIDDEN"));
 
         // Owner deletes
         BoardSteps.delete(owner, id).then().statusCode(204);
-        BoardSteps.get(owner, id).then().statusCode(404);
+        BoardSteps.get(owner, id).then()
+                .statusCode(404)
+                .body("title", equalTo(MessageUtils.get("exception.title.not-found")))
+                .body("type", equalTo("urn:problem-type:not-found"));
     }
 }
