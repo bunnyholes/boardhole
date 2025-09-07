@@ -96,12 +96,12 @@ public class UserController {
         userCommandService.delete(id);
     }
 
-    @PatchMapping("/{id}/password")
+    @PatchMapping(value = "/{id}/password", consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "패스워드 변경", description = "[AUTH] 사용자의 패스워드를 변경합니다. 현재 패스워드 확인이 필요합니다.")
+    @Operation(summary = "패스워드 변경", description = "[AUTH] 사용자의 패스워드를 변경합니다. 현재 패스워드 확인이 필요합니다.", requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content = @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE, schema = @Schema(implementation = PasswordUpdateRequest.class))))
     @ApiResponses({@ApiResponse(responseCode = "204", description = "패스워드 변경 성공"), @ApiResponse(responseCode = "400", description = "잘못된 요청 데이터"), @ApiResponse(responseCode = "401", description = "현재 패스워드 불일치"), @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음")})
-    public void updatePassword(@Parameter(description = "사용자 ID") @PathVariable Long id, @Validated @RequestBody PasswordUpdateRequest req) {
+    public void updatePassword(@Parameter(description = "사용자 ID") @PathVariable Long id, @Validated @ModelAttribute PasswordUpdateRequest req) {
 
         // 패스워드 확인 불일치 처리
         if (!req.newPassword().equals(req.confirmPassword()))

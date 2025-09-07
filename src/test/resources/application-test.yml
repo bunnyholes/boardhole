@@ -10,10 +10,6 @@ spring:
     url: jdbc:h2:mem:testdb;MODE=MySQL  # MySQL 호환 모드만 명시
 
 boardhole:
-  email:
-    verification-expiration-ms: 3600000  # 1 hour for reasonable test duration
-    from-email: noreply@test.boardhole.com
-    base-url: http://localhost:8080
   test-data:
     user:
       username: testuser
@@ -25,12 +21,3 @@ boardhole:
       content: Test Board Content
     email-verification:
       code: TEST1234567890ABCDEF1234567890ABCD  # 32 characters, alphanumeric
-  
-  # 이메일 인증 관련 설정 (기존 필터 방식에서 로그인 시 체크로 변경)
-  security:
-    require-email-verification: false  # 테스트에서는 이메일 인증 비활성화
-  
-  # 테스트용 CORS 설정 (credentials 활성화)
-  cors:
-    allow-credentials: true
-
