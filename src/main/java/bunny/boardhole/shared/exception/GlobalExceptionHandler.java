@@ -15,8 +15,6 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.MDC;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.MessageSource;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -36,6 +34,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import bunny.boardhole.shared.config.log.RequestLoggingFilter;
 import bunny.boardhole.shared.constants.ErrorCode;
+import bunny.boardhole.shared.util.MessageUtils;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 
@@ -45,7 +44,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @Tag(name = "예외 처리", description = "전역 예외 처리 및 에러 응답 관리")
 public class GlobalExceptionHandler {
 
-    private final MessageSource messageSource;
     @Value("${boardhole.problem.base-uri:}")
     private String problemBaseUri;
 
@@ -68,7 +66,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ResourceNotFoundException.class)
     public ProblemDetail handleNotFound(ResourceNotFoundException ex, HttpServletRequest request) {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
-        pd.setTitle(messageSource.getMessage("exception.title.not-found", null, LocaleContextHolder.getLocale()));
+        pd.setTitle(MessageUtils.get("exception.title.not-found"));
         pd.setType(buildType("not-found"));
         addCommon(pd, request);
         return pd;
@@ -77,7 +75,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({ConflictException.class, DataIntegrityViolationException.class})
     public ProblemDetail handleConflict(Exception ex, HttpServletRequest request) {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
-        pd.setTitle(messageSource.getMessage("exception.title.conflict", null, LocaleContextHolder.getLocale()));
+        pd.setTitle(MessageUtils.get("exception.title.conflict"));
         pd.setProperty("code", ErrorCode.CONFLICT.getCode());
         pd.setType(buildType("conflict"));
         addCommon(pd, request);
@@ -87,7 +85,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DuplicateUsernameException.class)
     public ProblemDetail handleDuplicateUsername(DuplicateUsernameException ex, HttpServletRequest request) {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
-        pd.setTitle(messageSource.getMessage("exception.title.duplicate-username", null, LocaleContextHolder.getLocale()));
+        pd.setTitle(MessageUtils.get("exception.title.duplicate-username"));
         pd.setProperty("code", ErrorCode.USER_DUPLICATE_USERNAME.getCode());
         pd.setType(buildType("duplicate-username"));
         addCommon(pd, request);
@@ -97,7 +95,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DuplicateEmailException.class)
     public ProblemDetail handleDuplicateEmail(DuplicateEmailException ex, HttpServletRequest request) {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
-        pd.setTitle(messageSource.getMessage("exception.title.duplicate-email", null, LocaleContextHolder.getLocale()));
+        pd.setTitle(MessageUtils.get("exception.title.duplicate-email"));
         pd.setProperty("code", ErrorCode.USER_DUPLICATE_EMAIL.getCode());
         pd.setType(buildType("duplicate-email"));
         addCommon(pd, request);
@@ -108,9 +106,20 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleUnauthorized(UnauthorizedException ex, HttpServletRequest request) {
         // 인증 실패는 401(Unauthorized)이 적합
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, ex.getMessage());
-        pd.setTitle(messageSource.getMessage("exception.title.unauthorized", null, LocaleContextHolder.getLocale()));
+        pd.setTitle(MessageUtils.get("exception.title.unauthorized"));
         pd.setProperty("code", ErrorCode.UNAUTHORIZED.getCode());
         pd.setType(buildType("unauthorized"));
+        addCommon(pd, request);
+        return pd;
+    }
+
+    @ExceptionHandler(EmailVerificationRequiredException.class)
+    public ProblemDetail handleEmailVerificationRequired(EmailVerificationRequiredException ex, HttpServletRequest request) {
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, ex.getMessage());
+        pd.setTitle(MessageUtils.get("exception.title.email-verification-required"));
+        pd.setProperty("code", "EMAIL_VERIFICATION_REQUIRED");
+        pd.setProperty("resendUrl", "/api/auth/resend-verification");
+        pd.setType(buildType("email-verification-required"));
         addCommon(pd, request);
         return pd;
     }
@@ -118,7 +127,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AccessDeniedException.class)
     public ProblemDetail handleAccessDenied(AccessDeniedException ex, HttpServletRequest request) {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, ex.getMessage());
-        pd.setTitle(messageSource.getMessage("exception.title.access-denied", null, LocaleContextHolder.getLocale()));
+        pd.setTitle(MessageUtils.get("exception.title.access-denied"));
         pd.setProperty("code", ErrorCode.FORBIDDEN.getCode());
         pd.setType(buildType("forbidden"));
         addCommon(pd, request);
@@ -140,7 +149,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({ConstraintViolationException.class, IllegalArgumentException.class})
     public ProblemDetail handleBadRequest(Exception ex, HttpServletRequest request) {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
-        pd.setTitle(messageSource.getMessage("exception.title.bad-request", null, LocaleContextHolder.getLocale()));
+        pd.setTitle(MessageUtils.get("exception.title.bad-request"));
         pd.setProperty("code", ErrorCode.BAD_REQUEST.getCode());
         pd.setType(buildType("bad-request"));
         addCommon(pd, request);
@@ -149,8 +158,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ProblemDetail handleMessageNotReadable(HttpMessageNotReadableException ex, HttpServletRequest request) {
-        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, messageSource.getMessage("error.invalid-json", null, LocaleContextHolder.getLocale()));
-        pd.setTitle(messageSource.getMessage("exception.title.bad-request", null, LocaleContextHolder.getLocale()));
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, MessageUtils.get("error.invalid-json"));
+        pd.setTitle(MessageUtils.get("exception.title.bad-request"));
         pd.setProperty("code", ErrorCode.INVALID_JSON.getCode());
         pd.setType(buildType("invalid-json"));
         addCommon(pd, request);
@@ -161,8 +170,8 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleMethodNotSupported(HttpRequestMethodNotSupportedException ex, HttpServletRequest request) {
         String[] methods = ex.getSupportedMethods();
         String supportedMethods = methods != null ? String.join(", ", methods) : "None";
-        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.METHOD_NOT_ALLOWED, messageSource.getMessage("error.method-not-allowed.detail", new Object[]{supportedMethods}, LocaleContextHolder.getLocale()));
-        pd.setTitle(messageSource.getMessage("exception.title.method-not-allowed", null, LocaleContextHolder.getLocale()));
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.METHOD_NOT_ALLOWED, MessageUtils.get("error.method-not-allowed.detail", supportedMethods));
+        pd.setTitle(MessageUtils.get("exception.title.method-not-allowed"));
         pd.setProperty("code", ErrorCode.METHOD_NOT_ALLOWED.getCode());
         pd.setProperty("supportedMethods", ex.getSupportedMethods());
         pd.setType(buildType("method-not-allowed"));
@@ -172,8 +181,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
     public ProblemDetail handleMediaTypeNotSupported(HttpMediaTypeNotSupportedException ex, HttpServletRequest request) {
-        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.UNSUPPORTED_MEDIA_TYPE, messageSource.getMessage("error.unsupported-media-type", null, LocaleContextHolder.getLocale()));
-        pd.setTitle(messageSource.getMessage("exception.title.unsupported-media-type", null, LocaleContextHolder.getLocale()));
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.UNSUPPORTED_MEDIA_TYPE, MessageUtils.get("error.unsupported-media-type"));
+        pd.setTitle(MessageUtils.get("exception.title.unsupported-media-type"));
         pd.setProperty("code", ErrorCode.UNSUPPORTED_MEDIA_TYPE.getCode());
         pd.setType(buildType("unsupported-media-type"));
         addCommon(pd, request);
@@ -182,8 +191,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public ProblemDetail handleMissingParameter(MissingServletRequestParameterException ex, HttpServletRequest request) {
-        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, messageSource.getMessage("error.missing-parameter.detail", new Object[]{ex.getParameterName()}, LocaleContextHolder.getLocale()));
-        pd.setTitle(messageSource.getMessage("exception.title.missing-parameter", null, LocaleContextHolder.getLocale()));
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, MessageUtils.get("error.missing-parameter.detail", ex.getParameterName()));
+        pd.setTitle(MessageUtils.get("exception.title.missing-parameter"));
         pd.setProperty("code", ErrorCode.MISSING_PARAMETER.getCode());
         pd.setProperty("parameter", ex.getParameterName());
         pd.setProperty("parameterType", ex.getParameterType());
@@ -195,8 +204,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(TypeMismatchException.class)
     public ProblemDetail handleTypeMismatch(TypeMismatchException ex, HttpServletRequest request) {
         String propertyName = ex.getPropertyName() != null ? ex.getPropertyName() : "unknown";
-        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, messageSource.getMessage("error.type-mismatch.detail", new Object[]{propertyName}, LocaleContextHolder.getLocale()));
-        pd.setTitle(messageSource.getMessage("exception.title.type-mismatch", null, LocaleContextHolder.getLocale()));
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, MessageUtils.get("error.type-mismatch.detail", propertyName));
+        pd.setTitle(MessageUtils.get("exception.title.type-mismatch"));
         pd.setProperty("code", ErrorCode.TYPE_MISMATCH.getCode());
         pd.setProperty("property", propertyName);
         Optional.ofNullable(ex.getRequiredType()).map(Class::getSimpleName).ifPresent(type -> pd.setProperty("requiredType", type));
@@ -207,8 +216,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ProblemDetail handleUnexpected(Exception ex, HttpServletRequest request) {
-        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, messageSource.getMessage("error.internal", null, LocaleContextHolder.getLocale()));
-        pd.setTitle(messageSource.getMessage("exception.title.internal-error", null, LocaleContextHolder.getLocale()));
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, MessageUtils.get("error.internal"));
+        pd.setTitle(MessageUtils.get("exception.title.internal-error"));
         pd.setType(buildType("internal-error"));
         pd.setProperty("code", ErrorCode.INTERNAL_ERROR.getCode());
         addCommon(pd, request);
@@ -227,8 +236,8 @@ public class GlobalExceptionHandler {
 
     private ResponseEntity<ProblemDetail> handleValidationException(BindingResult bindingResult, HttpServletRequest request) {
         ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
-        pd.setTitle(messageSource.getMessage("exception.title.validation-failed", null, LocaleContextHolder.getLocale()));
-        pd.setDetail(messageSource.getMessage("error.validation-failed", null, LocaleContextHolder.getLocale()));
+        pd.setTitle(MessageUtils.get("exception.title.validation-failed"));
+        pd.setDetail(MessageUtils.get("error.validation-failed"));
         List<Map<String, Object>> errors = bindingResult.getFieldErrors().stream().map(fe -> Map.of("field", fe.getField(), "message", Optional.ofNullable(fe.getDefaultMessage()).orElse("Invalid value"), "rejectedValue", Optional.ofNullable(fe.getRejectedValue()).orElse(""))).collect(Collectors.toList());
         pd.setProperty("errors", errors);
         pd.setProperty("code", ErrorCode.VALIDATION_ERROR.getCode());

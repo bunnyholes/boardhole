@@ -71,7 +71,13 @@ class BoardQueryServiceTest {
         ReflectionTestUtils.setField(MessageUtils.class, "messageSource", ms);
 
         // 테스트 데이터 준비
-        User author = User.builder().username("testuser").password("password").name("Test User").email("test@example.com").build();
+        User author = User.builder()
+                .username("testuser")
+                .password("Password123!")
+                .name("Test User")
+                .email("test@example.com")
+                .roles(java.util.Set.of(bunny.boardhole.user.domain.Role.USER))
+                .build();
         ReflectionTestUtils.setField(author, "id", 1L);
 
         board = Board.builder().title("Test Board").content("Test Content").author(author).build();

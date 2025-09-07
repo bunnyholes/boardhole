@@ -27,7 +27,6 @@ import org.springframework.security.web.context.SecurityContextRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import bunny.boardhole.shared.constants.ApiPaths;
-import bunny.boardhole.shared.security.EmailVerificationFilter;
 import bunny.boardhole.shared.security.ProblemDetailsAccessDeniedHandler;
 import bunny.boardhole.shared.security.ProblemDetailsAuthenticationEntryPoint;
 
@@ -69,7 +68,7 @@ public class SecurityConfig {
      * @return 설정된 보안 필터 체인
      */
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http, SecurityContextRepository securityContextRepository, ProblemDetailsAuthenticationEntryPoint authenticationEntryPoint, ProblemDetailsAccessDeniedHandler accessDeniedHandler, EmailVerificationFilter emailVerificationFilter) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, SecurityContextRepository securityContextRepository, ProblemDetailsAuthenticationEntryPoint authenticationEntryPoint, ProblemDetailsAccessDeniedHandler accessDeniedHandler) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable).cors(Customizer.withDefaults()).authorizeHttpRequests(auth -> auth
                 // Static resources and common locations
                 .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll() // 현재는 실제 배포 전까지는 항상 유지
@@ -87,11 +86,26 @@ public class SecurityConfig {
                 // Error page
                 .requestMatchers("/error").permitAll()
                 // Public API endpoints - explicit permit only
-                .requestMatchers("/api/v1/auth/register", "/api/v1/auth/login", "/api/v1/auth/public-access").permitAll().requestMatchers(ApiPaths.AUTH + ApiPaths.AUTH_SIGNUP, ApiPaths.AUTH + ApiPaths.AUTH_LOGIN, ApiPaths.AUTH + ApiPaths.AUTH_PUBLIC_ACCESS).permitAll().requestMatchers(ApiPaths.AUTH + "/verify-email", ApiPaths.AUTH + "/resend-verification").permitAll().requestMatchers(HttpMethod.GET, ApiPaths.USERS + "/{id}/email/verify").permitAll().requestMatchers(HttpMethod.POST, ApiPaths.USERS + "/{id}/email/resend").permitAll().requestMatchers(HttpMethod.GET, ApiPaths.BOARDS, ApiPaths.BOARDS + "/**").permitAll()
+                .requestMatchers(ApiPaths.AUTH + ApiPaths.AUTH_SIGNUP, ApiPaths.AUTH + ApiPaths.AUTH_LOGIN, ApiPaths.AUTH + ApiPaths.AUTH_PUBLIC_ACCESS).permitAll()
+                .requestMatchers(ApiPaths.AUTH + "/verify-email", ApiPaths.AUTH + "/resend-verification").permitAll()
+                .requestMatchers(HttpMethod.GET, ApiPaths.USERS + "/{id}/email/verify").permitAll()
+                .requestMatchers(HttpMethod.POST, ApiPaths.USERS + "/{id}/email/resend").permitAll()
+                .requestMatchers(HttpMethod.GET, ApiPaths.BOARDS, ApiPaths.BOARDS + "/**").permitAll()
                 // All other requests require authentication by default
-                .anyRequest().authenticated()).exceptionHandling(ex -> ex.authenticationEntryPoint(authenticationEntryPoint).accessDeniedHandler(accessDeniedHandler)).formLogin(AbstractHttpConfigurer::disable).httpBasic(AbstractHttpConfigurer::disable); // HTTP Basic 인증 비활성화
+                .anyRequest().authenticated())
+            .exceptionHandling(ex -> ex
+                .authenticationEntryPoint(authenticationEntryPoint)
+                .accessDeniedHandler(accessDeniedHandler))
+            .formLogin(AbstractHttpConfigurer::disable)
+            .httpBasic(AbstractHttpConfigurer::disable); // HTTP Basic 인증 비활성화
 
-        http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED).sessionFixation().migrateSession().maximumSessions(1).maxSessionsPreventsLogin(false)).securityContext((securityContext) -> securityContext.securityContextRepository(securityContextRepository)).addFilterAfter(emailVerificationFilter, UsernamePasswordAuthenticationFilter.class);
+        http.sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                .sessionFixation().migrateSession()
+                .maximumSessions(1)
+                .maxSessionsPreventsLogin(false))
+            .securityContext((securityContext) -> securityContext
+                .securityContextRepository(securityContextRepository));
         return http.build();
     }
 

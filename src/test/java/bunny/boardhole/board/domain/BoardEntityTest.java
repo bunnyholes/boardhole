@@ -10,13 +10,15 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestMethodOrder;
 
-import bunny.boardhole.shared.constants.ValidationConstants;
+import bunny.boardhole.board.domain.validation.BoardValidationConstants;
 import bunny.boardhole.shared.util.MessageUtils;
 import bunny.boardhole.testsupport.jpa.EntityTestBase;
 import bunny.boardhole.user.domain.User;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import jakarta.validation.ConstraintViolationException;
 
 @DisplayName("Board 엔티티 테스트")
 @TestMethodOrder(MethodOrderer.DisplayName.class)
@@ -64,7 +66,10 @@ class BoardEntityTest extends EntityTestBase {
             String expectedMessage = MessageUtils.get("validation.board.title.required");
 
             // when & then
-            assertThatThrownBy(() -> Board.builder().title("").content(testData.boardContent()).author(author).build()).isInstanceOf(IllegalArgumentException.class).hasMessage(expectedMessage);
+            assertThatThrownBy(() -> {
+                Board board = Board.builder().title("").content(testData.boardContent()).author(author).build();
+                entityManager.persistAndFlush(board);
+            }).isInstanceOf(ConstraintViolationException.class);
         }
 
         @Test
@@ -75,7 +80,10 @@ class BoardEntityTest extends EntityTestBase {
             String expectedMessage = MessageUtils.get("validation.board.content.required");
 
             // when & then
-            assertThatThrownBy(() -> Board.builder().title(testData.boardTitle()).content("").author(author).build()).isInstanceOf(IllegalArgumentException.class).hasMessage(expectedMessage);
+            assertThatThrownBy(() -> {
+                Board board = Board.builder().title(testData.boardTitle()).content("").author(author).build();
+                entityManager.persistAndFlush(board);
+            }).isInstanceOf(ConstraintViolationException.class);
         }
 
     }
@@ -90,11 +98,14 @@ class BoardEntityTest extends EntityTestBase {
         void createBoard_WithTitleTooLong_ThrowsException() {
             // given
             User author = createAndPersistUser();
-            String longTitle = "a".repeat(ValidationConstants.BOARD_TITLE_MAX_LENGTH + 1);
-            String expectedMessage = MessageUtils.get("validation.board.title.too-long", ValidationConstants.BOARD_TITLE_MAX_LENGTH);
+            String longTitle = "a".repeat(BoardValidationConstants.BOARD_TITLE_MAX_LENGTH + 1);
+            String expectedMessage = MessageUtils.get("validation.board.title.too-long", BoardValidationConstants.BOARD_TITLE_MAX_LENGTH);
 
             // when & then
-            assertThatThrownBy(() -> Board.builder().title(longTitle).content(testData.boardContent()).author(author).build()).isInstanceOf(IllegalArgumentException.class).hasMessage(expectedMessage);
+            assertThatThrownBy(() -> {
+                Board board = Board.builder().title(longTitle).content(testData.boardContent()).author(author).build();
+                entityManager.persistAndFlush(board);
+            }).isInstanceOf(ConstraintViolationException.class);
         }
 
         @Test
@@ -102,11 +113,14 @@ class BoardEntityTest extends EntityTestBase {
         void createBoard_WithContentTooLong_ThrowsException() {
             // given
             User author = createAndPersistUser();
-            String longContent = "a".repeat(ValidationConstants.BOARD_CONTENT_MAX_LENGTH + 1);
-            String expectedMessage = MessageUtils.get("validation.board.content.too-long", ValidationConstants.BOARD_CONTENT_MAX_LENGTH);
+            String longContent = "a".repeat(BoardValidationConstants.BOARD_CONTENT_MAX_LENGTH + 1);
+            String expectedMessage = MessageUtils.get("validation.board.content.too-long", BoardValidationConstants.BOARD_CONTENT_MAX_LENGTH);
 
             // when & then
-            assertThatThrownBy(() -> Board.builder().title(testData.boardTitle()).content(longContent).author(author).build()).isInstanceOf(IllegalArgumentException.class).hasMessage(expectedMessage);
+            assertThatThrownBy(() -> {
+                Board board = Board.builder().title(testData.boardTitle()).content(longContent).author(author).build();
+                entityManager.persistAndFlush(board);
+            }).isInstanceOf(ConstraintViolationException.class);
         }
     }
 
@@ -178,7 +192,10 @@ class BoardEntityTest extends EntityTestBase {
             String expectedMessage = MessageUtils.get("validation.board.title.required");
 
             // when & then
-            assertThatThrownBy(() -> board.changeTitle("")).isInstanceOf(IllegalArgumentException.class).hasMessage(expectedMessage);
+            assertThatThrownBy(() -> {
+                board.changeTitle("");
+                entityManager.persistAndFlush(board);
+            }).isInstanceOf(ConstraintViolationException.class);
         }
 
         @Test
@@ -205,7 +222,10 @@ class BoardEntityTest extends EntityTestBase {
             String expectedMessage = MessageUtils.get("validation.board.content.required");
 
             // when & then
-            assertThatThrownBy(() -> board.changeContent("")).isInstanceOf(IllegalArgumentException.class).hasMessage(expectedMessage);
+            assertThatThrownBy(() -> {
+                board.changeContent("");
+                entityManager.persistAndFlush(board);
+            }).isInstanceOf(ConstraintViolationException.class);
         }
 
         @Test

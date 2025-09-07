@@ -1,17 +1,12 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Technical specifications for Claude Code AI assistant when working with this Spring Boot board application.
 
 ## Project Overview
 
-Spring Boot 게시판 애플리케이션 with:
+Spring Boot 3.5.5 board application with Java 21, MySQL 9.4, Redis session storage, domain-driven architecture, and comprehensive quality tooling.
 
-- Java 21, Spring Boot 3.5.5
-- MySQL (Docker) + Redis (Session)
-- Domain-driven architecture with clear layer separation
-- Quality tooling: JaCoCo (coverage), SonarCloud integration
-
-## Build & Run Commands
+## Build Commands
 
 ```bash
 # Build
@@ -19,61 +14,31 @@ Spring Boot 게시판 애플리케이션 with:
 ./gradlew build -x test      # Build without tests
 ./gradlew clean build        # Clean build
 
-# Run 
+# Run
 ./gradlew bootRun            # Run with dev profile (default)
-./gradlew bootRun --args='--spring.profiles.active=prod'  # Run with prod profile
+./gradlew bootRun --args='--spring.profiles.active=prod'
 
 # Test
-./gradlew test               # Run all tests
-./gradlew test --tests "bunny.boardhole.board.*"  # Run specific package tests
-./gradlew test --tests BoardControllerTest         # Run single test class
+./gradlew test               # Unit tests only (excludes integration, e2e)
+./gradlew integrationTest    # @Tag("integration") tests
+./gradlew e2eTest           # @Tag("e2e") tests
+./gradlew allTests          # All test suites
 
-# Quality Checks
+# Quality
 ./gradlew jacocoTestReport   # Generate coverage report
-./gradlew sonarAnalysis      # Run SonarCloud analysis with coverage
-
-# Database & Redis (via Docker Compose)
-docker-compose up -d         # Start MySQL (port 13306) & Redis (port 16379)
-docker-compose down          # Stop containers
+./gradlew sonarAnalysis      # Run SonarCloud analysis
 ```
 
-## IntelliJ IDEA Setup
+## Architecture
 
-### Code Formatting & Import Organization
-
-This project uses **IntelliJ IDEA code style settings** instead of Spotless for consistent formatting.
-
-**Required Setup (All Team Members)**:
-
-1. **Open Project**: IntelliJ will automatically detect `.idea/codeStyles/` settings
-2. **Enable Auto Actions on Save**:
-    - Go to Settings → Tools → Actions on Save (Ctrl/Cmd + Alt + S)
-    - Enable:
-        - ✅ **Reformat code**
-        - ✅ **Optimize imports**
-        - ✅ **Rearrange code** (optional)
-
-**Benefits over Spotless**:
-
-- 🚀 Faster builds (no formatting check overhead)
-- 💡 Real-time formatting while typing
-- 🎯 Perfect IDE integration (no conflicts)
-- 🔧 More advanced formatting options available
-
-## Architecture & Structure
-
-### Layer Architecture
-
+### Layer Structure
 ```
 presentation → application → domain → infrastructure
          ↓           ↓          ↓           ↓
       (DTOs)    (Commands)  (Entities) (Repository)
 ```
 
-### Domain Structure Pattern
-
-Each domain follows consistent structure:
-
+### Domain Pattern
 ```
 bunny.boardhole.[domain]/
 ├── application/
@@ -83,7 +48,7 @@ bunny.boardhole.[domain]/
 │   └── result/      # Internal DTOs
 ├── domain/
 │   ├── [Entity].java
-│   └── validation/  
+│   └── validation/
 │       ├── required/ # @Valid* annotations for creation
 │       └── optional/ # @Optional* annotations for updates
 ├── infrastructure/
@@ -94,93 +59,61 @@ bunny.boardhole.[domain]/
     └── mapper/      # MapStruct mappers (Result ↔ Response)
 ```
 
-### Key Design Patterns
+## Key Patterns
 
-1. **Command/Query Separation (CQRS-lite)**
-    - Commands for write operations
-    - Direct queries for reads
-    - Clear separation of concerns
+1. **CQRS-lite**: Commands for writes, direct queries for reads
+2. **Validation**: @Valid* (required fields), @Optional* (nullable fields)
+3. **MapStruct**: Two-layer mapping (Application: Entity ↔ Result, Presentation: Result ↔ Response)
+4. **Security**: Session-based auth with Redis, method-level @PreAuthorize, AppUserPrincipal
+5. **Events**: @EventListener for async processing (ViewedEvent example)
 
-2. **Validation Annotations**
-    - `@Valid*` for required fields (creation)
-    - `@Optional*` for nullable fields (updates)
-    - Centralized in domain.validation package
+## Code Conventions
 
-3. **MapStruct Two-Layer Mapping**
-    - Application layer: Entity ↔ Result
-    - Presentation layer: Result ↔ Response/Command
-    - Clean separation between layers
-
-4. **Security Architecture**
-    - Session-based auth with Redis
-    - Method-level security with @PreAuthorize
-    - Custom AppUserPrincipal for user context
-
-5. **Event-Driven Features**
-    - @EventListener for async processing
-    - Example: ViewedEvent for board view count
-
-## Important Conventions
-
-### Code Style
-
-- All packages have @NullMarked package-info.java (auto-generated)
+- All packages have @NullMarked package-info.java
 - Lombok for boilerplate reduction
 - MapStruct for mapping
+- Import statements instead of full package paths
+- For class name conflicts: import frequently used, use full path for less frequent
 
-### Testing Structure
+## Testing Structure
 
-- Unit tests: Mock dependencies
-- Integration tests: @SpringBootTest with real DB/Redis
-- Architecture tests: ArchUnit for layer compliance
-- Test naming: [Method]_[Condition]_[Expected]
+- **Unit**: Mock dependencies, fast execution
+- **Integration**: @SpringBootTest with real DB/Redis, @Tag("integration")
+- **E2E**: Full system tests with RestAssured, @Tag("e2e")
+- **Architecture**: ArchUnit for layer compliance
+- **Naming**: [Method]_[Condition]_[Expected]
 
-### Configuration
+## API Paths
 
-- application.yml: Common config
-- application-dev.yml: Development (Docker services)
-- application-prod.yml: Production settings
-- boardhole.* properties for domain config
+All REST APIs under `/api/*`:
+- `/api/auth/*` - Authentication
+- `/api/users/*` - User management
+- `/api/boards/*` - Board operations
 
-### API Paths
+## Environment
 
-All REST APIs under `/api/v1/*`:
+Docker services (Spring Boot Docker Compose auto-start):
+- MySQL: Dynamic port mapping
+- Redis: Dynamic port mapping
 
-- `/api/v1/auth/*` - Authentication
-- `/api/v1/users/*` - User management
-- `/api/v1/boards/*` - Board operations
+Profiles:
+- `dev` (default): Auto-DDL, SQL logging, debug
+- `prod`: Optimized settings, JSON logging
 
-### Error Handling
+## Dependencies
 
-- RFC 7807 Problem Details format
-- GlobalExceptionHandler for centralized handling
-- Custom exceptions extend base types
-- Consistent error response structure
+- Spring Boot Starters: web, data-jpa, validation, aop, security, mail, thymeleaf
+- Session: spring-session-data-redis
+- Documentation: SpringDoc OpenAPI 2.8.12
+- Mapping: MapStruct 1.6.3
+- Testing: JUnit 5, RestAssured 5.5.0, Testcontainers, ArchUnit 1.4.1
+- Quality: JaCoCo 0.8.12
+- Null Safety: JSpecify 1.0.0
 
 ## Quality Standards
 
-- Code coverage: ≥60% (current ~64%)
-- SonarCloud: Continuous analysis
-- IntelliJ IDEA: Built-in inspections and code analysis
-
-## Environment Setup
-
-Docker services required:
-
-- MySQL: localhost:13306 (root/root)
-- Redis: localhost:16379
-
-Spring profiles:
-
-- `dev` (default): Auto-DDL, SQL logging, debug enabled
-- `prod`: Optimized settings, JSON logging
-
-## Key Dependencies
-
-- Spring Boot Starters: web, data-jpa, validation, aop, security, mail
-- Session: spring-session-data-redis
-- Documentation: SpringDoc OpenAPI
-- Mapping: MapStruct 1.6.3
-- Testing: JUnit 5, Testcontainers, ArchUnit
-- Quality: JaCoCo (coverage)
-- 코드를 수정하고 주석을 남기지마라 , 특히 무엇무엇슥 삭제햇습니다.
+- Code coverage: ≥60%
+- SonarCloud integration
+- IntelliJ IDEA inspections
+- RFC 7807 Problem Details for errors
+- GlobalExceptionHandler for centralized error handling

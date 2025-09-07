@@ -43,6 +43,13 @@ public class AppPermissionEvaluator implements PermissionEvaluator {
         return null;
     }
 
+    private static boolean isEmailVerified(Authentication auth) {
+        Object principal = auth.getPrincipal();
+        if (principal instanceof AppUserPrincipal(User user))
+            return user.isEmailVerified();
+        return false;
+    }
+
     @Override
     public boolean hasPermission(Authentication authentication, Object targetDomainObject, Object permission) {
         // Not used in this project; rely on id + type form
@@ -70,6 +77,10 @@ public class AppPermissionEvaluator implements PermissionEvaluator {
             };
             case PermissionType.TARGET_USER -> switch (perm) {
                 case PermissionType.READ, PermissionType.WRITE, PermissionType.DELETE -> isSameUser(auth, id);
+                default -> false;
+            };
+            case PermissionType.TARGET_EMAIL_VERIFICATION -> switch (perm) {
+                case "VERIFIED" -> isEmailVerified(auth);
                 default -> false;
             };
             default -> false;

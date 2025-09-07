@@ -6,10 +6,7 @@ import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.springframework.context.annotation.Import;
 
-import bunny.boardhole.testsupport.config.TestEmailConfig;
-import bunny.boardhole.testsupport.config.TestSecurityOverrides;
 import bunny.boardhole.testsupport.e2e.E2ETestBase;
 
 import io.restassured.http.ContentType;
@@ -22,7 +19,6 @@ import static org.hamcrest.Matchers.is;
 @DisplayName("사용자 가입→로그인→내 정보 시나리오")
 @Tag("e2e")
 @Tag("scenario")
-@Import({TestEmailConfig.class, TestSecurityOverrides.class})
 class UserJourneyE2ETest extends E2ETestBase {
 
     @Test
@@ -30,7 +26,7 @@ class UserJourneyE2ETest extends E2ETestBase {
     void userSignupLoginAndMe() {
         String uid = java.util.UUID.randomUUID().toString().substring(0, 8);
         String username = "scenario_" + uid;
-        String password = "Passw0rd!";
+        final String password = "Passw0rd!";
         String email = "scenario_" + uid + "@example.com";
 
         Map<String, String> signup = new HashMap<>();

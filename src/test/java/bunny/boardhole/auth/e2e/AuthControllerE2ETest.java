@@ -18,10 +18,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Import;
 
-import bunny.boardhole.testsupport.config.TestEmailConfig;
-import bunny.boardhole.testsupport.config.TestSecurityOverrides;
 import bunny.boardhole.testsupport.e2e.AuthSteps;
 import bunny.boardhole.testsupport.e2e.E2ETestBase;
 import bunny.boardhole.testsupport.e2e.SessionCookie;
@@ -42,7 +39,7 @@ import static org.hamcrest.Matchers.notNullValue;
 @DisplayName("🔐 AuthController E2E 테스트")
 @Tag("e2e")
 @Tag("auth")
-@Import({TestEmailConfig.class, TestSecurityOverrides.class})
+
 class AuthControllerE2ETest extends E2ETestBase {
 
     private String testUsername;
@@ -150,19 +147,37 @@ class AuthControllerE2ETest extends E2ETestBase {
     class Signup {
 
         static Stream<Arguments> provideInvalidSignupData() {
-            return Stream.of(Arguments.of("username 누락", "", "Password123!", "Test User", "test@example.com"), Arguments.of("password 누락", "testuser", "", "Test User", "test@example.com"), Arguments.of("name 누락", "testuser", "Password123!", "", "test@example.com"), Arguments.of("email 누락", "testuser", "Password123!", "Test User", ""), Arguments.of("잘못된 이메일 형식", "testuser", "Password123!", "Test User", "invalid-email-format"));
+            return Stream.of(
+                Arguments.of("username 누락", "", "Password123!", "Test User", "test@example.com"), 
+                Arguments.of("password 누락", "testuser", "", "Test User", "test@example.com"), 
+                Arguments.of("name 누락", "testuser", "Password123!", "", "test@example.com"), 
+                Arguments.of("email 누락", "testuser", "Password123!", "Test User", ""), 
+                Arguments.of("잘못된 이메일 형식", "testuser", "Password123!", "Test User", "invalid-email-format"),
+                Arguments.of("패스워드 패턴 불일치 - 특수문자 없음", "testuser", "Password123", "Test User", "test@example.com"),
+                Arguments.of("패스워드 패턴 불일치 - 대문자 없음", "testuser", "password123!", "Test User", "test@example.com"),
+                Arguments.of("패스워드 패턴 불일치 - 숫자 없음", "testuser", "Password!", "Test User", "test@example.com"),
+                Arguments.of("패스워드 패턴 불일치 - 너무 짧음", "testuser", "Pass1!", "Test User", "test@example.com")
+            );
         }
 
         @Test
         @DisplayName("✅ 유효한 데이터로 회원가입 성공")
         void shouldCreateUserWithValidData() {
+            // 고유한 사용자 생성 (중복 방지)
+            String uniqueId = java.util.UUID.randomUUID().toString().substring(0, 8);
             Map<String, String> signupData = new HashMap<>();
-            signupData.put("username", testUsername);
-            signupData.put("password", testPassword);
-            signupData.put("name", "E2E 테스트 사용자");
-            signupData.put("email", testEmail);
+            signupData.put("username", "newuser_" + uniqueId);
+            signupData.put("password", "Password123!"); // 올바른 패턴의 패스워드
+            signupData.put("name", "신규 테스트 사용자");
+            signupData.put("email", "newuser_" + uniqueId + "@example.com");
 
-            given().contentType(ContentType.URLENC).formParams(signupData).when().post("auth/signup").then().statusCode(anyOf(is(204), is(409))); // 이미 생성된 경우 멱등성 허용
+            given()
+                .contentType(ContentType.URLENC)
+                .formParams(signupData)
+            .when()
+                .post("auth/signup")
+            .then()
+                .statusCode(204); // 신규 사용자는 반드시 204 성공이어야 함
         }
 
         @ParameterizedTest(name = "[{index}] ❌ {0}")

@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,7 +14,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import bunny.boardhole.board.domain.Board;
 import bunny.boardhole.board.infrastructure.BoardRepository;
-import bunny.boardhole.testsupport.config.TestEmailConfig;
 import bunny.boardhole.user.domain.Role;
 import bunny.boardhole.user.domain.User;
 import bunny.boardhole.user.infrastructure.UserRepository;
@@ -24,7 +22,7 @@ import bunny.boardhole.user.infrastructure.UserRepository;
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Transactional
-@Import(TestEmailConfig.class)
+
 public abstract class MvcTestBase {
 
     @Autowired
@@ -85,7 +83,7 @@ public abstract class MvcTestBase {
         Optional<User> existing = userRepository.findByUsername(username);
         if (existing.isPresent())
             return existing.get().getId();
-        User user = User.builder().username(username).password(rawPassword).name(name).email(email).roles(new java.util.HashSet<>(roles)).build();
+        User user = User.builder().username(username).password(rawPassword).name(name).email(email).roles(roles).build();
         user.verifyEmail();
         return userRepository.save(user).getId();
     }

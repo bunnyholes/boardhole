@@ -11,7 +11,7 @@ import jakarta.validation.Payload;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;
 
-import bunny.boardhole.shared.constants.ValidationConstants;
+import bunny.boardhole.user.domain.validation.UserValidationConstants;
 
 /**
  * 이메일 검증 애너테이션 (선택적 필드)
@@ -23,7 +23,7 @@ import bunny.boardhole.shared.constants.ValidationConstants;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Email(message = "{validation.user.email.format}")
-@Size(max = ValidationConstants.USER_EMAIL_MAX_LENGTH, message = "{validation.user.email.size}")
+@Size(max = UserValidationConstants.USER_EMAIL_MAX_LENGTH, message = "{validation.user.email.size}")
 @Constraint(validatedBy = {})
 public @interface OptionalEmail {
     String message() default "{validation.user.email.invalid}";

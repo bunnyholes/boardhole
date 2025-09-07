@@ -16,14 +16,14 @@ final class RestSpecs {
     /**
      * 익명 사용자용 JSON 요청 스펙
      */
-    public static RequestSpecification anon() {
+    static RequestSpecification anon() {
         return given().contentType(ContentType.JSON).accept(ContentType.JSON);
     }
 
     /**
      * 인증된 사용자용 JSON 요청 스펙
      */
-    public static RequestSpecification auth(SessionCookie session) {
+    static RequestSpecification auth(SessionCookie session) {
         return given().contentType(ContentType.JSON).accept(ContentType.JSON).cookie(session.name(), session.value());
     }
 

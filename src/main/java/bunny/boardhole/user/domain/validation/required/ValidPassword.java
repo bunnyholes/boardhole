@@ -12,7 +12,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
-import bunny.boardhole.shared.constants.ValidationConstants;
+import bunny.boardhole.user.domain.validation.UserValidationConstants;
 
 /**
  * 비밀번호 검증 애너테이션
@@ -24,8 +24,8 @@ import bunny.boardhole.shared.constants.ValidationConstants;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @NotBlank(message = "{validation.user.password.required}")
-@Size(min = ValidationConstants.USER_PASSWORD_MIN_LENGTH, max = ValidationConstants.USER_PASSWORD_MAX_LENGTH, message = "{validation.user.password.size}")
-@Pattern(regexp = ValidationConstants.PASSWORD_PATTERN, message = "{validation.user.password.pattern}")
+@Size(min = UserValidationConstants.USER_PASSWORD_MIN_LENGTH, max = UserValidationConstants.USER_PASSWORD_MAX_LENGTH, message = "{validation.user.password.size}")
+@Pattern(regexp = UserValidationConstants.PASSWORD_PATTERN, message = "{validation.user.password.pattern}")
 @Constraint(validatedBy = {})
 public @interface ValidPassword {
     String message() default "{validation.user.password.invalid}";

@@ -27,6 +27,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @TestMethodOrder(MethodOrderer.DisplayName.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @Tag("unit")
+@Tag("repository")
 class EmailOutboxRepositoryTest extends EntityTestBase {
 
     @Autowired

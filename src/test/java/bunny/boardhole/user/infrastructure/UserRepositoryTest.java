@@ -1,6 +1,8 @@
 package bunny.boardhole.user.infrastructure;
 
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -23,6 +25,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import bunny.boardhole.shared.config.TestJpaConfig;
+import bunny.boardhole.user.domain.Role;
 import bunny.boardhole.user.domain.User;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -33,32 +36,53 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import(TestJpaConfig.class)
 @Tag("unit")
+@Tag("repository")
 class UserRepositoryTest {
 
     @Autowired
     private UserRepository userRepository;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     private User user1;
     private User user2;
 
     @BeforeEach
     void setUp() {
-        // 테스트 사용자 생성
-        user1 = User.builder().username("john_doe").password("password123").name("John Doe").email("john@example.com").build();
-        // User는 기본적으로 USER 권한을 가짐
+        // 테스트 사용자 생성 - HashSet을 사용하여 mutable collection 제공
+        user1 = User.builder()
+                .username("john_doe")
+                .password("Password123!")
+                .name("John Doe")
+                .email("john@example.com")
+                .roles(new HashSet<>(Set.of(Role.USER)))
+                .build();
         user1 = userRepository.save(user1);
 
-        user2 = User.builder().username("jane_smith").password("password456").name("Jane Smith").email("jane@example.com").build();
-        user2.grantAdminRole(); // ADMIN 권한 추가
+        user2 = User.builder()
+                .username("jane_smith")
+                .password("Password456!")
+                .name("Jane Smith")
+                .email("jane@example.com")
+                .roles(new HashSet<>(Set.of(Role.USER, Role.ADMIN)))
+                .build();
         user2 = userRepository.save(user2);
 
-        User user3 = User.builder().username("bob_johnson").password("password789").name("Bob Johnson").email("bob@example.com").build();
-        // User는 기본적으로 USER 권한을 가짐
+        User user3 = User.builder()
+                .username("bob_johnson")
+                .password("Password789!")
+                .name("Bob Johnson")
+                .email("bob@example.com")
+                .roles(new HashSet<>(Set.of(Role.USER)))
+                .build();
         userRepository.save(user3);
     }
 
     @AfterEach
     void tearDown() {
+        // Clear the entity manager session to avoid issues with invalid entities
+        entityManager.clear();
         userRepository.deleteAll();
     }
 
@@ -77,7 +101,7 @@ class UserRepositoryTest {
             User user = found.get();
             assertThat(user.getUsername()).isEqualTo("jane_smith");
             assertThat(user.getName()).isEqualTo("Jane Smith");
-            assertThat(user.hasAdminRole()).isTrue();
+            assertThat(user.hasRole(Role.ADMIN)).isTrue();
         }
 
         @Test
@@ -257,7 +281,13 @@ class UserRepositoryTest {
         void searchWithPaging_ReturnsPagedResults() {
             // Given - 더 많은 사용자 추가
             for (int i = 0; i < 5; i++) {
-                User extraUser = User.builder().username("user_" + i).password("password").name("Test User " + i).email("user" + i + "@example.com").build();
+                User extraUser = User.builder()
+                        .username("user_" + i)
+                        .password("Password123!")
+                        .name("Test User " + i)
+                        .email("user" + i + "@example.com")
+                        .roles(new HashSet<>(Set.of(Role.USER)))
+                        .build();
                 userRepository.save(extraUser);
             }
 
@@ -296,7 +326,13 @@ class UserRepositoryTest {
         @DisplayName("사용자 생성")
         void save_NewUser_CreatesSuccessfully() {
             // Given
-            User newUser = User.builder().username("new_user").password("newpassword").name("New User").email("new@example.com").build();
+            User newUser = User.builder()
+                    .username("new_user")
+                    .password("NewPassword123!")
+                    .name("New User")
+                    .email("new@example.com")
+                    .roles(new HashSet<>(Set.of(Role.USER)))
+                    .build();
 
             // When
             User saved = userRepository.save(newUser);
@@ -342,29 +378,51 @@ class UserRepositoryTest {
 
         @Test
         @DisplayName("중복된 사용자명으로 생성 실패")
+        @Transactional
         void save_DuplicateUsername_ThrowsException() {
             // Given
-            User duplicateUser = User.builder().username("john_doe") // 이미 존재하는 사용자명
-                    .password("password").name("Another John").email("another@example.com").build();
+            User duplicateUser = User.builder()
+                    .username("john_doe") // 이미 존재하는 사용자명
+                    .password("Password123!")
+                    .name("Another John")
+                    .email("another@example.com")
+                    .roles(new HashSet<>(Set.of(Role.USER)))
+                    .build();
 
             // When & Then
             assertThatThrownBy(() -> {
-                userRepository.save(duplicateUser);
-                userRepository.flush();
+                try {
+                    userRepository.saveAndFlush(duplicateUser);
+                } catch (Exception e) {
+                    // Clear the session to prevent issues with invalid entity state
+                    entityManager.clear();
+                    throw e;
+                }
             }).isInstanceOf(DataIntegrityViolationException.class);
         }
 
         @Test
         @DisplayName("중복된 이메일로 생성 실패")
+        @Transactional
         void save_DuplicateEmail_ThrowsException() {
             // Given
-            User duplicateUser = User.builder().username("another_user").password("password").name("Another User").email("john@example.com") // 이미 존재하는 이메일
+            User duplicateUser = User.builder()
+                    .username("another_user")
+                    .password("Password123!")
+                    .name("Another User")
+                    .email("john@example.com") // 이미 존재하는 이메일
+                    .roles(new HashSet<>(Set.of(Role.USER)))
                     .build();
 
             // When & Then
             assertThatThrownBy(() -> {
-                userRepository.save(duplicateUser);
-                userRepository.flush();
+                try {
+                    userRepository.saveAndFlush(duplicateUser);
+                } catch (Exception e) {
+                    // Clear the session to prevent issues with invalid entity state
+                    entityManager.clear();
+                    throw e;
+                }
             }).isInstanceOf(DataIntegrityViolationException.class);
         }
     }
@@ -377,7 +435,7 @@ class UserRepositoryTest {
         @DisplayName("권한 추가")
         void addRole_NewRole_AddsSuccessfully() {
             // Given
-            user1.grantAdminRole();
+            user1.grantRole(Role.ADMIN);
 
             // When
             userRepository.save(user1);
@@ -385,14 +443,14 @@ class UserRepositoryTest {
             // Then
             Optional<User> found = userRepository.findById(user1.getId());
             assertThat(found).isPresent();
-            assertThat(found.get().hasAdminRole()).isTrue();
+            assertThat(found.get().hasRole(Role.ADMIN)).isTrue();
         }
 
         @Test
         @DisplayName("권한 제거")
         void removeRole_ExistingRole_RemovesSuccessfully() {
             // Given
-            user2.revokeAdminRole();
+            user2.revokeRole(Role.ADMIN);
 
             // When
             userRepository.save(user2);
@@ -400,7 +458,7 @@ class UserRepositoryTest {
             // Then
             Optional<User> found = userRepository.findById(user2.getId());
             assertThat(found).isPresent();
-            assertThat(found.get().hasAdminRole()).isFalse();
+            assertThat(found.get().hasRole(Role.ADMIN)).isFalse();
             // User는 기본적으로 권한을 가짐
         }
 
@@ -412,7 +470,7 @@ class UserRepositoryTest {
 
             // Then
             assertThat(found).isPresent();
-            assertThat(found.get().hasAdminRole()).isTrue();
+            assertThat(found.get().hasRole(Role.ADMIN)).isTrue();
         }
     }
 
@@ -438,14 +496,12 @@ class UserRepositoryTest {
     @DisplayName("연관관계 및 지연 로딩")
     class LazyLoadingTest {
 
-        @PersistenceContext
-        private EntityManager entityManager;
-
         @Test
         @DisplayName("Lazy Loading 동작 확인")
         @Transactional
         void lazyLoading_RolesCollection() {
-            // Given
+            // Given - Ensure roles are persisted first
+            userRepository.flush();
             entityManager.clear();
 
             // When - roles를 fetch하지 않고 조회
@@ -453,7 +509,7 @@ class UserRepositoryTest {
 
             // Then - roles 컬렉션 접근 시 지연 로딩 발생
             assertThat(found.getRoles()).isNotNull();
-            assertThat(found.hasAdminRole()).isTrue();
+            assertThat(found.hasRole(Role.ADMIN)).isTrue();
         }
 
         @Test
@@ -481,7 +537,13 @@ class UserRepositoryTest {
         @DisplayName("생성 시 createdAt, updatedAt 자동 설정")
         void save_NewEntity_SetsAuditFields() {
             // Given
-            User newUser = User.builder().username("audit_user").password("password").name("Audit Test").email("audit@example.com").build();
+            User newUser = User.builder()
+                    .username("audit_user")
+                    .password("Password123!")
+                    .name("Audit Test")
+                    .email("audit@example.com")
+                    .roles(new HashSet<>(Set.of(Role.USER)))
+                    .build();
 
             // When
             User saved = userRepository.save(newUser);
@@ -496,7 +558,13 @@ class UserRepositoryTest {
         @DisplayName("수정 시 updatedAt 변경 확인")
         void update_ExistingEntity_UpdatesAuditFields() {
             // Given
-            User newUser = User.builder().username("update_audit").password("password").name("Original").email("update@example.com").build();
+            User newUser = User.builder()
+                    .username("update_audit")
+                    .password("Password123!")
+                    .name("Original")
+                    .email("update@example.com")
+                    .roles(new HashSet<>(Set.of(Role.USER)))
+                    .build();
             User saved = userRepository.save(newUser);
 
             // When
@@ -517,8 +585,13 @@ class UserRepositoryTest {
         @DisplayName("복잡한 조건의 Query Method 동작")
         void complexQueryMethod_WorksCorrectly() {
             // Given - 추가 사용자 생성
-            User adminUser = User.builder().username("admin_special").password("password").name("Admin Special").email("admin.special@example.com").build();
-            adminUser.grantAdminRole();
+            User adminUser = User.builder()
+                    .username("admin_special")
+                    .password("Password123!")
+                    .name("Admin Special")
+                    .email("admin.special@example.com")
+                    .roles(new HashSet<>(Set.of(Role.USER, Role.ADMIN)))
+                    .build();
             adminUser.verifyEmail();
             userRepository.save(adminUser);
 
