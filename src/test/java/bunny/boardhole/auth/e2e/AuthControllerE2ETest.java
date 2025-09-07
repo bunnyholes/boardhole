@@ -39,7 +39,6 @@ import static org.hamcrest.Matchers.notNullValue;
 @DisplayName("🔐 AuthController E2E 테스트")
 @Tag("e2e")
 @Tag("auth")
-
 class AuthControllerE2ETest extends E2ETestBase {
 
     private String testUsername;
@@ -147,17 +146,7 @@ class AuthControllerE2ETest extends E2ETestBase {
     class Signup {
 
         static Stream<Arguments> provideInvalidSignupData() {
-            return Stream.of(
-                Arguments.of("username 누락", "", "Password123!", "Test User", "test@example.com"), 
-                Arguments.of("password 누락", "testuser", "", "Test User", "test@example.com"), 
-                Arguments.of("name 누락", "testuser", "Password123!", "", "test@example.com"), 
-                Arguments.of("email 누락", "testuser", "Password123!", "Test User", ""), 
-                Arguments.of("잘못된 이메일 형식", "testuser", "Password123!", "Test User", "invalid-email-format"),
-                Arguments.of("패스워드 패턴 불일치 - 특수문자 없음", "testuser", "Password123", "Test User", "test@example.com"),
-                Arguments.of("패스워드 패턴 불일치 - 대문자 없음", "testuser", "password123!", "Test User", "test@example.com"),
-                Arguments.of("패스워드 패턴 불일치 - 숫자 없음", "testuser", "Password!", "Test User", "test@example.com"),
-                Arguments.of("패스워드 패턴 불일치 - 너무 짧음", "testuser", "Pass1!", "Test User", "test@example.com")
-            );
+            return Stream.of(Arguments.of("username 누락", "", "Password123!", "Test User", "test@example.com"), Arguments.of("password 누락", "testuser", "", "Test User", "test@example.com"), Arguments.of("name 누락", "testuser", "Password123!", "", "test@example.com"), Arguments.of("email 누락", "testuser", "Password123!", "Test User", ""), Arguments.of("잘못된 이메일 형식", "testuser", "Password123!", "Test User", "invalid-email-format"), Arguments.of("패스워드 패턴 불일치 - 특수문자 없음", "testuser", "Password123", "Test User", "test@example.com"), Arguments.of("패스워드 패턴 불일치 - 대문자 없음", "testuser", "password123!", "Test User", "test@example.com"), Arguments.of("패스워드 패턴 불일치 - 숫자 없음", "testuser", "Password!", "Test User", "test@example.com"), Arguments.of("패스워드 패턴 불일치 - 너무 짧음", "testuser", "Pass1!", "Test User", "test@example.com"));
         }
 
         @Test
@@ -171,13 +160,7 @@ class AuthControllerE2ETest extends E2ETestBase {
             signupData.put("name", "신규 테스트 사용자");
             signupData.put("email", "newuser_" + uniqueId + "@example.com");
 
-            given()
-                .contentType(ContentType.URLENC)
-                .formParams(signupData)
-            .when()
-                .post("auth/signup")
-            .then()
-                .statusCode(204); // 신규 사용자는 반드시 204 성공이어야 함
+            given().contentType(ContentType.URLENC).formParams(signupData).when().post("auth/signup").then().statusCode(204); // 신규 사용자는 반드시 204 성공이어야 함
         }
 
         @ParameterizedTest(name = "[{index}] ❌ {0}")

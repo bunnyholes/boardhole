@@ -18,7 +18,6 @@ import org.springframework.validation.annotation.Validated;
 import bunny.boardhole.auth.application.AuthCommandService;
 import bunny.boardhole.auth.application.mapper.AuthMapper;
 import bunny.boardhole.auth.application.result.AuthResult;
-import bunny.boardhole.shared.exception.EmailVerificationRequiredException;
 import bunny.boardhole.shared.exception.UnauthorizedException;
 import bunny.boardhole.shared.security.AppUserPrincipal;
 import bunny.boardhole.shared.util.MessageUtils;
@@ -62,10 +61,10 @@ public class SessionAuthCommandService implements AuthCommandService {
             AppUserPrincipal principal = (AppUserPrincipal) authResult.getPrincipal();
             User user = principal.user();
 
-            // 이메일 인증 체크
-            if (!user.isEmailVerified()) {
-                throw new EmailVerificationRequiredException("이메일 인증이 필요합니다. 가입 시 발송된 인증 이메일을 확인해 주세요.");
-            }
+            // 이메일 인증 체크는 향후 JWT 방식으로 구현 예정
+            // if (!user.isEmailVerified()) {
+            //     // JWT 기반 이메일 인증으로 전환 예정
+            // }
 
             return authMapper.toAuthResult(user);
 

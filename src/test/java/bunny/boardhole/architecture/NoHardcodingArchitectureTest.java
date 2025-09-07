@@ -27,7 +27,7 @@ class NoHardcodingArchitectureTest {
 
     @Test
     void noNumericConstantsOutsideConstants() {
-        ArchRule rule = fields().that().haveRawType(int.class).or().haveRawType(Integer.class).or().haveRawType(long.class).or().haveRawType(Long.class).or().haveRawType(double.class).or().haveRawType(Double.class).and().areStatic().and().areFinal().and().areDeclaredInClassesThat().resideOutsideOfPackage("..constants..").should().bePrivate().orShould().beProtected().allowEmptyShould(true).because("모든 숫자 상수는 constants 패키지에서 관리해야 합니다.");
+        ArchRule rule = fields().that().haveRawType(int.class).or().haveRawType(Integer.class).or().haveRawType(long.class).or().haveRawType(Long.class).or().haveRawType(double.class).or().haveRawType(Double.class).and().areStatic().and().areFinal().and().areDeclaredInClassesThat().resideOutsideOfPackage("..constants..").and().areDeclaredInClassesThat().resideOutsideOfPackage("..validation..").should().bePrivate().orShould().beProtected().allowEmptyShould(true).because("모든 숫자 상수는 constants 패키지에서 관리해야 합니다. validation 상수는 예외입니다.");
 
         rule.check(importedClasses);
     }

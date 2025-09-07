@@ -1,8 +1,9 @@
 package bunny.boardhole.user.domain;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.Set;
+
+import jakarta.validation.ConstraintViolationException;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
@@ -12,14 +13,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestMethodOrder;
 
-import bunny.boardhole.user.domain.validation.UserValidationConstants;
 import bunny.boardhole.shared.util.MessageUtils;
 import bunny.boardhole.testsupport.jpa.EntityTestBase;
+import bunny.boardhole.user.domain.validation.UserValidationConstants;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
-import jakarta.validation.ConstraintViolationException;
 
 @DisplayName("User 엔티티 테스트")
 @TestMethodOrder(MethodOrderer.DisplayName.class)
@@ -38,7 +37,7 @@ class UserEntityTest extends EntityTestBase {
         void createUser_WithBuilder_Success() {
             // given
             String username = createUniqueUsername();
-            String email = createUniqueEmail();
+            String email = EntityTestBase.createUniqueEmail();
 
             // when
             User user = User.builder().username(username).password(testData.password()).name(testData.name()).email(email).roles(Set.of(Role.USER)).build();
@@ -221,7 +220,7 @@ class UserEntityTest extends EntityTestBase {
         void changeEmail_WithValidEmail_Success() {
             // given
             User user = createTestUser();
-            String newEmail = createUniqueEmail();
+            String newEmail = EntityTestBase.createUniqueEmail();
 
             // when
             user.changeEmail(newEmail);
@@ -268,7 +267,7 @@ class UserEntityTest extends EntityTestBase {
         @DisplayName("✅ JPA 저장 및 조회 테스트")
         void saveAndFind_PersistsCorrectly() {
             // given
-            User user = User.builder().username(createUniqueUsername()).password(testData.password()).name(testData.name()).email(createUniqueEmail()).roles(Set.of(Role.USER, Role.ADMIN)).build();
+            User user = User.builder().username(createUniqueUsername()).password(testData.password()).name(testData.name()).email(EntityTestBase.createUniqueEmail()).roles(Set.of(Role.USER, Role.ADMIN)).build();
 
             // when
             entityManager.persistAndFlush(user);
@@ -289,9 +288,9 @@ class UserEntityTest extends EntityTestBase {
         @DisplayName("✅ equals와 hashCode 테스트 - ID 기반 동등성")
         void equalsAndHashCode_BasedOnId() {
             // given
-            User user1 = User.builder().username(createUniqueUsername()).password(testData.password()).name("사용자1").email(createUniqueEmail()).roles(Set.of(Role.USER)).build();
+            User user1 = User.builder().username(createUniqueUsername()).password(testData.password()).name("사용자1").email(EntityTestBase.createUniqueEmail()).roles(Set.of(Role.USER)).build();
 
-            User user2 = User.builder().username(createUniqueUsername()).password("Password456!").name("사용자2").email(createUniqueEmail()).roles(Set.of(Role.ADMIN)).build();
+            User user2 = User.builder().username(createUniqueUsername()).password("Password456!").name("사용자2").email(EntityTestBase.createUniqueEmail()).roles(Set.of(Role.ADMIN)).build();
 
             // when
             entityManager.persistAndFlush(user1);
@@ -310,7 +309,7 @@ class UserEntityTest extends EntityTestBase {
         @DisplayName("✅ 권한 컬렉션 테스트")
         void roles_CollectionHandling() {
             // given
-            User user = User.builder().username(createUniqueUsername()).password(testData.password()).name(testData.name()).email(createUniqueEmail()).roles(Set.of(Role.USER, Role.ADMIN)).build();
+            User user = User.builder().username(createUniqueUsername()).password(testData.password()).name(testData.name()).email(EntityTestBase.createUniqueEmail()).roles(Set.of(Role.USER, Role.ADMIN)).build();
 
             // when
             entityManager.persistAndFlush(user);
@@ -332,7 +331,7 @@ class UserEntityTest extends EntityTestBase {
         @DisplayName("✅ toString 테스트 - 민감한 정보 제외")
         void toString_ExcludesSensitiveFields() {
             // given
-            User user = User.builder().username(createUniqueUsername()).password("SecretPassword123!").name(testData.name()).email(createUniqueEmail()).roles(Set.of(Role.USER)).build();
+            User user = User.builder().username(createUniqueUsername()).password("SecretPassword123!").name(testData.name()).email(EntityTestBase.createUniqueEmail()).roles(Set.of(Role.USER)).build();
 
             // when
             String userString = user.toString();

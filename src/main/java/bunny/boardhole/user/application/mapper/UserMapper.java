@@ -4,8 +4,6 @@ import java.time.LocalDateTime;
 
 import org.mapstruct.Mapper;
 
-import bunny.boardhole.email.application.event.EmailChangedEvent;
-import bunny.boardhole.email.application.event.EmailVerificationRequestedEvent;
 import bunny.boardhole.shared.mapstruct.MapstructConfig;
 import bunny.boardhole.user.application.command.UpdateUserCommand;
 import bunny.boardhole.user.application.event.UserCreatedEvent;
@@ -38,25 +36,4 @@ public interface UserMapper {
      * @return UserCreatedEvent
      */
     UserCreatedEvent toUserCreatedEvent(User user, String verificationToken, LocalDateTime expiresAt);
-
-    /**
-     * 이메일 변경 요청 이벤트 생성 - MapStruct가 자동으로 record 생성자에 매핑
-     *
-     * @param user             사용자
-     * @param newEmail         새 이메일
-     * @param verificationCode 인증 코드
-     * @param expiresAt        인증 코드 만료 시간
-     * @return EmailVerificationRequestedEvent
-     */
-    EmailVerificationRequestedEvent toEmailVerificationRequestedEvent(User user, String newEmail, String verificationCode, LocalDateTime expiresAt);
-
-    /**
-     * 이메일 변경 완료 이벤트 생성 - MapStruct가 자동으로 record 생성자에 매핑
-     *
-     * @param user     사용자
-     * @param oldEmail 기존 이메일
-     * @param newEmail 새 이메일
-     * @return EmailChangedEvent
-     */
-    EmailChangedEvent toEmailChangedEvent(User user, String oldEmail, String newEmail);
 }

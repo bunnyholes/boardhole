@@ -116,6 +116,7 @@ MIT License
 ## 📚 개발 가이드
 
 ### 상세한 테스트 명령어
+
 ```bash
 # 특정 패키지 테스트
 ./gradlew test --tests "bunny.boardhole.board.*"
@@ -133,19 +134,21 @@ MIT License
 ### 아키텍처 구조
 
 각 도메인은 레이어드 아키텍처를 따릅니다:
+
 - **presentation**: REST API 컨트롤러 및 DTO
 - **application**: 비즈니스 로직 (Command/Query 분리)
-- **domain**: 엔티티 및 도메인 규칙 
+- **domain**: 엔티티 및 도메인 규칙
 - **infrastructure**: 데이터 접근 계층
 
 ### 코드 스타일 설정
 
 IntelliJ IDEA 자동 설정:
+
 1. 프로젝트 열기 시 `.idea/codeStyles/` 자동 감지
 2. Settings → Tools → Actions on Save 에서 다음 활성화:
-   - ✅ 코드 자동 포맷팅
-   - ✅ import 최적화
-   - ✅ 코드 재정렬 (선택사항)
+    - ✅ 코드 자동 포맷팅
+    - ✅ import 최적화
+    - ✅ 코드 재정렬 (선택사항)
 
 ## 👥 기여하기
 

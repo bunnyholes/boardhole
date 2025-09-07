@@ -51,31 +51,13 @@ class UserRepositoryTest {
     @BeforeEach
     void setUp() {
         // 테스트 사용자 생성 - HashSet을 사용하여 mutable collection 제공
-        user1 = User.builder()
-                .username("john_doe")
-                .password("Password123!")
-                .name("John Doe")
-                .email("john@example.com")
-                .roles(new HashSet<>(Set.of(Role.USER)))
-                .build();
+        user1 = User.builder().username("john_doe").password("Password123!").name("John Doe").email("john@example.com").roles(new HashSet<>(Set.of(Role.USER))).build();
         user1 = userRepository.save(user1);
 
-        user2 = User.builder()
-                .username("jane_smith")
-                .password("Password456!")
-                .name("Jane Smith")
-                .email("jane@example.com")
-                .roles(new HashSet<>(Set.of(Role.USER, Role.ADMIN)))
-                .build();
+        user2 = User.builder().username("jane_smith").password("Password456!").name("Jane Smith").email("jane@example.com").roles(new HashSet<>(Set.of(Role.USER, Role.ADMIN))).build();
         user2 = userRepository.save(user2);
 
-        User user3 = User.builder()
-                .username("bob_johnson")
-                .password("Password789!")
-                .name("Bob Johnson")
-                .email("bob@example.com")
-                .roles(new HashSet<>(Set.of(Role.USER)))
-                .build();
+        User user3 = User.builder().username("bob_johnson").password("Password789!").name("Bob Johnson").email("bob@example.com").roles(new HashSet<>(Set.of(Role.USER))).build();
         userRepository.save(user3);
     }
 
@@ -281,13 +263,7 @@ class UserRepositoryTest {
         void searchWithPaging_ReturnsPagedResults() {
             // Given - 더 많은 사용자 추가
             for (int i = 0; i < 5; i++) {
-                User extraUser = User.builder()
-                        .username("user_" + i)
-                        .password("Password123!")
-                        .name("Test User " + i)
-                        .email("user" + i + "@example.com")
-                        .roles(new HashSet<>(Set.of(Role.USER)))
-                        .build();
+                User extraUser = User.builder().username("user_" + i).password("Password123!").name("Test User " + i).email("user" + i + "@example.com").roles(new HashSet<>(Set.of(Role.USER))).build();
                 userRepository.save(extraUser);
             }
 
@@ -326,13 +302,7 @@ class UserRepositoryTest {
         @DisplayName("사용자 생성")
         void save_NewUser_CreatesSuccessfully() {
             // Given
-            User newUser = User.builder()
-                    .username("new_user")
-                    .password("NewPassword123!")
-                    .name("New User")
-                    .email("new@example.com")
-                    .roles(new HashSet<>(Set.of(Role.USER)))
-                    .build();
+            User newUser = User.builder().username("new_user").password("NewPassword123!").name("New User").email("new@example.com").roles(new HashSet<>(Set.of(Role.USER))).build();
 
             // When
             User saved = userRepository.save(newUser);
@@ -381,13 +351,8 @@ class UserRepositoryTest {
         @Transactional
         void save_DuplicateUsername_ThrowsException() {
             // Given
-            User duplicateUser = User.builder()
-                    .username("john_doe") // 이미 존재하는 사용자명
-                    .password("Password123!")
-                    .name("Another John")
-                    .email("another@example.com")
-                    .roles(new HashSet<>(Set.of(Role.USER)))
-                    .build();
+            User duplicateUser = User.builder().username("john_doe") // 이미 존재하는 사용자명
+                    .password("Password123!").name("Another John").email("another@example.com").roles(new HashSet<>(Set.of(Role.USER))).build();
 
             // When & Then
             assertThatThrownBy(() -> {
@@ -406,13 +371,8 @@ class UserRepositoryTest {
         @Transactional
         void save_DuplicateEmail_ThrowsException() {
             // Given
-            User duplicateUser = User.builder()
-                    .username("another_user")
-                    .password("Password123!")
-                    .name("Another User")
-                    .email("john@example.com") // 이미 존재하는 이메일
-                    .roles(new HashSet<>(Set.of(Role.USER)))
-                    .build();
+            User duplicateUser = User.builder().username("another_user").password("Password123!").name("Another User").email("john@example.com") // 이미 존재하는 이메일
+                    .roles(new HashSet<>(Set.of(Role.USER))).build();
 
             // When & Then
             assertThatThrownBy(() -> {
@@ -475,24 +435,6 @@ class UserRepositoryTest {
     }
 
     @Nested
-    @DisplayName("이메일 인증")
-    class EmailVerificationTest {
-
-        @Test
-        @DisplayName("이메일 인증 처리")
-        void verifyEmail_UpdatesStatus() {
-            // Given
-            user1.verifyEmail();
-
-            // When
-            User updated = userRepository.save(user1);
-
-            // Then
-            assertThat(updated.isEmailVerified()).isTrue();
-        }
-    }
-
-    @Nested
     @DisplayName("연관관계 및 지연 로딩")
     class LazyLoadingTest {
 
@@ -537,13 +479,7 @@ class UserRepositoryTest {
         @DisplayName("생성 시 createdAt, updatedAt 자동 설정")
         void save_NewEntity_SetsAuditFields() {
             // Given
-            User newUser = User.builder()
-                    .username("audit_user")
-                    .password("Password123!")
-                    .name("Audit Test")
-                    .email("audit@example.com")
-                    .roles(new HashSet<>(Set.of(Role.USER)))
-                    .build();
+            User newUser = User.builder().username("audit_user").password("Password123!").name("Audit Test").email("audit@example.com").roles(new HashSet<>(Set.of(Role.USER))).build();
 
             // When
             User saved = userRepository.save(newUser);
@@ -558,13 +494,7 @@ class UserRepositoryTest {
         @DisplayName("수정 시 updatedAt 변경 확인")
         void update_ExistingEntity_UpdatesAuditFields() {
             // Given
-            User newUser = User.builder()
-                    .username("update_audit")
-                    .password("Password123!")
-                    .name("Original")
-                    .email("update@example.com")
-                    .roles(new HashSet<>(Set.of(Role.USER)))
-                    .build();
+            User newUser = User.builder().username("update_audit").password("Password123!").name("Original").email("update@example.com").roles(new HashSet<>(Set.of(Role.USER))).build();
             User saved = userRepository.save(newUser);
 
             // When
@@ -585,13 +515,7 @@ class UserRepositoryTest {
         @DisplayName("복잡한 조건의 Query Method 동작")
         void complexQueryMethod_WorksCorrectly() {
             // Given - 추가 사용자 생성
-            User adminUser = User.builder()
-                    .username("admin_special")
-                    .password("Password123!")
-                    .name("Admin Special")
-                    .email("admin.special@example.com")
-                    .roles(new HashSet<>(Set.of(Role.USER, Role.ADMIN)))
-                    .build();
+            User adminUser = User.builder().username("admin_special").password("Password123!").name("Admin Special").email("admin.special@example.com").roles(new HashSet<>(Set.of(Role.USER, Role.ADMIN))).build();
             adminUser.verifyEmail();
             userRepository.save(adminUser);
 

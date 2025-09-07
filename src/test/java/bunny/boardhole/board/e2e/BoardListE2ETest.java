@@ -18,7 +18,6 @@ import static org.hamcrest.Matchers.notNullValue;
 @DisplayName("게시판 E2E — 목록/검색/페이지네이션")
 @Tag("e2e")
 @Tag("board")
-
 class BoardListE2ETest extends E2ETestBase {
 
     private String uid;
@@ -28,7 +27,7 @@ class BoardListE2ETest extends E2ETestBase {
     void setUpUser() {
         uid = java.util.UUID.randomUUID().toString().substring(0, 8);
         String u = "list_" + uid;
-        String p = "Passw0rd!";
+        final String p = "Passw0rd!";
         String e = u + "@example.com";
         AuthSteps.signup(u, p, "Lister", e);
         owner = AuthSteps.login(u, p);

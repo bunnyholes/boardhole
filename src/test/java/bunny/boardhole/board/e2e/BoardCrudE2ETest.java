@@ -15,7 +15,6 @@ import static org.hamcrest.Matchers.notNullValue;
 @DisplayName("게시판 E2E — 작성/조회/권한/삭제")
 @Tag("e2e")
 @Tag("board")
-
 class BoardCrudE2ETest extends E2ETestBase {
 
     @Test
@@ -23,7 +22,7 @@ class BoardCrudE2ETest extends E2ETestBase {
     void boardCrudWithOwnership() {
         String uid = java.util.UUID.randomUUID().toString().substring(0, 8);
         String ownerU = "owner_" + uid;
-        String ownerP = "Passw0rd!";
+        final String ownerP = "Passw0rd!";
         String ownerE = ownerU + "@example.com";
         AuthSteps.signup(ownerU, ownerP, "Owner", ownerE);
         SessionCookie owner = AuthSteps.login(ownerU, ownerP);
@@ -43,7 +42,7 @@ class BoardCrudE2ETest extends E2ETestBase {
 
         // Another user cannot update
         String otherU = "other_" + uid;
-        String otherP = "Passw0rd!";
+        final String otherP = "Passw0rd!";
         String otherE = otherU + "@example.com";
         AuthSteps.signup(otherU, otherP, "Other", otherE);
         SessionCookie other = AuthSteps.login(otherU, otherP);
