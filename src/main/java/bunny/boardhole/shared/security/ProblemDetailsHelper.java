@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import jakarta.servlet.http.HttpServletRequest;
 
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.slf4j.MDC;
@@ -17,11 +18,8 @@ import bunny.boardhole.shared.config.log.RequestLoggingFilter;
  * ProblemDetail 생성을 위한 공통 헬퍼 클래스
  */
 @Slf4j
+@NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 final class ProblemDetailsHelper {
-
-    private ProblemDetailsHelper() {
-        // Utility class
-    }
 
     /**
      * ProblemDetail에 공통 속성들을 추가합니다.

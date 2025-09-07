@@ -3,7 +3,6 @@ package bunny.boardhole.shared.config;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
-import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -108,24 +107,22 @@ public class SecurityConfig {
     /**
      * ProblemDetail 형식의 인증 실패 응답 처리기
      *
-     * @param objectMapper  JSON 직렬화를 위한 ObjectMapper
-     * @param messageSource 메시지 소스
+     * @param objectMapper JSON 직렬화를 위한 ObjectMapper
      * @return 인증 실패 진입점 핸들러
      */
     @Bean
-    public ProblemDetailsAuthenticationEntryPoint problemDetailsAuthenticationEntryPoint(ObjectMapper objectMapper, MessageSource messageSource) {
-        return new ProblemDetailsAuthenticationEntryPoint(objectMapper, messageSource);
+    public ProblemDetailsAuthenticationEntryPoint problemDetailsAuthenticationEntryPoint(ObjectMapper objectMapper) {
+        return new ProblemDetailsAuthenticationEntryPoint(objectMapper);
     }
 
     /**
      * ProblemDetail 형식의 접근 거부 응답 처리기
      *
-     * @param objectMapper  JSON 직렬화를 위한 ObjectMapper
-     * @param messageSource 메시지 소스
+     * @param objectMapper JSON 직렬화를 위한 ObjectMapper
      * @return 접근 거부 핸들러
      */
     @Bean
-    public ProblemDetailsAccessDeniedHandler problemDetailsAccessDeniedHandler(ObjectMapper objectMapper, MessageSource messageSource) {
-        return new ProblemDetailsAccessDeniedHandler(objectMapper, messageSource);
+    public ProblemDetailsAccessDeniedHandler problemDetailsAccessDeniedHandler(ObjectMapper objectMapper) {
+        return new ProblemDetailsAccessDeniedHandler(objectMapper);
     }
 }

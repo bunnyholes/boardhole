@@ -33,8 +33,8 @@ import org.springframework.lang.Nullable;
 import bunny.boardhole.shared.domain.BaseEntity;
 import bunny.boardhole.shared.domain.listener.ValidationListener;
 import bunny.boardhole.user.domain.validation.required.ValidEmail;
+import bunny.boardhole.user.domain.validation.required.ValidEncodedPassword;
 import bunny.boardhole.user.domain.validation.required.ValidName;
-import bunny.boardhole.user.domain.validation.required.ValidPassword;
 import bunny.boardhole.user.domain.validation.required.ValidUsername;
 
 @Getter
@@ -55,7 +55,7 @@ public class User extends BaseEntity {
     @Column(nullable = false, unique = true)
     private String username;
 
-    @ValidPassword
+    @ValidEncodedPassword
     @Column(nullable = false)
     private String password;
 

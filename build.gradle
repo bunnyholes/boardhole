@@ -108,8 +108,10 @@ tasks.named('test') {
     }
 
     testLogging {
-        events "passed", "skipped", "failed"
-        exceptionFormat = "short"
+        // Only show failures with full stack traces
+        events "failed"
+        exceptionFormat = "full"
+        showStandardStreams = false
     }
 }
 
@@ -471,8 +473,10 @@ tasks.register('integrationTest', Test) {
     }
 
     testLogging {
-        events "passed", "skipped", "failed"
-        exceptionFormat = "short"
+        // Only show failures with full stack traces
+        events "failed"
+        exceptionFormat = "full"
+        showStandardStreams = false
     }
 
     shouldRunAfter tasks.named('test')
@@ -487,8 +491,10 @@ tasks.register('e2eTest', Test) {
     }
 
     testLogging {
-        events "passed", "skipped", "failed"
-        exceptionFormat = "short"
+        // Only show failures with full stack traces
+        events "failed"
+        exceptionFormat = "full"
+        showStandardStreams = false
     }
 
     shouldRunAfter tasks.named('integrationTest')

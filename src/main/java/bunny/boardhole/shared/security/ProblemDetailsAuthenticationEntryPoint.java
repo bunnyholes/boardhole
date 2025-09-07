@@ -9,8 +9,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.MessageSource;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
@@ -20,6 +18,7 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import bunny.boardhole.shared.constants.ErrorCode;
+import bunny.boardhole.shared.util.MessageUtils;
 
 /**
  * 인증 실패 진입점 핸들러
@@ -30,15 +29,14 @@ import bunny.boardhole.shared.constants.ErrorCode;
 public class ProblemDetailsAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
     private final ObjectMapper objectMapper;
-    private final MessageSource messageSource;
     @Value("${boardhole.problem.base-uri:}")
     private String problemBaseUri;
 
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException {
         ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.UNAUTHORIZED);
-        pd.setTitle(messageSource.getMessage("exception.title.unauthorized", null, LocaleContextHolder.getLocale()));
-        pd.setDetail(messageSource.getMessage("error.auth.not-logged-in", null, LocaleContextHolder.getLocale()));
+        pd.setTitle(MessageUtils.get("exception.title.unauthorized"));
+        pd.setDetail(MessageUtils.get("error.auth.not-logged-in"));
         pd.setType(ProblemDetailsHelper.buildType(problemBaseUri, "unauthorized"));
         ProblemDetailsHelper.addCommonProperties(pd, request, ErrorCode.UNAUTHORIZED.getCode());
 
