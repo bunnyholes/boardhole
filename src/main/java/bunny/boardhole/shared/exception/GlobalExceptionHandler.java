@@ -135,6 +135,17 @@ public class GlobalExceptionHandler {
         return handleValidationException(ex.getBindingResult(), request);
     }
 
+    @ExceptionHandler(ValidationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ProblemDetail handleValidationException(ValidationException ex, HttpServletRequest request) {
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+        pd.setTitle(MessageUtils.get("exception.title.validation-failed"));
+        pd.setProperty("code", ErrorCode.VALIDATION_ERROR.getCode());
+        pd.setType(buildType("validation-error"));
+        addCommon(pd, request);
+        return pd;
+    }
+
     @ExceptionHandler({ConstraintViolationException.class, IllegalArgumentException.class})
     public ProblemDetail handleBadRequest(Exception ex, HttpServletRequest request) {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
