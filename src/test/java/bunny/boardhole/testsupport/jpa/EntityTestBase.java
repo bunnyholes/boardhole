@@ -1,14 +1,11 @@
 package bunny.boardhole.testsupport.jpa;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.Import;
@@ -33,9 +30,6 @@ public abstract class EntityTestBase {
     @Autowired
     protected TestDataConfig.TestDataProperties testData;
 
-    @Value("${boardhole.validation.email-verification.expiration-ms}")
-    private long validationExpirationMs;
-
     protected static String createUniqueEmail() {
         return UUID.randomUUID().toString().substring(0, 8) + "@example.com";
     }
@@ -53,20 +47,14 @@ public abstract class EntityTestBase {
         return testData.username() + "_" + UUID.randomUUID().toString().substring(0, 8);
     }
 
-    protected String createUniqueCode() {
+    protected static String createUniqueCode() {
         // Generate 6-character alphanumeric code to meet @ValidVerificationCode requirements (exactly 6 chars, A-Z0-9)
         String uuid = UUID.randomUUID().toString().replace("-", "").toUpperCase(Locale.ROOT);
         return uuid.substring(0, 6); // Take first 6 characters
     }
 
     protected User createTestUser() {
-        User user = User.builder()
-                .username(createUniqueUsername())
-                .password(testData.password())
-                .name(testData.name())
-                .email(createUniqueEmail())
-                .roles(Set.of(Role.USER))
-                .build();
+        User user = User.builder().username(createUniqueUsername()).password(testData.password()).name(testData.name()).email(createUniqueEmail()).roles(Set.of(Role.USER)).build();
         user.verifyEmail();
         return user;
     }
@@ -76,7 +64,4 @@ public abstract class EntityTestBase {
         return entityManager.persistAndFlush(user);
     }
 
-    protected LocalDateTime getTestExpirationTime() {
-        return LocalDateTime.now(ZoneId.systemDefault()).plus(java.time.Duration.ofMillis(validationExpirationMs));
-    }
 }

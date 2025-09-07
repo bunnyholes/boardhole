@@ -11,13 +11,14 @@ import bunny.boardhole.shared.exception.ResourceNotFoundException;
  */
 public final class RepositoryUtils {
 
-    private RepositoryUtils() {}
+    private RepositoryUtils() {
+    }
 
     /**
      * Entity를 ID로 조회하고 없으면 ResourceNotFoundException을 던집니다.
      *
-     * @param optional    Optional로 감싸진 Entity
-     * @param entityType  Entity 타입 (에러 메시지용)
+     * @param optional   Optional로 감싸진 Entity
+     * @param entityType Entity 타입 (에러 메시지용)
      * @param id         조회할 ID
      * @param <T>        Entity 타입
      * @param <ID>       ID 타입
@@ -25,16 +26,15 @@ public final class RepositoryUtils {
      * @throws ResourceNotFoundException Entity를 찾을 수 없는 경우
      */
     public static <T, ID> T findByIdOrThrow(Optional<T> optional, String entityType, ID id) {
-        return optional.orElseThrow(() -> 
-            new ResourceNotFoundException(MessageUtils.get("error." + entityType.toLowerCase() + ".not-found.id", id)));
+        return optional.orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error." + entityType.toLowerCase() + ".not-found.id", id)));
     }
 
     /**
      * Entity를 ID로 조회하고 없으면 사용자 정의 예외를 던집니다.
      *
-     * @param optional         Optional로 감싸진 Entity
+     * @param optional          Optional로 감싸진 Entity
      * @param exceptionSupplier 예외 공급자
-     * @param <T>              Entity 타입
+     * @param <T>               Entity 타입
      * @return 조회된 Entity
      * @throws RuntimeException 사용자 정의 예외
      */

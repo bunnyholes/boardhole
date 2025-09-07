@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,8 +25,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import bunny.boardhole.email.presentation.dto.EmailUpdateRequest;
-import bunny.boardhole.email.presentation.dto.EmailVerificationRequest;
 import bunny.boardhole.shared.constants.ApiPaths;
 import bunny.boardhole.shared.exception.ValidationException;
 import bunny.boardhole.shared.security.AppUserPrincipal;
@@ -114,34 +111,7 @@ public class UserController {
         userCommandService.updatePassword(cmd);
     }
 
-    @PostMapping("/{id}/email/verification")
-    @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "이메일 변경 검증 요청", description = "[AUTH] 이메일 변경을 위한 검증 코드를 요청합니다. 검증 코드는 이메일로 발송됩니다.")
-    @ApiResponses({@ApiResponse(responseCode = "200", description = "검증 코드 발송 완료", content = @Content(schema = @Schema(type = "object", example = "{\"message\": \"Verification code sent\"}"))), @ApiResponse(responseCode = "400", description = "잘못된 요청 데이터"), @ApiResponse(responseCode = "401", description = "현재 패스워드 불일치"), @ApiResponse(responseCode = "409", description = "이메일 중복")})
-    @ResponseStatus(HttpStatus.OK)
-    public java.util.Map<String, String> requestEmailVerification(@Parameter(description = "사용자 ID") @PathVariable Long id, @Validated @RequestBody EmailVerificationRequest req) {
-
-        var cmd = userWebMapper.toRequestEmailVerificationCommand(id, req);
-        String code = userCommandService.requestEmailVerification(cmd);
-
-        // 개발 환경에서만 코드 반환, 프로덕션에서는 메시지만
-        java.util.Map<String, String> response = new java.util.HashMap<>();
-        response.put("message", MessageUtils.get("info.user.email.verification.sent"));
-        // TODO: 개발 환경 체크 후 코드 포함 여부 결정
-        response.put("code", code); // 테스트용
-        return response;
-    }
-
-    @PatchMapping("/{id}/email")
-    @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "이메일 변경", description = "[AUTH] 검증 코드를 확인하고 이메일을 변경합니다.")
-    @ApiResponses({@ApiResponse(responseCode = "200", description = "이메일 변경 성공", content = @Content(schema = @Schema(implementation = UserResponse.class))), @ApiResponse(responseCode = "400", description = "유효하지 않은 검증 코드"), @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음")})
-    public UserResponse updateEmail(@Parameter(description = "사용자 ID") @PathVariable Long id, @Validated @RequestBody EmailUpdateRequest req) {
-
-        var cmd = userWebMapper.toUpdateEmailCommand(id, req);
-        var updated = userCommandService.updateEmail(cmd);
-        return userWebMapper.toResponse(updated);
-    }
+    // 이메일 변경 기능은 JWT 기반 인증으로 전환 예정
 
     @GetMapping(ApiPaths.USERS_ME)
     @PreAuthorize("isAuthenticated()")

@@ -14,7 +14,6 @@ import static org.hamcrest.Matchers.equalTo;
 @DisplayName("사용자 E2E — /users/me 인증/미인증")
 @Tag("e2e")
 @Tag("user")
-
 class UserMeE2ETest extends E2ETestBase {
 
     @Test
@@ -28,7 +27,7 @@ class UserMeE2ETest extends E2ETestBase {
     void me_Authorized() {
         String uid = java.util.UUID.randomUUID().toString().substring(0, 8);
         String u = "me_" + uid;
-        String p = "Passw0rd!";
+        final String p = "Passw0rd!";
         String e = u + "@example.com";
         AuthSteps.signup(u, p, "Me User", e);
         SessionCookie sc = AuthSteps.login(u, p);

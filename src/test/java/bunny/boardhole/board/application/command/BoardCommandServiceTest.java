@@ -52,13 +52,7 @@ class BoardCommandServiceTest {
 
     @Test
     void incrementViewCount_usesSaveWithoutImmediateFlush() {
-        User author = User.builder()
-                .username("writer")
-                .password("Password123!")
-                .name("Writer")
-                .email("writer@example.com")
-                .roles(java.util.Set.of(bunny.boardhole.user.domain.Role.USER))
-                .build();
+        User author = User.builder().username("writer").password("Password123!").name("Writer").email("writer@example.com").roles(java.util.Set.of(bunny.boardhole.user.domain.Role.USER)).build();
         ReflectionTestUtils.setField(author, "id", 1L);
         Board board = Board.builder().title("title").content("content").author(author).build();
         ReflectionTestUtils.setField(board, "id", 1L);

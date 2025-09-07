@@ -20,12 +20,10 @@ import bunny.boardhole.board.application.result.BoardResult;
 import bunny.boardhole.board.domain.Board;
 import bunny.boardhole.board.infrastructure.BoardRepository;
 import bunny.boardhole.shared.util.MessageUtils;
-import bunny.boardhole.shared.util.VerificationCodeGenerator;
 import bunny.boardhole.user.application.command.UserCommandService;
 import bunny.boardhole.user.application.mapper.UserMapper;
 import bunny.boardhole.user.domain.Role;
 import bunny.boardhole.user.domain.User;
-import bunny.boardhole.user.infrastructure.EmailVerificationRepository;
 import bunny.boardhole.user.infrastructure.UserRepository;
 
 import ch.qos.logback.classic.Logger;
@@ -69,12 +67,9 @@ class BusinessLogAspectTest {
 
         // User service setup
         userRepository = Mockito.mock(UserRepository.class);
-        EmailVerificationRepository evRepo = Mockito.mock(EmailVerificationRepository.class);
         PasswordEncoder encoder = Mockito.mock(PasswordEncoder.class);
         UserMapper userMapper = Mockito.mock(UserMapper.class);
-        VerificationCodeGenerator codeGenerator = Mockito.mock(VerificationCodeGenerator.class);
-        org.springframework.context.ApplicationEventPublisher eventPublisher = Mockito.mock(org.springframework.context.ApplicationEventPublisher.class);
-        UserCommandService targetUser = new UserCommandService(userRepository, evRepo, encoder, userMapper, codeGenerator, eventPublisher);
+        UserCommandService targetUser = new UserCommandService(userRepository, encoder, userMapper);
         AspectJProxyFactory userFactory = new AspectJProxyFactory(targetUser);
         userFactory.addAspect(aspect);
         userService = userFactory.getProxy();

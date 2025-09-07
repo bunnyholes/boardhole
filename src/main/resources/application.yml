@@ -45,26 +45,10 @@ boardhole:
       slow-threshold-ms: 1000
       duration-threshold-ms: 1000
   
-  # 유효성 검증 설정
-  validation:
-    email-verification:
-      expiration-ms: 7200000              # 이메일 인증 만료시간 (2시간)
-  
-  # 이메일 관련 설정
-  email:
-    base-url: http://localhost:8080
-    from-name: Board-Hole
-    rate-limit:
-      per-hour: 5
-      per-day: 20
-    # Outbox 재시도 설정
-    outbox:
-      enabled: true
-      max-retry-count: 5                  # 총 5회 재시도 (최초 1회 + 4회 재시도)
-      scheduler-rate: 600000              # 10분마다 실행 (600,000ms = 10분)
-      retention-days: 30
-      cleanup-cron: "0 0 2 * * *"        # 매일 새벽 2시
-      stats-cron: "0 0 * * * *"          # 매시간
+  # 이메일 검증 관련 설정 - JWT 기반 인증으로 전환 예정
+  # validation:
+  #   email-verification:
+  #     expiration-ms: 7200000
   
   # CORS 기본값 (환경별 프로필에서 오버라이드 권장)
   cors:

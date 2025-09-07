@@ -4,7 +4,8 @@ Technical specifications for Claude Code AI assistant when working with this Spr
 
 ## Project Overview
 
-Spring Boot 3.5.5 board application with Java 21, MySQL 9.4, Redis session storage, domain-driven architecture, and comprehensive quality tooling.
+Spring Boot 3.5.5 board application with Java 21, MySQL 9.4, Redis session storage, domain-driven architecture, and
+comprehensive quality tooling.
 
 ## Build Commands
 
@@ -32,6 +33,7 @@ Spring Boot 3.5.5 board application with Java 21, MySQL 9.4, Redis session stora
 ## Architecture
 
 ### Layer Structure
+
 ```
 presentation → application → domain → infrastructure
          ↓           ↓          ↓           ↓
@@ -39,6 +41,7 @@ presentation → application → domain → infrastructure
 ```
 
 ### Domain Pattern
+
 ```
 bunny.boardhole.[domain]/
 ├── application/
@@ -86,6 +89,7 @@ bunny.boardhole.[domain]/
 ## API Paths
 
 All REST APIs under `/api/*`:
+
 - `/api/auth/*` - Authentication
 - `/api/users/*` - User management
 - `/api/boards/*` - Board operations
@@ -93,10 +97,12 @@ All REST APIs under `/api/*`:
 ## Environment
 
 Docker services (Spring Boot Docker Compose auto-start):
+
 - MySQL: Dynamic port mapping
 - Redis: Dynamic port mapping
 
 Profiles:
+
 - `dev` (default): Auto-DDL, SQL logging, debug
 - `prod`: Optimized settings, JSON logging
 

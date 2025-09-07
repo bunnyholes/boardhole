@@ -1,7 +1,5 @@
 package bunny.boardhole.user.application;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.Optional;
 import java.util.Set;
 
@@ -14,7 +12,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -28,30 +25,20 @@ import bunny.boardhole.shared.exception.DuplicateEmailException;
 import bunny.boardhole.shared.exception.DuplicateUsernameException;
 import bunny.boardhole.shared.exception.ResourceNotFoundException;
 import bunny.boardhole.shared.exception.UnauthorizedException;
-import bunny.boardhole.shared.exception.ValidationException;
 import bunny.boardhole.shared.util.MessageUtils;
-import bunny.boardhole.shared.util.VerificationCodeGenerator;
 import bunny.boardhole.user.application.command.CreateUserCommand;
-import bunny.boardhole.user.application.command.RequestEmailVerificationCommand;
-import bunny.boardhole.user.application.command.UpdateEmailCommand;
 import bunny.boardhole.user.application.command.UpdatePasswordCommand;
 import bunny.boardhole.user.application.command.UpdateUserCommand;
 import bunny.boardhole.user.application.command.UserCommandService;
-import bunny.boardhole.user.application.event.UserCreatedEvent;
 import bunny.boardhole.user.application.mapper.UserMapper;
 import bunny.boardhole.user.application.result.UserResult;
-import bunny.boardhole.user.domain.EmailVerification;
-import bunny.boardhole.user.domain.EmailVerificationType;
 import bunny.boardhole.user.domain.Role;
 import bunny.boardhole.user.domain.User;
-import bunny.boardhole.user.infrastructure.EmailVerificationRepository;
 import bunny.boardhole.user.infrastructure.UserRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -73,20 +60,14 @@ class UserCommandServiceTest {
     private static final String OLD_NAME = "old";
     private static final String NEW_NAME = "new";
     private static final String EMAIL = "john@example.com";
-    private static final String NEW_EMAIL = "new@example.com";
     private static final String WRONG_PASSWORD = "wrong";
     private static final String NEW_PASSWORD = "newPass123";
-    private static final String VERIFICATION_CODE = "verify";
     @Mock
     private UserRepository userRepository;
-    @Mock
-    private EmailVerificationRepository emailVerificationRepository;
     @Mock
     private PasswordEncoder passwordEncoder;
     @Mock
     private UserMapper userMapper;
-    @Mock
-    private VerificationCodeGenerator verificationCodeGenerator;
     @Mock
     private ApplicationEventPublisher eventPublisher;
     private UserCommandService userCommandService;
@@ -111,11 +92,6 @@ class UserCommandServiceTest {
         return result;
     }
 
-    private static EmailVerification emailVerification() {
-        User testUser = user();
-        return EmailVerification.builder().code(VERIFICATION_CODE).user(testUser).newEmail(NEW_EMAIL).expiresAt(LocalDateTime.now(ZoneId.systemDefault()).plusMinutes(10)).verificationType(EmailVerificationType.CHANGE_EMAIL).build();
-    }
-
     @BeforeEach
     void setUp() {
         ResourceBundleMessageSource ms = new ResourceBundleMessageSource();
@@ -124,7 +100,7 @@ class UserCommandServiceTest {
         ms.setUseCodeAsDefaultMessage(true);
         ReflectionTestUtils.setField(MessageUtils.class, "messageSource", ms);
 
-        userCommandService = new UserCommandService(userRepository, emailVerificationRepository, passwordEncoder, userMapper, verificationCodeGenerator, eventPublisher);
+        userCommandService = new UserCommandService(userRepository, passwordEncoder, userMapper);
     }
 
     @Nested
@@ -150,10 +126,6 @@ class UserCommandServiceTest {
             UserResult expected = UserCommandServiceTest.userResult();
             lenient().when(userMapper.toResult(saved)).thenReturn(expected);
 
-            // 이벤트 생성 메서드 mock 설정
-            UserCreatedEvent mockEvent = new UserCreatedEvent(saved, "test-token", java.time.LocalDateTime.now());
-            lenient().when(userMapper.toUserCreatedEvent(any(User.class), anyString(), any(java.time.LocalDateTime.class))).thenReturn(mockEvent);
-
             // when
             UserResult result = userCommandService.create(cmd);
 
@@ -162,14 +134,7 @@ class UserCommandServiceTest {
             verify(userRepository).existsByUsername(UserCommandServiceTest.USERNAME);
             verify(userRepository).existsByEmail(UserCommandServiceTest.EMAIL);
 
-            // 이벤트 발행 검증
-            ArgumentCaptor<UserCreatedEvent> eventCaptor = ArgumentCaptor.forClass(UserCreatedEvent.class);
-            verify(eventPublisher).publishEvent(eventCaptor.capture());
-            UserCreatedEvent publishedEvent = eventCaptor.getValue();
-            assertThat(publishedEvent.user()).isEqualTo(saved);
-            assertThat(publishedEvent.verificationToken()).isNotNull();
             verify(userRepository).save(any(User.class));
-            verify(emailVerificationRepository).save(any(EmailVerification.class));
         }
 
         @Test
@@ -374,119 +339,4 @@ class UserCommandServiceTest {
         }
     }
 
-    @Nested
-    @DisplayName("이메일 변경 검증 요청")
-    @Tag("email")
-    class RequestEmailVerification {
-
-        @Test
-        @DisplayName("❌ 현재 비밀번호 불일치 → Unauthorized")
-        void shouldThrowWhenPasswordMismatch() {
-            // given
-            User existing = UserCommandServiceTest.user();
-            ReflectionTestUtils.setField(existing, "id", UserCommandServiceTest.USER_ID);
-
-            when(userRepository.findById(UserCommandServiceTest.USER_ID)).thenReturn(Optional.of(existing));
-            when(passwordEncoder.matches(UserCommandServiceTest.WRONG_PASSWORD, UserCommandServiceTest.ENCODED_PASSWORD)).thenReturn(false);
-
-            RequestEmailVerificationCommand cmd = new RequestEmailVerificationCommand(UserCommandServiceTest.USER_ID, UserCommandServiceTest.WRONG_PASSWORD, UserCommandServiceTest.NEW_EMAIL);
-
-            // when & then
-            assertThatThrownBy(() -> userCommandService.requestEmailVerification(cmd)).isInstanceOf(UnauthorizedException.class);
-            verify(userRepository).findById(UserCommandServiceTest.USER_ID);
-            verify(passwordEncoder).matches(UserCommandServiceTest.WRONG_PASSWORD, UserCommandServiceTest.ENCODED_PASSWORD);
-        }
-
-        @Test
-        @DisplayName("❌ 이메일 중복 → DuplicateEmailException")
-        void shouldThrowWhenNewEmailExists() {
-            // given
-            User existing = UserCommandServiceTest.user();
-            ReflectionTestUtils.setField(existing, "id", UserCommandServiceTest.USER_ID);
-
-            when(userRepository.findById(UserCommandServiceTest.USER_ID)).thenReturn(Optional.of(existing));
-            when(passwordEncoder.matches(UserCommandServiceTest.RAW_PASSWORD, UserCommandServiceTest.ENCODED_PASSWORD)).thenReturn(true);
-            when(userRepository.existsByEmail(UserCommandServiceTest.NEW_EMAIL)).thenReturn(true);
-
-            RequestEmailVerificationCommand cmd = new RequestEmailVerificationCommand(UserCommandServiceTest.USER_ID, UserCommandServiceTest.RAW_PASSWORD, UserCommandServiceTest.NEW_EMAIL);
-
-            // when & then
-            assertThatThrownBy(() -> userCommandService.requestEmailVerification(cmd)).isInstanceOf(DuplicateEmailException.class);
-            verify(userRepository).existsByEmail(UserCommandServiceTest.NEW_EMAIL);
-        }
-
-        @Test
-        @DisplayName("❌ 사용자 미존재 → ResourceNotFoundException")
-        void shouldThrowWhenUserMissingForVerification() {
-            // given
-            when(userRepository.findById(UserCommandServiceTest.USER_ID)).thenReturn(Optional.empty());
-
-            RequestEmailVerificationCommand cmd = new RequestEmailVerificationCommand(UserCommandServiceTest.USER_ID, UserCommandServiceTest.RAW_PASSWORD, UserCommandServiceTest.NEW_EMAIL);
-
-            // when & then
-            assertThatThrownBy(() -> userCommandService.requestEmailVerification(cmd)).isInstanceOf(ResourceNotFoundException.class);
-            verify(userRepository).findById(UserCommandServiceTest.USER_ID);
-        }
-    }
-
-    @Nested
-    @DisplayName("이메일 변경")
-    @Tag("email")
-    class UpdateEmail {
-
-        @Test
-        @DisplayName("✅ 이메일 변경 성공")
-        void shouldUpdateEmail() {
-            // given
-            User user = UserCommandServiceTest.user();
-            ReflectionTestUtils.setField(user, "id", UserCommandServiceTest.USER_ID);
-            EmailVerification verification = UserCommandServiceTest.emailVerification();
-
-            when(userRepository.findById(UserCommandServiceTest.USER_ID)).thenReturn(Optional.of(user));
-            when(emailVerificationRepository.findValidVerification(eq(UserCommandServiceTest.USER_ID), eq(UserCommandServiceTest.VERIFICATION_CODE), any())).thenReturn(Optional.of(verification));
-            when(userRepository.save(user)).thenReturn(user);
-            UserResult expected = UserCommandServiceTest.userResult();
-            when(userMapper.toResult(user)).thenReturn(expected);
-
-            UpdateEmailCommand cmd = new UpdateEmailCommand(UserCommandServiceTest.USER_ID, UserCommandServiceTest.VERIFICATION_CODE);
-
-            // when
-            UserResult result = userCommandService.updateEmail(cmd);
-
-            // then
-            assertThat(result).isEqualTo(expected);
-            assertThat(user.getEmail()).isEqualTo(UserCommandServiceTest.NEW_EMAIL);
-            assertThat(verification.isUsed()).isTrue();
-            verify(emailVerificationRepository).save(verification);
-        }
-
-        @Test
-        @DisplayName("❌ 검증 코드 무효 → ValidationException")
-        void shouldThrowWhenVerificationInvalid() {
-            // given
-            User user = UserCommandServiceTest.user();
-            ReflectionTestUtils.setField(user, "id", UserCommandServiceTest.USER_ID);
-
-            when(userRepository.findById(UserCommandServiceTest.USER_ID)).thenReturn(Optional.of(user));
-            when(emailVerificationRepository.findValidVerification(eq(UserCommandServiceTest.USER_ID), eq(UserCommandServiceTest.VERIFICATION_CODE), any())).thenReturn(Optional.empty());
-
-            UpdateEmailCommand cmd = new UpdateEmailCommand(UserCommandServiceTest.USER_ID, UserCommandServiceTest.VERIFICATION_CODE);
-
-            // when & then
-            assertThatThrownBy(() -> userCommandService.updateEmail(cmd)).isInstanceOf(ValidationException.class);
-        }
-
-        @Test
-        @DisplayName("❌ 사용자 미존재 → ResourceNotFoundException")
-        void shouldThrowWhenUserMissingForEmailUpdate() {
-            // given
-            when(userRepository.findById(UserCommandServiceTest.USER_ID)).thenReturn(Optional.empty());
-
-            UpdateEmailCommand cmd = new UpdateEmailCommand(UserCommandServiceTest.USER_ID, UserCommandServiceTest.VERIFICATION_CODE);
-
-            // when & then
-            assertThatThrownBy(() -> userCommandService.updateEmail(cmd)).isInstanceOf(ResourceNotFoundException.class);
-            verify(userRepository).findById(UserCommandServiceTest.USER_ID);
-        }
-    }
 }

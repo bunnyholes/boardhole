@@ -458,17 +458,15 @@ class BoardRepositoryTest {
             // Given - 초기 버전 확인
             entityManager.flush();
             entityManager.clear();
-            
+
             Board originalBoard = boardRepository.findById(board1.getId()).get();
             Long originalVersion = originalBoard.getVersion();
-            
+
             // When - 직접적으로 버전을 조작하여 낙관적 잠금 충돌 시뮬레이션
             // 다른 트랜잭션에서 업데이트가 발생했다고 가정하고 DB의 버전을 먼저 증가
-            entityManager.createNativeQuery("UPDATE boards SET version = version + 1 WHERE id = ?")
-                .setParameter(1, originalBoard.getId())
-                .executeUpdate();
+            entityManager.createNativeQuery("UPDATE boards SET version = version + 1 WHERE id = ?").setParameter(1, originalBoard.getId()).executeUpdate();
             entityManager.flush();
-            
+
             // Then - 이전 버전의 엔티티로 업데이트 시도하면 낙관적 잠금 예외 발생
             assertThatThrownBy(() -> {
                 originalBoard.changeTitle("Should Fail Update");

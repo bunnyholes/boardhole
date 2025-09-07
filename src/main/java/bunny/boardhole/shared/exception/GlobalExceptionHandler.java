@@ -113,17 +113,6 @@ public class GlobalExceptionHandler {
         return pd;
     }
 
-    @ExceptionHandler(EmailVerificationRequiredException.class)
-    public ProblemDetail handleEmailVerificationRequired(EmailVerificationRequiredException ex, HttpServletRequest request) {
-        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, ex.getMessage());
-        pd.setTitle(MessageUtils.get("exception.title.email-verification-required"));
-        pd.setProperty("code", "EMAIL_VERIFICATION_REQUIRED");
-        pd.setProperty("resendUrl", "/api/auth/resend-verification");
-        pd.setType(buildType("email-verification-required"));
-        addCommon(pd, request);
-        return pd;
-    }
-
     @ExceptionHandler(AccessDeniedException.class)
     public ProblemDetail handleAccessDenied(AccessDeniedException ex, HttpServletRequest request) {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, ex.getMessage());

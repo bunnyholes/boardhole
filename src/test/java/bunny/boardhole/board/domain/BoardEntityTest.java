@@ -2,6 +2,8 @@ package bunny.boardhole.board.domain;
 
 import java.time.LocalDateTime;
 
+import jakarta.validation.ConstraintViolationException;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Nested;
@@ -17,8 +19,6 @@ import bunny.boardhole.user.domain.User;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
-import jakarta.validation.ConstraintViolationException;
 
 @DisplayName("Board 엔티티 테스트")
 @TestMethodOrder(MethodOrderer.DisplayName.class)

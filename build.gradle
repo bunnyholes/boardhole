@@ -42,8 +42,9 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-aop'
     implementation 'org.springframework.boot:spring-boot-starter-security'
-    implementation 'org.springframework.boot:spring-boot-starter-mail'
-    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    // Email dependencies removed - will be replaced with JWT-based email verification later
+    // implementation 'org.springframework.boot:spring-boot-starter-mail'
+    // implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 
     // -- Development Tools --
     developmentOnly 'org.springframework.boot:spring-boot-devtools'

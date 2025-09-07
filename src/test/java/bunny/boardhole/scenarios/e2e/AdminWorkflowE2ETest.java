@@ -15,7 +15,6 @@ import static org.hamcrest.Matchers.equalTo;
 @DisplayName("관리자 워크플로우 — 사용자 관리")
 @Tag("e2e")
 @Tag("scenario")
-
 class AdminWorkflowE2ETest extends E2ETestBase {
 
     @Value("${boardhole.default-users.admin.username}")
@@ -33,7 +32,7 @@ class AdminWorkflowE2ETest extends E2ETestBase {
         // 일반 사용자 회원가입/로그인 후 목록 조회 403
         String uid = java.util.UUID.randomUUID().toString().substring(0, 8);
         String user = "normal_" + uid;
-        String pass = "Passw0rd!";
+        final String pass = "Passw0rd!";
         String email = user + "@example.com";
         AuthSteps.signup(user, pass, "Normal User", email);
         SessionCookie normal = AuthSteps.login(user, pass);
