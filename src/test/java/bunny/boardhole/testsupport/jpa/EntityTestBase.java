@@ -18,6 +18,8 @@ import bunny.boardhole.shared.config.TestJpaConfig;
 import bunny.boardhole.shared.util.MessageUtils;
 import bunny.boardhole.user.domain.Role;
 import bunny.boardhole.user.domain.User;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @DataJpaTest
 @ActiveProfiles("test")
@@ -29,6 +31,8 @@ public abstract class EntityTestBase {
 
     @Autowired
     protected TestDataConfig.TestDataProperties testData;
+    
+    private static final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     protected static String createUniqueEmail() {
         return UUID.randomUUID().toString().substring(0, 8) + "@example.com";
@@ -54,7 +58,13 @@ public abstract class EntityTestBase {
     }
 
     protected User createTestUser() {
-        User user = User.builder().username(createUniqueUsername()).password(testData.password()).name(testData.name()).email(createUniqueEmail()).roles(Set.of(Role.USER)).build();
+        User user = User.builder()
+                .username(createUniqueUsername())
+                .password(passwordEncoder.encode(testData.password()))
+                .name(testData.name())
+                .email(createUniqueEmail())
+                .roles(Set.of(Role.USER))
+                .build();
         user.verifyEmail();
         return user;
     }

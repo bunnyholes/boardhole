@@ -20,8 +20,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import org.hibernate.annotations.DynamicUpdate;
-import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.Where;
+import org.hibernate.annotations.SoftDelete;
 
 import bunny.boardhole.board.domain.validation.required.ValidBoardContent;
 import bunny.boardhole.board.domain.validation.required.ValidBoardTitle;
@@ -36,9 +35,13 @@ import bunny.boardhole.user.domain.User;
 @Entity
 @EntityListeners(ValidationListener.class)
 @DynamicUpdate
-@SQLDelete(sql = "UPDATE boards SET deleted = true, deleted_at = NOW() WHERE id = ? AND version = ?")
-@Where(clause = "deleted = false")
-@Table(name = "boards", indexes = {@Index(name = "idx_board_title", columnList = "title"), @Index(name = "idx_board_created_at", columnList = "created_at")})
+@SoftDelete(columnName = "deleted")
+@Table(name = "boards", indexes = {
+    @Index(name = "idx_board_title", columnList = "title"), 
+    @Index(name = "idx_board_created_at", columnList = "created_at"),
+    @Index(name = "idx_board_deleted", columnList = "deleted"),
+    @Index(name = "idx_board_deleted_created", columnList = "deleted,created_at")
+})
 public class Board extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

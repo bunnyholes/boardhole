@@ -255,44 +255,69 @@ class UserRepositoryTest {
     class DeleteTest {
 
         @Test
-        @DisplayName("사용자 삭제")
-        void delete_ExistingUser_RemovesSuccessfully() {
+        @DisplayName("사용자 삭제 - Soft Delete 검증")
+        void delete_ExistingUser_SoftDeletesSuccessfully() {
             // Given
             Long userId = testUser.getId();
             long countBefore = userRepository.count();
+            long totalCountBefore = userRepository.findAllIncludingDeleted().size();
 
             // When
             userRepository.delete(testUser);
 
             // Then
-            assertThat(userRepository.findById(userId)).isEmpty();
+            assertThat(userRepository.findById(userId)).isEmpty(); // Normal query doesn't find it
             assertThat(userRepository.count()).isEqualTo(countBefore - 1);
+            
+            // Verify soft delete using native query
+            assertThat(userRepository.findByIdIncludingDeleted(userId)).isPresent(); // Still exists in DB
+            assertThat(userRepository.findAllIncludingDeleted()).hasSize((int) totalCountBefore); // Total count unchanged
+            assertThat(userRepository.findAllDeleted()).isNotEmpty(); // Appears in deleted records
         }
 
         @Test
-        @DisplayName("ID로 사용자 삭제")
-        void deleteById_ExistingUser_RemovesSuccessfully() {
+        @DisplayName("ID로 사용자 삭제 - Soft Delete 검증")
+        void deleteById_ExistingUser_SoftDeletesSuccessfully() {
             // Given
             Long userId = adminUser.getId();
             long countBefore = userRepository.count();
+            long totalCountBefore = userRepository.findAllIncludingDeleted().size();
 
             // When
             userRepository.deleteById(userId);
 
             // Then
-            assertThat(userRepository.findById(userId)).isEmpty();
+            assertThat(userRepository.findById(userId)).isEmpty(); // Normal query doesn't find it
             assertThat(userRepository.count()).isEqualTo(countBefore - 1);
+            
+            // Verify soft delete using native query
+            assertThat(userRepository.findByIdIncludingDeleted(userId)).isPresent(); // Still exists in DB
+            assertThat(userRepository.findAllIncludingDeleted()).hasSize((int) totalCountBefore); // Total count unchanged
+            
+            // Verify the deleted user appears in deleted records
+            var deletedUsers = userRepository.findAllDeleted();
+            assertThat(deletedUsers)
+                .isNotEmpty()
+                .extracting("id")
+                .contains(userId);
         }
 
         @Test
-        @DisplayName("전체 사용자 삭제")
-        void deleteAll_RemovesAllUsers() {
+        @DisplayName("전체 사용자 삭제 - Soft Delete 검증")
+        void deleteAll_SoftDeletesAllUsers() {
+            // Given
+            long totalCountBefore = userRepository.findAllIncludingDeleted().size();
+
             // When
             userRepository.deleteAll();
 
             // Then
-            assertThat(userRepository.count()).isEqualTo(0);
+            assertThat(userRepository.count()).isEqualTo(0); // Normal query finds nothing
             assertThat(userRepository.findAll()).isEmpty();
+            
+            // Verify soft delete using native query
+            assertThat(userRepository.findAllIncludingDeleted()).hasSize((int) totalCountBefore); // All still exist in DB
+            assertThat(userRepository.findAllDeleted()).hasSize((int) totalCountBefore); // All marked as deleted
         }
     }
 
