@@ -1,11 +1,11 @@
 package bunny.boardhole.shared.config;
 
-import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
-@TestConfiguration
+@Configuration
 @EnableJpaAuditing
 @EnableJpaRepositories(basePackages = "bunny.boardhole")
-public class TestJpaConfig {
+public class JpaConfig {
 }
