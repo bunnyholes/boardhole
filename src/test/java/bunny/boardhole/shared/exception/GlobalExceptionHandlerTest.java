@@ -124,7 +124,7 @@ class GlobalExceptionHandlerTest {
         DuplicateUsernameException ex = new DuplicateUsernameException(errorMessage);
 
         // When
-        ProblemDetail result = handler.handleConflict(ex, request);
+        ProblemDetail result = handler.handleDuplicateUsername(ex, request);
 
         // Then
         assertThat(result.getStatus()).isEqualTo(HttpStatus.CONFLICT.value());
@@ -145,7 +145,7 @@ class GlobalExceptionHandlerTest {
         DuplicateEmailException ex = new DuplicateEmailException(errorMessage);
 
         // When
-        ProblemDetail result = handler.handleConflict(ex, request);
+        ProblemDetail result = handler.handleDuplicateEmail(ex, request);
 
         // Then
         assertThat(result.getStatus()).isEqualTo(HttpStatus.CONFLICT.value());

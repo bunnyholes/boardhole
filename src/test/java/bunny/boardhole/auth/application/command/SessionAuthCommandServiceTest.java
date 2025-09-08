@@ -129,7 +129,7 @@ class SessionAuthCommandServiceTest {
             given(authenticationManager.authenticate(any(Authentication.class))).willThrow(new BadCredentialsException("Invalid credentials"));
 
             // When & Then
-            assertThatThrownBy(() -> service.login(command)).isInstanceOf(UnauthorizedException.class).hasMessageContaining("Invalid username or password");
+            assertThatThrownBy(() -> service.login(command)).isInstanceOf(UnauthorizedException.class).hasMessageContaining(MessageUtils.get("error.auth.invalid-credentials"));
 
             // SecurityContext가 비어있는지 확인
             SecurityContext context = SecurityContextHolder.getContext();
