@@ -28,8 +28,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import org.hibernate.annotations.DynamicUpdate;
-import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.Where;
+import org.hibernate.annotations.SoftDelete;
 import org.springframework.lang.Nullable;
 
 import bunny.boardhole.shared.domain.BaseEntity;
@@ -46,9 +45,13 @@ import bunny.boardhole.user.domain.validation.required.ValidUsername;
 @Entity
 @EntityListeners(ValidationListener.class)
 @DynamicUpdate
-@SQLDelete(sql = "UPDATE users SET deleted = true, deleted_at = NOW() WHERE id = ?")
-@Where(clause = "deleted = false")
-@Table(name = "users", indexes = {@Index(name = "idx_user_username", columnList = "username"), @Index(name = "idx_user_email", columnList = "email"), @Index(name = "idx_user_name", columnList = "name")})
+@SoftDelete(columnName = "deleted")
+@Table(name = "users", indexes = {
+    @Index(name = "idx_user_username", columnList = "username"), 
+    @Index(name = "idx_user_email", columnList = "email"), 
+    @Index(name = "idx_user_name", columnList = "name"),
+    @Index(name = "idx_user_deleted", columnList = "deleted")
+})
 public class User extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

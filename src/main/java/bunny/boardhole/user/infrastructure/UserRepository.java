@@ -1,11 +1,13 @@
 package bunny.boardhole.user.infrastructure;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import org.springframework.validation.annotation.Validated;
 
@@ -75,4 +77,29 @@ public interface UserRepository extends JpaRepository<User, Long> {
      * @return 검색된 사용자 페이지
      */
     Page<User> findByUsernameContainingIgnoreCaseOrNameContainingIgnoreCaseOrEmailContainingIgnoreCase(String username, String name, String email, Pageable pageable);
+
+    /**
+     * 삭제된 사용자 포함 전체 조회 (Native Query)
+     *
+     * @return 삭제 여부 상관없이 모든 사용자 목록
+     */
+    @Query(value = "SELECT * FROM users", nativeQuery = true)
+    List<User> findAllIncludingDeleted();
+
+    /**
+     * 삭제된 사용자만 조회 (Native Query)
+     *
+     * @return 삭제된 사용자 목록
+     */
+    @Query(value = "SELECT * FROM users WHERE deleted = true", nativeQuery = true)
+    List<User> findAllDeleted();
+
+    /**
+     * ID로 삭제 여부 상관없이 사용자 조회 (Native Query)
+     *
+     * @param id 사용자 ID
+     * @return 사용자 (삭제 여부 상관없이)
+     */
+    @Query(value = "SELECT * FROM users WHERE id = ?1", nativeQuery = true)
+    Optional<User> findByIdIncludingDeleted(Long id);
 }

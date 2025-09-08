@@ -1,5 +1,6 @@
 package bunny.boardhole.board.infrastructure;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -49,4 +50,29 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
      */
     @Query("SELECT b.author.id FROM Board b WHERE b.id = :boardId")
     Optional<Long> findAuthorIdById(@Param("boardId") Long boardId);
+
+    /**
+     * 삭제된 게시글 포함 전체 조회 (Native Query)
+     *
+     * @return 삭제 여부 상관없이 모든 게시글 목록
+     */
+    @Query(value = "SELECT * FROM boards", nativeQuery = true)
+    List<Board> findAllIncludingDeleted();
+
+    /**
+     * 삭제된 게시글만 조회 (Native Query)
+     *
+     * @return 삭제된 게시글 목록
+     */
+    @Query(value = "SELECT * FROM boards WHERE deleted = true", nativeQuery = true)
+    List<Board> findAllDeleted();
+
+    /**
+     * ID로 삭제 여부 상관없이 게시글 조회 (Native Query)
+     *
+     * @param id 게시글 ID
+     * @return 게시글 (삭제 여부 상관없이)
+     */
+    @Query(value = "SELECT * FROM boards WHERE id = ?1", nativeQuery = true)
+    Optional<Board> findByIdIncludingDeleted(Long id);
 }

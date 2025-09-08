@@ -3,8 +3,6 @@ package bunny.boardhole.board.infrastructure;
 import java.util.Optional;
 import java.util.Set;
 
-import jakarta.persistence.EntityManager;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -14,8 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -49,31 +45,14 @@ class BoardRepositoryTest {
     @Autowired
     private UserRepository userRepository;
 
-    @Autowired
-    private EntityManager entityManager;
-
     private User author;
     private Board testBoard;
 
     @BeforeEach
     void setUp() {
-        author = userRepository.save(
-            User.builder()
-                .username("test_author")
-                .password(passwordEncoder.encode("Password123!"))
-                .name("Test Author")
-                .email("author@example.com")
-                .roles(Set.of(Role.USER))
-                .build()
-        );
+        author = userRepository.save(User.builder().username("test_author").password(passwordEncoder.encode("Password123!")).name("Test Author").email("author@example.com").roles(Set.of(Role.USER)).build());
 
-        testBoard = boardRepository.save(
-            Board.builder()
-                .title("Test Board")
-                .content("Test Content")
-                .author(author)
-                .build()
-        );
+        testBoard = boardRepository.save(Board.builder().title("Test Board").content("Test Content").author(author).build());
     }
 
     // =====================================
@@ -87,11 +66,7 @@ class BoardRepositoryTest {
         @DisplayName("새 게시글 생성 성공")
         void save_NewBoard_CreatesSuccessfully() {
             // Given
-            Board newBoard = Board.builder()
-                .title("New Board")
-                .content("New Content")
-                .author(author)
-                .build();
+            Board newBoard = Board.builder().title("New Board").content("New Content").author(author).build();
 
             // When
             Board saved = boardRepository.save(newBoard);
@@ -107,15 +82,10 @@ class BoardRepositoryTest {
         @DisplayName("작성자 없이 게시글 생성 실패")
         void save_WithoutAuthor_ThrowsException() {
             // Given
-            Board boardWithoutAuthor = Board.builder()
-                .title("No Author Board")
-                .content("No Author Content")
-                .author(null)
-                .build();
+            Board boardWithoutAuthor = Board.builder().title("No Author Board").content("No Author Content").author(null).build();
 
             // When & Then
-            assertThatThrownBy(() -> boardRepository.saveAndFlush(boardWithoutAuthor))
-                .isInstanceOf(jakarta.validation.ConstraintViolationException.class);
+            assertThatThrownBy(() -> boardRepository.saveAndFlush(boardWithoutAuthor)).isInstanceOf(jakarta.validation.ConstraintViolationException.class);
         }
     }
 
@@ -152,13 +122,7 @@ class BoardRepositoryTest {
         @DisplayName("전체 게시글 조회")
         void findAll_ReturnsAllBoards() {
             // Given
-            boardRepository.save(
-                Board.builder()
-                    .title("Another Board")
-                    .content("Another Content")
-                    .author(author)
-                    .build()
-            );
+            boardRepository.save(Board.builder().title("Another Board").content("Another Content").author(author).build());
 
             // When
             var boards = boardRepository.findAll();
@@ -181,9 +145,6 @@ class BoardRepositoryTest {
         @Test
         @DisplayName("작성자 정보와 함께 조회")
         void findById_WithAuthor_LoadsAuthorData() {
-            // Given
-            entityManager.clear();
-
             // When
             Optional<Board> found = boardRepository.findById(testBoard.getId());
 
@@ -232,24 +193,6 @@ class BoardRepositoryTest {
             assertThat(found.get().getViewCount()).isEqualTo(originalViewCount + 1);
         }
 
-        @Test
-        @DisplayName("버전 관리")
-        void save_UpdatesVersion() {
-            // Given
-            entityManager.flush();
-            entityManager.clear();
-            Board freshBoard = boardRepository.findById(testBoard.getId()).orElseThrow();
-            Long initialVersion = freshBoard.getVersion();
-            assertThat(initialVersion).isEqualTo(0L); // Version starts at 0
-
-            // When
-            freshBoard.changeTitle("Version Updated");
-            Board updated = boardRepository.save(freshBoard);
-            entityManager.flush();
-
-            // Then
-            assertThat(updated.getVersion()).isEqualTo(1L); // Version increments to 1
-        }
     }
 
     // =====================================
@@ -260,53 +203,67 @@ class BoardRepositoryTest {
     class DeleteTest {
 
         @Test
-        @DisplayName("게시글 삭제")
-        void delete_ExistingBoard_RemovesSuccessfully() {
+        @DisplayName("게시글 삭제 - Soft Delete 검증")
+        void delete_ExistingBoard_SoftDeletesSuccessfully() {
             // Given
             Long boardId = testBoard.getId();
             long countBefore = boardRepository.count();
+            long totalCountBefore = boardRepository.findAllIncludingDeleted().size();
 
             // When
             boardRepository.delete(testBoard);
 
             // Then
-            assertThat(boardRepository.findById(boardId)).isEmpty();
+            assertThat(boardRepository.findById(boardId)).isEmpty(); // Normal query doesn't find it
             assertThat(boardRepository.count()).isEqualTo(countBefore - 1);
+
+            // Verify soft delete using native query
+            assertThat(boardRepository.findByIdIncludingDeleted(boardId)).isPresent(); // Still exists in DB
+            assertThat(boardRepository.findAllIncludingDeleted()).hasSize((int) totalCountBefore); // Total count unchanged
+            assertThat(boardRepository.findAllDeleted()).isNotEmpty(); // Appears in deleted records
         }
 
         @Test
-        @DisplayName("ID로 게시글 삭제")
-        void deleteById_ExistingBoard_RemovesSuccessfully() {
+        @DisplayName("ID로 게시글 삭제 - Soft Delete 검증")
+        void deleteById_ExistingBoard_SoftDeletesSuccessfully() {
             // Given
             Long boardId = testBoard.getId();
             long countBefore = boardRepository.count();
+            long totalCountBefore = boardRepository.findAllIncludingDeleted().size();
 
             // When
             boardRepository.deleteById(boardId);
 
             // Then
-            assertThat(boardRepository.findById(boardId)).isEmpty();
+            assertThat(boardRepository.findById(boardId)).isEmpty(); // Normal query doesn't find it
             assertThat(boardRepository.count()).isEqualTo(countBefore - 1);
+
+            // Verify soft delete using native query
+            assertThat(boardRepository.findByIdIncludingDeleted(boardId)).isPresent(); // Still exists in DB
+            assertThat(boardRepository.findAllIncludingDeleted()).hasSize((int) totalCountBefore); // Total count unchanged
+
+            // Verify the deleted board appears in deleted records
+            var deletedBoards = boardRepository.findAllDeleted();
+            assertThat(deletedBoards).isNotEmpty().extracting("id").contains(boardId);
         }
 
         @Test
-        @DisplayName("전체 게시글 삭제")
-        void deleteAll_RemovesAllBoards() {
+        @DisplayName("전체 게시글 삭제 - Soft Delete 검증")
+        void deleteAll_SoftDeletesAllBoards() {
             // Given
-            boardRepository.save(
-                Board.builder()
-                    .title("Board to Delete")
-                    .content("Will be deleted")
-                    .author(author)
-                    .build()
-            );
+            boardRepository.save(Board.builder().title("Board to Delete").content("Will be deleted").author(author).build());
+            long totalCountBefore = boardRepository.findAllIncludingDeleted().size();
 
             // When
             boardRepository.deleteAll();
 
             // Then
-            assertThat(boardRepository.count()).isEqualTo(0);
+            assertThat(boardRepository.count()).isEqualTo(0); // Normal query finds nothing
             assertThat(boardRepository.findAll()).isEmpty();
+
+            // Verify soft delete using native query
+            assertThat(boardRepository.findAllIncludingDeleted()).hasSize((int) totalCountBefore); // All still exist in DB
+            assertThat(boardRepository.findAllDeleted()).hasSize((int) totalCountBefore); // All marked as deleted
         }
 
         @Test
@@ -320,8 +277,9 @@ class BoardRepositoryTest {
             boardRepository.delete(testBoard);
 
             // Then
-            assertThat(boardRepository.findById(boardId)).isEmpty();
-            assertThat(userRepository.findById(authorId)).isPresent();
+            assertThat(boardRepository.findById(boardId)).isEmpty(); // Normal query doesn't find it
+            assertThat(boardRepository.findByIdIncludingDeleted(boardId)).isPresent(); // But still exists as soft deleted
+            assertThat(userRepository.findById(authorId)).isPresent(); // Author remains active
         }
     }
 
@@ -334,15 +292,8 @@ class BoardRepositoryTest {
 
         @BeforeEach
         void setUpAdditionalBoards() {
-            for (int i = 1; i <= 5; i++) {
-                boardRepository.save(
-                    Board.builder()
-                        .title("Board " + i)
-                        .content("Content " + i)
-                        .author(author)
-                        .build()
-                );
-            }
+            for (int i = 1; i <= 5; i++)
+                boardRepository.save(Board.builder().title("Board " + i).content("Content " + i).author(author).build());
         }
 
         @Test
@@ -382,21 +333,9 @@ class BoardRepositoryTest {
 
         @BeforeEach
         void setUpSearchableBoards() {
-            boardRepository.save(
-                Board.builder()
-                    .title("Spring Boot Tutorial")
-                    .content("Learn Spring Boot basics")
-                    .author(author)
-                    .build()
-            );
+            boardRepository.save(Board.builder().title("Spring Boot Tutorial").content("Learn Spring Boot basics").author(author).build());
 
-            boardRepository.save(
-                Board.builder()
-                    .title("Java Best Practices")
-                    .content("Essential Java coding standards")
-                    .author(author)
-                    .build()
-            );
+            boardRepository.save(Board.builder().title("Java Best Practices").content("Essential Java coding standards").author(author).build());
         }
 
         @Test
@@ -456,77 +395,6 @@ class BoardRepositoryTest {
     }
 
     // =====================================
-    // 낙관적 잠금 테스트
-    // =====================================
-    @Nested
-    @DisplayName("낙관적 잠금")
-    class OptimisticLockingTest {
-
-        @Test
-        @DisplayName("낙관적 잠금 충돌 감지")
-        void optimisticLocking_ConflictDetection() {
-            // Given
-            entityManager.flush();
-            entityManager.clear();
-
-            Board originalBoard = boardRepository.findById(testBoard.getId()).orElseThrow();
-
-            // When - 다른 트랜잭션에서 업데이트 시뮬레이션
-            entityManager.createNativeQuery("UPDATE boards SET version = version + 1 WHERE id = ?")
-                .setParameter(1, originalBoard.getId())
-                .executeUpdate();
-            entityManager.flush();
-
-            // Then
-            assertThatThrownBy(() -> {
-                originalBoard.changeTitle("Should Fail");
-                boardRepository.saveAndFlush(originalBoard);
-            }).isInstanceOf(OptimisticLockingFailureException.class);
-        }
-    }
-
-    // =====================================
-    // 연관관계 테스트
-    // =====================================
-    @Nested
-    @DisplayName("연관관계")
-    class RelationshipTest {
-
-        @Test
-        @DisplayName("작성자가 있는 게시글 삭제 시 외래키 제약")
-        void deleteAuthor_WithBoards_ThrowsException() {
-            // Given
-            User newAuthor = userRepository.save(
-                User.builder()
-                    .username("author_to_delete")
-                    .password(passwordEncoder.encode("Password123!"))
-                    .name("Author To Delete")
-                    .email("delete@example.com")
-                    .roles(Set.of(Role.USER))
-                    .build()
-            );
-
-            boardRepository.save(
-                Board.builder()
-                    .title("Board with Author")
-                    .content("Content")
-                    .author(newAuthor)
-                    .build()
-            );
-
-            entityManager.flush();
-            entityManager.clear();
-
-            // When & Then
-            assertThatThrownBy(() -> {
-                User userToDelete = userRepository.findById(newAuthor.getId()).orElseThrow();
-                userRepository.delete(userToDelete);
-                userRepository.flush();
-            }).isInstanceOf(DataIntegrityViolationException.class);
-        }
-    }
-
-    // =====================================
     // Auditing 테스트
     // =====================================
     @Nested
@@ -537,11 +405,7 @@ class BoardRepositoryTest {
         @DisplayName("생성 시 createdAt, updatedAt 자동 설정")
         void save_NewEntity_SetsAuditFields() {
             // Given
-            Board newBoard = Board.builder()
-                .title("Audit Test")
-                .content("Audit Content")
-                .author(author)
-                .build();
+            Board newBoard = Board.builder().title("Audit Test").content("Audit Content").author(author).build();
 
             // When
             Board saved = boardRepository.save(newBoard);

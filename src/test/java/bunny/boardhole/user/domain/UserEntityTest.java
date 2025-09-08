@@ -16,6 +16,8 @@ import org.junit.jupiter.api.TestMethodOrder;
 import bunny.boardhole.shared.util.MessageUtils;
 import bunny.boardhole.testsupport.jpa.EntityTestBase;
 import bunny.boardhole.user.domain.validation.UserValidationConstants;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -26,6 +28,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @Tag("entity")
 @Tag("jpa")
 class UserEntityTest extends EntityTestBase {
+    
+    private static final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @Nested
     @DisplayName("생성자 및 빌더 테스트")
@@ -40,11 +44,11 @@ class UserEntityTest extends EntityTestBase {
             String email = EntityTestBase.createUniqueEmail();
 
             // when
-            User user = User.builder().username(username).password(testData.password()).name(testData.name()).email(email).roles(Set.of(Role.USER)).build();
+            User user = User.builder().username(username).password(passwordEncoder.encode(testData.password())).name(testData.name()).email(email).roles(Set.of(Role.USER)).build();
 
             // then
             assertThat(user.getUsername()).isEqualTo(username);
-            assertThat(user.getPassword()).isEqualTo(testData.password());
+            assertThat(passwordEncoder.matches(testData.password(), user.getPassword())).isTrue();
             assertThat(user.getName()).isEqualTo(testData.name());
             assertThat(user.getEmail()).isEqualTo(email);
             assertThat(user.getRoles()).isEqualTo(Set.of(Role.USER));
@@ -67,7 +71,7 @@ class UserEntityTest extends EntityTestBase {
 
             // when & then
             assertThatThrownBy(() -> {
-                User user = User.builder().username("").password(testData.password()).name(testData.name()).email(testData.email()).roles(Set.of(Role.USER)).build();
+                User user = User.builder().username("").password(passwordEncoder.encode(testData.password())).name(testData.name()).email(testData.email()).roles(Set.of(Role.USER)).build();
                 entityManager.persistAndFlush(user);
             }).isInstanceOf(ConstraintViolationException.class);
         }
@@ -93,7 +97,7 @@ class UserEntityTest extends EntityTestBase {
 
             // when & then
             assertThatThrownBy(() -> {
-                User user = User.builder().username(createUniqueUsername()).password(testData.password()).name("").email(testData.email()).roles(Set.of(Role.USER)).build();
+                User user = User.builder().username(createUniqueUsername()).password(passwordEncoder.encode(testData.password())).name("").email(testData.email()).roles(Set.of(Role.USER)).build();
                 entityManager.persistAndFlush(user);
             }).isInstanceOf(ConstraintViolationException.class);
         }
@@ -106,7 +110,7 @@ class UserEntityTest extends EntityTestBase {
 
             // when & then
             assertThatThrownBy(() -> {
-                User user = User.builder().username(createUniqueUsername()).password(testData.password()).name(testData.name()).email("").roles(Set.of(Role.USER)).build();
+                User user = User.builder().username(createUniqueUsername()).password(passwordEncoder.encode(testData.password())).name(testData.name()).email("").roles(Set.of(Role.USER)).build();
                 entityManager.persistAndFlush(user);
             }).isInstanceOf(ConstraintViolationException.class);
         }
@@ -126,7 +130,7 @@ class UserEntityTest extends EntityTestBase {
 
             // when & then
             assertThatThrownBy(() -> {
-                User user = User.builder().username(longUsername).password(testData.password()).name(testData.name()).email(testData.email()).roles(Set.of(Role.USER)).build();
+                User user = User.builder().username(longUsername).password(passwordEncoder.encode(testData.password())).name(testData.name()).email(testData.email()).roles(Set.of(Role.USER)).build();
                 entityManager.persistAndFlush(user);
             }).isInstanceOf(ConstraintViolationException.class);
         }
@@ -140,7 +144,7 @@ class UserEntityTest extends EntityTestBase {
 
             // when & then
             assertThatThrownBy(() -> {
-                User user = User.builder().username(createUniqueUsername()).password(testData.password()).name(longName).email(testData.email()).roles(Set.of(Role.USER)).build();
+                User user = User.builder().username(createUniqueUsername()).password(passwordEncoder.encode(testData.password())).name(longName).email(testData.email()).roles(Set.of(Role.USER)).build();
                 entityManager.persistAndFlush(user);
             }).isInstanceOf(ConstraintViolationException.class);
         }
@@ -154,7 +158,7 @@ class UserEntityTest extends EntityTestBase {
 
             // when & then
             assertThatThrownBy(() -> {
-                User user = User.builder().username(createUniqueUsername()).password(testData.password()).name(testData.name()).email(longEmail).roles(Set.of(Role.USER)).build();
+                User user = User.builder().username(createUniqueUsername()).password(passwordEncoder.encode(testData.password())).name(testData.name()).email(longEmail).roles(Set.of(Role.USER)).build();
                 entityManager.persistAndFlush(user);
             }).isInstanceOf(ConstraintViolationException.class);
         }
@@ -267,7 +271,7 @@ class UserEntityTest extends EntityTestBase {
         @DisplayName("✅ JPA 저장 및 조회 테스트")
         void saveAndFind_PersistsCorrectly() {
             // given
-            User user = User.builder().username(createUniqueUsername()).password(testData.password()).name(testData.name()).email(EntityTestBase.createUniqueEmail()).roles(Set.of(Role.USER, Role.ADMIN)).build();
+            User user = User.builder().username(createUniqueUsername()).password(passwordEncoder.encode(testData.password())).name(testData.name()).email(EntityTestBase.createUniqueEmail()).roles(Set.of(Role.USER, Role.ADMIN)).build();
 
             // when
             entityManager.persistAndFlush(user);
@@ -288,9 +292,9 @@ class UserEntityTest extends EntityTestBase {
         @DisplayName("✅ equals와 hashCode 테스트 - ID 기반 동등성")
         void equalsAndHashCode_BasedOnId() {
             // given
-            User user1 = User.builder().username(createUniqueUsername()).password(testData.password()).name("사용자1").email(EntityTestBase.createUniqueEmail()).roles(Set.of(Role.USER)).build();
+            User user1 = User.builder().username(createUniqueUsername()).password(passwordEncoder.encode(testData.password())).name("사용자1").email(EntityTestBase.createUniqueEmail()).roles(Set.of(Role.USER)).build();
 
-            User user2 = User.builder().username(createUniqueUsername()).password("Password456!").name("사용자2").email(EntityTestBase.createUniqueEmail()).roles(Set.of(Role.ADMIN)).build();
+            User user2 = User.builder().username(createUniqueUsername()).password(passwordEncoder.encode("Password456!")).name("사용자2").email(EntityTestBase.createUniqueEmail()).roles(Set.of(Role.ADMIN)).build();
 
             // when
             entityManager.persistAndFlush(user1);
@@ -309,7 +313,7 @@ class UserEntityTest extends EntityTestBase {
         @DisplayName("✅ 권한 컬렉션 테스트")
         void roles_CollectionHandling() {
             // given
-            User user = User.builder().username(createUniqueUsername()).password(testData.password()).name(testData.name()).email(EntityTestBase.createUniqueEmail()).roles(Set.of(Role.USER, Role.ADMIN)).build();
+            User user = User.builder().username(createUniqueUsername()).password(passwordEncoder.encode(testData.password())).name(testData.name()).email(EntityTestBase.createUniqueEmail()).roles(Set.of(Role.USER, Role.ADMIN)).build();
 
             // when
             entityManager.persistAndFlush(user);
