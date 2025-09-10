@@ -1,6 +1,7 @@
 package bunny.boardhole.user.application;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 
@@ -20,6 +21,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import bunny.boardhole.shared.exception.ResourceNotFoundException;
@@ -78,6 +80,9 @@ class UserQueryServiceTest {
 
     @BeforeEach
     void setUp() {
+        // Spring LocaleContextHolder를 한국어로 설정
+        LocaleContextHolder.setLocale(Locale.KOREAN);
+        
         ResourceBundleMessageSource ms = new ResourceBundleMessageSource();
         ms.setBasename("messages");
         ms.setDefaultEncoding("UTF-8");
@@ -112,13 +117,57 @@ class UserQueryServiceTest {
         }
 
         @Test
-        @DisplayName("❌ 사용자 미존재 → ResourceNotFoundException")
+        @DisplayName("❌ 사용자 미존재 → ResourceNotFoundException with 국제화 메시지")
         void shouldThrowWhenUserNotFound() {
             // given
             when(userRepository.findById(UserQueryServiceTest.USER_ID)).thenReturn(Optional.empty());
+            
+            // 실제 메시지 로드
+            String expectedMessage = MessageUtils.get("error.user.not-found.id", UserQueryServiceTest.USER_ID);
 
             // when & then
-            assertThatThrownBy(() -> userQueryService.get(UserQueryServiceTest.USER_ID)).isInstanceOf(ResourceNotFoundException.class);
+            assertThatThrownBy(() -> userQueryService.get(UserQueryServiceTest.USER_ID))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessage(expectedMessage);
+            
+            // 메시지 내용 확인
+            assertThat(expectedMessage).isEqualTo("사용자를 찾을 수 없습니다. ID: 1");
+        }
+        
+        @Test
+        @DisplayName("🌍 다국어 메시지 검증 - 한국어/영어")
+        void shouldReturnCorrectMessageByLocale() {
+            // given
+            Long userId = 999L;
+            when(userRepository.findById(userId)).thenReturn(Optional.empty());
+            
+            // 한국어 테스트
+            LocaleContextHolder.setLocale(Locale.KOREAN);
+            ResourceBundleMessageSource ms = new ResourceBundleMessageSource();
+            ms.setBasename("messages");
+            ms.setDefaultEncoding("UTF-8");
+            ReflectionTestUtils.setField(MessageUtils.class, "messageSource", ms);
+            
+            String koreanMessage = MessageUtils.get("error.user.not-found.id", userId);
+            assertThat(koreanMessage).isEqualTo("사용자를 찾을 수 없습니다. ID: 999");
+            
+            assertThatThrownBy(() -> userQueryService.get(userId))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessage(koreanMessage);
+            
+            // 영어 테스트
+            LocaleContextHolder.setLocale(Locale.ENGLISH);
+            ms = new ResourceBundleMessageSource();
+            ms.setBasename("messages");
+            ms.setDefaultEncoding("UTF-8");
+            ReflectionTestUtils.setField(MessageUtils.class, "messageSource", ms);
+            
+            String englishMessage = MessageUtils.get("error.user.not-found.id", userId);
+            assertThat(englishMessage).isEqualTo("User not found. ID: 999");
+            
+            assertThatThrownBy(() -> userQueryService.get(userId))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessage(englishMessage);
         }
     }
 
