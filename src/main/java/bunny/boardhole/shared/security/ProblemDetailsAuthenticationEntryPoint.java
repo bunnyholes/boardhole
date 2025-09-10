@@ -8,7 +8,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
@@ -18,6 +17,7 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import bunny.boardhole.shared.constants.ErrorCode;
+import bunny.boardhole.shared.properties.ProblemProperties;
 import bunny.boardhole.shared.util.MessageUtils;
 
 /**
@@ -29,15 +29,14 @@ import bunny.boardhole.shared.util.MessageUtils;
 public class ProblemDetailsAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
     private final ObjectMapper objectMapper;
-    @Value("${boardhole.problem.base-uri:}")
-    private String problemBaseUri;
+    private final ProblemProperties problemProperties;
 
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException {
         ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.UNAUTHORIZED);
         pd.setTitle(MessageUtils.get("exception.title.unauthorized"));
         pd.setDetail(MessageUtils.get("error.auth.not-logged-in"));
-        pd.setType(ProblemDetailsHelper.buildType(problemBaseUri, "unauthorized"));
+        pd.setType(ProblemDetailsHelper.buildType(problemProperties.baseUri(), "unauthorized"));
         ProblemDetailsHelper.addCommonProperties(pd, request, ErrorCode.UNAUTHORIZED.getCode());
 
         response.setStatus(HttpStatus.UNAUTHORIZED.value());

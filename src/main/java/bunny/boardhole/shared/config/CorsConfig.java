@@ -1,51 +1,34 @@
 package bunny.boardhole.shared.config;
 
-import java.util.List;
+import lombok.RequiredArgsConstructor;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import bunny.boardhole.shared.properties.CorsProperties;
+
 @Configuration
+@RequiredArgsConstructor
 public class CorsConfig {
 
-    @Value("#{'${boardhole.cors.path-patterns}'.split(',')}")
-    private List<String> pathPatterns;
-
-    @Value("#{'${boardhole.cors.allowed-origins}'.split(',')}")
-    private List<String> allowedOrigins;
-
-    @Value("#{'${boardhole.cors.allowed-methods}'.split(',')}")
-    private List<String> allowedMethods;
-
-    @Value("#{'${boardhole.cors.allowed-headers}'.split(',')}")
-    private List<String> allowedHeaders;
-
-    @Value("#{'${boardhole.cors.exposed-headers:}'.trim().isEmpty() ? T(java.util.Collections).emptyList() : T(java.util.Arrays).asList('${boardhole.cors.exposed-headers:}'.split(','))}")
-    private List<String> exposedHeaders;
-
-    @Value("${boardhole.cors.allow-credentials}")
-    private boolean allowCredentials;
-
-    @Value("${boardhole.cors.max-age}")
-    private long maxAge;
+    private final CorsProperties corsProperties;
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 
         CorsConfiguration cfg = new CorsConfiguration();
-        cfg.setAllowedOrigins(allowedOrigins);
-        cfg.setAllowedMethods(allowedMethods);
-        cfg.setAllowedHeaders(allowedHeaders);
-        cfg.setExposedHeaders(exposedHeaders);
-        cfg.setAllowCredentials(allowCredentials);
-        cfg.setMaxAge(maxAge);
+        cfg.setAllowedOrigins(corsProperties.allowedOrigins());
+        cfg.setAllowedMethods(corsProperties.allowedMethods());
+        cfg.setAllowedHeaders(corsProperties.allowedHeaders());
+        cfg.setExposedHeaders(corsProperties.exposedHeaders());
+        cfg.setAllowCredentials(corsProperties.allowCredentials());
+        cfg.setMaxAge(corsProperties.maxAge());
 
-        for (String pattern : pathPatterns)
+        for (String pattern : corsProperties.pathPatterns())
             source.registerCorsConfiguration(pattern, cfg);
         return source;
     }

@@ -5,7 +5,6 @@ import java.util.Locale;
 
 import lombok.RequiredArgsConstructor;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.Nullable;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.Authentication;
@@ -14,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import bunny.boardhole.board.infrastructure.BoardRepository;
 import bunny.boardhole.shared.constants.PermissionType;
+import bunny.boardhole.shared.properties.SecurityProperties;
 import bunny.boardhole.user.domain.User;
 
 @Component
@@ -21,9 +21,7 @@ import bunny.boardhole.user.domain.User;
 public class AppPermissionEvaluator implements PermissionEvaluator {
 
     private final BoardRepository boardRepository;
-
-    @Value("${boardhole.security.role-prefix}")
-    private String rolePrefix;
+    private final SecurityProperties securityProperties;
 
     private static boolean hasRole(Authentication auth, String role) {
         if (!auth.isAuthenticated())
@@ -64,7 +62,7 @@ public class AppPermissionEvaluator implements PermissionEvaluator {
         String perm = permission.toString().toUpperCase(Locale.ROOT);
 
         // Admin shortcut
-        if (hasRole(auth, rolePrefix + "ADMIN"))
+        if (hasRole(auth, securityProperties.rolePrefix() + "ADMIN"))
             return true;
 
         if (!(targetId instanceof Long id))

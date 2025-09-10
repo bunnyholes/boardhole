@@ -25,6 +25,7 @@ import org.springframework.security.web.context.SecurityContextRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import bunny.boardhole.shared.constants.ApiPaths;
+import bunny.boardhole.shared.properties.ProblemProperties;
 import bunny.boardhole.shared.security.ProblemDetailsAccessDeniedHandler;
 import bunny.boardhole.shared.security.ProblemDetailsAuthenticationEntryPoint;
 
@@ -108,21 +109,23 @@ public class SecurityConfig {
      * ProblemDetail 형식의 인증 실패 응답 처리기
      *
      * @param objectMapper JSON 직렬화를 위한 ObjectMapper
+     * @param problemProperties 문제 세부사항 설정
      * @return 인증 실패 진입점 핸들러
      */
     @Bean
-    public ProblemDetailsAuthenticationEntryPoint problemDetailsAuthenticationEntryPoint(ObjectMapper objectMapper) {
-        return new ProblemDetailsAuthenticationEntryPoint(objectMapper);
+    public ProblemDetailsAuthenticationEntryPoint problemDetailsAuthenticationEntryPoint(ObjectMapper objectMapper, ProblemProperties problemProperties) {
+        return new ProblemDetailsAuthenticationEntryPoint(objectMapper, problemProperties);
     }
 
     /**
      * ProblemDetail 형식의 접근 거부 응답 처리기
      *
      * @param objectMapper JSON 직렬화를 위한 ObjectMapper
+     * @param problemProperties 문제 세부사항 설정
      * @return 접근 거부 핸들러
      */
     @Bean
-    public ProblemDetailsAccessDeniedHandler problemDetailsAccessDeniedHandler(ObjectMapper objectMapper) {
-        return new ProblemDetailsAccessDeniedHandler(objectMapper);
+    public ProblemDetailsAccessDeniedHandler problemDetailsAccessDeniedHandler(ObjectMapper objectMapper, ProblemProperties problemProperties) {
+        return new ProblemDetailsAccessDeniedHandler(objectMapper, problemProperties);
     }
 }

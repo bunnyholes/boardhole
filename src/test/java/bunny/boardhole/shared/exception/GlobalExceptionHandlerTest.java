@@ -12,7 +12,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.MDC;
@@ -29,6 +28,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
 import bunny.boardhole.shared.config.log.RequestLoggingFilter;
+import bunny.boardhole.shared.properties.ProblemProperties;
 import bunny.boardhole.shared.util.MessageUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -43,13 +43,18 @@ class GlobalExceptionHandlerTest {
     private static final String TRACE_ID = "test-trace-id-123";
     private static final String REQUEST_PATH = "/api/test";
     private static final String REQUEST_METHOD = "POST";
-    @InjectMocks
+    
     private GlobalExceptionHandler handler;
+    
     @Mock
     private HttpServletRequest request;
 
     @BeforeEach
     void setUp() {
+        // Create handler with test ProblemProperties
+        ProblemProperties problemProperties = new ProblemProperties("");
+        handler = new GlobalExceptionHandler(problemProperties);
+        
         LocaleContextHolder.setLocale(Locale.KOREAN);
         MDC.put(RequestLoggingFilter.TRACE_ID, TRACE_ID);
 
@@ -59,9 +64,6 @@ class GlobalExceptionHandlerTest {
         messageSource.setDefaultEncoding("UTF-8");
         messageSource.setUseCodeAsDefaultMessage(true);
         ReflectionTestUtils.setField(MessageUtils.class, "messageSource", messageSource);
-
-        // Set problemBaseUri to empty string (will use urn format)
-        ReflectionTestUtils.setField(handler, "problemBaseUri", "");
     }
 
     private void setupRequestMock() {
@@ -300,12 +302,13 @@ class GlobalExceptionHandlerTest {
     void buildTypeWithBaseUri() {
         // Given
         setupRequestMock();
-        ReflectionTestUtils.setField(handler, "problemBaseUri", "https://api.boardhole.com/problems");
+        ProblemProperties problemProperties = new ProblemProperties("https://api.boardhole.com/problems");
+        GlobalExceptionHandler handlerWithBaseUri = new GlobalExceptionHandler(problemProperties);
         final String errorMessage = "테스트 오류";
         ResourceNotFoundException ex = new ResourceNotFoundException(errorMessage);
 
         // When
-        ProblemDetail result = handler.handleNotFound(ex, request);
+        ProblemDetail result = handlerWithBaseUri.handleNotFound(ex, request);
 
         // Then
         assertThat(result.getType()).isEqualTo(URI.create("https://api.boardhole.com/problems/not-found"));
@@ -316,12 +319,13 @@ class GlobalExceptionHandlerTest {
     void buildTypeWithBaseUriEndingWithSlash() {
         // Given
         setupRequestMock();
-        ReflectionTestUtils.setField(handler, "problemBaseUri", "https://api.boardhole.com/problems/");
+        ProblemProperties problemProperties = new ProblemProperties("https://api.boardhole.com/problems/");
+        GlobalExceptionHandler handlerWithBaseUri = new GlobalExceptionHandler(problemProperties);
         final String errorMessage = "테스트 오류";
         ResourceNotFoundException ex = new ResourceNotFoundException(errorMessage);
 
         // When
-        ProblemDetail result = handler.handleNotFound(ex, request);
+        ProblemDetail result = handlerWithBaseUri.handleNotFound(ex, request);
 
         // Then
         assertThat(result.getType()).isEqualTo(URI.create("https://api.boardhole.com/problems/not-found"));
