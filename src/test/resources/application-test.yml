@@ -1,23 +1,7 @@
 spring:
-  main:
-    allow-bean-definition-overriding: true
   autoconfigure:
     exclude:
       - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
       - org.springframework.boot.autoconfigure.session.SessionAutoConfiguration
-
   datasource:
     url: jdbc:h2:mem:testdb;MODE=MySQL  # MySQL 호환 모드만 명시
-
-boardhole:
-  test-data:
-    user:
-      username: testuser
-      password: Password123!
-      name: Test User
-      email: test@example.com
-    board:
-      title: Test Board Title
-      content: Test Board Content
-    email-verification:
-      code: TEST1234567890ABCDEF1234567890ABCD  # 32 characters, alphanumeric
