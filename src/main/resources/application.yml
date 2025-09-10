@@ -7,6 +7,10 @@ spring:
   # 애플리케이션 기본 정보
   application:
     name: board-hole
+  # 국제화(i18n) 설정
+  web:
+    locale: ko_KR  # 기본 로케일을 한국어로 설정
+    locale-resolver: fixed  # 로케일을 고정 (시스템 로케일 무시)
 
 # ========================================
 # 로깅 공통 설정
@@ -32,10 +36,6 @@ server:
 boardhole:
   # 보안 설정
   security:
-    verification-code:
-      length: 6
-      expiry-minutes: 30
-      charset: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
     role-prefix: "ROLE_"
     session-timeout-minutes: 30
   
