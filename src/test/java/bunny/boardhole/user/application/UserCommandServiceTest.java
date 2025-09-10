@@ -1,22 +1,19 @@
 package bunny.boardhole.user.application;
 
+import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.TestMethodOrder;
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
-import org.springframework.context.ApplicationEventPublisher;
+import org.mockito.MockitoAnnotations;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -38,15 +35,11 @@ import bunny.boardhole.user.infrastructure.UserRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.never;
 
-@ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.LENIENT)
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@TestMethodOrder(MethodOrderer.DisplayName.class)
 @DisplayName("사용자 커맨드 서비스 단위 테스트")
 @Tag("unit")
 @Tag("user")
@@ -62,15 +55,20 @@ class UserCommandServiceTest {
     private static final String EMAIL = "john@example.com";
     private static final String WRONG_PASSWORD = "wrong";
     private static final String NEW_PASSWORD = "newPass123";
+
     @Mock
     private UserRepository userRepository;
+
     @Mock
     private PasswordEncoder passwordEncoder;
+
     @Mock
     private UserMapper userMapper;
-    @Mock
-    private ApplicationEventPublisher eventPublisher;
+
+    @InjectMocks
     private UserCommandService userCommandService;
+
+    private AutoCloseable closeable;
 
     private static User user() {
         return userWithName(NAME);
@@ -94,13 +92,22 @@ class UserCommandServiceTest {
 
     @BeforeEach
     void setUp() {
+        closeable = MockitoAnnotations.openMocks(this);
+
+        // Spring LocaleContextHolder를 한국어로 설정
+        LocaleContextHolder.setLocale(Locale.KOREAN);
+
         ResourceBundleMessageSource ms = new ResourceBundleMessageSource();
         ms.setBasename("messages");
         ms.setDefaultEncoding("UTF-8");
         ms.setUseCodeAsDefaultMessage(true);
         ReflectionTestUtils.setField(MessageUtils.class, "messageSource", ms);
+    }
 
-        userCommandService = new UserCommandService(userRepository, passwordEncoder, userMapper);
+    @AfterEach
+    void tearDown() throws Exception {
+        if (closeable != null)
+            closeable.close();
     }
 
     @Nested
@@ -112,57 +119,82 @@ class UserCommandServiceTest {
         @DisplayName("✅ 신규 사용자 생성 성공")
         void shouldCreateUser() {
             // given
-            CreateUserCommand cmd = new CreateUserCommand(UserCommandServiceTest.USERNAME, UserCommandServiceTest.RAW_PASSWORD, UserCommandServiceTest.NAME, UserCommandServiceTest.EMAIL);
+            CreateUserCommand cmd = new CreateUserCommand(UserCommandServiceTest.USERNAME, UserCommandServiceTest.RAW_PASSWORD,
+                    UserCommandServiceTest.NAME, UserCommandServiceTest.EMAIL);
 
-            lenient().when(userRepository.existsByUsername(UserCommandServiceTest.USERNAME)).thenReturn(false);
-            lenient().when(userRepository.existsByEmail(UserCommandServiceTest.EMAIL)).thenReturn(false);
-            lenient().when(passwordEncoder.encode(UserCommandServiceTest.RAW_PASSWORD)).thenReturn(UserCommandServiceTest.ENCODED_PASSWORD);
+            given(userRepository.existsByUsername(UserCommandServiceTest.USERNAME)).willReturn(false);
+            given(userRepository.existsByEmail(UserCommandServiceTest.EMAIL)).willReturn(false);
+            given(passwordEncoder.encode(UserCommandServiceTest.RAW_PASSWORD)).willReturn(
+                    UserCommandServiceTest.ENCODED_PASSWORD);
 
             User saved = UserCommandServiceTest.user();
             ReflectionTestUtils.setField(saved, "id", UserCommandServiceTest.USER_ID);
 
-            lenient().when(userRepository.save(any(User.class))).thenReturn(saved);
+            given(userRepository.save(any(User.class))).willReturn(saved);
 
             UserResult expected = UserCommandServiceTest.userResult();
-            lenient().when(userMapper.toResult(saved)).thenReturn(expected);
+            given(userMapper.toResult(saved)).willReturn(expected);
 
             // when
             UserResult result = userCommandService.create(cmd);
 
             // then
             assertThat(result).isEqualTo(expected);
-            verify(userRepository).existsByUsername(UserCommandServiceTest.USERNAME);
-            verify(userRepository).existsByEmail(UserCommandServiceTest.EMAIL);
-
-            verify(userRepository).save(any(User.class));
+            then(userRepository).should().existsByUsername(UserCommandServiceTest.USERNAME);
+            then(userRepository).should().existsByEmail(UserCommandServiceTest.EMAIL);
+            then(userRepository).should().save(any(User.class));
+            then(userMapper).should().toResult(saved);
         }
 
         @Test
-        @DisplayName("❌ 사용자명 중복 → DuplicateUsernameException")
+        @DisplayName("❌ 사용자명 중복 → DuplicateUsernameException with 국제화 메시지")
         void shouldThrowWhenUsernameExists() {
             // given
-            CreateUserCommand cmd = new CreateUserCommand(UserCommandServiceTest.USERNAME, UserCommandServiceTest.RAW_PASSWORD, UserCommandServiceTest.NAME, UserCommandServiceTest.EMAIL);
+            CreateUserCommand cmd = new CreateUserCommand(UserCommandServiceTest.USERNAME, UserCommandServiceTest.RAW_PASSWORD,
+                    UserCommandServiceTest.NAME, UserCommandServiceTest.EMAIL);
 
-            when(userRepository.existsByUsername(UserCommandServiceTest.USERNAME)).thenReturn(true);
+            given(userRepository.existsByUsername(UserCommandServiceTest.USERNAME)).willReturn(true);
+
+            // 실제 메시지 로드
+            String expectedMessage = MessageUtils.get("error.user.username.already-exists");
 
             // when & then
-            assertThatThrownBy(() -> userCommandService.create(cmd)).isInstanceOf(DuplicateUsernameException.class);
-            verify(userRepository).existsByUsername(UserCommandServiceTest.USERNAME);
+            assertThatThrownBy(() -> userCommandService.create(cmd))
+                    .isInstanceOf(DuplicateUsernameException.class)
+                    .hasMessage(expectedMessage);
+
+            // 메시지 내용 확인
+            assertThat(expectedMessage).isEqualTo("이미 사용 중인 사용자명입니다");
+
+            then(userRepository).should().existsByUsername(UserCommandServiceTest.USERNAME);
+            then(userRepository).should(never()).existsByEmail(any());
+            then(userRepository).should(never()).save(any());
         }
 
         @Test
-        @DisplayName("❌ 이메일 중복 → DuplicateEmailException")
+        @DisplayName("❌ 이메일 중복 → DuplicateEmailException with 국제화 메시지")
         void shouldThrowWhenEmailExists() {
             // given
-            CreateUserCommand cmd = new CreateUserCommand(UserCommandServiceTest.USERNAME, UserCommandServiceTest.RAW_PASSWORD, UserCommandServiceTest.NAME, UserCommandServiceTest.EMAIL);
+            CreateUserCommand cmd = new CreateUserCommand(UserCommandServiceTest.USERNAME, UserCommandServiceTest.RAW_PASSWORD,
+                    UserCommandServiceTest.NAME, UserCommandServiceTest.EMAIL);
 
-            when(userRepository.existsByUsername(UserCommandServiceTest.USERNAME)).thenReturn(false);
-            when(userRepository.existsByEmail(UserCommandServiceTest.EMAIL)).thenReturn(true);
+            given(userRepository.existsByUsername(UserCommandServiceTest.USERNAME)).willReturn(false);
+            given(userRepository.existsByEmail(UserCommandServiceTest.EMAIL)).willReturn(true);
+
+            // 실제 메시지 로드
+            String expectedMessage = MessageUtils.get("error.user.email.already-exists");
 
             // when & then
-            assertThatThrownBy(() -> userCommandService.create(cmd)).isInstanceOf(DuplicateEmailException.class);
-            verify(userRepository).existsByUsername(UserCommandServiceTest.USERNAME);
-            verify(userRepository).existsByEmail(UserCommandServiceTest.EMAIL);
+            assertThatThrownBy(() -> userCommandService.create(cmd))
+                    .isInstanceOf(DuplicateEmailException.class)
+                    .hasMessage(expectedMessage);
+
+            // 메시지 내용 확인
+            assertThat(expectedMessage).isEqualTo("이미 사용 중인 이메일입니다");
+
+            then(userRepository).should().existsByUsername(UserCommandServiceTest.USERNAME);
+            then(userRepository).should().existsByEmail(UserCommandServiceTest.EMAIL);
+            then(userRepository).should(never()).save(any());
         }
     }
 
@@ -178,11 +210,11 @@ class UserCommandServiceTest {
             User existing = UserCommandServiceTest.userWithName(UserCommandServiceTest.OLD_NAME);
             ReflectionTestUtils.setField(existing, "id", UserCommandServiceTest.USER_ID);
 
-            when(userRepository.findById(UserCommandServiceTest.USER_ID)).thenReturn(Optional.of(existing));
-            when(userRepository.save(any(User.class))).thenReturn(existing);
+            given(userRepository.findById(UserCommandServiceTest.USER_ID)).willReturn(Optional.of(existing));
+            given(userRepository.save(any(User.class))).willReturn(existing);
 
             UserResult expected = UserCommandServiceTest.userResultWithName(UserCommandServiceTest.NEW_NAME);
-            when(userMapper.toResult(existing)).thenReturn(expected);
+            given(userMapper.toResult(existing)).willReturn(expected);
 
             UpdateUserCommand cmd = new UpdateUserCommand(UserCommandServiceTest.USER_ID, UserCommandServiceTest.NEW_NAME);
 
@@ -191,21 +223,32 @@ class UserCommandServiceTest {
 
             // then
             assertThat(result.name()).isEqualTo(UserCommandServiceTest.NEW_NAME);
-            verify(userRepository).findById(UserCommandServiceTest.USER_ID);
-            verify(userRepository).save(existing);
+            then(userRepository).should().findById(UserCommandServiceTest.USER_ID);
+            then(userRepository).should().save(existing);
+            then(userMapper).should().toResult(existing);
         }
 
         @Test
-        @DisplayName("❌ 사용자 미존재 → ResourceNotFoundException")
+        @DisplayName("❌ 사용자 미존재 → ResourceNotFoundException with 국제화 메시지")
         void shouldThrowWhenUserNotFound() {
             // given
-            when(userRepository.findById(UserCommandServiceTest.USER_ID)).thenReturn(Optional.empty());
+            given(userRepository.findById(UserCommandServiceTest.USER_ID)).willReturn(Optional.empty());
 
             UpdateUserCommand cmd = new UpdateUserCommand(UserCommandServiceTest.USER_ID, UserCommandServiceTest.NEW_NAME);
 
+            // 실제 메시지 로드
+            String expectedMessage = MessageUtils.get("error.user.not-found.id", UserCommandServiceTest.USER_ID);
+
             // when & then
-            assertThatThrownBy(() -> userCommandService.update(cmd)).isInstanceOf(ResourceNotFoundException.class);
-            verify(userRepository).findById(UserCommandServiceTest.USER_ID);
+            assertThatThrownBy(() -> userCommandService.update(cmd))
+                    .isInstanceOf(ResourceNotFoundException.class)
+                    .hasMessage(expectedMessage);
+
+            // 메시지 내용과 파라미터 치환 확인
+            assertThat(expectedMessage).isEqualTo("사용자를 찾을 수 없습니다. ID: 1");
+
+            then(userRepository).should().findById(UserCommandServiceTest.USER_ID);
+            then(userRepository).should(never()).save(any());
         }
     }
 
@@ -221,25 +264,35 @@ class UserCommandServiceTest {
             User existing = UserCommandServiceTest.user();
             ReflectionTestUtils.setField(existing, "id", UserCommandServiceTest.USER_ID);
 
-            when(userRepository.findById(UserCommandServiceTest.USER_ID)).thenReturn(Optional.of(existing));
+            given(userRepository.findById(UserCommandServiceTest.USER_ID)).willReturn(Optional.of(existing));
 
             // when
             userCommandService.delete(UserCommandServiceTest.USER_ID);
 
             // then
-            verify(userRepository).findById(UserCommandServiceTest.USER_ID);
-            verify(userRepository).delete(existing);
+            then(userRepository).should().findById(UserCommandServiceTest.USER_ID);
+            then(userRepository).should().delete(existing);
         }
 
         @Test
-        @DisplayName("❌ 사용자 미존재 → ResourceNotFoundException")
+        @DisplayName("❌ 사용자 미존재 → ResourceNotFoundException with 국제화 메시지")
         void shouldThrowWhenDeletingMissingUser() {
             // given
-            when(userRepository.findById(UserCommandServiceTest.USER_ID)).thenReturn(Optional.empty());
+            given(userRepository.findById(UserCommandServiceTest.USER_ID)).willReturn(Optional.empty());
+
+            // 실제 메시지 로드
+            String expectedMessage = MessageUtils.get("error.user.not-found.id", UserCommandServiceTest.USER_ID);
 
             // when & then
-            assertThatThrownBy(() -> userCommandService.delete(UserCommandServiceTest.USER_ID)).isInstanceOf(ResourceNotFoundException.class);
-            verify(userRepository).findById(UserCommandServiceTest.USER_ID);
+            assertThatThrownBy(() -> userCommandService.delete(UserCommandServiceTest.USER_ID))
+                    .isInstanceOf(ResourceNotFoundException.class)
+                    .hasMessage(expectedMessage);
+
+            // 메시지 내용 확인
+            assertThat(expectedMessage).isEqualTo("사용자를 찾을 수 없습니다. ID: 1");
+
+            then(userRepository).should().findById(UserCommandServiceTest.USER_ID);
+            then(userRepository).should(never()).delete(any());
         }
     }
 
@@ -255,26 +308,36 @@ class UserCommandServiceTest {
             User existing = UserCommandServiceTest.user();
             ReflectionTestUtils.setField(existing, "id", UserCommandServiceTest.USER_ID);
 
-            when(userRepository.findById(UserCommandServiceTest.USER_ID)).thenReturn(Optional.of(existing));
-            when(userRepository.save(existing)).thenReturn(existing);
+            given(userRepository.findById(UserCommandServiceTest.USER_ID)).willReturn(Optional.of(existing));
+            given(userRepository.save(existing)).willReturn(existing);
 
             // when
             userCommandService.updateLastLogin(UserCommandServiceTest.USER_ID);
 
             // then
-            verify(userRepository).findById(UserCommandServiceTest.USER_ID);
-            verify(userRepository).save(existing);
+            then(userRepository).should().findById(UserCommandServiceTest.USER_ID);
+            then(userRepository).should().save(existing);
         }
 
         @Test
-        @DisplayName("❌ 사용자 미존재 → ResourceNotFoundException")
+        @DisplayName("❌ 사용자 미존재 → ResourceNotFoundException with 국제화 메시지")
         void shouldThrowWhenUpdatingLastLoginMissingUser() {
             // given
-            when(userRepository.findById(UserCommandServiceTest.USER_ID)).thenReturn(Optional.empty());
+            given(userRepository.findById(UserCommandServiceTest.USER_ID)).willReturn(Optional.empty());
+
+            // 실제 메시지 로드
+            String expectedMessage = MessageUtils.get("error.user.not-found.id", UserCommandServiceTest.USER_ID);
 
             // when & then
-            assertThatThrownBy(() -> userCommandService.updateLastLogin(UserCommandServiceTest.USER_ID)).isInstanceOf(ResourceNotFoundException.class);
-            verify(userRepository).findById(UserCommandServiceTest.USER_ID);
+            assertThatThrownBy(() -> userCommandService.updateLastLogin(UserCommandServiceTest.USER_ID))
+                    .isInstanceOf(ResourceNotFoundException.class)
+                    .hasMessage(expectedMessage);
+
+            // 메시지 내용 확인
+            assertThat(expectedMessage).isEqualTo("사용자를 찾을 수 없습니다. ID: 1");
+
+            then(userRepository).should().findById(UserCommandServiceTest.USER_ID);
+            then(userRepository).should(never()).save(any());
         }
     }
 
@@ -284,21 +347,32 @@ class UserCommandServiceTest {
     class UpdatePassword {
 
         @Test
-        @DisplayName("❌ 현재 비밀번호 불일치 → Unauthorized")
+        @DisplayName("❌ 현재 비밀번호 불일치 → UnauthorizedException with 국제화 메시지")
         void shouldThrowWhenCurrentPasswordMismatch() {
             // given
             User existing = UserCommandServiceTest.user();
             ReflectionTestUtils.setField(existing, "id", UserCommandServiceTest.USER_ID);
 
-            when(userRepository.findById(UserCommandServiceTest.USER_ID)).thenReturn(Optional.of(existing));
-            when(passwordEncoder.matches(UserCommandServiceTest.WRONG_PASSWORD, UserCommandServiceTest.ENCODED_PASSWORD)).thenReturn(false);
+            given(userRepository.findById(UserCommandServiceTest.USER_ID)).willReturn(Optional.of(existing));
+            given(passwordEncoder.matches(UserCommandServiceTest.WRONG_PASSWORD, UserCommandServiceTest.ENCODED_PASSWORD)).willReturn(false);
 
-            UpdatePasswordCommand cmd = new UpdatePasswordCommand(UserCommandServiceTest.USER_ID, UserCommandServiceTest.WRONG_PASSWORD, UserCommandServiceTest.NEW_PASSWORD);
+            UpdatePasswordCommand cmd = new UpdatePasswordCommand(UserCommandServiceTest.USER_ID, UserCommandServiceTest.WRONG_PASSWORD,
+                    UserCommandServiceTest.NEW_PASSWORD);
+
+            // 실제 메시지 로드
+            String expectedMessage = MessageUtils.get("error.user.password.current.mismatch");
 
             // when & then
-            assertThatThrownBy(() -> userCommandService.updatePassword(cmd)).isInstanceOf(UnauthorizedException.class);
-            verify(userRepository).findById(UserCommandServiceTest.USER_ID);
-            verify(passwordEncoder).matches(UserCommandServiceTest.WRONG_PASSWORD, UserCommandServiceTest.ENCODED_PASSWORD);
+            assertThatThrownBy(() -> userCommandService.updatePassword(cmd))
+                    .isInstanceOf(UnauthorizedException.class)
+                    .hasMessage(expectedMessage);
+
+            // 메시지 내용 확인
+            assertThat(expectedMessage).isEqualTo("현재 패스워드가 일치하지 않습니다");
+
+            then(userRepository).should().findById(UserCommandServiceTest.USER_ID);
+            then(passwordEncoder).should().matches(UserCommandServiceTest.WRONG_PASSWORD, UserCommandServiceTest.ENCODED_PASSWORD);
+            then(userRepository).should(never()).save(any());
         }
 
         @Test
@@ -308,34 +382,47 @@ class UserCommandServiceTest {
             User existing = UserCommandServiceTest.user();
             ReflectionTestUtils.setField(existing, "id", UserCommandServiceTest.USER_ID);
 
-            when(userRepository.findById(UserCommandServiceTest.USER_ID)).thenReturn(Optional.of(existing));
-            when(passwordEncoder.matches(UserCommandServiceTest.RAW_PASSWORD, UserCommandServiceTest.ENCODED_PASSWORD)).thenReturn(true);
-            when(passwordEncoder.encode(UserCommandServiceTest.NEW_PASSWORD)).thenReturn(UserCommandServiceTest.ENCODED_PASSWORD);
-            when(userRepository.save(existing)).thenReturn(existing);
+            given(userRepository.findById(UserCommandServiceTest.USER_ID)).willReturn(Optional.of(existing));
+            given(passwordEncoder.matches(UserCommandServiceTest.RAW_PASSWORD, UserCommandServiceTest.ENCODED_PASSWORD)).willReturn(true);
+            given(passwordEncoder.encode(UserCommandServiceTest.NEW_PASSWORD)).willReturn(UserCommandServiceTest.ENCODED_PASSWORD);
+            given(userRepository.save(existing)).willReturn(existing);
 
-            UpdatePasswordCommand cmd = new UpdatePasswordCommand(UserCommandServiceTest.USER_ID, UserCommandServiceTest.RAW_PASSWORD, UserCommandServiceTest.NEW_PASSWORD);
+            UpdatePasswordCommand cmd = new UpdatePasswordCommand(UserCommandServiceTest.USER_ID, UserCommandServiceTest.RAW_PASSWORD,
+                    UserCommandServiceTest.NEW_PASSWORD);
 
             // when
             userCommandService.updatePassword(cmd);
 
             // then
-            verify(userRepository).findById(UserCommandServiceTest.USER_ID);
-            verify(passwordEncoder).matches(UserCommandServiceTest.RAW_PASSWORD, UserCommandServiceTest.ENCODED_PASSWORD);
-            verify(passwordEncoder).encode(UserCommandServiceTest.NEW_PASSWORD);
-            verify(userRepository).save(existing);
+            then(userRepository).should().findById(UserCommandServiceTest.USER_ID);
+            then(passwordEncoder).should().matches(UserCommandServiceTest.RAW_PASSWORD, UserCommandServiceTest.ENCODED_PASSWORD);
+            then(passwordEncoder).should().encode(UserCommandServiceTest.NEW_PASSWORD);
+            then(userRepository).should().save(existing);
         }
 
         @Test
-        @DisplayName("❌ 사용자 미존재 → ResourceNotFoundException")
+        @DisplayName("❌ 사용자 미존재 → ResourceNotFoundException with 국제화 메시지")
         void shouldThrowWhenUserNotFoundForPassword() {
             // given
-            when(userRepository.findById(UserCommandServiceTest.USER_ID)).thenReturn(Optional.empty());
+            given(userRepository.findById(UserCommandServiceTest.USER_ID)).willReturn(Optional.empty());
 
-            UpdatePasswordCommand cmd = new UpdatePasswordCommand(UserCommandServiceTest.USER_ID, UserCommandServiceTest.RAW_PASSWORD, UserCommandServiceTest.NEW_PASSWORD);
+            UpdatePasswordCommand cmd = new UpdatePasswordCommand(UserCommandServiceTest.USER_ID, UserCommandServiceTest.RAW_PASSWORD,
+                    UserCommandServiceTest.NEW_PASSWORD);
+
+            // 실제 메시지 로드
+            String expectedMessage = MessageUtils.get("error.user.not-found.id", UserCommandServiceTest.USER_ID);
 
             // when & then
-            assertThatThrownBy(() -> userCommandService.updatePassword(cmd)).isInstanceOf(ResourceNotFoundException.class);
-            verify(userRepository).findById(UserCommandServiceTest.USER_ID);
+            assertThatThrownBy(() -> userCommandService.updatePassword(cmd))
+                    .isInstanceOf(ResourceNotFoundException.class)
+                    .hasMessage(expectedMessage);
+
+            // 메시지 내용 확인
+            assertThat(expectedMessage).isEqualTo("사용자를 찾을 수 없습니다. ID: 1");
+
+            then(userRepository).should().findById(UserCommandServiceTest.USER_ID);
+            then(passwordEncoder).should(never()).matches(any(), any());
+            then(userRepository).should(never()).save(any());
         }
     }
 

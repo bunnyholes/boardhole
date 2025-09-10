@@ -2,6 +2,7 @@ package bunny.boardhole.board.application.query;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -13,6 +14,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -63,6 +65,9 @@ class BoardQueryServiceTest {
             throw new RuntimeException("Failed to setup mocks", e);
         }
 
+        // Spring LocaleContextHolder를 한국어로 설정
+        LocaleContextHolder.setLocale(Locale.KOREAN);
+        
         // MessageUtils 초기화
         ResourceBundleMessageSource ms = new ResourceBundleMessageSource();
         ms.setBasename("messages");
@@ -115,16 +120,26 @@ class BoardQueryServiceTest {
         }
 
         @Test
-        @DisplayName("존재하지 않는 게시글 조회 시 ResourceNotFoundException 발생")
+        @DisplayName("❌ 존재하지 않는 게시글 조회 → ResourceNotFoundException with 국제화 메시지")
         void handle_NonExistingBoard_ThrowsResourceNotFoundException() {
             // Given
             final Long boardId = 999L;
             GetBoardQuery query = new GetBoardQuery(boardId);
 
             given(boardRepository.findById(boardId)).willReturn(Optional.empty());
+            
+            // 실제 메시지 로드
+            String expectedMessage = MessageUtils.get("error.board.not-found.id", boardId);
 
             // When & Then
-            assertThatThrownBy(() -> service.handle(query)).isInstanceOf(ResourceNotFoundException.class).hasMessageContaining("999");
+            assertThatThrownBy(() -> service.handle(query))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessage(expectedMessage);
+            
+            // 메시지 내용과 파라미터 치환 확인
+            assertThat(expectedMessage)
+                .isEqualTo("게시글을 찾을 수 없습니다. ID: 999")
+                .contains("999");
 
             verify(boardRepository).findById(boardId);
             verify(boardMapper, never()).toResult(any());
