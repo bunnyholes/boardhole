@@ -5,7 +5,6 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -14,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import bunny.boardhole.board.domain.Board;
 import bunny.boardhole.board.infrastructure.BoardRepository;
+import bunny.boardhole.shared.properties.DefaultUsersProperties;
 import bunny.boardhole.user.domain.Role;
 import bunny.boardhole.user.domain.User;
 import bunny.boardhole.user.infrastructure.UserRepository;
@@ -27,23 +27,7 @@ public class DataInitializer implements CommandLineRunner {
     private final BoardRepository boardRepository;
     private final PasswordEncoder passwordEncoder;
     private final MessageSource messageSource;
-    // 기본 사용자 설정
-    @Value("${boardhole.default-users.admin.username}")
-    private String adminUsername;
-    @Value("${boardhole.default-users.admin.password}")
-    private String adminPassword;
-    @Value("${boardhole.default-users.admin.name}")
-    private String adminName;
-    @Value("${boardhole.default-users.admin.email}")
-    private String adminEmail;
-    @Value("${boardhole.default-users.regular.username}")
-    private String regularUsername;
-    @Value("${boardhole.default-users.regular.password}")
-    private String regularPassword;
-    @Value("${boardhole.default-users.regular.name}")
-    private String regularName;
-    @Value("${boardhole.default-users.regular.email}")
-    private String regularEmail;
+    private final DefaultUsersProperties defaultUsersProperties;
 
     @Override
     public void run(String... args) {
@@ -52,23 +36,38 @@ public class DataInitializer implements CommandLineRunner {
         // 중복 삽입을 피하기 위해 존재 여부를 확인하는 멱등 로직으로 설계되어 있습니다.
         log.info(messageSource.getMessage("log.user.init.start", null, LocaleContextHolder.getLocale()));
 
+        DefaultUsersProperties.UserInfo adminInfo = defaultUsersProperties.admin();
+        DefaultUsersProperties.UserInfo regularInfo = defaultUsersProperties.regular();
+
         // 관리자 계정 확인 및 생성
-        if (!userRepository.existsByUsername(adminUsername)) {
-            User admin = User.builder().username(adminUsername).password(passwordEncoder.encode(adminPassword)).name(adminName).email(adminEmail).roles(Set.of(Role.ADMIN)).build();
+        if (!userRepository.existsByUsername(adminInfo.username())) {
+            User admin = User.builder()
+                    .username(adminInfo.username())
+                    .password(passwordEncoder.encode(adminInfo.password()))
+                    .name(adminInfo.name())
+                    .email(adminInfo.email())
+                    .roles(Set.of(Role.ADMIN))
+                    .build();
             admin.verifyEmail(); // 기본 사용자는 이메일 인증 완료 상태로 생성
             userRepository.save(admin);
-            log.info(messageSource.getMessage("log.user.admin.created", new Object[]{adminUsername}, LocaleContextHolder.getLocale()));
+            log.info(messageSource.getMessage("log.user.admin.created", new Object[]{adminInfo.username()}, LocaleContextHolder.getLocale()));
         } else
-            log.info(messageSource.getMessage("log.user.admin.exists", new Object[]{adminUsername}, LocaleContextHolder.getLocale()));
+            log.info(messageSource.getMessage("log.user.admin.exists", new Object[]{adminInfo.username()}, LocaleContextHolder.getLocale()));
 
         // 일반 사용자 계정 확인 및 생성
-        if (!userRepository.existsByUsername(regularUsername)) {
-            User regularUser = User.builder().username(regularUsername).password(passwordEncoder.encode(regularPassword)).name(regularName).email(regularEmail).roles(Set.of(Role.USER)).build();
+        if (!userRepository.existsByUsername(regularInfo.username())) {
+            User regularUser = User.builder()
+                    .username(regularInfo.username())
+                    .password(passwordEncoder.encode(regularInfo.password()))
+                    .name(regularInfo.name())
+                    .email(regularInfo.email())
+                    .roles(Set.of(Role.USER))
+                    .build();
             regularUser.verifyEmail(); // 기본 사용자는 이메일 인증 완료 상태로 생성
             userRepository.save(regularUser);
-            log.info(messageSource.getMessage("log.user.regular.created", new Object[]{regularUsername}, LocaleContextHolder.getLocale()));
+            log.info(messageSource.getMessage("log.user.regular.created", new Object[]{regularInfo.username()}, LocaleContextHolder.getLocale()));
         } else
-            log.info(messageSource.getMessage("log.user.regular.exists", new Object[]{regularUsername}, LocaleContextHolder.getLocale()));
+            log.info(messageSource.getMessage("log.user.regular.exists", new Object[]{regularInfo.username()}, LocaleContextHolder.getLocale()));
 
         // 기본 환영 게시글 생성
         if (boardRepository.count() == 0) {
@@ -78,6 +77,7 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void createWelcomeBoard() {
+        String adminUsername = defaultUsersProperties.admin().username();
         User admin = userRepository.findByUsername(adminUsername).orElseThrow(() -> new IllegalStateException("Admin user not found: " + adminUsername));
 
         String title = messageSource.getMessage("data.welcome.board.title", null, LocaleContextHolder.getLocale());

@@ -14,7 +14,6 @@ import lombok.RequiredArgsConstructor;
 
 import org.slf4j.MDC;
 import org.springframework.beans.TypeMismatchException;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -34,6 +33,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import bunny.boardhole.shared.config.log.RequestLoggingFilter;
 import bunny.boardhole.shared.constants.ErrorCode;
+import bunny.boardhole.shared.properties.ProblemProperties;
 import bunny.boardhole.shared.util.MessageUtils;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -44,8 +44,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @Tag(name = "예외 처리", description = "전역 예외 처리 및 에러 응답 관리")
 public class GlobalExceptionHandler {
 
-    @Value("${boardhole.problem.base-uri:}")
-    private String problemBaseUri;
+    private final ProblemProperties problemProperties;
 
     private static void addCommon(ProblemDetail pd, @Nullable HttpServletRequest request) {
         // Optional을 사용한 null 체크 제거
@@ -225,7 +224,8 @@ public class GlobalExceptionHandler {
     }
 
     private URI buildType(String slug) {
-        return Optional.of(problemBaseUri).filter(base -> !base.isBlank()).map(base -> base.endsWith("/") ? base : base + "/").map(base -> {
+        String baseUri = problemProperties.baseUri();
+        return Optional.of(baseUri).filter(base -> !base.isBlank()).map(base -> base.endsWith("/") ? base : base + "/").map(base -> {
             try {
                 return URI.create(base + slug);
             } catch (IllegalArgumentException ignored) {
