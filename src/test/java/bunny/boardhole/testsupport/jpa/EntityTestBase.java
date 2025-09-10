@@ -13,7 +13,6 @@ import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import bunny.boardhole.shared.config.TestDataConfig;
 import bunny.boardhole.shared.config.TestJpaConfig;
 import bunny.boardhole.shared.util.MessageUtils;
 import bunny.boardhole.user.domain.Role;
@@ -23,16 +22,21 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 @DataJpaTest
 @ActiveProfiles("test")
-@Import({TestDataConfig.class, TestJpaConfig.class})
+@Import(TestJpaConfig.class)
 public abstract class EntityTestBase {
 
     @Autowired
     protected TestEntityManager entityManager;
-
-    @Autowired
-    protected TestDataConfig.TestDataProperties testData;
     
     private static final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    
+    // 테스트 데이터 상수
+    protected static final String TEST_USERNAME = "testuser";
+    protected static final String TEST_PASSWORD = "Password123!";
+    protected static final String TEST_NAME = "Test User";
+    protected static final String TEST_EMAIL = "test@example.com";
+    protected static final String TEST_BOARD_TITLE = "Test Board Title";
+    protected static final String TEST_BOARD_CONTENT = "Test Board Content";
 
     protected static String createUniqueEmail() {
         return UUID.randomUUID().toString().substring(0, 8) + "@example.com";
@@ -48,7 +52,7 @@ public abstract class EntityTestBase {
     }
 
     protected String createUniqueUsername() {
-        return testData.username() + "_" + UUID.randomUUID().toString().substring(0, 8);
+        return TEST_USERNAME + "_" + UUID.randomUUID().toString().substring(0, 8);
     }
 
     protected static String createUniqueCode() {
@@ -60,8 +64,8 @@ public abstract class EntityTestBase {
     protected User createTestUser() {
         User user = User.builder()
                 .username(createUniqueUsername())
-                .password(passwordEncoder.encode(testData.password()))
-                .name(testData.name())
+                .password(passwordEncoder.encode(TEST_PASSWORD))
+                .name(TEST_NAME)
                 .email(createUniqueEmail())
                 .roles(Set.of(Role.USER))
                 .build();
