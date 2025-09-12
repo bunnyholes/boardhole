@@ -1,14 +1,14 @@
 package bunny.boardhole.board.application.mapper;
 
 import org.mapstruct.Mapper;
+import org.mapstruct.MappingConstants;
 import org.mapstruct.Mapping;
 
 import bunny.boardhole.board.application.event.ViewedEvent;
 import bunny.boardhole.board.application.result.BoardResult;
 import bunny.boardhole.board.domain.Board;
-import bunny.boardhole.shared.mapstruct.MapstructConfig;
 
-@Mapper(config = MapstructConfig.class)
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 @SuppressWarnings("NullableProblems")
 public interface BoardMapper {
 

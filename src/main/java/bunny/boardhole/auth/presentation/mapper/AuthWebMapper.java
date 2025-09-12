@@ -1,16 +1,15 @@
 package bunny.boardhole.auth.presentation.mapper;
 
 import org.mapstruct.Mapper;
-
+import org.mapstruct.MappingConstants;
 import bunny.boardhole.auth.application.command.LoginCommand;
 import bunny.boardhole.auth.presentation.dto.LoginRequest;
-import bunny.boardhole.shared.mapstruct.MapstructConfig;
 
 /**
  * 인증 웹 계층 매퍼
  * 인증 웹 DTO와 애플리케이션 Command 간 매핑을 담당합니다.
  */
-@Mapper(config = MapstructConfig.class)
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 @SuppressWarnings("NullableProblems")
 public interface AuthWebMapper {
 
