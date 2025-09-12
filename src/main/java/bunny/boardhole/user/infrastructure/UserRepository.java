@@ -8,7 +8,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.stereotype.Repository;
 import org.springframework.validation.annotation.Validated;
 
 import bunny.boardhole.user.domain.User;
@@ -17,7 +16,6 @@ import bunny.boardhole.user.domain.User;
  * 사용자 데이터 접근 리포지토리
  * 사용자 엔티티에 대한 CRUD 작업 및 검색 기능을 제공합니다.
  */
-@Repository
 @Validated
 public interface UserRepository extends JpaRepository<User, Long> {
     /**
