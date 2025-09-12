@@ -3,13 +3,13 @@ package bunny.boardhole;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.retry.annotation.EnableRetry;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 import bunny.boardhole.shared.config.log.LoggingProperties;
 
 @SpringBootApplication
 @EnableConfigurationProperties(LoggingProperties.class)
-@EnableRetry
+@EnableJpaAuditing
 public class BoardHoleApplication {
 
     public static void main(String[] args) {

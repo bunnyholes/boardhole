@@ -7,10 +7,11 @@ spring:
   # 애플리케이션 기본 정보
   application:
     name: board-hole
-  # 국제화(i18n) 설정
-  web:
-    locale: ko_KR  # 기본 로케일을 한국어로 설정
-    locale-resolver: fixed  # 로케일을 고정 (시스템 로케일 무시)
+  
+  # JPA 공통 설정
+  jpa:
+    hibernate:
+      ddl-auto: update
 
 # ========================================
 # 로깅 공통 설정
@@ -156,7 +157,7 @@ boardhole:
 
       ```
       Framework:  Spring Boot 3.5.5 + Java 21
-      Database:   MySQL 9.4 + Redis 8.0
+      Database:   MySQL 8.4 + Redis 7.x
       Security:   Spring Security + Session
       ORM:        Spring Data JPA + Hibernate
       Mapping:    MapStruct 1.6.3
