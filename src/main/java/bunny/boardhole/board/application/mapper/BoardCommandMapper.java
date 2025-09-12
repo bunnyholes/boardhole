@@ -1,14 +1,13 @@
 package bunny.boardhole.board.application.mapper;
 
 import org.mapstruct.Mapper;
-
+import org.mapstruct.MappingConstants;
 import bunny.boardhole.board.application.command.IncrementViewCountCommand;
-import bunny.boardhole.shared.mapstruct.MapstructConfig;
 
 /**
  * 게시글 명령 객체 매퍼
  */
-@Mapper(config = MapstructConfig.class)
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 @SuppressWarnings("NullableProblems")
 public interface BoardCommandMapper {
 

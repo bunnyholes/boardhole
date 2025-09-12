@@ -1,18 +1,18 @@
 package bunny.boardhole.auth.application.mapper;
 
 import org.mapstruct.Mapper;
+import org.mapstruct.MappingConstants;
 import org.mapstruct.Mapping;
 
 import bunny.boardhole.auth.application.command.LogoutCommand;
 import bunny.boardhole.auth.application.result.AuthResult;
-import bunny.boardhole.shared.mapstruct.MapstructConfig;
 import bunny.boardhole.user.domain.User;
 
 /**
  * 인증 애플리케이션 계층 매퍼
  * 도메인 객체와 애플리케이션 Result 간 매핑을 담당합니다.
  */
-@Mapper(config = MapstructConfig.class)
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 @SuppressWarnings("NullableProblems")
 public interface AuthMapper {
 

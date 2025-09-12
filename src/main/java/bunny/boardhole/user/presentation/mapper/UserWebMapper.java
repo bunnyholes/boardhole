@@ -1,9 +1,9 @@
 package bunny.boardhole.user.presentation.mapper;
 
 import org.mapstruct.Mapper;
+import org.mapstruct.MappingConstants;
 import org.mapstruct.Mapping;
 
-import bunny.boardhole.shared.mapstruct.MapstructConfig;
 import bunny.boardhole.user.application.command.CreateUserCommand;
 import bunny.boardhole.user.application.command.UpdatePasswordCommand;
 import bunny.boardhole.user.application.command.UpdateUserCommand;
@@ -17,7 +17,7 @@ import bunny.boardhole.user.presentation.dto.UserUpdateRequest;
  * 사용자 웹 계층 매퍼
  * 사용자 웹 DTO와 애플리케이션 Command/Result 간 매핑을 담당합니다.
  */
-@Mapper(config = MapstructConfig.class)
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 @SuppressWarnings("NullableProblems")
 public interface UserWebMapper {
 

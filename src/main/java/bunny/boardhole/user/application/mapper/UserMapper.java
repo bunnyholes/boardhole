@@ -3,14 +3,13 @@ package bunny.boardhole.user.application.mapper;
 import java.time.LocalDateTime;
 
 import org.mapstruct.Mapper;
-
-import bunny.boardhole.shared.mapstruct.MapstructConfig;
+import org.mapstruct.MappingConstants;
 import bunny.boardhole.user.application.command.UpdateUserCommand;
 import bunny.boardhole.user.application.event.UserCreatedEvent;
 import bunny.boardhole.user.application.result.UserResult;
 import bunny.boardhole.user.domain.User;
 
-@Mapper(config = MapstructConfig.class)
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 @SuppressWarnings("NullableProblems")
 public interface UserMapper {
     UserResult toResult(User user);
