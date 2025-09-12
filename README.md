@@ -50,7 +50,7 @@ Docker Compose가 자동으로 처리하는 것들:
 ## 🏗️ 기술 스택
 
 - **Backend**: Spring Boot 3.5.5, Java 21
-- **Database**: MySQL 9.4 (Docker)
+- **Database**: MySQL 8.4 (Docker)
 - **Session**: Redis (Docker)
 - **Build**: Gradle 8.14
 - **Testing**: JUnit 5, Testcontainers, RestAssured
