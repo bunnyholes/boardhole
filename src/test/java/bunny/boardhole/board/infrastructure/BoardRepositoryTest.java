@@ -11,17 +11,15 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import bunny.boardhole.board.domain.Board;
-import bunny.boardhole.shared.config.TestJpaConfig;
+import bunny.boardhole.testsupport.jpa.EntityTestBase;
 import bunny.boardhole.user.domain.Role;
 import bunny.boardhole.user.domain.User;
 import bunny.boardhole.user.infrastructure.UserRepository;
@@ -31,13 +29,11 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DataJpaTest
 @ActiveProfiles("test")
+@Testcontainers
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import(TestJpaConfig.class)
 @Tag("unit")
 @Tag("repository")
-class BoardRepositoryTest {
-
-    private static final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+class BoardRepositoryTest extends EntityTestBase {
 
     @Autowired
     private BoardRepository boardRepository;
@@ -50,7 +46,14 @@ class BoardRepositoryTest {
 
     @BeforeEach
     void setUp() {
-        author = userRepository.save(User.builder().username("test_author").password(passwordEncoder.encode("Password123!")).name("Test Author").email("author@example.com").roles(Set.of(Role.USER)).build());
+        author = userRepository.save(User
+                .builder()
+                .username("test_author")
+                .password(EntityTestBase.passwordEncoder.encode("Password123!"))
+                .name("Test Author")
+                .email("author@example.com")
+                .roles(Set.of(Role.USER))
+                .build());
 
         testBoard = boardRepository.save(Board.builder().title("Test Board").content("Test Content").author(author).build());
     }
@@ -85,7 +88,8 @@ class BoardRepositoryTest {
             Board boardWithoutAuthor = Board.builder().title("No Author Board").content("No Author Content").author(null).build();
 
             // When & Then
-            assertThatThrownBy(() -> boardRepository.saveAndFlush(boardWithoutAuthor)).isInstanceOf(jakarta.validation.ConstraintViolationException.class);
+            assertThatThrownBy(() -> boardRepository.saveAndFlush(boardWithoutAuthor)).isInstanceOf(
+                    jakarta.validation.ConstraintViolationException.class);
         }
     }
 
@@ -122,7 +126,8 @@ class BoardRepositoryTest {
         @DisplayName("전체 게시글 조회")
         void findAll_ReturnsAllBoards() {
             // Given
-            boardRepository.save(Board.builder().title("Another Board").content("Another Content").author(author).build());
+            boardRepository.save(Board.builder().title("Another Board").content("Another Content").author(
+                    author).build());
 
             // When
             var boards = boardRepository.findAll();
@@ -251,7 +256,8 @@ class BoardRepositoryTest {
         @DisplayName("전체 게시글 삭제 - Soft Delete 검증")
         void deleteAll_SoftDeletesAllBoards() {
             // Given
-            boardRepository.save(Board.builder().title("Board to Delete").content("Will be deleted").author(author).build());
+            boardRepository.save(Board.builder().title("Board to Delete").content("Will be deleted").author(
+                    author).build());
             long totalCountBefore = boardRepository.findAllIncludingDeleted().size();
 
             // When
@@ -293,7 +299,8 @@ class BoardRepositoryTest {
         @BeforeEach
         void setUpAdditionalBoards() {
             for (int i = 1; i <= 5; i++)
-                boardRepository.save(Board.builder().title("Board " + i).content("Content " + i).author(author).build());
+                boardRepository.save(Board.builder().title("Board " + i).content("Content " + i).author(
+                        author).build());
         }
 
         @Test
@@ -333,9 +340,11 @@ class BoardRepositoryTest {
 
         @BeforeEach
         void setUpSearchableBoards() {
-            boardRepository.save(Board.builder().title("Spring Boot Tutorial").content("Learn Spring Boot basics").author(author).build());
+            boardRepository.save(Board.builder().title("Spring Boot Tutorial").content("Learn Spring Boot basics").author(
+                    author).build());
 
-            boardRepository.save(Board.builder().title("Java Best Practices").content("Essential Java coding standards").author(author).build());
+            boardRepository.save(Board.builder().title("Java Best Practices").content("Essential Java coding standards").author(
+                    author).build());
         }
 
         @Test

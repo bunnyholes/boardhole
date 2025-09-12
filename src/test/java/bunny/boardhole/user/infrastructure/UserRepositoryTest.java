@@ -11,8 +11,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.testcontainers.junit.jupiter.Testcontainers;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -21,7 +21,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
-import bunny.boardhole.shared.config.TestJpaConfig;
 import bunny.boardhole.user.domain.Role;
 import bunny.boardhole.user.domain.User;
 
@@ -30,11 +29,11 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DataJpaTest
 @ActiveProfiles("test")
+@Testcontainers
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import(TestJpaConfig.class)
 @Tag("unit")
 @Tag("repository")
-class UserRepositoryTest {
+class UserRepositoryTest extends bunny.boardhole.testsupport.jpa.EntityTestBase {
 
     private static final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
