@@ -66,11 +66,11 @@ dependencies {
     annotationProcessor "org.projectlombok:lombok-mapstruct-binding:0.2.0"
 
     // -- Lombok --
-    compileOnly "org.projectlombok:lombok:1.18.38"
-    annotationProcessor "org.projectlombok:lombok:1.18.38"
+    compileOnly "org.projectlombok:lombok:1.18.40"
+    annotationProcessor "org.projectlombok:lombok:1.18.40"
 
     // -- Database Drivers --
-    runtimeOnly "com.mysql:mysql-connector-j:9.4.0"
+    runtimeOnly "com.mysql:mysql-connector-j:8.4.0"
 
     // -- Logging (JSON encoder, opt-in in prod) --
     implementation "net.logstash.logback:logstash-logback-encoder:8.1"
@@ -80,14 +80,15 @@ dependencies {
 
     // -- Testing --
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
     testImplementation 'org.springframework.security:spring-security-test'
-    testImplementation 'com.h2database:h2'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    // MySQL Testcontainers for consistent testing across all test types
+    testImplementation 'org.testcontainers:mysql'
 
     // -- RestAssured for E2E testing --
-    testImplementation 'io.rest-assured:rest-assured:5.5.0'
-    testImplementation 'io.rest-assured:json-path:5.5.0'
-    testImplementation 'io.rest-assured:xml-path:5.5.0'
+    testImplementation 'io.rest-assured:rest-assured:5.5.6'
+    testImplementation 'io.rest-assured:json-path:5.5.6'
+    testImplementation 'io.rest-assured:xml-path:5.5.6'
 
     // -- TestContainers for real SMTP testing --
     testImplementation 'org.testcontainers:testcontainers'
@@ -95,10 +96,6 @@ dependencies {
 
     // -- ArchUnit for architecture testing --
     testImplementation 'com.tngtech.archunit:archunit-junit5:1.4.1'
-
-
-    // -- Resilience / Retry --
-    implementation 'org.springframework.retry:spring-retry'
 }
 
 tasks.named('test') {
@@ -207,7 +204,7 @@ changelog {
 }
 
 // 통합 릴리즈 태스크
-task releaseWithChangelog {
+tasks.register('releaseWithChangelog') {
     group = 'release'
     description = 'Generate changelog and perform release'
     dependsOn 'generateChangelog'
@@ -228,7 +225,7 @@ task releaseWithChangelog {
 }
 
 // 드라이런 태스크
-task releaseDryRun {
+tasks.register('releaseDryRun') {
     group = 'release'
     description = 'Dry run of release process (no actual changes)'
 
@@ -251,7 +248,7 @@ task releaseDryRun {
 }
 
 // 내부 패치 버전 관리 태스크들
-task buildAlpha {
+tasks.register('buildAlpha') {
     group = 'release'
     description = 'Build with alpha version (use -Palpha=1)'
 
@@ -264,7 +261,7 @@ task buildAlpha {
     dependsOn 'build'
 }
 
-task buildBeta {
+tasks.register('buildBeta') {
     group = 'release'
     description = 'Build with beta version (use -Pbeta=1)'
 
@@ -277,7 +274,7 @@ task buildBeta {
     dependsOn 'build'
 }
 
-task buildRC {
+tasks.register('buildRC') {
     group = 'release'
     description = 'Build with RC version (use -Prc=1)'
 
@@ -290,7 +287,7 @@ task buildRC {
     dependsOn 'build'
 }
 
-task buildWithGitHash {
+tasks.register('buildWithGitHash') {
     group = 'release'
     description = 'Build with git commit hash in version'
 
@@ -314,7 +311,7 @@ task buildWithGitHash {
     dependsOn 'build'
 }
 
-task buildWithTimestamp {
+tasks.register('buildWithTimestamp') {
     group = 'release'
     description = 'Build with timestamp in version'
 
@@ -328,7 +325,7 @@ task buildWithTimestamp {
 }
 
 // 버전 정보 출력 태스크
-task showVersion {
+tasks.register('showVersion') {
     group = 'release'
     description = 'Show current project version'
 
@@ -385,8 +382,8 @@ jacocoTestReport {
     }
 }
 
-test {
-    finalizedBy jacocoTestReport
+tasks.named('test') {
+    finalizedBy tasks.named('jacocoTestReport')
 }
 
 jacocoTestCoverageVerification {
@@ -512,7 +509,7 @@ tasks.register('allTests') {
 // Null Safety 자동화 (자동 package-info.java 생성)
 // =======================================
 
-task ensureNullMarked {
+tasks.register('ensureNullMarked') {
     group = 'build setup'
     description = 'Ensure all packages have @NullMarked package-info.java files'
 
@@ -551,11 +548,13 @@ import org.jspecify.annotations.NullMarked;
 }
 
 // 컴파일 전에 자동으로 package-info.java 생성
-compileJava.dependsOn ensureNullMarked
+tasks.named('compileJava') {
+    dependsOn tasks.named('ensureNullMarked')
+}
 
 // build 태스크가 테스트 커버리지를 포함하도록 설정
-build {
-    dependsOn jacocoTestCoverageVerification
+tasks.named('build') {
+    dependsOn tasks.named('jacocoTestCoverageVerification')
 }
 
 
