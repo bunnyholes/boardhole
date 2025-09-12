@@ -32,9 +32,10 @@ public class AsyncConfig {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
 
         // Spring Boot properties 적용
-        executor.setCorePoolSize(properties.getPool().getCoreSize());
-        executor.setMaxPoolSize(properties.getPool().getMaxSize());
-        executor.setQueueCapacity(properties.getPool().getQueueCapacity());
+        TaskExecutionProperties.Pool pool = properties.getPool();
+        executor.setCorePoolSize(pool.getCoreSize());
+        executor.setMaxPoolSize(pool.getMaxSize());
+        executor.setQueueCapacity(pool.getQueueCapacity());
         executor.setThreadNamePrefix("app-async-");
 
         // RejectedExecutionHandler 설정
@@ -44,9 +45,8 @@ public class AsyncConfig {
         executor.setTaskDecorator(runnable -> {
             Map<String, String> contextMap = MDC.getCopyOfContextMap();
             return () -> {
-                if (contextMap != null) {
+                if (contextMap != null)
                     MDC.setContextMap(contextMap);
-                }
                 try {
                     runnable.run();
                 } finally {
