@@ -6,32 +6,46 @@ import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.context.annotation.Import;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.context.support.ResourceBundleMessageSource;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
-import bunny.boardhole.shared.config.TestJpaConfig;
 import bunny.boardhole.shared.util.MessageUtils;
 import bunny.boardhole.user.domain.Role;
 import bunny.boardhole.user.domain.User;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 @DataJpaTest
+@Testcontainers
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @ActiveProfiles("test")
-@Import(TestJpaConfig.class)
 public abstract class EntityTestBase {
+
+    // 싱글톤 컨테이너: JVM 당 1회 기동, 모든 테스트 공유
+    private static final TestMySQL MYSQL = TestMySQL.INSTANCE;
+
+    @DynamicPropertySource
+    static void dataSourceProps(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", MYSQL::getJdbcUrl);
+        registry.add("spring.datasource.username", MYSQL::getUsername);
+        registry.add("spring.datasource.password", MYSQL::getPassword);
+        registry.add("spring.datasource.driver-class-name", MYSQL::getDriverClassName);
+    }
 
     @Autowired
     protected TestEntityManager entityManager;
-    
-    private static final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-    
+
+    protected static final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
     // 테스트 데이터 상수
-    protected static final String TEST_USERNAME = "testuser";
+    private static final String TEST_USERNAME = "testuser";
     protected static final String TEST_PASSWORD = "Password123!";
     protected static final String TEST_NAME = "Test User";
     protected static final String TEST_EMAIL = "test@example.com";
@@ -51,7 +65,7 @@ public abstract class EntityTestBase {
         ReflectionTestUtils.setField(MessageUtils.class, "messageSource", ms);
     }
 
-    protected String createUniqueUsername() {
+    protected static String createUniqueUsername() {
         return TEST_USERNAME + "_" + UUID.randomUUID().toString().substring(0, 8);
     }
 
@@ -61,14 +75,14 @@ public abstract class EntityTestBase {
         return uuid.substring(0, 6); // Take first 6 characters
     }
 
-    protected User createTestUser() {
+    protected static User createTestUser() {
         User user = User.builder()
-                .username(createUniqueUsername())
-                .password(passwordEncoder.encode(TEST_PASSWORD))
-                .name(TEST_NAME)
-                .email(createUniqueEmail())
-                .roles(Set.of(Role.USER))
-                .build();
+                        .username(createUniqueUsername())
+                        .password(passwordEncoder.encode(TEST_PASSWORD))
+                        .name(TEST_NAME)
+                        .email(createUniqueEmail())
+                        .roles(Set.of(Role.USER))
+                        .build();
         user.verifyEmail();
         return user;
     }
