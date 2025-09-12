@@ -4,7 +4,7 @@ Technical specifications for Claude Code AI assistant when working with this Spr
 
 ## Project Overview
 
-Spring Boot 3.5.5 board application with Java 21, MySQL 9.4, Redis session storage, domain-driven architecture, and
+Spring Boot 3.5.5 board application with Java 21, MySQL 8.4, Redis session storage, domain-driven architecture, and
 comprehensive quality tooling.
 
 ## Build Commands
