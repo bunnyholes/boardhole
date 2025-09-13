@@ -1,8 +1,8 @@
 package bunny.boardhole.board.presentation.mapper;
 
 import org.mapstruct.Mapper;
-import org.mapstruct.MappingConstants;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingConstants;
 
 import bunny.boardhole.board.application.command.CreateBoardCommand;
 import bunny.boardhole.board.application.command.UpdateBoardCommand;

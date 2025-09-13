@@ -202,7 +202,7 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
-    @DisplayName("MethodArgumentNotValidException 처리 - 400 응답 with validation errors")
+    @DisplayName("MethodArgumentNotValidException 처리 - 422 응답 with validation errors")
     void handleMethodArgumentNotValid() {
         // Given
         setupRequestMock();
@@ -220,9 +220,9 @@ class GlobalExceptionHandlerTest {
         ProblemDetail result = response.getBody();
 
         // Then
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
         assertThat(result).isNotNull();
-        assertThat(result.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+        assertThat(result.getStatus()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY.value());
         assertThat(result.getTitle()).isEqualTo("유효성 검증 실패");
         assertThat(result.getType()).isEqualTo(URI.create("urn:problem-type:validation-error"));
         Map<String, Object> validationProperties = result.getProperties();
@@ -236,7 +236,7 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
-    @DisplayName("IllegalArgumentException 처리 - 400 응답")
+    @DisplayName("IllegalArgumentException 처리 - 422 응답")
     void handleIllegalArgument() {
         // Given
         setupRequestMock();
@@ -247,13 +247,13 @@ class GlobalExceptionHandlerTest {
         ProblemDetail result = handler.handleBadRequest(ex, request);
 
         // Then
-        assertThat(result.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
-        assertThat(result.getTitle()).isEqualTo("잘못된 요청");
+        assertThat(result.getStatus()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY.value());
+        assertThat(result.getTitle()).isEqualTo("유효성 검증 실패");
         assertThat(result.getDetail()).isEqualTo(errorMessage);
-        assertThat(result.getType()).isEqualTo(URI.create("urn:problem-type:bad-request"));
+        assertThat(result.getType()).isEqualTo(URI.create("urn:problem-type:validation-error"));
         Map<String, Object> badRequestProperties = result.getProperties();
         assertThat(badRequestProperties).isNotNull();
-        assertThat(badRequestProperties.get("code")).isEqualTo("BAD_REQUEST");
+        assertThat(badRequestProperties.get("code")).isEqualTo("VALIDATION_ERROR");
     }
 
     @Test
@@ -265,12 +265,12 @@ class GlobalExceptionHandlerTest {
         DataIntegrityViolationException ex = new DataIntegrityViolationException(errorMessage);
 
         // When
-        ProblemDetail result = handler.handleConflict(ex, request);
+        ProblemDetail result = handler.handleDataIntegrityViolation(ex, request);
 
         // Then
         assertThat(result.getStatus()).isEqualTo(HttpStatus.CONFLICT.value());
         assertThat(result.getTitle()).isEqualTo("데이터 충돌");
-        assertThat(result.getDetail()).isEqualTo(errorMessage);
+        assertThat(result.getDetail()).isEqualTo("데이터 충돌이 발생했습니다"); // 보안상 일반 메시지
         assertThat(result.getType()).isEqualTo(URI.create("urn:problem-type:conflict"));
         Map<String, Object> dataIntegrityProperties = result.getProperties();
         assertThat(dataIntegrityProperties).isNotNull();

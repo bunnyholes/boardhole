@@ -29,7 +29,7 @@ import static org.hamcrest.Matchers.notNullValue;
 @DisplayName("Auth E2E 테스트")
 @Tag("e2e")
 @Tag("auth")
-class AuthE2eTest extends E2ETestBase {
+class AuthE2ETest extends E2ETestBase {
 
     private static String testUsername;
     private static String testPassword;
@@ -47,16 +47,16 @@ class AuthE2eTest extends E2ETestBase {
         @BeforeEach
         void setupTestData() {
             String uniqueId = UUID.randomUUID().toString().substring(0, 8);
-            AuthE2eTest.testUsername = "test_" + uniqueId;
-            AuthE2eTest.testPassword = "Password123!";
-            AuthE2eTest.testEmail = "test_" + uniqueId + "@example.com";
+            AuthE2ETest.testUsername = "test_" + uniqueId;
+            AuthE2ETest.testPassword = "Password123!";
+            AuthE2ETest.testEmail = "test_" + uniqueId + "@example.com";
         }
 
         @Test
         @Order(1)
         @DisplayName("✅ 유효한 데이터로 회원가입 성공")
         void shouldCreateUserWithValidData() {
-            given().contentType(ContentType.URLENC).formParam("username", AuthE2eTest.testUsername).formParam("password", AuthE2eTest.testPassword).formParam("name", "Test User").formParam("email", AuthE2eTest.testEmail).when().post("/auth/signup").then().statusCode(204);
+            given().contentType(ContentType.URLENC).formParam("username", AuthE2ETest.testUsername).formParam("password", AuthE2ETest.testPassword).formParam("name", "Test User").formParam("email", AuthE2ETest.testEmail).when().post("/auth/signup").then().statusCode(204);
         }
 
         @Test
@@ -121,9 +121,20 @@ class AuthE2eTest extends E2ETestBase {
         @ParameterizedTest(name = "[{index}] {0}")
         @MethodSource("provideInvalidSignupData")
         @Order(4)
-        @DisplayName("❌ 유효성 검증 실패 → 400 Bad Request")
+        @DisplayName("❌ 유효성 검증 실패 → 422 Unprocessable Content")
         void shouldFailWhenValidationFails(String description, String username, String password, String name, String email) {
-            given().contentType(ContentType.URLENC).formParam("username", username).formParam("password", password).formParam("name", name).formParam("email", email).when().post("/auth/signup").then().statusCode(400).body("title", equalTo(MessageUtils.get("exception.title.validation-failed"))).body("type", notNullValue()).body("status", equalTo(400)).body("code", equalTo("VALIDATION_ERROR")).body("errors", notNullValue());
+            given().contentType(ContentType.URLENC)
+                    .formParam("username", username)
+                    .formParam("password", password)
+                    .formParam("name", name)
+                    .formParam("email", email)
+                    .when().post("/auth/signup")
+                    .then().statusCode(422)
+                    .body("title", equalTo(MessageUtils.get("exception.title.validation-failed")))
+                    .body("type", notNullValue())
+                    .body("status", equalTo(422))
+                    .body("code", equalTo("VALIDATION_ERROR"))
+                    .body("errors", notNullValue());
         }
     }
 

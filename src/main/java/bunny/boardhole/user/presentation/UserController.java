@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -63,7 +62,8 @@ public class UserController {
     @ApiResponses({@ApiResponse(responseCode = "200", description = "사용자 목록 조회 성공", content = @Content(schema = @Schema(implementation = Page.class))), @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"), @ApiResponse(responseCode = "403", description = "관리자 권한 없음")})
     public Page<UserResponse> list(@Parameter(description = "검색어 (사용자명, 이름, 이메일)") @RequestParam(required = false) @Nullable String search, @ParameterObject @PageableDefault(size = 20) Pageable pageable) {
 
-        Page<UserResult> results = search != null && !search.trim().isEmpty() ? userQueryService.listWithPaging(pageable, search.trim()) : userQueryService.listWithPaging(pageable);
+        Page<UserResult> results = search != null && !search.trim().isEmpty() ? userQueryService.listWithPaging(pageable,
+                search.trim()) : userQueryService.listWithPaging(pageable);
 
         return results.map(userWebMapper::toResponse);
     }
@@ -80,7 +80,7 @@ public class UserController {
     @PutMapping(value = "/{id}", consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE}, produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "사용자 정보 수정", description = "[AUTH] 사용자의 개인 정보를 수정합니다. 인증된 사용자만 사용할 수 있습니다.", requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content = @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE, schema = @Schema(implementation = UserUpdateRequest.class))))
-    @ApiResponses({@ApiResponse(responseCode = "200", description = "사용자 정보 수정 성공", content = @Content(schema = @Schema(implementation = UserResponse.class))), @ApiResponse(responseCode = "400", description = "잘못된 요청 데이터"), @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"), @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음")})
+    @ApiResponses({@ApiResponse(responseCode = "200", description = "사용자 정보 수정 성공", content = @Content(schema = @Schema(implementation = UserResponse.class))), @ApiResponse(responseCode = "422", description = "유효성 검증 실패"), @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"), @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음")})
     public UserResponse update(@Parameter(description = "수정할 사용자 ID") @PathVariable Long id, @Validated @ModelAttribute UserUpdateRequest req) {
         var cmd = userWebMapper.toUpdateCommand(id, req);
         var updated = userCommandService.update(cmd);
@@ -100,7 +100,7 @@ public class UserController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "패스워드 변경", description = "[AUTH] 사용자의 패스워드를 변경합니다. 현재 패스워드 확인이 필요합니다.", requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content = @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE, schema = @Schema(implementation = PasswordUpdateRequest.class))))
-    @ApiResponses({@ApiResponse(responseCode = "204", description = "패스워드 변경 성공"), @ApiResponse(responseCode = "400", description = "잘못된 요청 데이터"), @ApiResponse(responseCode = "401", description = "현재 패스워드 불일치"), @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음")})
+    @ApiResponses({@ApiResponse(responseCode = "204", description = "패스워드 변경 성공"), @ApiResponse(responseCode = "422", description = "유효성 검증 실패"), @ApiResponse(responseCode = "401", description = "현재 패스워드 불일치"), @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음")})
     public void updatePassword(@Parameter(description = "사용자 ID") @PathVariable Long id, @Validated @ModelAttribute PasswordUpdateRequest req) {
 
         // 패스워드 확인 불일치 처리

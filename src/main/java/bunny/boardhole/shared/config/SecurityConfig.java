@@ -85,7 +85,8 @@ public class SecurityConfig {
                 // Error page
                 .requestMatchers("/error").permitAll()
                 // Public API endpoints - explicit permit only
-                .requestMatchers(ApiPaths.AUTH + ApiPaths.AUTH_SIGNUP, ApiPaths.AUTH + ApiPaths.AUTH_LOGIN, ApiPaths.AUTH + ApiPaths.AUTH_PUBLIC_ACCESS).permitAll().requestMatchers(ApiPaths.AUTH + "/verify-email", ApiPaths.AUTH + "/resend-verification").permitAll().requestMatchers(HttpMethod.GET, ApiPaths.USERS + "/{id}/email/verify").permitAll().requestMatchers(HttpMethod.POST, ApiPaths.USERS + "/{id}/email/resend").permitAll().requestMatchers(HttpMethod.GET, ApiPaths.BOARDS, ApiPaths.BOARDS + "/**").permitAll()
+                .requestMatchers(ApiPaths.AUTH + ApiPaths.AUTH_SIGNUP, ApiPaths.AUTH + ApiPaths.AUTH_LOGIN, ApiPaths.AUTH + ApiPaths.AUTH_PUBLIC_ACCESS).permitAll()
+                .requestMatchers(HttpMethod.GET, ApiPaths.BOARDS, ApiPaths.BOARDS + "/**").permitAll()
                 // All other requests require authentication by default
                 .anyRequest().authenticated()).exceptionHandling(ex -> ex.authenticationEntryPoint(authenticationEntryPoint).accessDeniedHandler(accessDeniedHandler)).formLogin(AbstractHttpConfigurer::disable).httpBasic(AbstractHttpConfigurer::disable); // HTTP Basic 인증 비활성화
 

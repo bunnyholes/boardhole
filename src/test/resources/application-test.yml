@@ -3,10 +3,3 @@ spring:
     exclude:
       - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
       - org.springframework.boot.autoconfigure.session.SessionAutoConfiguration
-  
-  jpa:
-    hibernate:
-      ddl-auto: create  # Testcontainers가 자동으로 컨테이너를 삭제하므로 create만 사용
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.MySQLDialect

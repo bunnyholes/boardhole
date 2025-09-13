@@ -20,10 +20,8 @@ comprehensive quality tooling.
 ./gradlew bootRun --args='--spring.profiles.active=prod'
 
 # Test
-./gradlew test               # Unit tests only (excludes integration, e2e)
-./gradlew integrationTest    # @Tag("integration") tests
-./gradlew e2eTest           # @Tag("e2e") tests
-./gradlew allTests          # All test suites
+./gradlew test               # All tests (unit + e2e)
+./gradlew e2eTest           # @Tag("e2e") tests only
 
 # Quality
 ./gradlew jacocoTestReport   # Generate coverage report
@@ -81,8 +79,7 @@ bunny.boardhole.[domain]/
 ## Testing Structure
 
 - **Unit**: Mock dependencies, fast execution
-- **Integration**: @SpringBootTest with real DB/Redis, @Tag("integration")
-- **E2E**: Full system tests with RestAssured, @Tag("e2e")
+- **E2E**: Full system tests with real DB/Redis and RestAssured, @Tag("e2e")
 - **Architecture**: ArchUnit for layer compliance
 - **Naming**: [Method]_[Condition]_[Expected]
 

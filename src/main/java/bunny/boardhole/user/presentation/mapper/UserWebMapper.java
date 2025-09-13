@@ -1,8 +1,8 @@
 package bunny.boardhole.user.presentation.mapper;
 
 import org.mapstruct.Mapper;
-import org.mapstruct.MappingConstants;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingConstants;
 
 import bunny.boardhole.user.application.command.CreateUserCommand;
 import bunny.boardhole.user.application.command.UpdatePasswordCommand;

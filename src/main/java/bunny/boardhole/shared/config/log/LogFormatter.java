@@ -79,7 +79,8 @@ class LogFormatter {
     String formatMethodStart(String signature, Object[] args) {
         String layerColor = getLayerColor(signature);
         String layerIcon = getLayerIcon(signature);
-        String argsString = Arrays.stream(args).map(this::safeToString).collect(Collectors.joining(", "));
+        Object[] safeArgs = (args == null) ? new Object[0] : args;
+        String argsString = Arrays.stream(safeArgs).map(this::safeToString).collect(Collectors.joining(", "));
 
         return messageSource.getMessage("log.method.start", new Object[]{layerColor + layerIcon + signature + LogConstants.RESET, argsString}, LocaleContextHolder.getLocale());
     }
@@ -135,11 +136,17 @@ class LogFormatter {
 
     // 안전한 객체 문자열 변환
     private String safeToString(Object arg) {
+        // null 인자는 그대로 문자열 "null" 로 처리
+        if (arg == null)
+            return "null";
+
         if (isProblematicType(arg))
             return arg.getClass().getName();
+
         try {
             return sanitizeObject(arg);
         } catch (Exception e) {
+            // 포매팅 중 예외가 발생하면 클래스 이름만 출력하여 로깅 자체가 실패하지 않도록 보호
             return arg.getClass().getName();
         }
     }

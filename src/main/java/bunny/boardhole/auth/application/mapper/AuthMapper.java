@@ -1,8 +1,8 @@
 package bunny.boardhole.auth.application.mapper;
 
 import org.mapstruct.Mapper;
-import org.mapstruct.MappingConstants;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingConstants;
 
 import bunny.boardhole.auth.application.command.LogoutCommand;
 import bunny.boardhole.auth.application.result.AuthResult;

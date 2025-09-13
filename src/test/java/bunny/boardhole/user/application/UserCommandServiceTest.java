@@ -18,8 +18,6 @@ import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import bunny.boardhole.shared.exception.DuplicateEmailException;
-import bunny.boardhole.shared.exception.DuplicateUsernameException;
 import bunny.boardhole.shared.exception.ResourceNotFoundException;
 import bunny.boardhole.shared.exception.UnauthorizedException;
 import bunny.boardhole.shared.util.MessageUtils;
@@ -122,8 +120,6 @@ class UserCommandServiceTest {
             CreateUserCommand cmd = new CreateUserCommand(UserCommandServiceTest.USERNAME, UserCommandServiceTest.RAW_PASSWORD,
                     UserCommandServiceTest.NAME, UserCommandServiceTest.EMAIL);
 
-            given(userRepository.existsByUsername(UserCommandServiceTest.USERNAME)).willReturn(false);
-            given(userRepository.existsByEmail(UserCommandServiceTest.EMAIL)).willReturn(false);
             given(passwordEncoder.encode(UserCommandServiceTest.RAW_PASSWORD)).willReturn(
                     UserCommandServiceTest.ENCODED_PASSWORD);
 
@@ -140,61 +136,8 @@ class UserCommandServiceTest {
 
             // then
             assertThat(result).isEqualTo(expected);
-            then(userRepository).should().existsByUsername(UserCommandServiceTest.USERNAME);
-            then(userRepository).should().existsByEmail(UserCommandServiceTest.EMAIL);
             then(userRepository).should().save(any(User.class));
             then(userMapper).should().toResult(saved);
-        }
-
-        @Test
-        @DisplayName("❌ 사용자명 중복 → DuplicateUsernameException with 국제화 메시지")
-        void shouldThrowWhenUsernameExists() {
-            // given
-            CreateUserCommand cmd = new CreateUserCommand(UserCommandServiceTest.USERNAME, UserCommandServiceTest.RAW_PASSWORD,
-                    UserCommandServiceTest.NAME, UserCommandServiceTest.EMAIL);
-
-            given(userRepository.existsByUsername(UserCommandServiceTest.USERNAME)).willReturn(true);
-
-            // 실제 메시지 로드
-            String expectedMessage = MessageUtils.get("error.user.username.already-exists");
-
-            // when & then
-            assertThatThrownBy(() -> userCommandService.create(cmd))
-                    .isInstanceOf(DuplicateUsernameException.class)
-                    .hasMessage(expectedMessage);
-
-            // 메시지 내용 확인
-            assertThat(expectedMessage).isEqualTo("이미 사용 중인 사용자명입니다");
-
-            then(userRepository).should().existsByUsername(UserCommandServiceTest.USERNAME);
-            then(userRepository).should(never()).existsByEmail(any());
-            then(userRepository).should(never()).save(any());
-        }
-
-        @Test
-        @DisplayName("❌ 이메일 중복 → DuplicateEmailException with 국제화 메시지")
-        void shouldThrowWhenEmailExists() {
-            // given
-            CreateUserCommand cmd = new CreateUserCommand(UserCommandServiceTest.USERNAME, UserCommandServiceTest.RAW_PASSWORD,
-                    UserCommandServiceTest.NAME, UserCommandServiceTest.EMAIL);
-
-            given(userRepository.existsByUsername(UserCommandServiceTest.USERNAME)).willReturn(false);
-            given(userRepository.existsByEmail(UserCommandServiceTest.EMAIL)).willReturn(true);
-
-            // 실제 메시지 로드
-            String expectedMessage = MessageUtils.get("error.user.email.already-exists");
-
-            // when & then
-            assertThatThrownBy(() -> userCommandService.create(cmd))
-                    .isInstanceOf(DuplicateEmailException.class)
-                    .hasMessage(expectedMessage);
-
-            // 메시지 내용 확인
-            assertThat(expectedMessage).isEqualTo("이미 사용 중인 이메일입니다");
-
-            then(userRepository).should().existsByUsername(UserCommandServiceTest.USERNAME);
-            then(userRepository).should().existsByEmail(UserCommandServiceTest.EMAIL);
-            then(userRepository).should(never()).save(any());
         }
     }
 

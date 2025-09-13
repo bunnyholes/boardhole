@@ -38,11 +38,19 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
 
         long start = System.nanoTime();
         try {
-            log.info(logFormatter.formatRequestStart(request.getMethod(), request.getRequestURI(), request.getRemoteAddr()));
+            try {
+                log.info(logFormatter.formatRequestStart(request.getMethod(), request.getRequestURI(), request.getRemoteAddr()));
+            } catch (Throwable formatEx) {
+                log.warn("Request log formatting failed (start): {} {} - {}", request.getMethod(), request.getRequestURI(), formatEx.toString());
+            }
             filterChain.doFilter(request, response);
         } finally {
             long tookMs = (System.nanoTime() - start) / 1_000_000;
-            log.info(logFormatter.formatRequestEnd(request.getMethod(), request.getRequestURI(), response.getStatus(), tookMs));
+            try {
+                log.info(logFormatter.formatRequestEnd(request.getMethod(), request.getRequestURI(), response.getStatus(), tookMs));
+            } catch (Throwable formatEx) {
+                log.warn("Request log formatting failed (end): {} {} [{}] - {}", request.getMethod(), request.getRequestURI(), response.getStatus(), formatEx.toString());
+            }
             MDCUtil.clearRequest();
         }
     }

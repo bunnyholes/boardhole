@@ -2,6 +2,7 @@ package bunny.boardhole.board.application.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;
+
 import bunny.boardhole.board.application.command.IncrementViewCountCommand;
 
 /**

@@ -1,8 +1,0 @@
-# Local Developer Configuration Example
-# Copy this file to gradle-local.properties and add your personal tokens/credentials
-# gradle-local.properties is ignored by Git for security
-
-# SonarCloud Configuration (get your token from https://sonarcloud.io/account/security/)
-systemProp.sonar.token=YOUR_SONARCLOUD_TOKEN_HERE
-
-# Add any other personal development settings below
