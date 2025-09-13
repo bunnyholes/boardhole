@@ -43,7 +43,7 @@ Docker Compose가 자동으로 처리하는 것들:
 
 - **게시판 CRUD**: 게시글 작성, 수정, 삭제, 조회
 - **사용자 인증**: 세션 기반 로그인/로그아웃
- 
+
 - **권한 관리**: 사용자/관리자 역할 구분
 - **API 문서**: Swagger UI 제공 (`/swagger-ui/index.html`)
 - **표준 HTTP 응답**: RFC 7807 Problem Details 준수
@@ -53,13 +53,13 @@ Docker Compose가 자동으로 처리하는 것들:
 본 애플리케이션은 모든 프로필(운영 포함)에서 기본 계정들을 멱등하게 생성합니다. 이는 온보딩과 데모/E2E 테스트 편의를 위한 의도된 동작입니다. 기본 비밀번호의 변경·회전 책임은 배포/운영자에게 있습니다.
 
 - 기본 계정(기본값은 `application.yml`에서 설정, 환경별 오버라이드 권장)
-  - Admin: `admin` / `Admin123!` (ROLE_ADMIN)
-  - User: `user` / `User123!` (ROLE_USER)
-  - Anon: `anon` / `Anon123!` (ROLE_USER)
+    - Admin: `admin` / `Admin123!` (ROLE_ADMIN)
+    - User: `user` / `User123!` (ROLE_USER)
+    - Anon: `anon` / `Anon123!` (ROLE_USER)
 
 - 운영 환경에서의 권장 사항
-  - 비밀번호를 반드시 환경별로 오버라이드하세요 (예: `application-prod.yml`).
-  - 최초 기동 후 즉시 관리자 비밀번호를 변경하세요.
+    - 비밀번호를 반드시 환경별로 오버라이드하세요 (예: `application-prod.yml`).
+    - 최초 기동 후 즉시 관리자 비밀번호를 변경하세요.
 
 - 설정 오버라이드 예시 (YAML)
 
@@ -81,8 +81,8 @@ export BOARDHOLE_DEFAULT_USERS_REGULAR_PASSWORD='CHANGE_ME_STRONG!'
 ```
 
 - 비밀번호 변경 API (로그인 후 본인 비밀번호 변경)
-  - `PATCH /api/users/{id}/password` (폼 전송)
-  - 필드: `currentPassword`, `newPassword`, `confirmPassword`
+    - `PATCH /api/users/{id}/password` (폼 전송)
+    - 필드: `currentPassword`, `newPassword`, `confirmPassword`
 
 ## 🏗️ 기술 스택
 
@@ -127,11 +127,6 @@ src/main/java/bunny/boardhole/
 ## 🔧 유용한 명령어
 
 ```bash
-# 품질 검사 (Checkstyle, PMD, SpotBugs)
-./gradlew qualityCheck
-
-
-
 # Docker 컨테이너 종료
 docker-compose down
 
@@ -155,7 +150,7 @@ MIT License
 ./gradlew test --tests BoardControllerTest
 
 # 모든 테스트 스위트 실행
-./gradlew test e2eTest      # unit + integration + e2e
+./gradlew test
 
 ```
 
