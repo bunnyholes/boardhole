@@ -75,9 +75,13 @@ public class LoggingAspect {
 
         long start = System.nanoTime();
 
-        // 메서드 시작 로깅은 DEBUG 레벨에서만
+        // 메서드 시작 로깅은 DEBUG 레벨에서만 (로깅 포맷 실패 시 비즈니스에 영향 없도록 보호)
         if (log.isDebugEnabled()) {
-            log.debug(logFormatter.formatMethodStart(signature, pjp.getArgs()));
+            try {
+                log.debug(logFormatter.formatMethodStart(signature, pjp.getArgs()));
+            } catch (Throwable formatEx) {
+                log.warn("Log formatting failed for {}: {}", signature, formatEx.toString());
+            }
         }
 
         try {
@@ -101,8 +105,12 @@ public class LoggingAspect {
         } catch (Throwable ex) {
             long tookMs = (System.nanoTime() - start) / 1_000_000;
 
-            // 에러는 항상 로깅
-            log.error(logFormatter.formatMethodError(signature, tookMs, ex.getMessage()));
+            // 에러 로깅 중 포맷 실패가 비즈니스 예외를 가리지 않도록 보호
+            try {
+                log.error(logFormatter.formatMethodError(signature, tookMs, ex.getMessage()));
+            } catch (Throwable formatEx) {
+                log.error("Log formatting failed for {}: {} (original error: {})", signature, formatEx.toString(), ex.toString());
+            }
             throw ex;
         } finally {
             MDCUtil.clearMethod();

@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;
+
 import bunny.boardhole.user.application.command.UpdateUserCommand;
 import bunny.boardhole.user.application.event.UserCreatedEvent;
 import bunny.boardhole.user.application.result.UserResult;

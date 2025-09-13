@@ -52,7 +52,8 @@ import bunny.boardhole.user.domain.validation.required.ValidUsername;
     @Index(name = "idx_user_name", columnList = "name"),
     @Index(name = "idx_user_deleted", columnList = "deleted")
 })
-public class User extends BaseEntity {
+public class User extends BaseEntity implements java.io.Serializable {
+    private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @EqualsAndHashCode.Include

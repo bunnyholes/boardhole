@@ -7,7 +7,6 @@ import jakarta.persistence.EntityListeners;
 import jakarta.persistence.MappedSuperclass;
 
 import lombok.Getter;
-import lombok.Setter;
 
 import org.hibernate.annotations.SoftDelete;
 import org.springframework.data.annotation.CreatedBy;

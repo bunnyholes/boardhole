@@ -1,5 +1,7 @@
 package bunny.boardhole.shared.security;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -11,7 +13,10 @@ import org.springframework.security.core.userdetails.UserDetails;
 import bunny.boardhole.user.domain.Role;
 import bunny.boardhole.user.domain.User;
 
-public record AppUserPrincipal(User user) implements UserDetails {
+public record AppUserPrincipal(User user) implements UserDetails, Serializable {
+    @Serial
+    private static final long serialVersionUID = 1L;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         Set<Role> roles = user.getRoles();
