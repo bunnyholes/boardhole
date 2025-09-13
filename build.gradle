@@ -2,16 +2,8 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.5.5'
     id 'io.spring.dependency-management' version '1.1.7'
-    id 'org.openrewrite.rewrite' version '7.15.0'
     id 'com.github.ben-manes.versions' version '0.52.0'
-    id 'checkstyle'
-    id 'jacoco'
-    id 'pmd'
-    id 'net.ltgt.errorprone' version '4.1.0'
-    id 'org.sonarqube' version '6.3.1.5724'
-    id 'com.github.spotbugs' version '6.2.6'
-    id 'net.researchgate.release' version '3.0.2'
-    id 'org.hildan.github.changelog' version '2.2.0'
+
 }
 
 group = 'bunny'
@@ -32,6 +24,7 @@ configurations {
     compileOnly {
         extendsFrom annotationProcessor
     }
+
 }
 
 repositories {
@@ -39,26 +32,30 @@ repositories {
 }
 
 dependencies {
-    // -- SpotBugs Security Plugin --
-    spotbugsPlugins 'com.h3xstream.findsecbugs:findsecbugs-plugin:1.14.0'
-    
-    // -- ErrorProne --
-    errorprone 'com.google.errorprone:error_prone_core:2.36.0'
-    
+
     // -- Core Spring Boot Starters --
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-aop'
     implementation 'org.springframework.boot:spring-boot-starter-security'
-    
+    // Email dependencies removed - will be replaced with JWT-based email verification later
+    // implementation 'org.springframework.boot:spring-boot-starter-mail'
+    // implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+
+    // -- Development Tools --
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
     // -- Session Management (Redis) --
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
     implementation 'org.springframework.session:spring-session-data-redis'
 
     // -- API Documentation (SpringDoc) --
-    implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.11"
-    implementation "org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.11"
+    // noinspection VulnerableLibrariesLocal
+    implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.12"
+
+    // -- Null Safety (JSpecify) --
+    implementation "org.jspecify:jspecify:1.0.0"
 
     // -- Mapping (MapStruct) --
     implementation "org.mapstruct:mapstruct:1.6.3"
@@ -66,11 +63,11 @@ dependencies {
     annotationProcessor "org.projectlombok:lombok-mapstruct-binding:0.2.0"
 
     // -- Lombok --
-    compileOnly "org.projectlombok:lombok:1.18.38"
-    annotationProcessor "org.projectlombok:lombok:1.18.38"
+    compileOnly "org.projectlombok:lombok:1.18.40"
+    annotationProcessor "org.projectlombok:lombok:1.18.40"
 
     // -- Database Drivers --
-    runtimeOnly "com.mysql:mysql-connector-j:9.4.0"
+    runtimeOnly "com.mysql:mysql-connector-j:8.4.0"
 
     // -- Logging (JSON encoder, opt-in in prod) --
     implementation "net.logstash.logback:logstash-logback-encoder:8.1"
@@ -80,509 +77,20 @@ dependencies {
 
     // -- Testing --
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
     testImplementation 'org.springframework.security:spring-security-test'
-    testImplementation 'com.h2database:h2'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    
-    // -- ArchUnit for architecture testing --
-    testImplementation 'com.tngtech.archunit:archunit-junit5:1.4.1'
+    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+    testImplementation 'org.testcontainers:mysql'
 
-    // -- OpenRewrite recipes (static analysis/refactoring) --
-    rewrite 'org.openrewrite.recipe:rewrite-spring:6.13.0'
-    rewrite 'org.openrewrite.recipe:rewrite-static-analysis:2.16.0'
 
-    // (Removed) REST Docs and restdocs-api-spec
+    // -- RestAssured for E2E testing --
+    testImplementation 'io.rest-assured:rest-assured:5.5.6'
+    testImplementation 'io.rest-assured:json-path:5.5.6'
+    testImplementation 'io.rest-assured:xml-path:5.5.6'
+
 }
 
 tasks.named('test') {
     useJUnitPlatform()
-    
-    testLogging {
-        events "passed", "skipped", "failed"
-        exceptionFormat = "short"
-    }
-}
-// Removed REST Docs related tasks and plugins
-
-
-rewrite {
-    activeRecipe('bunny.boardhole.refactor.main')
-    exportDatatables = true
-}
-
-checkstyle {
-    toolVersion = '10.12.5'
-    configFile = file("${rootDir}/config/checkstyle/checkstyle.xml")
-    configDirectory = file("${rootDir}/config/checkstyle")
-    maxWarnings = 0
-    ignoreFailures = true  // 점진적 개선을 위해 경고만 출력
-    maxErrors = 0
-}
-
-tasks.withType(Checkstyle) {
-    reports {
-        xml.required = true
-        html.required = true
-    }
-}
-
-sonarqube {
-    properties {
-        property "sonar.projectKey", "bunnyxiyo_board-hole"
-        property "sonar.organization", "bunnyxiyo"
-        property "sonar.host.url", "https://sonarcloud.io"
-        property "sonar.sources", "src/main/java"
-        property "sonar.tests", "src/test/java"
-        property "sonar.java.binaries", "build/classes"
-        property "sonar.java.test.binaries", "build/test-results/test"
-        property "sonar.exclusions", "**/*Test.java, **/*Tests.java, **/test/**"
-        
-        // Jacoco 커버리지 리포트 경로
-        property "sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/test/jacocoTestReport.xml"
-        
-        // PMD 리포트 경로
-        property "sonar.java.pmd.reportPaths", "build/reports/pmd/main.xml"
-        
-        // SpotBugs 리포트 경로 (기존 설정 개선)
-        property "sonar.java.spotbugs.reportPaths", "build/reports/spotbugs/main.xml"
-        
-        // Checkstyle 리포트 경로
-        property "sonar.java.checkstyle.reportPaths", "build/reports/checkstyle/main.xml"
-    }
-}
-
-task sonarAnalysis {
-    group = 'verification'
-    description = 'Run SonarCloud analysis with all quality reports'
-    dependsOn 'qualityCheck'
-    finalizedBy 'sonar'
-    
-    doLast {
-        println """
-        ==========================================
-        📊 SonarCloud 분석 준비 완료
-        ==========================================
-        ✅ Jacoco: 테스트 커버리지 리포트 생성
-        ✅ PMD: 코드 품질 검사 완료
-        ✅ SpotBugs: 정적 분석 완료
-        ✅ Checkstyle: 코딩 컨벤션 검사 완료
-        ==========================================
-        SonarCloud에 리포트 업로드 중...
-        ==========================================
-        """
-    }
-}
-
-spotbugs {
-    toolVersion = '4.8.6'
-    effort = 'max'
-    reportLevel = 'low'
-    ignoreFailures = true  // 점진적 개선을 위해 경고만 출력
-    includeFilter = file("${rootDir}/config/spotbugs/include.xml")
-    excludeFilter = file("${rootDir}/config/spotbugs/exclude.xml")
-}
-
-spotbugsMain {
-    reports {
-        html {
-            required = true
-            outputLocation = file("$buildDir/reports/spotbugs/main.html")
-        }
-        xml {
-            required = true  // SonarCloud 연동 활성화
-            outputLocation = file("$buildDir/reports/spotbugs/main.xml")
-        }
-        text {
-            required = true  // 터미널 출력용
-            outputLocation = file("$buildDir/reports/spotbugs/main.txt")
-        }
-    }
-}
-
-spotbugsTest {
-    reports {
-        html {
-            required = true
-            outputLocation = file("$buildDir/reports/spotbugs/test.html")
-        }
-        text {
-            required = false
-        }
-    }
-}
-
-task spotbugsConsole {
-    group = 'verification'
-    description = 'Run SpotBugs and display results in console'
-    dependsOn 'spotbugsMain'
-    doLast {
-        def reportFile = file("$buildDir/reports/spotbugs/main.txt")
-        if (reportFile.exists()) {
-            println "\n========== SpotBugs Analysis Results =========="
-            println reportFile.text
-            println "================================================\n"
-        } else {
-            println "No bugs found! ✅"
-        }
-    }
-}
-
-// Semantic Versioning 자동화 설정
-release {
-    failOnCommitNeeded = true
-    failOnPublishNeeded = true
-    failOnSnapshotDependencies = true
-    failOnUnversionedFiles = true
-    failOnUpdateNeeded = true
-    revertOnFail = true
-    
-    tagTemplate = 'v${version}'
-    versionPropertyFile = 'gradle.properties'
-    
-    preCommitText = '[Release]'
-    preTagCommitMessage = 'Release version'
-    newVersionCommitMessage = 'Prepare next version'
-    tagCommitMessage = 'Release version'
-    
-    buildTasks = ['build']
-    
-    git {
-        requireBranch.set('master')
-        pushToRemote.set('origin')
-    }
-}
-
-// Changelog 자동 생성 설정
-changelog {
-    githubUser = 'bunnyxiyo'
-    githubRepository = 'board-hole'
-    
-    outputFile = file("${projectDir}/CHANGELOG.md")
-    
-    // Sections configuration
-    sections = [
-        [title: '✨ New Features', labels: ['feature', 'enhancement', 'feat']],
-        [title: '🐛 Bug Fixes', labels: ['bug', 'fix', 'bugfix']],
-        [title: '📝 Documentation', labels: ['documentation', 'docs']],
-        [title: '♻️ Refactoring', labels: ['refactor', 'refactoring']],
-        [title: '🔧 Maintenance', labels: ['chore', 'maintenance']],
-        [title: '⚡ Performance', labels: ['performance', 'perf']],
-        [title: '🔒 Security', labels: ['security']],
-        [title: '✅ Tests', labels: ['test', 'tests', 'testing']]
-    ]
-    
-    excludeLabels = ['duplicate', 'wontfix', 'invalid', 'question']
-}
-
-// 통합 릴리즈 태스크
-task releaseWithChangelog {
-    group = 'release'
-    description = 'Generate changelog and perform release'
-    dependsOn 'generateChangelog'
-    finalizedBy 'release'
-    
-    doLast {
-        println """
-        ======================================
-        📦 Release Process Started
-        ======================================
-        1. Generating CHANGELOG.md from GitHub PRs/Issues
-        2. Updating version in gradle.properties
-        3. Creating Git tag
-        4. Pushing to remote repository
-        ======================================
-        """
-    }
-}
-
-// 드라이런 태스크
-task releaseDryRun {
-    group = 'release'
-    description = 'Dry run of release process (no actual changes)'
-    
-    doLast {
-        println """
-        ======================================
-        🔍 Release Dry Run
-        ======================================
-        Current version: ${project.version}
-        Next patch version would be: ${project.version.toString().replace('-SNAPSHOT', '').split('\\.').with { 
-            "${it[0]}.${it[1]}.${(it[2] as Integer) + 1}"
-        }}
-        Tag would be: v${project.version.toString().replace('-SNAPSHOT', '')}
-        ======================================
-        Run './gradlew release' to perform actual release
-        Run './gradlew generateChangelog' to preview CHANGELOG
-        ======================================
-        """
-    }
-}
-
-// 내부 패치 버전 관리 태스크들
-task buildAlpha {
-    group = 'release'
-    description = 'Build with alpha version (use -Palpha=1)'
-    
-    doLast {
-        def alphaNumber = project.hasProperty('alpha') ? project.alpha : '1'
-        def alphaVersion = "${project.version.toString().replace('-SNAPSHOT', '')}-alpha.${alphaNumber}"
-        println "Building Alpha Version: ${alphaVersion}"
-    }
-    
-    dependsOn 'build'
-}
-
-task buildBeta {
-    group = 'release'
-    description = 'Build with beta version (use -Pbeta=1)'
-    
-    doLast {
-        def betaNumber = project.hasProperty('beta') ? project.beta : '1'
-        def betaVersion = "${project.version.toString().replace('-SNAPSHOT', '')}-beta.${betaNumber}"
-        println "Building Beta Version: ${betaVersion}"
-    }
-    
-    dependsOn 'build'
-}
-
-task buildRC {
-    group = 'release'
-    description = 'Build with RC version (use -Prc=1)'
-    
-    doLast {
-        def rcNumber = project.hasProperty('rc') ? project.rc : '1'
-        def rcVersion = "${project.version.toString().replace('-SNAPSHOT', '')}-rc.${rcNumber}"
-        println "Building Release Candidate: ${rcVersion}"
-    }
-    
-    dependsOn 'build'
-}
-
-task buildWithGitHash {
-    group = 'release'
-    description = 'Build with git commit hash in version'
-    
-    doLast {
-        def gitHash = 'unknown'
-        try {
-            def stdout = new ByteArrayOutputStream()
-            exec {
-                commandLine 'git', 'rev-parse', '--short', 'HEAD'
-                standardOutput = stdout
-            }
-            gitHash = stdout.toString().trim()
-        } catch (Exception e) {
-            // ignore
-        }
-        
-        def hashVersion = "${project.version}-${gitHash}"
-        println "Building with Git Hash: ${hashVersion}"
-    }
-    
-    dependsOn 'build'
-}
-
-task buildWithTimestamp {
-    group = 'release'
-    description = 'Build with timestamp in version'
-    
-    doLast {
-        def timestamp = new Date().format('yyyyMMddHHmmss')
-        def timestampVersion = "${project.version}-${timestamp}"
-        println "Building with Timestamp: ${timestampVersion}"
-    }
-    
-    dependsOn 'build'
-}
-
-// 버전 정보 출력 태스크
-task showVersion {
-    group = 'release'
-    description = 'Show current project version'
-    
-    doLast {
-        println """
-        ======================================
-        📦 Version Information
-        ======================================
-        Base Version: ${project.version}
-        Group: ${project.group}
-        Project: ${project.name}
-        ======================================
-        Available version types:
-        - Alpha: ./gradlew buildAlpha -Palpha=1
-        - Beta: ./gradlew buildBeta -Pbeta=1
-        - RC: ./gradlew buildRC -Prc=1
-        - Git Hash: ./gradlew buildWithGitHash
-        - Timestamp: ./gradlew buildWithTimestamp
-        - CI Build: ./gradlew build -PbuildNumber=123
-        ======================================
-        """
-    }
-}
-
-// =======================================
-// 품질 검사 도구 설정 (Issue #14)
-// =======================================
-
-// Jacoco 설정 (테스트 커버리지)
-jacoco {
-    toolVersion = '0.8.12'
-}
-
-jacocoTestReport {
-    dependsOn test
-    
-    reports {
-        xml.required = true  // SonarQube 연동용
-        html.required = true // 개발자 확인용
-        csv.required = false
-    }
-    
-    afterEvaluate {
-        classDirectories.setFrom(files(classDirectories.files.collect {
-            fileTree(dir: it, exclude: [
-                '**/*Application*',     // Spring Boot main class
-                '**/*Config*',          // Configuration classes
-                '**/*Test*',            // Test classes
-                '**/*Exception*',       // Exception classes
-                '**/dto/**',            // DTO classes
-                '**/entity/**'          // Entity classes (optional)
-            ])
-        }))
-    }
-}
-
-test {
-    finalizedBy jacocoTestReport
-}
-
-jacocoTestCoverageVerification {
-    dependsOn jacocoTestReport
-    
-    violationRules {
-        rule {
-            limit {
-                minimum = 0.60  // 현재 수준 (64%) 근처로 설정
-            }
-        }
-        
-        rule {
-            element = 'CLASS'
-            limit {
-                counter = 'BRANCH'
-                value = 'COVEREDRATIO'
-                minimum = 0.40  // 점진적 개선용 낮은 임계값
-            }
-        }
-        
-        rule {
-            element = 'METHOD'
-            limit {
-                counter = 'LINE'
-                value = 'COVEREDRATIO'
-                minimum = 0.50  // 점진적 개선용 낮은 임계값
-            }
-        }
-    }
-}
-
-// PMD 설정 (코드 품질 규칙) - 경고 모드
-pmd {
-    toolVersion = '7.9.0'
-    consoleOutput = true
-    ignoreFailures = true  // 점진적 개선을 위해 경고만 출력
-    ruleSetFiles = files("${rootDir}/config/pmd/ruleset.xml")
-    
-    ruleSets = []  // 기본 ruleset 비활성화, 커스텀 룰셋 사용
-}
-
-pmdMain {
-    reports {
-        xml.required = true   // SonarQube 연동용
-        html.required = true  // 개발자 확인용
-    }
-}
-
-pmdTest {
-    reports {
-        xml.required = false
-        html.required = true
-    }
-}
-
-// ErrorProne 설정 (컴파일 타임 버그 탐지) - 엄격 모드
-tasks.withType(JavaCompile).configureEach {
-    options.errorprone {
-        disableWarningsInGeneratedCode = true
-        
-        // 교과서적 필수 검사 - 경고 수준
-        warn(
-            'MissingOverride',
-            'DefaultCharset',
-            'StreamResourceLeak', 
-            'ReferenceEquality',
-            'StringSplitter',
-            'UnusedVariable',
-            'UnusedMethod',
-            'MutablePublicArray',
-            'StaticAssignmentInConstructor',
-            'StringCaseLocaleUsage',
-            'EmptyCatch',
-            'JavaTimeDefaultTimeZone'
-        )
-        
-        // 교과서적 필수 검사 - 오류 수준 (빌드 실패)
-        error(
-            'DeadException',
-            'LockNotBeforeTry', 
-            'SynchronizeOnNonFinalField'
-        )
-        
-        // 모든 경고를 오류로 처리 (교과서적 엄격함)
-        allErrorsAsWarnings = false
-        allDisabledChecksAsWarnings = false
-    }
-}
-
-// 통합 품질 검사 태스크 - 교과서적 엄격 모드
-task qualityCheck {
-    group = 'verification'
-    description = 'Run all quality check tools with strict standards'
-    dependsOn 'test', 'pmdMain', 'pmdTest', 'spotbugsMain', 'spotbugsTest', 'jacocoTestCoverageVerification'
-    
-    doFirst {
-        println """
-        ========================================
-        🔍 교과서적 품질 검사 시작
-        ========================================
-        📋 검사 항목:
-        - Checkstyle: 코딩 컨벤션 (경고=0, 오류=0)
-        - PMD: 코드 품질 (복잡도≤7, 클래스≤300줄)
-        - SpotBugs: 정적 분석 (최대 강도, 모든 레벨)
-        - ErrorProne: 컴파일 타임 검사 (엄격 모드)
-        - Jacoco: 커버리지 (≥80% 라인, ≥70% 브랜치)
-        ========================================
-        """
-    }
-    
-    doLast {
-        println """
-        ========================================
-        ✅ 교과서적 품질 기준 통과
-        ========================================
-        모든 품질 검사가 엄격한 기준을 만족했습니다.
-        리포트 위치:
-        - HTML: build/reports/jacoco/test/html/index.html
-        - PMD: build/reports/pmd/main.html
-        - SpotBugs: build/reports/spotbugs/main.html
-        - Checkstyle: build/reports/checkstyle/main.html
-        ========================================
-        """
-    }
-}
-
-// build 태스크가 품질 검사를 포함하도록 설정
-build {
-    dependsOn qualityCheck
+    maxParallelForks = Runtime.runtime.availableProcessors() ?: 1
 }

@@ -1,10 +1,14 @@
 package bunny.boardhole.shared.constants;
 
+import lombok.Getter;
+
 /**
  * 에러 코드 열거형
  * GlobalExceptionHandler에서 사용
  */
+@Getter
 public enum ErrorCode {
+    // General errors
     CONFLICT("CONFLICT"),
     UNAUTHORIZED("UNAUTHORIZED"),
     FORBIDDEN("FORBIDDEN"),
@@ -16,6 +20,11 @@ public enum ErrorCode {
     MISSING_PARAMETER("MISSING_PARAMETER"),
     TYPE_MISMATCH("TYPE_MISMATCH"),
     INTERNAL_ERROR("INTERNAL_ERROR"),
+    NOT_FOUND("NOT_FOUND"),
+    PAYLOAD_TOO_LARGE("PAYLOAD_TOO_LARGE"),
+    SERVICE_UNAVAILABLE("SERVICE_UNAVAILABLE"),
+    
+    // User domain errors
     USER_DUPLICATE_USERNAME("USER_DUPLICATE_USERNAME"),
     USER_DUPLICATE_EMAIL("USER_DUPLICATE_EMAIL");
 
@@ -23,9 +32,5 @@ public enum ErrorCode {
 
     ErrorCode(String code) {
         this.code = code;
-    }
-
-    public String getCode() {
-        return code;
     }
 }

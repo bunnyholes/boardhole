@@ -1,23 +1,52 @@
 package bunny.boardhole.shared.security;
 
-import bunny.boardhole.board.infrastructure.BoardRepository;
-import bunny.boardhole.shared.config.properties.SecurityProperties;
-import bunny.boardhole.shared.constants.PermissionType;
-import bunny.boardhole.user.infrastructure.UserRepository;
+import java.io.Serializable;
+import java.util.Locale;
+
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.lang.Nullable;
 import org.springframework.security.access.PermissionEvaluator;
-import org.springframework.security.core.*;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
-import java.io.Serializable;
+import bunny.boardhole.board.infrastructure.BoardRepository;
+import bunny.boardhole.shared.constants.PermissionType;
+import bunny.boardhole.shared.properties.SecurityProperties;
+import bunny.boardhole.user.domain.User;
 
 @Component
 @RequiredArgsConstructor
 public class AppPermissionEvaluator implements PermissionEvaluator {
 
     private final BoardRepository boardRepository;
-    private final UserRepository userRepository;
     private final SecurityProperties securityProperties;
+
+    private static boolean hasRole(Authentication auth, String role) {
+        if (!auth.isAuthenticated())
+            return false;
+        return auth.getAuthorities().stream().map(GrantedAuthority::getAuthority).anyMatch(role::equals);
+    }
+
+    private static boolean isSameUser(Authentication auth, Long userId) {
+        Long current = extractUserId(auth);
+        return current != null && current.equals(userId);
+    }
+
+    private static @Nullable Long extractUserId(Authentication auth) {
+        Object principal = auth.getPrincipal();
+        if (principal instanceof AppUserPrincipal(User user))
+            return user.getId();
+        return null;
+    }
+
+    private static boolean isEmailVerified(Authentication auth) {
+        Object principal = auth.getPrincipal();
+        if (principal instanceof AppUserPrincipal(User user))
+            return user.isEmailVerified();
+        return false;
+    }
 
     @Override
     public boolean hasPermission(Authentication authentication, Object targetDomainObject, Object permission) {
@@ -27,16 +56,17 @@ public class AppPermissionEvaluator implements PermissionEvaluator {
 
     @Override
     public boolean hasPermission(Authentication auth, Serializable targetId, String targetType, Object permission) {
-        if (auth == null || !auth.isAuthenticated()) return false;
-        String type = targetType == null ? "" : targetType.toUpperCase();
-        String perm = (permission == null ? "" : permission.toString().toUpperCase());
+        if (!auth.isAuthenticated())
+            return false;
+        String type = targetType.toUpperCase(Locale.ROOT);
+        String perm = permission.toString().toUpperCase(Locale.ROOT);
 
         // Admin shortcut
-        if (hasRole(auth, securityProperties.getRolePrefix() + "ADMIN")) {
+        if (hasRole(auth, securityProperties.rolePrefix() + "ADMIN"))
             return true;
-        }
 
-        if (!(targetId instanceof Long id)) return false;
+        if (!(targetId instanceof Long id))
+            return false;
 
         return switch (type) {
             case PermissionType.TARGET_BOARD -> switch (perm) {
@@ -44,7 +74,11 @@ public class AppPermissionEvaluator implements PermissionEvaluator {
                 default -> false;
             };
             case PermissionType.TARGET_USER -> switch (perm) {
-                case PermissionType.WRITE, PermissionType.DELETE -> isSameUser(auth, id);
+                case PermissionType.READ, PermissionType.WRITE, PermissionType.DELETE -> isSameUser(auth, id);
+                default -> false;
+            };
+            case PermissionType.TARGET_EMAIL_VERIFICATION -> switch (perm) {
+                case "VERIFIED" -> isEmailVerified(auth);
                 default -> false;
             };
             default -> false;
@@ -60,31 +94,6 @@ public class AppPermissionEvaluator implements PermissionEvaluator {
 
         // N+1 문제 해결: 작성자 ID만 조회하는 경량 쿼리 사용
         // 전체 Board 엔티티를 로드하지 않고 필요한 정보만 조회하여 성능 최적화
-        return boardRepository.findAuthorIdById(boardId)
-                .map(ownerId -> isSameUser(auth, ownerId))
-                .orElse(false);
-    }
-
-    private boolean isSameUser(Authentication auth, Long userId) {
-        Long current = extractUserId(auth);
-        return current != null && current.equals(userId);
-    }
-
-    private Long extractUserId(Authentication auth) {
-        Object principal = auth.getPrincipal();
-        if (principal instanceof AppUserPrincipal(bunny.boardhole.user.domain.User user) && user != null) {
-            return user.getId();
-        }
-        return null;
-    }
-
-    private boolean hasRole(Authentication auth, String role) {
-        if (auth == null || !auth.isAuthenticated()) {
-            return false;
-        }
-        return auth.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .anyMatch(role::equals);
+        return boardRepository.findAuthorIdById(boardId).map(ownerId -> isSameUser(auth, ownerId)).orElse(false);
     }
 }
-

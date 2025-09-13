@@ -1,10 +1,16 @@
 package bunny.boardhole.board.domain.validation.optional;
 
-import bunny.boardhole.shared.constants.ValidationConstants;
-import jakarta.validation.*;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+import jakarta.validation.Constraint;
+import jakarta.validation.Payload;
 import jakarta.validation.constraints.Size;
 
-import java.lang.annotation.*;
+import bunny.boardhole.board.domain.validation.BoardValidationConstants;
 
 /**
  * 게시글 제목 검증 애너테이션 (선택적 필드)
@@ -14,10 +20,10 @@ import java.lang.annotation.*;
 @Target({ElementType.FIELD, ElementType.PARAMETER, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-@Size(max = ValidationConstants.BOARD_TITLE_MAX_LENGTH, message = "{board.validation.title.size}")
+@Size(max = BoardValidationConstants.BOARD_TITLE_MAX_LENGTH, message = "{validation.board.title.size}")
 @Constraint(validatedBy = {})
 public @interface OptionalBoardTitle {
-    String message() default "{board.validation.title.invalid}";
+    String message() default "{validation.board.title.invalid}";
 
     Class<?>[] groups() default {};
 

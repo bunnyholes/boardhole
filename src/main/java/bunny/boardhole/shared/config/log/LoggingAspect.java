@@ -2,8 +2,11 @@ package bunny.boardhole.shared.config.log;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.aspectj.lang.ProceedingJoinPoint;
-import org.aspectj.lang.annotation.*;
+import org.aspectj.lang.annotation.Around;
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.MessageSource;
 import org.springframework.core.Ordered;
@@ -20,18 +23,32 @@ public class LoggingAspect {
 
     private final MessageSource messageSource;
     private final LogFormatter logFormatter;
-    private final LoggingProperties loggingProperties;
 
-    @Pointcut("execution(public * bunny.boardhole..controller..*(..))")
+    /**
+     * Controller 레이어 메소드 포인트컷
+     * 모든 Controller 클래스의 public 메소드를 대상으로 합니다.
+     */
+    @Pointcut("execution(public * bunny.boardhole..*Controller.*(..))")
     void anyController() {
+        // AOP 포인트컷 정의용 빈 메소드
     }
 
-    @Pointcut("execution(public * bunny.boardhole..service..*(..))")
+    /**
+     * Service 레이어 메소드 포인트컷
+     * 모든 Service 클래스의 public 메소드를 대상으로 합니다.
+     */
+    @Pointcut("execution(public * bunny.boardhole..*Service.*(..))")
     void anyService() {
+        // AOP 포인트컷 정의용 빈 메소드
     }
 
-    @Pointcut("execution(public * bunny.boardhole..repository..*(..))")
+    /**
+     * Repository 레이어 메소드 포인트컷
+     * 모든 Repository 클래스의 public 메소드를 대상으로 합니다.
+     */
+    @Pointcut("execution(public * bunny.boardhole..*Repository.*(..))")
     void anyRepository() {
+        // AOP 포인트컷 정의용 빈 메소드
     }
 
     @Around("anyController() || anyService() || anyRepository()")
@@ -58,9 +75,13 @@ public class LoggingAspect {
 
         long start = System.nanoTime();
 
-        // 메서드 시작 로깅은 DEBUG 레벨에서만
+        // 메서드 시작 로깅은 DEBUG 레벨에서만 (로깅 포맷 실패 시 비즈니스에 영향 없도록 보호)
         if (log.isDebugEnabled()) {
-            log.debug(logFormatter.formatMethodStart(signature, pjp.getArgs()));
+            try {
+                log.debug(logFormatter.formatMethodStart(signature, pjp.getArgs()));
+            } catch (Throwable formatEx) {
+                log.warn("Log formatting failed for {}: {}", signature, formatEx.toString());
+            }
         }
 
         try {
@@ -69,15 +90,13 @@ public class LoggingAspect {
 
             // 성능 경고는 임계값 초과 시에만 (불필요한 로깅 감소)
             if (logFormatter.shouldWarnPerformance(tookMs)) {
-                log.warn(messageSource.getMessage("log.performance.warning",
-                        new Object[]{signature, tookMs},
-                        org.springframework.context.i18n.LocaleContextHolder.getLocale()));
+                log.warn(messageSource.getMessage("log.performance.warning", new Object[]{signature, tookMs}, org.springframework.context.i18n.LocaleContextHolder.getLocale()));
             }
 
             // 메서드 종료 로깅은 DEBUG 레벨에서만 (로깅 포맷 오류가 있어도 비즈니스 흐름에 영향 주지 않도록 보호)
             if (log.isDebugEnabled() && tookMs > 10) { // 10ms 이상인 경우만 로깅
                 try {
-                    log.debug(logFormatter.formatMethodEnd(signature, result, tookMs));
+                    log.debug(logFormatter.formatMethodEnd(signature, tookMs));
                 } catch (Throwable formatEx) {
                     log.warn("Log formatting failed for {}: {}", signature, formatEx.toString());
                 }
@@ -86,8 +105,12 @@ public class LoggingAspect {
         } catch (Throwable ex) {
             long tookMs = (System.nanoTime() - start) / 1_000_000;
 
-            // 에러는 항상 로깅
-            log.error(logFormatter.formatMethodError(signature, tookMs, ex.getMessage()));
+            // 에러 로깅 중 포맷 실패가 비즈니스 예외를 가리지 않도록 보호
+            try {
+                log.error(logFormatter.formatMethodError(signature, tookMs, ex.getMessage()));
+            } catch (Throwable formatEx) {
+                log.error("Log formatting failed for {}: {} (original error: {})", signature, formatEx.toString(), ex.toString());
+            }
             throw ex;
         } finally {
             MDCUtil.clearMethod();
@@ -95,10 +118,13 @@ public class LoggingAspect {
     }
 
     private String extractLayer(String signature) {
-        if (signature.contains("Controller")) return "controller";
-        else if (signature.contains("Service")) return "service";
-        else if (signature.contains("Repository")) return "repository";
-        else return "unknown";
+        if (signature.contains("Controller"))
+            return "controller";
+        if (signature.contains("Service"))
+            return "service";
+        if (signature.contains("Repository"))
+            return "repository";
+        return "unknown";
     }
 
 }

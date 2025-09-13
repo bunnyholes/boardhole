@@ -1,16 +1,23 @@
 package bunny.boardhole.board.presentation.mapper;
 
-import bunny.boardhole.board.application.command.*;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingConstants;
+
+import bunny.boardhole.board.application.command.CreateBoardCommand;
+import bunny.boardhole.board.application.command.UpdateBoardCommand;
+import bunny.boardhole.board.application.query.GetBoardQuery;
 import bunny.boardhole.board.application.result.BoardResult;
-import bunny.boardhole.board.presentation.dto.*;
-import bunny.boardhole.shared.mapstruct.MapstructConfig;
-import org.mapstruct.*;
+import bunny.boardhole.board.presentation.dto.BoardCreateRequest;
+import bunny.boardhole.board.presentation.dto.BoardResponse;
+import bunny.boardhole.board.presentation.dto.BoardUpdateRequest;
 
 /**
  * 게시글 웹 계층 매퍼
  * 게시글 웹 DTO와 애플리케이션 Command/Result 간 매핑을 담당합니다.
  */
-@Mapper(config = MapstructConfig.class)
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
+@SuppressWarnings("NullableProblems")
 public interface BoardWebMapper {
 
     /**
@@ -46,4 +53,13 @@ public interface BoardWebMapper {
     @Mapping(target = "title", source = "req.title")
     @Mapping(target = "content", source = "req.content")
     UpdateBoardCommand toUpdateCommand(Long id, Long authorId, BoardUpdateRequest req);
+
+    /**
+     * ID로 게시글 조회 쿼리 생성
+     *
+     * @param id 게시글 ID
+     * @return 게시글 조회 쿼리
+     */
+    GetBoardQuery toGetBoardQuery(Long id);
+
 }

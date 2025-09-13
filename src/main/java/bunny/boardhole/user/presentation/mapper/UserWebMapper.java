@@ -1,16 +1,24 @@
 package bunny.boardhole.user.presentation.mapper;
 
-import bunny.boardhole.shared.mapstruct.MapstructConfig;
-import bunny.boardhole.user.application.command.*;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingConstants;
+
+import bunny.boardhole.user.application.command.CreateUserCommand;
+import bunny.boardhole.user.application.command.UpdatePasswordCommand;
+import bunny.boardhole.user.application.command.UpdateUserCommand;
 import bunny.boardhole.user.application.result.UserResult;
-import bunny.boardhole.user.presentation.dto.*;
-import org.mapstruct.*;
+import bunny.boardhole.user.presentation.dto.PasswordUpdateRequest;
+import bunny.boardhole.user.presentation.dto.UserCreateRequest;
+import bunny.boardhole.user.presentation.dto.UserResponse;
+import bunny.boardhole.user.presentation.dto.UserUpdateRequest;
 
 /**
  * 사용자 웹 계층 매퍼
  * 사용자 웹 DTO와 애플리케이션 Command/Result 간 매핑을 담당합니다.
  */
-@Mapper(config = MapstructConfig.class)
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
+@SuppressWarnings("NullableProblems")
 public interface UserWebMapper {
 
     /**
@@ -56,26 +64,4 @@ public interface UserWebMapper {
     @Mapping(target = "newPassword", source = "req.newPassword")
     UpdatePasswordCommand toUpdatePasswordCommand(Long id, PasswordUpdateRequest req);
 
-    /**
-     * 이메일 검증 요청을 명령으로 변환
-     *
-     * @param id  사용자 ID
-     * @param req 이메일 검증 요청 DTO
-     * @return 이메일 검증 요청 명령
-     */
-    @Mapping(target = "userId", source = "id")
-    @Mapping(target = "currentPassword", source = "req.currentPassword")
-    @Mapping(target = "newEmail", source = "req.newEmail")
-    RequestEmailVerificationCommand toRequestEmailVerificationCommand(Long id, EmailVerificationRequest req);
-
-    /**
-     * 이메일 변경 요청을 명령으로 변환
-     *
-     * @param id  사용자 ID
-     * @param req 이메일 변경 요청 DTO
-     * @return 이메일 변경 명령
-     */
-    @Mapping(target = "userId", source = "id")
-    @Mapping(target = "verificationCode", source = "req.verificationCode")
-    UpdateEmailCommand toUpdateEmailCommand(Long id, EmailUpdateRequest req);
 }

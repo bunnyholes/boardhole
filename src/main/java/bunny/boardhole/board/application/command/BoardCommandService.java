@@ -1,5 +1,19 @@
 package bunny.boardhole.board.application.command;
 
+import java.util.Optional;
+
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
+
 import bunny.boardhole.board.application.mapper.BoardMapper;
 import bunny.boardhole.board.application.result.BoardResult;
 import bunny.boardhole.board.domain.Board;
@@ -8,17 +22,6 @@ import bunny.boardhole.shared.exception.ResourceNotFoundException;
 import bunny.boardhole.shared.util.MessageUtils;
 import bunny.boardhole.user.domain.User;
 import bunny.boardhole.user.infrastructure.UserRepository;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.*;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.lang.NonNull;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.validation.annotation.Validated;
-
-import java.util.Optional;
 
 /**
  * 게시글 명령 서비스
@@ -32,7 +35,6 @@ public class BoardCommandService {
     private final BoardRepository boardRepository;
     private final UserRepository userRepository;
     private final BoardMapper boardMapper;
-    private final MessageUtils messageUtils;
 
     /**
      * 게시글 생성
@@ -44,17 +46,11 @@ public class BoardCommandService {
     @Transactional
     public BoardResult create(@Valid CreateBoardCommand cmd) {
         Long authorId = cmd.authorId();
-        User author = userRepository.findById(authorId)
-                .orElseThrow(() -> new ResourceNotFoundException(messageUtils.getMessage("error.user.not-found.id", authorId)));
+        User author = userRepository.findById(authorId).orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.user.not-found.id", authorId)));
 
-        Board board = Board.builder()
-                .title(cmd.title())
-                .content(cmd.content())
-                .author(author)
-                .build();
+        Board board = Board.builder().title(cmd.title()).content(cmd.content()).author(author).build();
         Board saved = boardRepository.save(board);
 
-        log.info(messageUtils.getMessage("log.board.created", saved.getId(), saved.getTitle(), author.getUsername()));
         return boardMapper.toResult(saved);
     }
 
@@ -69,10 +65,9 @@ public class BoardCommandService {
      */
     @Transactional
     @PreAuthorize("hasPermission(#cmd.boardId, 'BOARD', 'WRITE')")
-    public BoardResult update(@Valid @NonNull UpdateBoardCommand cmd) {
+    public BoardResult update(@Valid UpdateBoardCommand cmd) {
         Long id = cmd.boardId();
-        Board board = boardRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(messageUtils.getMessage("error.board.not-found.id", id)));
+        Board board = boardRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.board.not-found.id", id)));
 
         // Optional을 사용한 선택적 필드 업데이트
         Optional.ofNullable(cmd.title()).ifPresent(board::changeTitle);
@@ -81,7 +76,6 @@ public class BoardCommandService {
         // @DynamicUpdate가 변경된 필드만 업데이트, @PreUpdate가 updatedAt 자동 설정
         Board saved = boardRepository.save(board);
 
-        log.info(messageUtils.getMessage("log.board.updated", saved.getId(), saved.getTitle(), saved.getAuthor().getUsername()));
         return boardMapper.toResult(saved);
     }
 
@@ -95,10 +89,7 @@ public class BoardCommandService {
     @PreAuthorize("hasPermission(#id, 'BOARD', 'DELETE')")
     public void delete(@NotNull @Positive Long id) {
         Board board = loadBoardOrThrow(id);
-        String authorUsername = board.getAuthor().getUsername();
-
-        boardRepository.deleteById(id);
-        log.info(messageUtils.getMessage("log.board.deleted", id, authorUsername));
+        boardRepository.delete(board);
     }
 
     /**
@@ -112,15 +103,12 @@ public class BoardCommandService {
     @Transactional(propagation = org.springframework.transaction.annotation.Propagation.REQUIRES_NEW)
     public void incrementViewCount(@Valid IncrementViewCountCommand cmd) {
         Long boardId = cmd.boardId();
-        Board board = boardRepository.findById(boardId)
-                .orElseThrow(() -> new ResourceNotFoundException(messageUtils.getMessage("error.board.not-found.id", boardId)));
+        Board board = boardRepository.findById(boardId).orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.board.not-found.id", boardId)));
 
         board.increaseViewCount();
 
-        // flush를 사용하여 낙관적 락 충돌을 즉시 감지
-        Board saved = boardRepository.saveAndFlush(board);
-
-        log.info(messageUtils.getMessage("log.board.view-count-increased", boardId, saved.getViewCount()));
+        // 커밋 시 flush가 진행되어 낙관적 락 충돌이 감지됨
+        boardRepository.save(board);
     }
 
     /**
@@ -130,10 +118,8 @@ public class BoardCommandService {
      * @return 게시글 엔티티
      * @throws ResourceNotFoundException 게시글을 찾을 수 없는 경우
      */
-    @NonNull
-    private Board loadBoardOrThrow(@NonNull Long id) {
-        return boardRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(messageUtils.getMessage("error.board.not-found.id", id)));
+    private Board loadBoardOrThrow(Long id) {
+        return boardRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.board.not-found.id", id)));
     }
 
 }

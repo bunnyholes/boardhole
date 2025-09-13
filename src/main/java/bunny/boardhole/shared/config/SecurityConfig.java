@@ -1,15 +1,14 @@
 package bunny.boardhole.shared.config;
 
-import bunny.boardhole.shared.constants.ApiPaths;
-import bunny.boardhole.shared.security.*;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
-import org.springframework.context.MessageSource;
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.access.PermissionEvaluator;
-import org.springframework.security.access.expression.method.*;
+import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
+import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -20,14 +19,22 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.context.*;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.security.web.context.SecurityContextRepository;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import bunny.boardhole.shared.constants.ApiPaths;
+import bunny.boardhole.shared.properties.ProblemProperties;
+import bunny.boardhole.shared.security.ProblemDetailsAccessDeniedHandler;
+import bunny.boardhole.shared.security.ProblemDetailsAuthenticationEntryPoint;
 
 /**
  * Spring Security 설정
  * 인증, 인가, 세션 관리 및 CORS 설정을 담당합니다.
  */
 @Configuration
-@EnableMethodSecurity(prePostEnabled = true, securedEnabled = true, jsr250Enabled = true)
+@EnableMethodSecurity(securedEnabled = true, jsr250Enabled = true)
 @RequiredArgsConstructor
 public class SecurityConfig {
 
@@ -60,48 +67,30 @@ public class SecurityConfig {
      * @return 설정된 보안 필터 체인
      */
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http, SecurityContextRepository securityContextRepository,
-                                           ProblemDetailsAuthenticationEntryPoint authenticationEntryPoint,
-                                           ProblemDetailsAccessDeniedHandler accessDeniedHandler) throws Exception {
-        http
-                .csrf(AbstractHttpConfigurer::disable)
-                .cors(Customizer.withDefaults())
-                .authorizeHttpRequests(auth -> auth
-                        // Static resources and common locations
-                        .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll() // 현재는 실제 배포 전까지는 항상 유지
-                        // Assets - allow all
-                        .requestMatchers("/assets/**").permitAll() // 현재는 실제 배포 전까지는 항상 유지
-                        // Other static resources
-                        .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**", "/favicon.ico").permitAll() // 현재는 실제 배포 전까지는 항상 유지
-                        // Root and specific HTML files
-                        .requestMatchers("/").permitAll() // 현재는 실제 배포 전까지는 항상 유지
-                        .requestMatchers("/*.html").permitAll() // 현재는 실제 배포 전까지는 항상 유지
-                        .requestMatchers("/admin*.html", "/board*.html", "/user*.html").permitAll() // 현재는 실제 배포 전까지는 항상 유지
-                        .requestMatchers("/login.html", "/signup.html", "/welcome.html", "/my-page.html").permitAll() // 현재는 실제 배포 전까지는 항상 유지
-                        // Swagger UI - explicitly permit
-                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**").permitAll()
-                        // Error page
-                        .requestMatchers("/error").permitAll()
-                        // Public API endpoints - explicit permit only
-                        .requestMatchers(ApiPaths.AUTH + ApiPaths.AUTH_SIGNUP, ApiPaths.AUTH + ApiPaths.AUTH_LOGIN, ApiPaths.AUTH + ApiPaths.AUTH_PUBLIC_ACCESS).permitAll()
-                        .requestMatchers(HttpMethod.GET, ApiPaths.BOARDS, ApiPaths.BOARDS + "/**").permitAll()
-                        // All other requests require authentication by default
-                        .anyRequest().authenticated()
-                )
-                .exceptionHandling(ex -> ex
-                        .authenticationEntryPoint(authenticationEntryPoint)
-                        .accessDeniedHandler(accessDeniedHandler)
-                )
-                .formLogin(AbstractHttpConfigurer::disable)
-                .httpBasic(AbstractHttpConfigurer::disable); // HTTP Basic 인증 비활성화
+    public SecurityFilterChain filterChain(HttpSecurity http, SecurityContextRepository securityContextRepository, ProblemDetailsAuthenticationEntryPoint authenticationEntryPoint, ProblemDetailsAccessDeniedHandler accessDeniedHandler) throws Exception {
+        http.csrf(AbstractHttpConfigurer::disable).cors(Customizer.withDefaults()).authorizeHttpRequests(auth -> auth
+                // Static resources and common locations
+                .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll() // 현재는 실제 배포 전까지는 항상 유지
+                // Assets - allow all
+                .requestMatchers("/assets/**").permitAll() // 현재는 실제 배포 전까지는 항상 유지
+                // Other static resources
+                .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**", "/favicon.ico").permitAll() // 현재는 실제 배포 전까지는 항상 유지
+                // Root and specific HTML files
+                .requestMatchers("/").permitAll() // 현재는 실제 배포 전까지는 항상 유지
+                .requestMatchers("/*.html").permitAll() // 현재는 실제 배포 전까지는 항상 유지
+                .requestMatchers("/admin*.html", "/board*.html", "/user*.html").permitAll() // 현재는 실제 배포 전까지는 항상 유지
+                .requestMatchers("/login.html", "/signup.html", "/welcome.html", "/my-page.html").permitAll() // 현재는 실제 배포 전까지는 항상 유지
+                // Swagger UI - explicitly permit
+                .requestMatchers("/v3/api-docs/**", "/swagger-ui/**").permitAll()
+                // Error page
+                .requestMatchers("/error").permitAll()
+                // Public API endpoints - explicit permit only
+                .requestMatchers(ApiPaths.AUTH + ApiPaths.AUTH_SIGNUP, ApiPaths.AUTH + ApiPaths.AUTH_LOGIN, ApiPaths.AUTH + ApiPaths.AUTH_PUBLIC_ACCESS).permitAll()
+                .requestMatchers(HttpMethod.GET, ApiPaths.BOARDS, ApiPaths.BOARDS + "/**").permitAll()
+                // All other requests require authentication by default
+                .anyRequest().authenticated()).exceptionHandling(ex -> ex.authenticationEntryPoint(authenticationEntryPoint).accessDeniedHandler(accessDeniedHandler)).formLogin(AbstractHttpConfigurer::disable).httpBasic(AbstractHttpConfigurer::disable); // HTTP Basic 인증 비활성화
 
-        http.sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-                        .sessionFixation().migrateSession()
-                        .maximumSessions(1)
-                        .maxSessionsPreventsLogin(false))
-                .securityContext((securityContext) -> securityContext
-                        .securityContextRepository(securityContextRepository));
+        http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED).sessionFixation().migrateSession().maximumSessions(1).maxSessionsPreventsLogin(false)).securityContext((securityContext) -> securityContext.securityContextRepository(securityContextRepository));
         return http.build();
     }
 
@@ -120,24 +109,24 @@ public class SecurityConfig {
     /**
      * ProblemDetail 형식의 인증 실패 응답 처리기
      *
-     * @param objectMapper  JSON 직렬화를 위한 ObjectMapper
-     * @param messageSource 메시지 소스
+     * @param objectMapper JSON 직렬화를 위한 ObjectMapper
+     * @param problemProperties 문제 세부사항 설정
      * @return 인증 실패 진입점 핸들러
      */
     @Bean
-    public ProblemDetailsAuthenticationEntryPoint problemDetailsAuthenticationEntryPoint(ObjectMapper objectMapper, MessageSource messageSource) {
-        return new ProblemDetailsAuthenticationEntryPoint(objectMapper, messageSource);
+    public ProblemDetailsAuthenticationEntryPoint problemDetailsAuthenticationEntryPoint(ObjectMapper objectMapper, ProblemProperties problemProperties) {
+        return new ProblemDetailsAuthenticationEntryPoint(objectMapper, problemProperties);
     }
 
     /**
      * ProblemDetail 형식의 접근 거부 응답 처리기
      *
-     * @param objectMapper  JSON 직렬화를 위한 ObjectMapper
-     * @param messageSource 메시지 소스
+     * @param objectMapper JSON 직렬화를 위한 ObjectMapper
+     * @param problemProperties 문제 세부사항 설정
      * @return 접근 거부 핸들러
      */
     @Bean
-    public ProblemDetailsAccessDeniedHandler problemDetailsAccessDeniedHandler(ObjectMapper objectMapper, MessageSource messageSource) {
-        return new ProblemDetailsAccessDeniedHandler(objectMapper, messageSource);
+    public ProblemDetailsAccessDeniedHandler problemDetailsAccessDeniedHandler(ObjectMapper objectMapper, ProblemProperties problemProperties) {
+        return new ProblemDetailsAccessDeniedHandler(objectMapper, problemProperties);
     }
 }

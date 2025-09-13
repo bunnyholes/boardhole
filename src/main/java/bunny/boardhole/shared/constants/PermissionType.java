@@ -1,9 +1,12 @@
 package bunny.boardhole.shared.constants;
 
+import lombok.NoArgsConstructor;
+
 /**
  * 권한 타입 상수
  * Security 관련 클래스에서 사용
  */
+@NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public final class PermissionType {
     // 권한 작업 타입
     public static final String WRITE = "WRITE";
@@ -13,8 +16,5 @@ public final class PermissionType {
     // 권한 대상 타입
     public static final String TARGET_BOARD = "BOARD";
     public static final String TARGET_USER = "USER";
-
-    private PermissionType() {
-        // 인스턴스 생성 방지
-    }
+    public static final String TARGET_EMAIL_VERIFICATION = "EMAIL_VERIFICATION";
 }

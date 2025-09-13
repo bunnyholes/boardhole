@@ -1,10 +1,16 @@
 package bunny.boardhole.user.domain.validation.optional;
 
-import bunny.boardhole.shared.constants.ValidationConstants;
-import jakarta.validation.*;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+import jakarta.validation.Constraint;
+import jakarta.validation.Payload;
 import jakarta.validation.constraints.Size;
 
-import java.lang.annotation.*;
+import bunny.boardhole.user.domain.validation.UserValidationConstants;
 
 /**
  * 사용자 실명 검증 애너테이션 (선택적 필드)
@@ -14,10 +20,10 @@ import java.lang.annotation.*;
 @Target({ElementType.FIELD, ElementType.PARAMETER, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-@Size(min = ValidationConstants.USER_NAME_MIN_LENGTH, max = ValidationConstants.USER_NAME_MAX_LENGTH, message = "{user.validation.name.size}")
+@Size(min = UserValidationConstants.USER_NAME_MIN_LENGTH, max = UserValidationConstants.USER_NAME_MAX_LENGTH, message = "{validation.user.name.size}")
 @Constraint(validatedBy = {})
 public @interface OptionalName {
-    String message() default "{user.validation.name.invalid}";
+    String message() default "{validation.user.name.invalid}";
 
     Class<?>[] groups() default {};
 

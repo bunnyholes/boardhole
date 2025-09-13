@@ -1,141 +1,166 @@
 package bunny.boardhole.user.domain;
 
-import bunny.boardhole.shared.constants.ValidationConstants;
-import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.persistence.*;
-import lombok.*;
-import org.hibernate.annotations.DynamicUpdate;
-import org.springframework.lang.NonNull;
-import org.springframework.util.Assert;
-
-import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotEmpty;
+
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+
+import org.hibernate.annotations.DynamicUpdate;
+import org.hibernate.annotations.SoftDelete;
+import org.springframework.lang.Nullable;
+
+import bunny.boardhole.shared.domain.BaseEntity;
+import bunny.boardhole.shared.domain.listener.ValidationListener;
+import bunny.boardhole.user.domain.validation.required.ValidEmail;
+import bunny.boardhole.user.domain.validation.required.ValidEncodedPassword;
+import bunny.boardhole.user.domain.validation.required.ValidName;
+import bunny.boardhole.user.domain.validation.required.ValidUsername;
 
 @Getter
 @NoArgsConstructor
-@AllArgsConstructor
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 @ToString(exclude = {"password", "roles"})
 @Entity
+@EntityListeners(ValidationListener.class)
 @DynamicUpdate
+@SoftDelete(columnName = "deleted")
 @Table(name = "users", indexes = {
-        @Index(name = "idx_user_username", columnList = "username"),
-        @Index(name = "idx_user_email", columnList = "email"),
-        @Index(name = "idx_user_name", columnList = "name")
+    @Index(name = "idx_user_username", columnList = "username"), 
+    @Index(name = "idx_user_email", columnList = "email"), 
+    @Index(name = "idx_user_name", columnList = "name"),
+    @Index(name = "idx_user_deleted", columnList = "deleted")
 })
-@Schema(name = "User", description = "사용자 도메인 엔티티 - 시스템의 핵심 사용자 정보")
-public class User implements Serializable {
-
+public class User extends BaseEntity implements java.io.Serializable {
+    private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @EqualsAndHashCode.Include
-    @Schema(description = "사용자 고유 ID (자동 생성)", example = "1")
     private Long id;
 
-    @Column(nullable = false, unique = true, length = ValidationConstants.USER_USERNAME_MAX_LENGTH)
-    @Schema(description = "사용자명 (고유값, 3-20자)", example = "johndoe")
+    @ValidUsername
+    @Column(nullable = false, unique = true)
     private String username;
 
-    @Column(nullable = false, length = ValidationConstants.USER_PASSWORD_MAX_LENGTH)
-    @Schema(description = "암호화된 비밀번호", example = "$2a$10$encrypted...")
+    @ValidEncodedPassword
+    @Column(nullable = false)
     private String password;
 
-    @Column(nullable = false, length = ValidationConstants.USER_NAME_MAX_LENGTH)
-    @Schema(description = "사용자 실명 (1-50자)", example = "홍길동")
+    @ValidName
+    @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false, unique = true, length = ValidationConstants.USER_EMAIL_MAX_LENGTH)
-    @Schema(description = "이메일 주소 (고유값)", example = "john@example.com")
+    @ValidEmail
+    @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(name = "created_at")
-    @Schema(description = "계정 생성 일시 (자동 설정)", example = "2024-01-15T10:30:00")
-    private LocalDateTime createdAt;
+    @Column
+    private @Nullable LocalDateTime lastLogin;
 
-    @Column(name = "updated_at")
-    @Schema(description = "마지막 수정 일시 (자동 갱신)", example = "2024-01-16T14:20:15")
-    private LocalDateTime updatedAt;
+    @Column(nullable = false)
+    private boolean emailVerified = false;
 
-    @Column(name = "last_login")
-    @Schema(description = "마지막 로그인 일시", example = "2024-01-16T14:20:15")
-    private LocalDateTime lastLogin;
+    @Column
+    private @Nullable LocalDateTime emailVerifiedAt;
 
-    @ElementCollection(fetch = FetchType.LAZY)
-    @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"))
+    @Getter(AccessLevel.NONE)
+    @NotEmpty(message = "{validation.user.roles.empty}")
+    @ElementCollection
+    @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
     @Enumerated(EnumType.STRING)
-    @Column(name = "role")
-    @Schema(description = "사용자 권한 목록 (USER, ADMIN)", example = "[\"USER\", \"ADMIN\"]")
-    private java.util.Set<Role> roles;
+    @Column
+    private Set<Role> roles;
 
     // 필요한 필드만 받는 생성자에 @Builder 적용
     @Builder
-    public User(@NonNull String username, @NonNull String password, @NonNull String name, @NonNull String email, java.util.Set<Role> roles) {
-        Assert.hasText(username, "사용자명은 필수입니다");
-        Assert.isTrue(username.length() <= ValidationConstants.USER_USERNAME_MAX_LENGTH, "사용자명은 " + ValidationConstants.USER_USERNAME_MAX_LENGTH + "자를 초과할 수 없습니다");
-        Assert.hasText(password, "비밀번호는 필수입니다");
-        Assert.hasText(name, "이름은 필수입니다");
-        Assert.isTrue(name.length() <= ValidationConstants.USER_NAME_MAX_LENGTH, "이름은 " + ValidationConstants.USER_NAME_MAX_LENGTH + "자를 초과할 수 없습니다");
-        Assert.hasText(email, "이메일은 필수입니다");
-        Assert.isTrue(email.length() <= ValidationConstants.USER_EMAIL_MAX_LENGTH, "이메일은 " + ValidationConstants.USER_EMAIL_MAX_LENGTH + "자를 초과할 수 없습니다");
-
+    private User(String username, String password, String name, String email, Set<Role> roles) {
         this.username = username;
         this.password = password;
         this.name = name;
         this.email = email;
-        this.roles = roles;
+        this.roles = new HashSet<>(roles);
     }
 
-    @PrePersist
-    public void prePersist() {
-        LocalDateTime now = LocalDateTime.now();
-        if (createdAt == null) createdAt = now;
-        if (updatedAt == null) updatedAt = now;
-    }
-
-    @PreUpdate
-    public void preUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
-
-    public void changeName(@NonNull String name) {
-        Assert.hasText(name, "이름은 필수입니다");
-        Assert.isTrue(name.length() <= ValidationConstants.USER_NAME_MAX_LENGTH, "이름은 " + ValidationConstants.USER_NAME_MAX_LENGTH + "자를 초과할 수 없습니다");
+    public void changeName(String name) {
         this.name = name;
     }
 
-    public void changeEmail(@NonNull String email) {
-        Assert.hasText(email, "이메일은 필수입니다");
-        Assert.isTrue(email.length() <= ValidationConstants.USER_EMAIL_MAX_LENGTH, "이메일은 " + ValidationConstants.USER_EMAIL_MAX_LENGTH + "자를 초과할 수 없습니다");
+    public void changeEmail(String email) {
         this.email = email;
     }
 
-    public void changePassword(@NonNull String password) {
-        Assert.hasText(password, "비밀번호는 필수입니다");
+    public void changePassword(String password) {
         this.password = password;
     }
 
-    public void recordLastLogin(LocalDateTime lastLogin) {
-        this.lastLogin = lastLogin;
+    public void recordLastLogin() {
+        lastLogin = LocalDateTime.now();
     }
 
-    public void grantAdminRole() {
-        if (!this.roles.contains(Role.ADMIN)) {
-            this.roles.add(Role.ADMIN);
-        }
+    public void verifyEmail() {
+        emailVerified = true;
+        emailVerifiedAt = LocalDateTime.now();
     }
 
-    public boolean revokeAdminRole() {
-        if (this.roles.contains(Role.ADMIN)) {
-            if (this.roles.size() <= 1) {
-                return false; // 마지막 역할이 ADMIN인 경우 제거 불가
-            }
-            this.roles.remove(Role.ADMIN);
-            return true;
-        }
-        return false; // ADMIN 역할이 없음
+    /**
+     * 사용자가 특정 권한을 가지고 있는지 확인합니다.
+     *
+     * @param role 확인할 권한
+     * @return 해당 권한을 가지고 있으면 true
+     */
+    public boolean hasRole(Role role) {
+        return roles.contains(role);
     }
 
-    public boolean hasAdminRole() {
-        return this.roles.contains(Role.ADMIN);
+    /**
+     * 사용자에게 특정 권한을 부여합니다.
+     * <p>
+     * 기존 권한을 유지하면서 새로운 역할을 추가합니다.
+     * 이미 해당 권한이 있는 경우 중복 추가되지 않습니다.
+     * </p>
+     *
+     * @param role 부여할 권한
+     */
+    public void grantRole(Role role) {
+        roles.add(role);  // HashSet이므로 중복은 자동으로 방지됨
     }
+
+    /**
+     * 사용자의 특정 권한을 철회합니다.
+     * <p>
+     * 권한 집합에서 특정 역할을 제거합니다.
+     * 해당 권한이 없는 경우 아무 작업도 수행하지 않습니다.
+     * </p>
+     *
+     * @param role 철회할 권한
+     */
+    public void revokeRole(Role role) {
+        roles.remove(role);  // 없으면 아무 일도 일어나지 않음
+    }
+
+    public Set<Role> getRoles() {
+        return Collections.unmodifiableSet(roles);
+    }
+
 }

@@ -1,10 +1,17 @@
 package bunny.boardhole.user.domain.validation.optional;
 
-import bunny.boardhole.shared.constants.ValidationConstants;
-import jakarta.validation.*;
-import jakarta.validation.constraints.*;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-import java.lang.annotation.*;
+import jakarta.validation.Constraint;
+import jakarta.validation.Payload;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+
+import bunny.boardhole.user.domain.validation.UserValidationConstants;
 
 /**
  * 비밀번호 검증 애너테이션 (선택적 필드)
@@ -15,14 +22,11 @@ import java.lang.annotation.*;
 @Target({ElementType.FIELD, ElementType.PARAMETER, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-@Size(min = ValidationConstants.USER_PASSWORD_MIN_LENGTH, max = ValidationConstants.USER_PASSWORD_MAX_LENGTH, message = "{user.validation.password.size}")
-@Pattern(
-        regexp = ValidationConstants.PASSWORD_PATTERN,
-        message = "{user.validation.password.pattern}"
-)
+@Size(min = UserValidationConstants.USER_PASSWORD_MIN_LENGTH, max = UserValidationConstants.USER_PASSWORD_MAX_LENGTH, message = "{validation.user.password.size}")
+@Pattern(regexp = UserValidationConstants.PASSWORD_PATTERN, message = "{validation.user.password.pattern}")
 @Constraint(validatedBy = {})
 public @interface OptionalPassword {
-    String message() default "{user.validation.password.invalid}";
+    String message() default "{validation.user.password.invalid}";
 
     Class<?>[] groups() default {};
 

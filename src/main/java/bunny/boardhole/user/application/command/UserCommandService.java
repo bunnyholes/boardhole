@@ -1,25 +1,28 @@
 package bunny.boardhole.user.application.command;
 
-import bunny.boardhole.shared.config.properties.ValidationProperties;
-import bunny.boardhole.shared.exception.*;
-import bunny.boardhole.shared.util.*;
-import bunny.boardhole.user.application.mapper.UserMapper;
-import bunny.boardhole.user.application.result.UserResult;
-import bunny.boardhole.user.domain.*;
-import bunny.boardhole.user.infrastructure.*;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.lang.NonNull;
+
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
-import java.time.LocalDateTime;
-import java.util.Optional;
+import bunny.boardhole.shared.exception.DuplicateEmailException;
+import bunny.boardhole.shared.exception.DuplicateUsernameException;
+import bunny.boardhole.shared.exception.ResourceNotFoundException;
+import bunny.boardhole.shared.exception.UnauthorizedException;
+import bunny.boardhole.shared.util.MessageUtils;
+import bunny.boardhole.user.application.mapper.UserMapper;
+import bunny.boardhole.user.application.result.UserResult;
+import bunny.boardhole.user.domain.Role;
+import bunny.boardhole.user.domain.User;
+import bunny.boardhole.user.infrastructure.UserRepository;
 
 /**
  * 사용자 명령 서비스
@@ -32,12 +35,8 @@ import java.util.Optional;
 public class UserCommandService {
 
     private final UserRepository userRepository;
-    private final EmailVerificationRepository emailVerificationRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
-    private final MessageUtils messageUtils;
-    private final ValidationProperties validationProperties;
-    private final VerificationCodeGenerator verificationCodeGenerator;
 
     /**
      * 사용자 생성
@@ -49,22 +48,16 @@ public class UserCommandService {
      */
     @Transactional
     public UserResult create(@Valid CreateUserCommand cmd) {
-        if (userRepository.existsByUsername(cmd.username())) {
-            throw new bunny.boardhole.shared.exception.DuplicateUsernameException(messageUtils.getMessage("error.user.username.already-exists"));
-        }
-        if (userRepository.existsByEmail(cmd.email())) {
-            throw new bunny.boardhole.shared.exception.DuplicateEmailException(messageUtils.getMessage("error.user.email.already-exists"));
-        }
-        User user = User.builder()
-                .username(cmd.username())
-                .password(passwordEncoder.encode(cmd.password()))
-                .name(cmd.name())
-                .email(cmd.email())
-                .roles(java.util.Set.of(Role.USER))
-                .build();
+        if (userRepository.existsByUsername(cmd.username()))
+            throw new DuplicateUsernameException(MessageUtils.get("error.user.username.already-exists"));
+        if (userRepository.existsByEmail(cmd.email()))
+            throw new DuplicateEmailException(MessageUtils.get("error.user.email.already-exists"));
+        User user = User.builder().username(cmd.username()).password(passwordEncoder.encode(cmd.password())).name(cmd.name()).email(cmd.email()).roles(java.util.Set.of(Role.USER)).build();
         User saved = userRepository.save(user);
 
-        log.info(messageUtils.getMessage("log.user.created", saved.getUsername(), saved.getEmail()));
+        // 사용자 생성 이벤트 발행 (필요시 향후 사용)
+        // eventPublisher.publishEvent(userMapper.toUserCreatedEvent(saved));
+
         return userMapper.toResult(saved);
     }
 
@@ -79,18 +72,15 @@ public class UserCommandService {
      */
     @Transactional
     @PreAuthorize("hasPermission(#cmd.userId, 'USER', 'WRITE')")
-    public UserResult update(@Valid @NonNull UpdateUserCommand cmd) {
+    public UserResult update(@Valid UpdateUserCommand cmd) {
         Long id = cmd.userId();
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(messageUtils.getMessage("error.user.not-found.id", id)));
+        User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.user.not-found.id", id)));
 
-        // Optional을 사용한 선택적 필드 업데이트 (이름만 변경 가능)
-        Optional.ofNullable(cmd.name()).ifPresent(user::changeName);
+        // MapStruct가 null이 아닌 필드만 업데이트 (@DynamicUpdate가 변경된 필드만 SQL 업데이트)
+        userMapper.updateUserFromCommand(cmd, user);
 
-        // @DynamicUpdate가 변경된 필드만 업데이트, @PreUpdate가 updatedAt 자동 설정
         User saved = userRepository.save(user);
 
-        log.info(messageUtils.getMessage("log.user.updated", saved.getUsername()));
         return userMapper.toResult(saved);
     }
 
@@ -103,12 +93,9 @@ public class UserCommandService {
     @Transactional
     @PreAuthorize("hasPermission(#id, 'USER', 'DELETE')")
     public void delete(@NotNull @Positive Long id) {
-        User existing = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(messageUtils.getMessage("error.user.not-found.id", id)));
+        User existing = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.user.not-found.id", id)));
 
-        String username = existing.getUsername();
         userRepository.delete(existing);
-        log.info(messageUtils.getMessage("log.user.deleted", username));
     }
 
     /**
@@ -119,12 +106,9 @@ public class UserCommandService {
      */
     @Transactional
     public void updateLastLogin(@NotNull @Positive Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException(messageUtils.getMessage("error.user.not-found.id", userId)));
-        user.recordLastLogin(LocalDateTime.now());
-        User saved = userRepository.save(user);
-
-        log.info(messageUtils.getMessage("log.user.last-login-updated", saved.getUsername()));
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.user.not-found.id", userId)));
+        user.recordLastLogin();
+        userRepository.save(user);
     }
 
     /**
@@ -136,109 +120,18 @@ public class UserCommandService {
      */
     @Transactional
     @PreAuthorize("hasPermission(#cmd.userId, 'USER', 'WRITE')")
-    public void updatePassword(@Valid @NonNull UpdatePasswordCommand cmd) {
-        User user = userRepository.findById(cmd.userId())
-                .orElseThrow(() -> new ResourceNotFoundException(messageUtils.getMessage("error.user.not-found.id", cmd.userId())));
+    public void updatePassword(@Valid UpdatePasswordCommand cmd) {
+        User user = userRepository.findById(cmd.userId()).orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.user.not-found.id", cmd.userId())));
 
         // 현재 패스워드 확인
         if (!passwordEncoder.matches(cmd.currentPassword(), user.getPassword())) {
-            log.warn(messageUtils.getMessage("log.user.password.change.failed", cmd.userId()));
-            throw new UnauthorizedException(messageUtils.getMessage("error.user.password.current.mismatch"));
+            log.warn(MessageUtils.get("log.user.password.change.failed", cmd.userId()));
+            throw new UnauthorizedException(MessageUtils.get("error.user.password.current.mismatch"));
         }
 
         // 새 패스워드 설정
         user.changePassword(passwordEncoder.encode(cmd.newPassword()));
         userRepository.save(user);
-
-        log.info(messageUtils.getMessage("log.user.password.changed", user.getId(), user.getUsername()));
-    }
-
-    /**
-     * 이메일 변경 검증 요청
-     *
-     * @param cmd 이메일 검증 요청 명령
-     * @return 검증 코드 (테스트 환경에서만 반환, 프로덕션에서는 이메일 발송)
-     * @throws ResourceNotFoundException 사용자를 찾을 수 없는 경우
-     * @throws UnauthorizedException     현재 패스워드가 일치하지 않는 경우
-     * @throws DuplicateEmailException   이메일이 이미 사용 중인 경우
-     */
-    @Transactional
-    @PreAuthorize("hasPermission(#cmd.userId, 'USER', 'WRITE')")
-    public String requestEmailVerification(@Valid @NonNull RequestEmailVerificationCommand cmd) {
-        User user = userRepository.findById(cmd.userId())
-                .orElseThrow(() -> new ResourceNotFoundException(messageUtils.getMessage("error.user.not-found.id", cmd.userId())));
-
-        // 현재 패스워드 확인
-        if (!passwordEncoder.matches(cmd.currentPassword(), user.getPassword())) {
-            log.warn(messageUtils.getMessage("log.user.email.change.failed", cmd.userId()));
-            throw new UnauthorizedException(messageUtils.getMessage("error.user.password.current.mismatch"));
-        }
-
-        // 새 이메일 중복 확인
-        if (userRepository.existsByEmail(cmd.newEmail())) {
-            throw new DuplicateEmailException(messageUtils.getMessage("error.user.email.already-exists"));
-        }
-
-        // 기존 미사용 검증 정보 무효화
-        emailVerificationRepository.invalidateUserVerifications(cmd.userId());
-
-        // 검증 코드 생성
-        String verificationCode = verificationCodeGenerator.generate();
-
-        // 검증 정보 저장
-        EmailVerification verification = EmailVerification.builder()
-                .code(verificationCode)
-                .userId(cmd.userId())
-                .newEmail(cmd.newEmail())
-                .expiresAt(LocalDateTime.now().plusMinutes(validationProperties.getEmailVerification().getExpirationMinutes()))
-                .build();
-        emailVerificationRepository.save(verification);
-
-        // TODO: 실제 환경에서는 이메일 발송 서비스 호출
-        // emailService.sendVerificationEmail(user.getEmail(), cmd.newEmail(), verificationCode);
-
-        log.info(messageUtils.getMessage("log.user.email.verification.requested",
-                user.getId(), user.getEmail(), cmd.newEmail()));
-
-        // 개발/테스트 환경에서만 코드 반환, 프로덕션에서는 null 반환
-        return verificationCode;
-    }
-
-    /**
-     * 이메일 변경 확정
-     *
-     * @param cmd 이메일 변경 명령
-     * @return 변경된 사용자 정보
-     * @throws ResourceNotFoundException 사용자나 검증 정보를 찾을 수 없는 경우
-     * @throws ValidationException       검증 코드가 유효하지 않은 경우
-     */
-    @Transactional
-    @PreAuthorize("hasPermission(#cmd.userId, 'USER', 'WRITE')")
-    public UserResult updateEmail(@Valid @NonNull UpdateEmailCommand cmd) {
-        User user = userRepository.findById(cmd.userId())
-                .orElseThrow(() -> new ResourceNotFoundException(messageUtils.getMessage("error.user.not-found.id", cmd.userId())));
-
-        // 검증 코드 확인
-        EmailVerification verification = emailVerificationRepository
-                .findValidVerification(cmd.userId(), cmd.verificationCode(), LocalDateTime.now())
-                .orElseThrow(() -> new ValidationException(messageUtils.getMessage("error.user.email.verification.invalid")));
-
-        // 이메일 변경
-        String oldEmail = user.getEmail();
-        user.changeEmail(verification.getNewEmail());
-        User saved = userRepository.save(user);
-
-        // 검증 정보 사용 처리
-        verification.markAsUsed();
-        emailVerificationRepository.save(verification);
-
-        // TODO: 실제 환경에서는 이메일 변경 알림 발송
-        // emailService.sendEmailChangeNotification(oldEmail, verification.getNewEmail());
-
-        log.info(messageUtils.getMessage("log.user.email.changed",
-                user.getId(), oldEmail, verification.getNewEmail()));
-
-        return userMapper.toResult(saved);
     }
 
 }

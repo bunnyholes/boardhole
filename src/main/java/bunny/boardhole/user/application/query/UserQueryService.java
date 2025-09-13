@@ -1,15 +1,19 @@
 package bunny.boardhole.user.application.query;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import bunny.boardhole.shared.exception.ResourceNotFoundException;
 import bunny.boardhole.shared.util.MessageUtils;
 import bunny.boardhole.user.application.mapper.UserMapper;
 import bunny.boardhole.user.application.result.UserResult;
 import bunny.boardhole.user.infrastructure.UserRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.*;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 사용자 조회 서비스
@@ -22,7 +26,6 @@ public class UserQueryService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
-    private final MessageUtils messageUtils;
 
     /**
      * 사용자 ID로 단일 사용자 조회
@@ -32,10 +35,9 @@ public class UserQueryService {
      * @throws ResourceNotFoundException 사용자를 찾을 수 없는 경우
      */
     @Transactional(readOnly = true)
+    @PreAuthorize("hasPermission(#id, 'USER', 'READ')")
     public UserResult get(Long id) {
-        return userRepository.findById(id)
-                .map(userMapper::toResult)
-                .orElseThrow(() -> new ResourceNotFoundException(messageUtils.getMessage("error.user.not-found.id", id)));
+        return userRepository.findById(id).map(userMapper::toResult).orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.user.not-found.id", id)));
     }
 
     /**
@@ -58,11 +60,7 @@ public class UserQueryService {
      */
     @Transactional(readOnly = true)
     public Page<UserResult> listWithPaging(Pageable pageable, String search) {
-        return userRepository
-                .findByUsernameContainingIgnoreCaseOrNameContainingIgnoreCaseOrEmailContainingIgnoreCase(
-                        search, search, search, pageable)
-                .map(userMapper::toResult);
+        return userRepository.findByUsernameContainingIgnoreCaseOrNameContainingIgnoreCaseOrEmailContainingIgnoreCase(search, search, search, pageable).map(userMapper::toResult);
     }
-
 
 }

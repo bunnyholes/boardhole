@@ -6,151 +6,51 @@
 spring:
   # 운영 데이터베이스 설정 (환경변수 필수)
   datasource:
-    url: ${DATABASE_URL}  # 필수 환경변수
-    username: ${DATABASE_USERNAME}  # 필수 환경변수
-    password: ${DATABASE_PASSWORD}  # 필수 환경변수
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    # HikariCP 연결 풀 설정
-    hikari:
-      maximum-pool-size: 10
-      minimum-idle: 5
-      connection-timeout: 30000
-      idle-timeout: 600000
-      max-lifetime: 1800000
-      
-      # TODO: 성능 최적화 - 실제 트래픽 증가 시 아래 설정 활성화
-      # 프로덕션 환경에서 DB 연결 부족 시:
-      # maximum-pool-size: 20          # 최대 연결 수 증가
-      # minimum-idle: 8                 # 최소 유휴 연결 수 증가
-      # leak-detection-threshold: 60000 # 연결 누수 감지 활성화
-      # connection-test-query: SELECT 1 # 연결 검증 쿼리
-  
+    url:   # 필수 환경변수
+    username:   # 필수 환경변수
+    password:   # 필수 환경변수
+    driver-class-name: com.mysql.cj.jdbc.Driver # MySQL 만 지원 강제
+
   # JPA 운영 설정
   jpa:
     hibernate:
       ddl-auto: validate  # 운영에서는 스키마 검증만
-    show-sql: false       # SQL 출력 비활성화
-    properties:
-      hibernate:
-        format_sql: false
-        # 운영 성능 최적화
-        jdbc:
-          batch_size: 25
-          batch_versioned_data: true
-        order_inserts: true
-        order_updates: true
-        
-        # TODO: 성능 최적화 - 대량 처리 부하 발생 시 아래 설정 활성화
-        # 대량 INSERT/UPDATE 성능 문제 시:
-        # jdbc:
-        #   batch_size: 50                # 배치 크기 증가 (25 → 50)
-        #   fetch_size: 100                # 페치 크기 설정
-        # cache:
-        #   use_second_level_cache: true  # 2차 캐시 활성화
-        #   use_query_cache: true          # 쿼리 캐시 활성화
-  
-  # Redis 운영 설정
+
+  # Redis 운영 설정 (환경에 맞게 설정 필요)
   data:
     redis:
-      host: ${REDIS_HOST:redis}
-      port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD:}
-      timeout: 2000ms
-      connect-timeout: 5000ms
-      lettuce:
-        pool:
-          max-active: 20
-          max-idle: 10
-          min-idle: 5
-          max-wait: 3000ms
-        cluster:
-          refresh:
-            adaptive: true
-            period: 30s
-  
-  # Docker Compose 비활성화
-  docker:
-    compose:
-      enabled: false
-
-  # 운영 환경에서는 MVC CORS 프로퍼티 대신 코드 기반 설정을 사용합니다.
-  
-  # 운영 환경에서는 컬러 비활성화 (로그 파일 오염 방지)
-  output:
-    ansi:
-      enabled: NEVER
+      host:  # Redis 호스트 설정 필요
+      port:  # Redis 포트 설정 필요
+      # password:  # 필요시 Redis 비밀번호 설정
 
 # 운영 서버 보안 설정
 server:
-  # 세션 보안 설정
-  session:
-    timeout: 30m
-    cookie:
-      secure: true      # HTTPS 전용
-      http-only: true   # JavaScript 접근 차단
-      same-site: strict # CSRF 공격 방지
-  
-  # 에러 페이지 설정
-  error:
-    include-message: never
-    include-binding-errors: never
-    include-stacktrace: never
-    include-exception: false
+  servlet:
+    session:
+      cookie:
+        secure: true      # HTTPS 전용
+        http-only: true   # JavaScript 접근 차단
+        same-site: strict # CSRF 공격 방지
 
-# 운영 로깅 설정 (구조화 & 파일 로깅)
+# 운영 로깅 설정 - 루트 프로파일에서 상속, 파일 로깅 추가
 logging:
   pattern:
-    # 콘솔: 구조화된 포맷 (컬러 없음)
-    console: "%d{ISO8601} %-5level [%thread] %logger{36} - %msg%n"
-    # 파일: 상세 정보 포함
-    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} [%X{userId}] - %msg%n"
-  
-  level:
-    root: INFO
-    bunny.boardhole: INFO
-    org.springframework.web: WARN
-    org.springframework.security: WARN
-    org.hibernate: WARN
+    # 파일용 패턴 (컬러 없음)
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %-40.40logger{39} : %m%n%wEx"
   
   # 파일 로깅 설정
   file:
-    name: ${LOG_PATH:/var/log/boardhole}/application.log
-  
-  # 로그 파일 롤링 설정 (통합)
-  logback:
-    rollingpolicy:
-      max-file-size: 10MB
-      max-history: 30
-      total-size-cap: 1GB
+    name: /var/log/boardhole/application.log
 
 # 운영 환경 애플리케이션 설정
 boardhole:
-  # 운영 CORS 설정 (환경변수로 도메인 지정)
+  # 운영 CORS 설정
   cors:
-    path-patterns:
-      - "/api/**"
-    # 쉼표로 구분된 도메인 목록을 환경변수로 지정 (Spring이 List로 변환)
-    # 예: CORS_ALLOWED_ORIGINS="https://boardhole.com,https://www.boardhole.com"
-    allowed-origins: ${CORS_ALLOWED_ORIGINS}
-    allowed-methods:
-      - GET
-      - POST
-      - PUT
-      - DELETE
-      - OPTIONS
-    allowed-headers:
-      - Origin
-      - Content-Type
-      - Accept
-      - Authorization
-      - X-Requested-With
-    allow-credentials: false  # 운영에서는 자격증명 비활성화
-    max-age: 3600
-  # 운영 사용자 비밀번호 (환경변수 필수)
+    # allowed-origins를 오버라이드 해야합니다
+    allowed-origins: "https://need.change" # 허용할 도메인
+  # 운영 사용자 설정
   default-users:
     admin:
-      password: ${ADMIN_PASSWORD}  # 필수 환경변수
-      email: ${ADMIN_EMAIL:admin@boardhole.com}
+      password: "need-change" # 필수 환경변수
     regular:
-      password: ${USER_PASSWORD}   # 필수 환경변수
-      email: ${USER_EMAIL:user@boardhole.com}
+      password: "need-change" # 필수 환경변수

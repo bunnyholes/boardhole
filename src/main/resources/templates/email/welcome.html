@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>환영합니다!</title>
+    <style>
+        body {
+            font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            max-width: 600px;
+            background-color: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin: 20px auto 0;
+        }
+
+        .header {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+
+        .content {
+            color: #555;
+            font-size: 16px;
+            margin-bottom: 30px;
+        }
+
+        .button {
+            display: inline-block;
+            background-color: #28a745;
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #888;
+            font-size: 14px;
+        }
+
+        .feature-list {
+            background-color: #f8f9fa;
+            border-left: 4px solid #007bff;
+            padding: 20px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>🎉 Board-Hole에 오신 것을 환영합니다!</h1>
+    </div>
+
+    <div class="content">
+        <p><strong th:text="${userName}">사용자</strong>님, 이메일 인증이 완료되었습니다!</p>
+
+        <p>이제 Board-Hole의 모든 기능을 자유롭게 이용하실 수 있습니다.</p>
+
+        <div class="feature-list">
+            <h3>🚀 주요 기능</h3>
+            <ul>
+                <li>다양한 주제의 게시판 이용</li>
+                <li>다른 회원들과의 소통</li>
+                <li>개인 프로필 관리</li>
+                <li>알림 및 설정 관리</li>
+            </ul>
+        </div>
+
+        <div style="text-align: center;">
+            <a class="button" th:href="${loginUrl}">지금 시작하기</a>
+        </div>
+
+        <p>Board-Hole 커뮤니티의 일원이 되어주셔서 감사합니다. 즐거운 경험이 되시길 바랍니다!</p>
+    </div>
+
+    <div class="footer">
+        <p>계정: <span th:text="${userEmail}">user@example.com</span></p>
+        <p>가입일시: <span
+                th:text="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd HH:mm')}">2024-01-15 10:30</span></p>
+        <p>&copy; 2024 Board-Hole. All rights reserved.</p>
+    </div>
+</div>
+</body>
+</html>
