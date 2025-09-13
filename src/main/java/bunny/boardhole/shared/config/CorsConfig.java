@@ -21,7 +21,14 @@ public class CorsConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 
         CorsConfiguration cfg = new CorsConfiguration();
-        cfg.setAllowedOrigins(corsProperties.allowedOrigins());
+        // allowCredentials=true 이고 "*" 포함시 Spring은 allowedOrigins+credentials 조합을 허용하지 않음
+        // 이런 경우 allowedOriginPatterns 사용으로 전환
+        var origins = corsProperties.allowedOrigins();
+        boolean usePatterns = corsProperties.allowCredentials() && origins != null && origins.stream().anyMatch(o -> "*".equals(o) || o.contains("*"));
+        if (usePatterns)
+            cfg.setAllowedOriginPatterns(origins);
+        else
+            cfg.setAllowedOrigins(origins);
         cfg.setAllowedMethods(corsProperties.allowedMethods());
         cfg.setAllowedHeaders(corsProperties.allowedHeaders());
         cfg.setExposedHeaders(corsProperties.exposedHeaders());

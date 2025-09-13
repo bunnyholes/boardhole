@@ -63,7 +63,11 @@ public class BoardController {
     @Operation(summary = "게시글 작성", description = "[AUTH] 새로운 게시글을 작성합니다. 인증된 사용자만 사용할 수 있습니다.",
 
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content = @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE, schema = @Schema(implementation = BoardCreateRequest.class))))
-    @ApiResponses({@ApiResponse(responseCode = "201", description = "게시글이 성공적으로 작성됨", content = @Content(schema = @Schema(implementation = BoardResponse.class))), @ApiResponse(responseCode = "400", description = "잘못된 요청 데이터"), @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")})
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "게시글이 성공적으로 작성됨", content = @Content(schema = @Schema(implementation = BoardResponse.class))),
+            @ApiResponse(responseCode = "422", description = "유효성 검증 실패"),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
+    })
     @ResponseStatus(HttpStatus.CREATED)
     public BoardResponse create(@Validated @ModelAttribute BoardCreateRequest req, @AuthenticationPrincipal AppUserPrincipal principal) {
         // 요청의 userId를 무시하고 인증된 사용자로 고정
@@ -97,8 +101,14 @@ public class BoardController {
     @Operation(summary = "게시글 수정", description = "[OWNER] 기존 게시글을 수정합니다. 작성자 본인만 수정 가능합니다.",
 
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content = @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE, schema = @Schema(implementation = BoardUpdateRequest.class))))
-    @ApiResponses({@ApiResponse(responseCode = "200", description = "게시글 수정 성공", content = @Content(schema = @Schema(implementation = BoardResponse.class))), @ApiResponse(responseCode = "400", description = "잘못된 요청 데이터"), @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"), @ApiResponse(responseCode = "403", description = "수정 권한 없음 (작성자가 아님)"), @ApiResponse(responseCode = "404", description = "게시글을 찾을 수 없음")})
-    public BoardResponse update(@Parameter(description = "수정할 게시글 ID") @PathVariable Long id, @ModelAttribute BoardUpdateRequest req, @AuthenticationPrincipal AppUserPrincipal principal) {
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "게시글 수정 성공", content = @Content(schema = @Schema(implementation = BoardResponse.class))),
+            @ApiResponse(responseCode = "422", description = "유효성 검증 실패"),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+            @ApiResponse(responseCode = "403", description = "수정 권한 없음 (작성자가 아님)"),
+            @ApiResponse(responseCode = "404", description = "게시글을 찾을 수 없음")
+    })
+    public BoardResponse update(@Parameter(description = "수정할 게시글 ID") @PathVariable Long id, @Validated @ModelAttribute BoardUpdateRequest req, @AuthenticationPrincipal AppUserPrincipal principal) {
         // 권한 검증은 서비스 @PreAuthorize가 처리
         var cmd = boardWebMapper.toUpdateCommand(id, principal.user().getId(), req);
         var updated = boardCommandService.update(cmd);

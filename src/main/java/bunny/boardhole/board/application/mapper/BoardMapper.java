@@ -1,8 +1,8 @@
 package bunny.boardhole.board.application.mapper;
 
 import org.mapstruct.Mapper;
-import org.mapstruct.MappingConstants;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingConstants;
 
 import bunny.boardhole.board.application.event.ViewedEvent;
 import bunny.boardhole.board.application.result.BoardResult;

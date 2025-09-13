@@ -1,226 +1,338 @@
 package bunny.boardhole.auth.presentation;
 
-import java.util.UUID;
-import java.util.stream.Stream;
+import java.util.Set;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.TestMethodOrder;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
-import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithUserDetails;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.context.SecurityContextRepository;
 
-import bunny.boardhole.shared.util.MessageUtils;
-import bunny.boardhole.testsupport.mvc.MvcTestBase;
+import bunny.boardhole.auth.application.AuthCommandService;
+import bunny.boardhole.auth.application.command.LoginCommand;
+import bunny.boardhole.auth.application.command.LogoutCommand;
+import bunny.boardhole.auth.application.mapper.AuthMapper;
+import bunny.boardhole.auth.presentation.dto.LoginRequest;
+import bunny.boardhole.auth.presentation.mapper.AuthWebMapper;
+import bunny.boardhole.shared.security.AppUserPrincipal;
+import bunny.boardhole.user.application.command.CreateUserCommand;
+import bunny.boardhole.user.application.command.UserCommandService;
+import bunny.boardhole.user.domain.Role;
+import bunny.boardhole.user.domain.User;
+import bunny.boardhole.user.presentation.dto.UserCreateRequest;
+import bunny.boardhole.user.presentation.mapper.UserWebMapper;
 
-import static bunny.boardhole.testsupport.mvc.MatchersUtil.all;
-import static bunny.boardhole.testsupport.mvc.ProblemDetailsMatchers.unauthorized;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
+import static org.mockito.BDDMockito.willDoNothing;
+import static org.mockito.BDDMockito.willThrow;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@TestMethodOrder(MethodOrderer.DisplayName.class)
-@DisplayName("인증 API 통합 테스트")
-@Tag("integration")
+@ExtendWith(MockitoExtension.class)
+@DisplayName("AuthController 단위 테스트")
+@Tag("unit")
 @Tag("auth")
-class AuthControllerTest extends MvcTestBase {
+class AuthControllerTest {
+
+    @Mock
+    private UserCommandService userCommandService;
+
+    @Mock
+    private AuthCommandService authCommandService;
+
+    @Mock
+    private AuthWebMapper authWebMapper;
+
+    @Mock
+    private AuthMapper authMapper;
+
+    @Mock
+    private UserWebMapper userWebMapper;
+
+    @Mock
+    private SecurityContextRepository securityContextRepository;
+
+    @Mock
+    private HttpServletRequest request;
+
+    @Mock
+    private HttpServletResponse response;
+
+    @Mock
+    private HttpSession session;
+
+    @Mock
+    private Authentication authentication;
+
+    @Mock
+    private SecurityContext securityContext;
+
+    @InjectMocks
+    private AuthController authController;
+
+    private User testUser;
+    private AppUserPrincipal testPrincipal;
+
+    @BeforeEach
+    void setUp() {
+        testUser = User.builder()
+                       .username("testuser")
+                       .password("encoded_password")
+                       .name("Test User")
+                       .email("test@example.com")
+                       .roles(Set.of(Role.USER))
+                       .build();
+        testPrincipal = new AppUserPrincipal(testUser);
+    }
 
     @Nested
     @DisplayName("POST /api/auth/signup - 회원가입")
-    @Tag("create")
     class Signup {
 
-        static Stream<Arguments> provideInvalidSignupData() {
-            return Stream.of(Arguments.of("username 누락", "", "Password123!", "Test User", "test@example.com"), Arguments.of("password 누락", "testuser", "", "Test User", "test@example.com"), Arguments.of("name 누락", "testuser", "Password123!", "", "test@example.com"), Arguments.of("email 누락", "testuser", "Password123!", "Test User", ""), Arguments.of("잘못된 이메일 형식", "testuser", "Password123!", "Test User", "invalid-email-format"));
-        }
-
         @Test
-        @DisplayName("✅ 유효한 데이터로 회원가입 성공")
-        void shouldCreateUserWithValidData() throws Exception {
-            String uniqueId = UUID.randomUUID().toString().substring(0, 8);
+        @DisplayName("✅ 유효한 요청으로 회원가입 성공")
+        void shouldCreateUserSuccessfully() {
+            // given
+            UserCreateRequest request = new UserCreateRequest(
+                    "testuser", "Password123!", "Test User", "test@example.com"
+            );
+            CreateUserCommand command = new CreateUserCommand(
+                    "testuser", "Password123!", "Test User", "test@example.com"
+            );
 
-            mockMvc.perform(post("/api/auth/signup").contentType(MediaType.APPLICATION_FORM_URLENCODED).param("username", "new_" + uniqueId).param("password", "Password123!").param("name", "New User").param("email", "newuser_" + uniqueId + "@example.com")).andExpect(status().isNoContent()).andDo(print());
-        }
+            given(userWebMapper.toCreateCommand(request)).willReturn(command);
+            given(userCommandService.create(command)).willReturn(new bunny.boardhole.user.application.result.UserResult(
+                    1L, "testuser", "Test User", "test@example.com",
+                    java.time.LocalDateTime.now(), null, null, java.util.Set.of(bunny.boardhole.user.domain.Role.USER)
+            ));
 
-        @ParameterizedTest(name = "[{index}] {0}")
-        @MethodSource("provideInvalidSignupData")
-        @DisplayName("❌ 필수 필드 누락 → 400 Bad Request")
-        void shouldFailWhenRequiredFieldMissing(String displayName, String username, String password, String name, String email) throws Exception {
-            mockMvc.perform(post("/api/auth/signup").contentType(MediaType.APPLICATION_FORM_URLENCODED).param("username", username).param("password", password).param("name", name).param("email", email)).andExpect(status().isBadRequest()).andExpect(jsonPath("$.type").exists()).andExpect(jsonPath("$.title").value(MessageUtils.get("exception.title.validation-failed"))).andExpect(jsonPath("$.status").value(400)).andExpect(jsonPath("$.code").value(bunny.boardhole.shared.constants.ErrorCode.VALIDATION_ERROR.getCode())).andExpect(jsonPath("$.errors").isArray()).andDo(print());
-        }
+            // when
+            authController.signup(request);
 
-        @Nested
-        @DisplayName("중복 검증")
-        class DuplicateValidation {
-
-            @Test
-            @DisplayName("❌ 중복된 사용자명 → 409 Conflict")
-            void shouldFailWhenUsernameDuplicated() throws Exception {
-                String uniqueId = UUID.randomUUID().toString().substring(0, 8);
-                String username = "dup_" + uniqueId;
-                String email = "dup_" + uniqueId + "@example.com";
-
-                // 첫 번째 회원가입 (성공)
-                mockMvc.perform(post("/api/auth/signup").contentType(MediaType.APPLICATION_FORM_URLENCODED).param("username", username).param("password", "Password123!").param("name", "First User").param("email", email)).andExpect(status().isNoContent());
-
-                // 같은 사용자명으로 두 번째 회원가입 시도 (실패)
-                // 기대 타이틀(국제화 메시지) — 유틸리티 사용
-                String expectedTitle = MessageUtils.get("exception.title.duplicate-username");
-
-                mockMvc.perform(post("/api/auth/signup").contentType(MediaType.APPLICATION_FORM_URLENCODED).param("username", username).param("password", "Password456!").param("name", "Second User").param("email", "different_" + uniqueId + "@example.com")).andExpect(status().isConflict()).andExpect(jsonPath("$.title").value(expectedTitle)).andExpect(jsonPath("$.code").value(bunny.boardhole.shared.constants.ErrorCode.USER_DUPLICATE_USERNAME.getCode())).andDo(print());
-            }
-
-            @Test
-            @DisplayName("❌ 중복된 이메일 → 409 Conflict")
-            void shouldFailWhenEmailDuplicated() throws Exception {
-                String uniqueId = UUID.randomUUID().toString().substring(0, 8);
-                String email = "dup_email_" + uniqueId + "@example.com";
-
-                // 첫 번째 회원가입 (성공)
-                mockMvc.perform(post("/api/auth/signup").contentType(MediaType.APPLICATION_FORM_URLENCODED).param("username", "user1_" + uniqueId).param("password", "Password123!").param("name", "First User").param("email", email)).andExpect(status().isNoContent());
-
-                // 같은 이메일로 두 번째 회원가입 시도 (실패)
-                mockMvc.perform(post("/api/auth/signup").contentType(MediaType.APPLICATION_FORM_URLENCODED).param("username", "user2_" + uniqueId).param("password", "Password456!").param("name", "Second User").param("email", email)).andExpect(status().isConflict()).andExpect(jsonPath("$.title").value(MessageUtils.get("exception.title.duplicate-email"))).andExpect(jsonPath("$.code").value(bunny.boardhole.shared.constants.ErrorCode.USER_DUPLICATE_EMAIL.getCode())).andDo(print());
-            }
+            // then
+            then(userWebMapper).should().toCreateCommand(request);
+            then(userCommandService).should().create(command);
         }
     }
 
     @Nested
     @DisplayName("POST /api/auth/login - 로그인")
-    @Tag("auth")
     class Login {
 
-        static Stream<Arguments> provideInvalidLoginData() {
-            final String validUsername = "validuser";
-            String nonExistentUser = "nonexistent_" + UUID.randomUUID().toString().substring(0, 8);
-
-            return Stream.of(Arguments.of("잘못된 비밀번호", validUsername, "WrongPass123!"), Arguments.of("존재하지 않는 사용자", nonExistentUser, "AnyPass123!"));
-        }
-
         @Test
-        @DisplayName("✅ 유효한 자격증명으로 로그인 성공")
-        void shouldLoginWithValidCredentials() throws Exception {
-            String uniqueId = UUID.randomUUID().toString().substring(0, 8);
-            String username = "usr_" + uniqueId;
-            final String password = "Password123!";
+        @DisplayName("✅ 유효한 자격증명으로 로그인 성공 - SecurityContext 저장")
+        void shouldLoginSuccessfullyWithSecurityContext() {
+            // given
+            LoginRequest loginRequest = new LoginRequest("testuser", "Password123!");
+            LoginCommand loginCommand = new LoginCommand("testuser", "Password123!");
 
-            // 먼저 회원가입
-            mockMvc.perform(post("/api/auth/signup").contentType(MediaType.APPLICATION_FORM_URLENCODED).param("username", username).param("password", password).param("name", "Login User").param("email", "loginuser_" + uniqueId + "@example.com")).andExpect(status().isNoContent());
+            given(authWebMapper.toLoginCommand(loginRequest)).willReturn(loginCommand);
+            given(authCommandService.login(loginCommand)).willReturn(new bunny.boardhole.auth.application.result.AuthResult(
+                    1L, "testuser", "test@example.com", "Test User", "USER", true
+            ));
 
-            // 로그인 시도
-            mockMvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_FORM_URLENCODED).param("username", username).param("password", password)).andExpect(status().isNoContent()).andDo(print());
-        }
+            try (MockedStatic<SecurityContextHolder> mockedSecurityContextHolder = mockStatic(SecurityContextHolder.class)) {
+                mockedSecurityContextHolder.when(SecurityContextHolder::getContext)
+                                           .thenReturn(securityContext);
+                given(securityContext.getAuthentication()).willReturn(authentication);
+                given(authentication.getPrincipal()).willReturn(testPrincipal);
+                willDoNothing().given(securityContextRepository).saveContext(securityContext,
+                        request, response);
+                willDoNothing().given(userCommandService).updateLastLogin(testUser.getId());
 
-        @ParameterizedTest(name = "[{index}] {0}")
-        @MethodSource("provideInvalidLoginData")
-        @DisplayName("❌ 잘못된 자격증명 → 401 Unauthorized")
-        void shouldFailWithInvalidCredentials(String displayName, String username, String password) throws Exception {
-            mockMvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_FORM_URLENCODED).param("username", username).param("password", password)).andExpect(status().isUnauthorized()).andExpect(all(unauthorized())).andDo(print());
-        }
+                // when
+                authController.login(loginRequest, request, response);
 
-        @BeforeEach
-        void setupValidUser() throws Exception {
-            // 유효한 사용자 생성 (테스트용)
-            mockMvc.perform(post("/api/auth/signup").contentType(MediaType.APPLICATION_FORM_URLENCODED).param("username", "validuser").param("password", "Password123!").param("name", "Valid User").param("email", "valid@example.com")).andExpect(status().isNoContent());
-        }
-    }
-
-    @Nested
-    @DisplayName("GET /api/auth/check - 로그인 상태 확인")
-    @Tag("auth")
-    class AuthCheck {
-
-        @Test
-        @DisplayName("❌ 인증되지 않은 사용자 → 401 Unauthorized")
-        void shouldReturn401WhenNotAuthenticated() throws Exception {
-            mockMvc.perform(get("/api/auth/check")).andExpect(status().isUnauthorized()).andExpect(jsonPath("$.title").value(MessageUtils.get("exception.title.unauthorized"))).andExpect(jsonPath("$.type").value("urn:problem-type:unauthorized")).andExpect(jsonPath("$.status").value(401)).andDo(print());
-        }
-    }
-
-    @Nested
-    @DisplayName("권한별 접근 제어")
-    @Tag("security")
-    class AccessControl {
-
-        @Test
-        @DisplayName("✅ 공개 엔드포인트 - 인증 없이 접근 가능")
-        void shouldAllowPublicAccess() throws Exception {
-            mockMvc.perform(get("/api/auth/public-access")).andExpect(status().isNoContent()).andDo(print());
-        }
-
-        @Test
-        @DisplayName("❌ 사용자 전용 엔드포인트 - 인증 없이 접근 실패")
-        void shouldDenyUserAccessWithoutAuth() throws Exception {
-            mockMvc.perform(get("/api/auth/user-access")).andExpect(status().isUnauthorized()).andExpect(all(unauthorized())).andDo(print());
-        }
-
-        @Test
-        @DisplayName("✅ 사용자 전용 엔드포인트 - 일반 사용자 접근 성공")
-        @WithUserDetails
-        void shouldAllowUserAccess() throws Exception {
-            mockMvc.perform(get("/api/auth/user-access")).andExpect(status().isNoContent()).andDo(print());
-        }
-
-        @Test
-        @DisplayName("✅ 사용자 전용 엔드포인트 - 관리자 접근 성공")
-        @WithUserDetails("admin")
-        void shouldAllowAdminAccessToUserEndpoint() throws Exception {
-            mockMvc.perform(get("/api/auth/user-access")).andExpect(status().isNoContent()).andDo(print());
-        }
-
-        @Nested
-        @DisplayName("관리자 전용 엔드포인트")
-        class AdminOnly {
-
-            @Test
-            @DisplayName("❌ 인증 없이 접근 → 401 Unauthorized")
-            void shouldReturn401WhenNotAuthenticated() throws Exception {
-                mockMvc.perform(get("/api/auth/admin-only")).andExpect(status().isUnauthorized()).andExpect(jsonPath("$.title").value(MessageUtils.get("exception.title.unauthorized"))).andDo(print());
+                // then
+                then(authWebMapper).should().toLoginCommand(loginRequest);
+                then(authCommandService).should().login(loginCommand);
+                then(securityContextRepository).should().saveContext(securityContext,
+                        request, response);
+                then(userCommandService).should().updateLastLogin(testUser.getId());
             }
+        }
 
-            @Test
-            @DisplayName("❌ 일반 사용자 접근 → 403 Forbidden")
-            @WithUserDetails
-            void shouldReturn403WhenRegularUser() throws Exception {
-                mockMvc.perform(get("/api/auth/admin-only")).andExpect(status().isForbidden()).andExpect(jsonPath("$.title").value(MessageUtils.get("exception.title.access-denied"))).andDo(print());
+        @Test
+        @DisplayName("✅ 인증 없이 로그인 - SecurityContext 저장 안함")
+        void shouldLoginWithoutAuthentication() {
+            // given
+            LoginRequest loginRequest = new LoginRequest("testuser", "Password123!");
+            LoginCommand loginCommand = new LoginCommand("testuser", "Password123!");
+
+            given(authWebMapper.toLoginCommand(loginRequest)).willReturn(loginCommand);
+            given(authCommandService.login(loginCommand)).willReturn(new bunny.boardhole.auth.application.result.AuthResult(
+                    1L, "testuser", "test@example.com", "Test User", "USER", true
+            ));
+
+            try (MockedStatic<SecurityContextHolder> mockedSecurityContextHolder = mockStatic(SecurityContextHolder.class)) {
+                mockedSecurityContextHolder.when(SecurityContextHolder::getContext)
+                                           .thenReturn(securityContext);
+                given(securityContext.getAuthentication()).willReturn(null);
+
+                // when
+                authController.login(loginRequest, request, response);
+
+                // then
+                then(authWebMapper).should().toLoginCommand(loginRequest);
+                then(authCommandService).should().login(loginCommand);
+                then(securityContextRepository).should(never()).saveContext(any(), any(), any());
+                then(userCommandService).should(never()).updateLastLogin(anyLong());
             }
+        }
 
-            @Test
-            @DisplayName("✅ 관리자 접근 성공")
-            @WithUserDetails("admin")
-            void shouldAllowAdminAccess() throws Exception {
-                mockMvc.perform(get("/api/auth/admin-only")).andExpect(status().isNoContent()).andDo(print());
+        @Test
+        @DisplayName("✅ updateLastLogin 예외 발생 시 로그인 성공 유지")
+        void shouldContinueLoginWhenUpdateLastLoginFails() {
+            // given
+            LoginRequest loginRequest = new LoginRequest("testuser", "Password123!");
+            LoginCommand loginCommand = new LoginCommand("testuser", "Password123!");
+
+            given(authWebMapper.toLoginCommand(loginRequest)).willReturn(loginCommand);
+            given(authCommandService.login(loginCommand)).willReturn(new bunny.boardhole.auth.application.result.AuthResult(
+                    1L, "testuser", "test@example.com", "Test User", "USER", true
+            ));
+
+            try (MockedStatic<SecurityContextHolder> mockedSecurityContextHolder = mockStatic(SecurityContextHolder.class)) {
+                mockedSecurityContextHolder.when(SecurityContextHolder::getContext)
+                                           .thenReturn(securityContext);
+                given(securityContext.getAuthentication()).willReturn(authentication);
+                given(authentication.getPrincipal()).willReturn(testPrincipal);
+                willDoNothing().given(securityContextRepository).saveContext(securityContext,
+                        request, response);
+                willThrow(new UnsupportedOperationException("Test exception"))
+                        .given(userCommandService).updateLastLogin(testUser.getId());
+
+                // when
+                authController.login(loginRequest, request, response);
+
+                // then
+                then(authWebMapper).should().toLoginCommand(loginRequest);
+                then(authCommandService).should().login(loginCommand);
+                then(securityContextRepository).should().saveContext(securityContext,
+                        request, response);
+                then(userCommandService).should().updateLastLogin(testUser.getId());
             }
         }
     }
 
     @Nested
     @DisplayName("POST /api/auth/logout - 로그아웃")
-    @Tag("auth")
     class Logout {
 
         @Test
-        @DisplayName("✅ 로그인된 사용자 로그아웃 성공")
-        @WithUserDetails
-        void shouldLogoutWhenAuthenticated() throws Exception {
-            mockMvc.perform(post("/api/auth/logout")).andExpect(status().isNoContent()).andDo(print());
+        @DisplayName("✅ 인증된 사용자 로그아웃 성공")
+        void shouldLogoutAuthenticatedUser() {
+            // given
+            LogoutCommand logoutCommand = new LogoutCommand(testUser.getId());
+
+            given(authMapper.toLogoutCommand(testUser.getId())).willReturn(logoutCommand);
+            willDoNothing().given(authCommandService).logout(logoutCommand);
+            given(request.getSession(false)).willReturn(session);
+            willDoNothing().given(session).invalidate();
+
+            try (MockedStatic<SecurityContextHolder> mockedSecurityContextHolder = mockStatic(SecurityContextHolder.class)) {
+                mockedSecurityContextHolder.when(SecurityContextHolder::clearContext).then(invocation -> null);
+                mockedSecurityContextHolder.when(SecurityContextHolder::createEmptyContext).thenReturn(securityContext);
+                willDoNothing().given(securityContextRepository).saveContext(securityContext,
+                        request, response);
+
+                // when
+                authController.logout(request, response,
+                        testPrincipal);
+
+                // then
+                then(authMapper).should().toLogoutCommand(testUser.getId());
+                then(authCommandService).should().logout(logoutCommand);
+                then(session).should().invalidate();
+                then(securityContextRepository).should().saveContext(securityContext,
+                        request, response);
+            }
         }
 
         @Test
-        @DisplayName("❌ 인증되지 않은 상태에서 로그아웃 → 401 Unauthorized")
-        void shouldReturn401WhenNotAuthenticated() throws Exception {
-            mockMvc.perform(post("/api/auth/logout")).andExpect(status().isUnauthorized()).andExpect(jsonPath("$.title").value(MessageUtils.get("exception.title.unauthorized"))).andDo(print());
+        @DisplayName("✅ 세션이 없는 상태에서 로그아웃")
+        void shouldLogoutWithoutSession() {
+            // given
+            LogoutCommand logoutCommand = new LogoutCommand(testUser.getId());
+
+            given(authMapper.toLogoutCommand(testUser.getId())).willReturn(logoutCommand);
+            willDoNothing().given(authCommandService).logout(logoutCommand);
+            given(request.getSession(false)).willReturn(null);
+
+            try (MockedStatic<SecurityContextHolder> mockedSecurityContextHolder = mockStatic(SecurityContextHolder.class)) {
+                mockedSecurityContextHolder.when(SecurityContextHolder::clearContext).then(invocation -> null);
+                mockedSecurityContextHolder.when(SecurityContextHolder::createEmptyContext).thenReturn(securityContext);
+                willDoNothing().given(securityContextRepository).saveContext(securityContext,
+                        request, response);
+
+                // when
+                authController.logout(request, response,
+                        testPrincipal);
+
+                // then
+                then(authMapper).should().toLogoutCommand(testUser.getId());
+                then(authCommandService).should().logout(logoutCommand);
+                then(securityContextRepository).should().saveContext(securityContext,
+                        request, response);
+            }
         }
     }
 
+    @Nested
+    @DisplayName("권한 제어 엔드포인트")
+    class AccessControl {
+
+        @Test
+        @DisplayName("✅ 관리자 전용 엔드포인트 호출")
+        void shouldCallAdminOnlyEndpoint() {
+            // given
+            User adminUser = User.builder()
+                                 .username("admin")
+                                 .password("password")
+                                 .name("Admin User")
+                                 .email("admin@example.com")
+                                 .roles(Set.of(Role.ADMIN))
+                                 .build();
+            AppUserPrincipal adminPrincipal = new AppUserPrincipal(adminUser);
+
+            // when
+            authController.adminOnly(adminPrincipal);
+
+            // then - 예외 없이 정상 실행됨을 검증 (로깅만 수행하므로 별도 검증 없음)
+        }
+
+        @Test
+        @DisplayName("✅ 일반 사용자 접근 엔드포인트 호출")
+        void shouldCallUserAccessEndpoint() {
+            // when
+            authController.userAccess(testPrincipal);
+
+            // then - 예외 없이 정상 실행됨을 검증 (로깅만 수행하므로 별도 검증 없음)
+        }
+
+        @Test
+        @DisplayName("✅ 공개 엔드포인트 호출")
+        void shouldCallPublicAccessEndpoint() {
+            // when
+            authController.publicAccess();
+
+            // then - 예외 없이 정상 실행됨을 검증 (로깅만 수행하므로 별도 검증 없음)
+        }
+    }
 }

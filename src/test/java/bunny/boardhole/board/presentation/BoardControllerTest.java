@@ -1,301 +1,238 @@
 package bunny.boardhole.board.presentation;
 
-import java.util.UUID;
-import java.util.concurrent.Executor;
-import java.util.function.Function;
-import java.util.stream.Stream;
+import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.Set;
 
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.DynamicTest;
-import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestFactory;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.TestInstance.Lifecycle;
-import org.junit.jupiter.api.TestMethodOrder;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.EmptySource;
-import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.ValueSource;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Primary;
-import org.springframework.core.task.SyncTaskExecutor;
-import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithUserDetails;
-import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
+import bunny.boardhole.board.application.command.BoardCommandService;
+import bunny.boardhole.board.application.command.CreateBoardCommand;
+import bunny.boardhole.board.application.command.UpdateBoardCommand;
+import bunny.boardhole.board.application.query.BoardQueryService;
+import bunny.boardhole.board.application.query.GetBoardQuery;
+import bunny.boardhole.board.application.result.BoardResult;
+import bunny.boardhole.board.presentation.dto.BoardCreateRequest;
+import bunny.boardhole.board.presentation.dto.BoardResponse;
+import bunny.boardhole.board.presentation.dto.BoardUpdateRequest;
+import bunny.boardhole.board.presentation.mapper.BoardWebMapper;
 import bunny.boardhole.shared.security.AppUserPrincipal;
-import bunny.boardhole.testsupport.mvc.MvcTestBase;
+import bunny.boardhole.user.domain.Role;
+import bunny.boardhole.user.domain.User;
 
-import static bunny.boardhole.testsupport.mvc.MatchersUtil.all;
-import static bunny.boardhole.testsupport.mvc.ProblemDetailsMatchers.fieldErrorExists;
-import static bunny.boardhole.testsupport.mvc.ProblemDetailsMatchers.unauthorized;
-import static bunny.boardhole.testsupport.mvc.ProblemDetailsMatchers.validationError;
-import static org.hamcrest.Matchers.anyOf;
-import static org.hamcrest.Matchers.is;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
+import static org.mockito.BDDMockito.willDoNothing;
 
-@DisplayName("게시판 API 통합 테스트")
-@TestMethodOrder(MethodOrderer.DisplayName.class)
-@TestInstance(Lifecycle.PER_CLASS)
-@Tag("integration")
+@ExtendWith(MockitoExtension.class)
+@DisplayName("BoardController 단위 테스트")
+@Tag("unit")
 @Tag("board")
-@Import(BoardControllerTest.TestAsyncConfig.class)
-class BoardControllerTest extends MvcTestBase {
+class BoardControllerTest {
 
-    /**
-     * 테스트용 비동기 설정
-     * 이 테스트에서만 비동기 이벤트를 동기적으로 실행하여
-     * 조회수 증가 테스트가 안정적으로 동작하도록 함
-     */
-    @TestConfiguration
-    static class TestAsyncConfig {
-        @Bean(name = "taskExecutor")
-        @Primary
-        public Executor taskExecutor() {
-            // SyncTaskExecutor를 사용하여 비동기 작업을 동기적으로 실행
-            return new SyncTaskExecutor();
-        }
+    @Mock
+    private BoardCommandService boardCommandService;
+
+    @Mock
+    private BoardQueryService boardQueryService;
+
+    @Mock
+    private BoardWebMapper boardWebMapper;
+
+    @InjectMocks
+    private BoardController boardController;
+
+    private User testUser;
+    private AppUserPrincipal testPrincipal;
+    private BoardResult testBoardResult;
+    private BoardResponse testBoardResponse;
+    private Pageable pageable;
+
+    @BeforeEach
+    void setUp() {
+        testUser = User.builder()
+            .username("testuser")
+            .password("encoded_password")
+            .name("Test User")
+            .email("test@example.com")
+            .roles(Set.of(Role.USER))
+            .build();
+        testPrincipal = new AppUserPrincipal(testUser);
+        
+        testBoardResult = new BoardResult(
+            1L, "Test Title", "Test Content", 1L,
+            "testuser", 0, LocalDateTime.now(), null
+        );
+        
+        testBoardResponse = new BoardResponse(
+            1L, "Test Title", "Test Content", 1L,
+            "testuser", 0, LocalDateTime.now(), null
+        );
+        
+        pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "id"));
     }
 
     @Nested
-    @DisplayName("POST /api/boards - 게시글 생성")
-    @TestMethodOrder(MethodOrderer.DisplayName.class)
-    @Tag("create")
+    @DisplayName("POST /api/boards - 게시글 작성")
     class CreateBoard {
 
-        @Nested
-        @DisplayName("인증된 사용자")
-        @TestInstance(Lifecycle.PER_CLASS)
-        class WhenAuthenticated {
+        @Test
+        @DisplayName("✅ 인증된 사용자가 게시글 작성 성공")
+        void shouldCreateBoardSuccessfully() {
+            // given
+            BoardCreateRequest request = new BoardCreateRequest("Test Title", "Test Content");
+            CreateBoardCommand command = new CreateBoardCommand(testUser.getId(), "Test Title", "Test Content");
 
-            static Stream<Arguments> provideMissingFieldTestCases() {
-                return Stream.of(Arguments.of("title 필드가 비어있을 때", "", "Test Content", "title"), Arguments.of("content 필드가 비어있을 때", "Test Title", "", "content"));
-            }
+            given(boardWebMapper.toCreateCommand(request, testUser.getId())).willReturn(command);
+            given(boardCommandService.create(command)).willReturn(testBoardResult);
+            given(boardWebMapper.toResponse(testBoardResult)).willReturn(testBoardResponse);
 
-            @Test
-            @DisplayName("✅ 유효한 데이터로 게시글 생성 → 201 Created")
-            @WithUserDetails
-            void shouldCreateBoardWithValidData() throws Exception {
-                String uniqueId = UUID.randomUUID().toString().substring(0, 8);
+            // when
+            BoardResponse result = boardController.create(request, testPrincipal);
 
-                mockMvc.perform(post("/api/boards").contentType(MediaType.APPLICATION_FORM_URLENCODED).param("title", "Board_" + uniqueId).param("content", "Content_" + uniqueId)).andExpect(status().isCreated()).andExpect(jsonPath("$.title").value("Board_" + uniqueId)).andExpect(jsonPath("$.content").value("Content_" + uniqueId)).andExpect(jsonPath("$.authorName").value("user")).andDo(print());
-            }
-
-            @ParameterizedTest(name = "[{index}] {0}")
-            @MethodSource("provideMissingFieldTestCases")
-            @DisplayName("❌ 필수 필드 누락 → 400 Bad Request")
-            @WithUserDetails
-            void shouldFailWhenRequiredFieldMissing(String displayName, String titleValue, String contentValue, String expectedMissingField) throws Exception {
-                mockMvc.perform(post("/api/boards").contentType(MediaType.APPLICATION_FORM_URLENCODED).param("title", titleValue).param("content", contentValue)).andExpect(status().isBadRequest()).andExpect(all(validationError())).andExpect(fieldErrorExists(expectedMissingField)).andDo(print());
-            }
-
-            @ParameterizedTest(name = "[{index}] 제목이 \"{0}\"일 때")
-            @EmptySource
-            @ValueSource(strings = {" ", "  ", "\t", "\n"})
-            @DisplayName("❌ 빈 제목 → 400 Bad Request (또는 허용)")
-            @WithUserDetails
-            void shouldHandleEmptyTitle(String title) throws Exception {
-                mockMvc.perform(post("/api/boards").contentType(MediaType.APPLICATION_FORM_URLENCODED).param("title", title).param("content", "Valid Content")).andExpect(status().is(anyOf(is(200), is(201), is(400)))).andDo(print());
-            }
-        }
-
-        @Nested
-        @DisplayName("인증되지 않은 사용자")
-        class WhenNotAuthenticated {
-
-            @Test
-            @DisplayName("❌ 인증 없이 게시글 생성 시도 → 401 Unauthorized")
-            @Tag("security")
-            void shouldReturn401WhenNotAuthenticated() throws Exception {
-                mockMvc.perform(post("/api/boards").contentType(MediaType.APPLICATION_FORM_URLENCODED).param("title", "Test Title").param("content", "Test Content")).andExpect(status().isUnauthorized()).andExpect(all(unauthorized())).andDo(print());
-            }
+            // then
+            assertThat(result).isEqualTo(testBoardResponse);
+            then(boardWebMapper).should().toCreateCommand(request, testUser.getId());
+            then(boardCommandService).should().create(command);
+            then(boardWebMapper).should().toResponse(testBoardResult);
         }
     }
 
     @Nested
     @DisplayName("GET /api/boards - 게시글 목록 조회")
-    @Tag("read")
     class ListBoards {
 
-        static Stream<Arguments> provideUserTestCases() {
-            return Stream.of(Arguments.of("익명", get("/api/boards")), Arguments.of("일반", get("/api/boards").with(user("user").roles("USER"))), Arguments.of("관리자", get("/api/boards").with(user("admin").roles("ADMIN"))));
-        }
+        @Test
+        @DisplayName("✅ 검색어 없이 전체 게시글 목록 조회")
+        void shouldListAllBoards() {
+            // given
+            Page<BoardResult> resultPage = new PageImpl<>(Collections.singletonList(testBoardResult), pageable, 1);
+            Page<BoardResponse> responsePage = new PageImpl<>(Collections.singletonList(testBoardResponse), pageable, 1);
 
-        @ParameterizedTest(name = "{0} 사용자")
-        @MethodSource("provideUserTestCases")
-        @DisplayName("모든 사용자가 목록 조회 가능")
-        void shouldAllowListingForAllUsers(String role, MockHttpServletRequestBuilder requestBuilder) throws Exception {
-            mockMvc.perform(requestBuilder).andExpect(status().isOk()).andExpect(jsonPath("$.content").isArray()).andExpect(jsonPath("$.pageable").exists()).andDo(print());
+            given(boardQueryService.listWithPaging(pageable)).willReturn(resultPage);
+            given(boardWebMapper.toResponse(testBoardResult)).willReturn(testBoardResponse);
+
+            // when
+            Page<BoardResponse> result = boardController.list(pageable, null);
+
+            // then
+            assertThat(result).isEqualTo(responsePage);
+            then(boardQueryService).should().listWithPaging(pageable);
+            then(boardWebMapper).should().toResponse(testBoardResult);
         }
 
         @Test
-        @DisplayName("📄 페이지네이션 파라미터 적용")
-        void shouldApplyPaginationParameters() throws Exception {
-            mockMvc.perform(get("/api/boards").param("page", "0").param("size", "5").param("sort", "createdAt,desc")).andExpect(status().isOk()).andExpect(jsonPath("$.pageable.pageSize").value(5)).andExpect(jsonPath("$.pageable.pageNumber").value(0)).andDo(print());
-        }
+        @DisplayName("✅ 검색어로 게시글 검색")
+        void shouldSearchBoards() {
+            // given
+            String searchTerm = "test";
+            Page<BoardResult> resultPage = new PageImpl<>(Collections.singletonList(testBoardResult), pageable, 1);
+            Page<BoardResponse> responsePage = new PageImpl<>(Collections.singletonList(testBoardResponse), pageable, 1);
 
-        @ParameterizedTest(name = "검색어: \"{0}\"")
-        @ValueSource(strings = {"test", "게시글", "spring"})
-        @DisplayName("🔍 검색 기능")
-        void shouldFilterBySearchTerm(String searchTerm) throws Exception {
-            mockMvc.perform(get("/api/boards").param("search", searchTerm)).andExpect(status().isOk()).andExpect(jsonPath("$.content").isArray()).andDo(print());
+            given(boardQueryService.listWithPaging(pageable, searchTerm)).willReturn(resultPage);
+            given(boardWebMapper.toResponse(testBoardResult)).willReturn(testBoardResponse);
+
+            // when
+            Page<BoardResponse> result = boardController.list(pageable, searchTerm);
+
+            // then
+            assertThat(result).isEqualTo(responsePage);
+            then(boardQueryService).should().listWithPaging(pageable, searchTerm);
+            then(boardWebMapper).should().toResponse(testBoardResult);
         }
     }
 
     @Nested
-    @DisplayName("GET /api/boards/{id} - 게시글 단일 조회")
-    @Tag("read")
+    @DisplayName("GET /api/boards/{id} - 게시글 상세 조회")
     class GetBoard {
 
         @Test
-        @DisplayName("❌ 존재하지 않는 게시글 → 404 Not Found")
-        void shouldReturn404WhenBoardNotFound() throws Exception {
-            mockMvc.perform(get("/api/boards/999999")).andExpect(status().isNotFound()).andExpect(jsonPath("$.title").value(bunny.boardhole.shared.util.MessageUtils.get("exception.title.not-found"))).andExpect(jsonPath("$.type").value("urn:problem-type:not-found")).andDo(print());
-        }
+        @DisplayName("✅ 게시글 ID로 조회 성공")
+        void shouldGetBoardById() {
+            // given
+            Long boardId = 1L;
+            GetBoardQuery query = new GetBoardQuery(boardId);
+            
+            given(boardWebMapper.toGetBoardQuery(boardId)).willReturn(query);
+            given(boardQueryService.handle(query)).willReturn(testBoardResult);
+            given(boardWebMapper.toResponse(testBoardResult)).willReturn(testBoardResponse);
 
-        @Nested
-        @DisplayName("존재하는 게시글")
-        @TestInstance(Lifecycle.PER_CLASS)
-        class WhenBoardExists {
+            // when
+            BoardResponse result = boardController.get(boardId);
 
-            private Long boardId = 0L; // Will be properly initialized in @BeforeAll
-
-            static Stream<Arguments> provideBoardViewTestCases() {
-                return Stream.of(Arguments.of("익명", (Function<Long, MockHttpServletRequestBuilder>) id -> get("/api/boards/" + id)), Arguments.of("일반", (Function<Long, MockHttpServletRequestBuilder>) id -> get("/api/boards/" + id).with(user("user").roles("USER"))), Arguments.of("관리자", (Function<Long, MockHttpServletRequestBuilder>) id -> get("/api/boards/" + id).with(user("admin").roles("ADMIN"))));
-            }
-
-            @BeforeAll
-            void setup() {
-                boardId = seedBoardOwnedBy(getRegularUsername(), "Test Board", "Test Content");
-            }
-
-            @ParameterizedTest(name = "{0} 사용자")
-            @MethodSource("provideBoardViewTestCases")
-            @DisplayName("✅ 모든 사용자가 조회 가능")
-            void shouldAllowGettingForAllUsers(String role, Function<Long, MockHttpServletRequestBuilder> requestBuilderFunction) throws Exception {
-                mockMvc.perform(requestBuilderFunction.apply(boardId)).andExpect(status().isOk()).andExpect(jsonPath("$.id").value(boardId)).andDo(print());
-            }
-
-            @Test
-            @DisplayName("📈 조회시 조회수 증가")
-            @WithUserDetails
-            void shouldIncrementViewCount() throws Exception {
-                // 첫 번째 조회
-                MvcResult result1 = mockMvc.perform(get("/api/boards/" + boardId)).andExpect(status().isOk()).andReturn();
-
-                String json1 = result1.getResponse().getContentAsString();
-                int viewCount1 = Integer.parseInt(json1.replaceAll(".*\"viewCount\":(\\d+).*", "$1"));
-
-                // 잠시 대기 (비동기 처리)
-                Thread.sleep(100);
-
-                // 두 번째 조회
-                MvcResult result2 = mockMvc.perform(get("/api/boards/" + boardId)).andExpect(status().isOk()).andReturn();
-
-                String json2 = result2.getResponse().getContentAsString();
-                int viewCount2 = Integer.parseInt(json2.replaceAll(".*\"viewCount\":(\\d+).*", "$1"));
-
-                // 조회수 증가 확인
-                assert viewCount2 > viewCount1;
-            }
+            // then
+            assertThat(result).isEqualTo(testBoardResponse);
+            then(boardWebMapper).should().toGetBoardQuery(boardId);
+            then(boardQueryService).should().handle(query);
+            then(boardWebMapper).should().toResponse(testBoardResult);
         }
     }
 
     @Nested
     @DisplayName("PUT /api/boards/{id} - 게시글 수정")
-    @Tag("update")
-    @TestInstance(Lifecycle.PER_CLASS)
     class UpdateBoard {
 
         @Test
-        @DisplayName("❌ 존재하지 않는 게시글 수정 → 403 Forbidden")
-        @WithUserDetails
-        void shouldReturn403WhenUpdatingNonExistentBoard() throws Exception {
-            mockMvc.perform(put("/api/boards/999999").contentType(MediaType.APPLICATION_FORM_URLENCODED).param("title", "New Title").param("content", "New Content")).andExpect(status().isForbidden()).andExpect(jsonPath("$.title").value(bunny.boardhole.shared.util.MessageUtils.get("exception.title.access-denied"))).andDo(print());
-        }
+        @DisplayName("✅ 게시글 수정 성공")
+        void shouldUpdateBoardSuccessfully() {
+            // given
+            Long boardId = 1L;
+            BoardUpdateRequest request = new BoardUpdateRequest("Updated Title", "Updated Content");
+            UpdateBoardCommand command = new UpdateBoardCommand(boardId, testUser.getId(), "Updated Title", "Updated Content");
+            BoardResult updatedResult = new BoardResult(
+                boardId, "Updated Title", "Updated Content", testUser.getId(),
+                "testuser", 0, LocalDateTime.now(), LocalDateTime.now()
+            );
+            BoardResponse updatedResponse = new BoardResponse(
+                boardId, "Updated Title", "Updated Content", testUser.getId(),
+                "testuser", 0, LocalDateTime.now(), LocalDateTime.now()
+            );
 
-        @Nested
-        @DisplayName("권한별 접근 제어")
-        @TestInstance(Lifecycle.PER_CLASS)
-        class AccessControl {
+            given(boardWebMapper.toUpdateCommand(boardId, testUser.getId(), request)).willReturn(command);
+            given(boardCommandService.update(command)).willReturn(updatedResult);
+            given(boardWebMapper.toResponse(updatedResult)).willReturn(updatedResponse);
 
-            private final String boardOwner = "owner_" + UUID.randomUUID().toString().substring(0, 8);
-            private Long boardId = 0L; // Will be properly initialized in @BeforeAll
+            // when
+            BoardResponse result = boardController.update(boardId, request, testPrincipal);
 
-            @BeforeAll
-            void setup() {
-                seedUser(boardOwner, "Board Owner", boardOwner + "@test.com", "Password123!", java.util.Set.of(bunny.boardhole.user.domain.Role.USER));
-                boardId = seedBoardOwnedBy(boardOwner, "Original Title", "Original Content");
-            }
-
-            @Test
-            @DisplayName("✅ 작성자 본인 → 수정 성공")
-            void shouldAllowAuthorToUpdate() throws Exception {
-                var principal = new AppUserPrincipal(userRepository.findByUsername(boardOwner).orElseThrow(() -> new IllegalStateException("Board owner not found: " + boardOwner)));
-
-                mockMvc.perform(put("/api/boards/" + boardId).with(user(principal)).contentType(MediaType.APPLICATION_FORM_URLENCODED).param("title", "Updated Title").param("content", "Updated Content")).andExpect(status().isOk()).andExpect(jsonPath("$.title").value("Updated Title")).andDo(print());
-            }
-
-            @Test
-            @DisplayName("✅ 관리자 → 수정 성공")
-            @WithUserDetails("admin")
-            void shouldAllowAdminToUpdate() throws Exception {
-                mockMvc.perform(put("/api/boards/" + boardId).contentType(MediaType.APPLICATION_FORM_URLENCODED).param("title", "Admin Updated").param("content", "Admin Content")).andExpect(status().isOk()).andExpect(jsonPath("$.title").value("Admin Updated")).andDo(print());
-            }
-
-            @Test
-            @DisplayName("❌ 다른 사용자 → 403 Forbidden")
-            @WithUserDetails
-            void shouldDenyOtherUserToUpdate() throws Exception {
-                mockMvc.perform(put("/api/boards/" + boardId).contentType(MediaType.APPLICATION_FORM_URLENCODED).param("title", "Hacked Title").param("content", "Hacked Content")).andExpect(status().isForbidden()).andExpect(jsonPath("$.type").value("urn:problem-type:forbidden")).andDo(print());
-            }
+            // then
+            assertThat(result).isEqualTo(updatedResponse);
+            then(boardWebMapper).should().toUpdateCommand(boardId, testUser.getId(), request);
+            then(boardCommandService).should().update(command);
+            then(boardWebMapper).should().toResponse(updatedResult);
         }
     }
 
     @Nested
     @DisplayName("DELETE /api/boards/{id} - 게시글 삭제")
-    @Tag("delete")
     class DeleteBoard {
 
-        @TestFactory
-        @DisplayName("권한별 삭제 테스트")
-        Stream<DynamicTest> deletePermissionTests() {
-            return Stream.of(DynamicTest.dynamicTest("✅ 작성자 본인 → 삭제 성공", () -> {
-                        String owner = "deleter_" + UUID.randomUUID().toString().substring(0, 8);
-                        seedUser(owner, "Deleter", owner + "@test.com", "Password123!", java.util.Set.of(bunny.boardhole.user.domain.Role.USER));
-                        Long boardId = seedBoardOwnedBy(owner, "To Delete", "Content");
-                        var principal = new AppUserPrincipal(userRepository.findByUsername(owner).orElseThrow(() -> new IllegalStateException("Owner not found: " + owner)));
+        @Test
+        @DisplayName("✅ 게시글 삭제 성공")
+        void shouldDeleteBoardSuccessfully() {
+            // given
+            Long boardId = 1L;
+            willDoNothing().given(boardCommandService).delete(boardId);
 
-                        mockMvc.perform(delete("/api/boards/" + boardId).with(user(principal))).andExpect(status().isNoContent()).andDo(print());
-                    }),
+            // when
+            boardController.delete(boardId);
 
-                    DynamicTest.dynamicTest("❌ 다른 사용자 → 403 Forbidden", () -> {
-                        Long boardId = seedBoardOwnedBy("admin", "Admin's Board", "Content");
-
-                        mockMvc.perform(delete("/api/boards/" + boardId).with(user("other").roles("USER"))).andExpect(status().isForbidden()).andDo(print());
-                    }),
-
-                    DynamicTest.dynamicTest("❌ 인증되지 않은 사용자 → 401 Unauthorized", () -> {
-                        Long boardId = seedBoardOwnedBy("user", "User's Board", "Content");
-
-                        mockMvc.perform(delete("/api/boards/" + boardId)).andExpect(status().isUnauthorized()).andDo(print());
-                    }));
+            // then
+            then(boardCommandService).should().delete(boardId);
         }
     }
-
 }

@@ -43,9 +43,46 @@ Docker Compose가 자동으로 처리하는 것들:
 
 - **게시판 CRUD**: 게시글 작성, 수정, 삭제, 조회
 - **사용자 인증**: 세션 기반 로그인/로그아웃
-- **이메일 인증**: 회원가입 시 이메일 검증
+ 
 - **권한 관리**: 사용자/관리자 역할 구분
 - **API 문서**: Swagger UI 제공 (`/swagger-ui/index.html`)
+- **표준 HTTP 응답**: RFC 7807 Problem Details 준수
+
+## 🔒 기본 계정과 보안 안내
+
+본 애플리케이션은 모든 프로필(운영 포함)에서 기본 계정들을 멱등하게 생성합니다. 이는 온보딩과 데모/E2E 테스트 편의를 위한 의도된 동작입니다. 기본 비밀번호의 변경·회전 책임은 배포/운영자에게 있습니다.
+
+- 기본 계정(기본값은 `application.yml`에서 설정, 환경별 오버라이드 권장)
+  - Admin: `admin` / `Admin123!` (ROLE_ADMIN)
+  - User: `user` / `User123!` (ROLE_USER)
+  - Anon: `anon` / `Anon123!` (ROLE_USER)
+
+- 운영 환경에서의 권장 사항
+  - 비밀번호를 반드시 환경별로 오버라이드하세요 (예: `application-prod.yml`).
+  - 최초 기동 후 즉시 관리자 비밀번호를 변경하세요.
+
+- 설정 오버라이드 예시 (YAML)
+
+```yaml
+# application-prod.yml 등
+boardhole:
+  default-users:
+    admin:
+      password: "CHANGE_ME_STRONG!"
+    regular:
+      password: "CHANGE_ME_STRONG!"
+```
+
+- 환경변수로 오버라이드 예시
+
+```bash
+export BOARDHOLE_DEFAULT_USERS_ADMIN_PASSWORD='CHANGE_ME_STRONG!'
+export BOARDHOLE_DEFAULT_USERS_REGULAR_PASSWORD='CHANGE_ME_STRONG!'
+```
+
+- 비밀번호 변경 API (로그인 후 본인 비밀번호 변경)
+  - `PATCH /api/users/{id}/password` (폼 전송)
+  - 필드: `currentPassword`, `newPassword`, `confirmPassword`
 
 ## 🏗️ 기술 스택
 
@@ -54,7 +91,7 @@ Docker Compose가 자동으로 처리하는 것들:
 - **Session**: Redis (Docker)
 - **Build**: Gradle 8.14
 - **Testing**: JUnit 5, Testcontainers, RestAssured
-- **Quality**: Checkstyle, PMD, SpotBugs, JaCoCo, SonarCloud
+- **Quality**: Checkstyle, PMD, SpotBugs
 
 ## 📁 프로젝트 구조
 
@@ -62,7 +99,6 @@ Docker Compose가 자동으로 처리하는 것들:
 src/main/java/bunny/boardhole/
 ├── auth/          # 인증/인가
 ├── board/         # 게시판
-├── email/         # 이메일
 ├── user/          # 사용자
 └── shared/        # 공통 모듈
 ```
@@ -83,14 +119,9 @@ src/main/java/bunny/boardhole/
 # 단위 테스트만
 ./gradlew test --tests "*Test"
 
-# 통합 테스트
-./gradlew integrationTest
-
 # E2E 테스트
 ./gradlew e2eTest
 
-# 테스트 커버리지 리포트
-./gradlew jacocoTestReport
 ```
 
 ## 🔧 유용한 명령어
@@ -99,8 +130,7 @@ src/main/java/bunny/boardhole/
 # 품질 검사 (Checkstyle, PMD, SpotBugs)
 ./gradlew qualityCheck
 
-# SonarCloud 분석
-./gradlew sonarAnalysis
+
 
 # Docker 컨테이너 종료
 docker-compose down
@@ -125,10 +155,8 @@ MIT License
 ./gradlew test --tests BoardControllerTest
 
 # 모든 테스트 스위트 실행
-./gradlew allTests          # unit + integration + e2e
+./gradlew test e2eTest      # unit + integration + e2e
 
-# 커버리지 검증
-./gradlew jacocoTestCoverageVerification
 ```
 
 ### 아키텍처 구조
@@ -157,6 +185,20 @@ IntelliJ IDEA 자동 설정:
 3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
+
+## 📋 HTTP 응답 코드
+
+애플리케이션은 REST API 표준을 준수하여 다음과 같은 HTTP 응답 코드를 사용합니다:
+
+- **200 OK**: 조회 성공 (GET 요청 성공)
+- **201 Created**: 리소스 생성 성공 (POST 요청으로 새 데이터 생성)
+- **204 No Content**: 수정/삭제 성공 (PUT/PATCH/DELETE 요청 성공, 반환 데이터 없음)
+- **400 Bad Request**: 요청 형식 오류 (잘못된 JSON, 누락된 필수 필드)
+- **401 Unauthorized**: 인증 실패 (로그인 필요, 세션 만료)
+- **409 Conflict**: 중복 데이터 (이메일/사용자명 중복)
+- **422 Unprocessable Entity**: 유효성 검증 실패 (형식은 올바르나 비즈니스 규칙 위반)
+
+모든 오류 응답은 RFC 7807 Problem Details 표준을 따라 구조화된 JSON으로 반환됩니다.
 
 ## 📞 문의
 
