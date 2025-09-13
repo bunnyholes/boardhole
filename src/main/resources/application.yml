@@ -14,14 +14,6 @@ spring:
       ddl-auto: update
 
 # ========================================
-# 로깅 공통 설정
-# ========================================
-logging:
-  pattern:
-    # 컬러풀한 콘솔 출력 패턴
-    console: "%clr(%d{HH:mm:ss.SSS}){cyan} %clr(%-5level) %clr([%15.15t]){magenta} %clr(%-40.40logger{39}){yellow} %clr(:){faint} %m%n%wEx"
-
-# ========================================
 # 서버 전역 인코딩 설정
 # ========================================
 server:
@@ -82,7 +74,7 @@ boardhole:
       email: user@boardhole.com
   api:
     title: Board-Hole API
-    version: 0.0.1-SNAPSHOT
+    version: 1.2.0
     description: |
       ## Board-Hole - Spring Boot Sample Code Repository
 
