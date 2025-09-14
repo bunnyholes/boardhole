@@ -1,5 +1,7 @@
 package bunny.boardhole.board.application.query;
 
+import java.util.UUID;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

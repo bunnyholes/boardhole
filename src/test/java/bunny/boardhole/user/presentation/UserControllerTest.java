@@ -3,6 +3,7 @@ package bunny.boardhole.user.presentation;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Set;
+import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -74,12 +75,12 @@ class UserControllerTest {
         testPrincipal = new AppUserPrincipal(testUser);
 
         testUserResult = new UserResult(
-                1L, "testuser", "Test User", "test@example.com",
+                UUID.randomUUID(), "testuser", "Test User", "test@example.com",
                 LocalDateTime.now(), null, null, Set.of(Role.USER)
         );
 
         testUserResponse = new UserResponse(
-                1L, "testuser", "Test User", "test@example.com",
+                UUID.randomUUID(), "testuser", "Test User", "test@example.com",
                 LocalDateTime.now(), null, Set.of(Role.USER)
         );
 
@@ -163,7 +164,7 @@ class UserControllerTest {
         @DisplayName("✅ 사용자 ID로 조회 성공")
         void shouldGetUserById() {
             // given
-            final Long userId = 1L;
+            final UUID userId = UUID.randomUUID();
             given(userQueryService.get(userId)).willReturn(testUserResult);
             given(userWebMapper.toResponse(testUserResult)).willReturn(
                     testUserResponse);
@@ -186,7 +187,7 @@ class UserControllerTest {
         @DisplayName("✅ 사용자 정보 수정 성공")
         void shouldUpdateUserSuccessfully() {
             // given
-            final Long userId = 1L;
+            final UUID userId = UUID.randomUUID();
             UserUpdateRequest request = new UserUpdateRequest("Updated Name");
             UpdateUserCommand command = new UpdateUserCommand(userId, "Updated Name");
             UserResult updatedResult = new UserResult(
@@ -221,7 +222,7 @@ class UserControllerTest {
         @DisplayName("✅ 사용자 삭제 성공")
         void shouldDeleteUserSuccessfully() {
             // given
-            final Long userId = 1L;
+            final UUID userId = UUID.randomUUID();
             willDoNothing().given(userCommandService).delete(userId);
 
             // when
@@ -240,7 +241,7 @@ class UserControllerTest {
         @DisplayName("✅ 패스워드 변경 성공")
         void shouldUpdatePasswordSuccessfully() {
             // given
-            final Long userId = 1L;
+            final UUID userId = UUID.randomUUID();
             PasswordUpdateRequest request = new PasswordUpdateRequest(
                     "currentPassword", "newPassword123!", "newPassword123!"
             );
@@ -261,7 +262,7 @@ class UserControllerTest {
         @DisplayName("❌ 패스워드 확인 불일치 시 예외 발생")
         void shouldThrowExceptionWhenPasswordConfirmationMismatch() {
             // given
-            final Long userId = 1L;
+            final UUID userId = UUID.randomUUID();
             PasswordUpdateRequest request = new PasswordUpdateRequest(
                     "currentPassword", "newPassword123!", "differentPassword"
             );

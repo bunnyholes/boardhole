@@ -1,5 +1,7 @@
 package bunny.boardhole.board.application.mapper;
 
+import java.util.UUID;
+
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
@@ -22,5 +24,5 @@ public interface BoardMapper {
      * @param boardId 게시글 ID
      * @return 조회 이벤트
      */
-    ViewedEvent toViewedEvent(Long boardId);
+    ViewedEvent toViewedEvent(UUID boardId);
 }

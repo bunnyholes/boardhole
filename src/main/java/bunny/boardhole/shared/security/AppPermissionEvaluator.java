@@ -2,6 +2,7 @@ package bunny.boardhole.shared.security;
 
 import java.io.Serializable;
 import java.util.Locale;
+import java.util.UUID;
 
 import lombok.RequiredArgsConstructor;
 
@@ -29,12 +30,12 @@ public class AppPermissionEvaluator implements PermissionEvaluator {
         return auth.getAuthorities().stream().map(GrantedAuthority::getAuthority).anyMatch(role::equals);
     }
 
-    private static boolean isSameUser(Authentication auth, Long userId) {
-        Long current = extractUserId(auth);
+    private static boolean isSameUser(Authentication auth, UUID userId) {
+        UUID current = extractUserId(auth);
         return current != null && current.equals(userId);
     }
 
-    private static @Nullable Long extractUserId(Authentication auth) {
+    private static @Nullable UUID extractUserId(Authentication auth) {
         Object principal = auth.getPrincipal();
         if (principal instanceof AppUserPrincipal(User user))
             return user.getId();
@@ -65,8 +66,18 @@ public class AppPermissionEvaluator implements PermissionEvaluator {
         if (hasRole(auth, securityProperties.rolePrefix() + "ADMIN"))
             return true;
 
-        if (!(targetId instanceof Long id))
+        UUID id;
+        if (targetId instanceof UUID uuid) {
+            id = uuid;
+        } else if (targetId instanceof String string) {
+            try {
+                id = UUID.fromString(string);
+            } catch (IllegalArgumentException e) {
+                return false;
+            }
+        } else {
             return false;
+        }
 
         return switch (type) {
             case PermissionType.TARGET_BOARD -> switch (perm) {
@@ -85,7 +96,7 @@ public class AppPermissionEvaluator implements PermissionEvaluator {
         };
     }
 
-    private boolean isBoardOwner(Authentication auth, Long boardId) {
+    private boolean isBoardOwner(Authentication auth, UUID boardId) {
         // TODO: 성능 최적화 - 실제 부하 발생 시 캐싱 고려
         // 현재는 매 권한 체크마다 DB 조회가 발생하지만,
         // 실제 운영 환경에서 부하가 발생하면 다음과 같은 최적화 가능:

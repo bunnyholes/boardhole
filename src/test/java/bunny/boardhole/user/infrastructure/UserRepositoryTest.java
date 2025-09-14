@@ -2,6 +2,7 @@ package bunny.boardhole.user.infrastructure;
 
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -152,7 +153,7 @@ class UserRepositoryTest extends bunny.boardhole.testsupport.jpa.EntityTestBase 
         @DisplayName("존재하지 않는 ID로 조회 시 빈 결과")
         void findById_NonExistingUser_ReturnsEmpty() {
             // When
-            Optional<User> found = userRepository.findById(999L);
+            Optional<User> found = userRepository.findById(UUID.randomUUID());
 
             // Then
             assertThat(found).isEmpty();
@@ -290,7 +291,7 @@ class UserRepositoryTest extends bunny.boardhole.testsupport.jpa.EntityTestBase 
         @DisplayName("사용자 삭제 - Soft Delete 검증")
         void delete_ExistingUser_SoftDeletesSuccessfully() {
             // Given
-            Long userId = testUser.getId();
+            UUID userId = testUser.getId();
             long countBefore = userRepository.count();
             long totalCountBefore = userRepository.findAllIncludingDeleted().size();
 
@@ -311,7 +312,7 @@ class UserRepositoryTest extends bunny.boardhole.testsupport.jpa.EntityTestBase 
         @DisplayName("ID로 사용자 삭제 - Soft Delete 검증")
         void deleteById_ExistingUser_SoftDeletesSuccessfully() {
             // Given
-            Long userId = adminUser.getId();
+            UUID userId = adminUser.getId();
             long countBefore = userRepository.count();
             long totalCountBefore = userRepository.findAllIncludingDeleted().size();
 

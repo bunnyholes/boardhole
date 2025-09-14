@@ -3,6 +3,7 @@ package bunny.boardhole.shared.config.log;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
@@ -82,19 +83,21 @@ class BusinessLogAspectTest {
         appender.start();
         logger.addAppender(appender);
         User author = User.builder().username("writer").password("pw").name("Writer").email("writer@example.com").roles(Set.of(Role.USER)).build();
-        ReflectionTestUtils.setField(author, "id", 1L);
-        given(boardUserRepository.findById(1L)).willReturn(Optional.of(author));
+        UUID authorId = UUID.randomUUID();
+        ReflectionTestUtils.setField(author, "id", authorId);
+        given(boardUserRepository.findById(authorId)).willReturn(Optional.of(author));
         Board board = Board.builder().title("title").content("secret content").author(author).build();
-        ReflectionTestUtils.setField(board, "id", 1L);
+        UUID boardId = UUID.randomUUID();
+        ReflectionTestUtils.setField(board, "id", boardId);
         given(boardRepository.save(any(Board.class))).willReturn(board);
         // Suppress null warning: test record with null timestamps for logging test purposes
-        @SuppressWarnings("DataFlowIssue") BoardResult boardResult = new BoardResult(1L, "title", "secret content", 1L, "writer", 0, null, null);
+        @SuppressWarnings("DataFlowIssue") BoardResult boardResult = new BoardResult(boardId, "title", "secret content", authorId, "writer", 0, null, null);
         given(boardMapper.toResult(board)).willReturn(boardResult);
 
-        boardService.create(new CreateBoardCommand(1L, "title", "secret content"));
+        boardService.create(new CreateBoardCommand(authorId, "title", "secret content"));
 
         List<ILoggingEvent> events = appender.list;
-        String expected = MessageUtils.get("log.board.created", 1L, "title", "writer");
+        String expected = MessageUtils.get("log.board.created", boardId, "title", "writer");
         assertThat(events.stream().anyMatch(e -> e.getFormattedMessage().contains(expected))).isTrue();
         assertThat(events.stream().anyMatch(e -> e.getFormattedMessage().contains("secret content"))).isFalse();
     }
@@ -106,11 +109,12 @@ class BusinessLogAspectTest {
         appender.start();
         logger.addAppender(appender);
         User author = User.builder().username("writer").password("pw").name("Writer").email("writer@example.com").roles(Set.of(Role.USER)).build();
-        ReflectionTestUtils.setField(author, "id", 1L);
-        given(boardUserRepository.findById(1L)).willReturn(Optional.of(author));
+        UUID authorId = UUID.randomUUID();
+        ReflectionTestUtils.setField(author, "id", authorId);
+        given(boardUserRepository.findById(authorId)).willReturn(Optional.of(author));
         given(boardRepository.save(any(Board.class))).willThrow(new RuntimeException("db error"));
 
-        assertThrows(RuntimeException.class, () -> boardService.create(new CreateBoardCommand(1L, "t", "c")));
+        assertThrows(RuntimeException.class, () -> boardService.create(new CreateBoardCommand(authorId, "t", "c")));
         assertThat(appender.list
                 .stream()
                 .anyMatch(e -> e.getFormattedMessage().contains("Method failed") || e.getFormattedMessage().contains("메소드 실패"))).isTrue();
@@ -126,10 +130,11 @@ class BusinessLogAspectTest {
 
         User existing = Mockito.mock(User.class);
         given(existing.getUsername()).willReturn("user");
-        ReflectionTestUtils.setField(existing, "id", 1L);
-        given(userRepository.findById(1L)).willReturn(Optional.of(existing));
+        UUID userId = UUID.randomUUID();
+        ReflectionTestUtils.setField(existing, "id", userId);
+        given(userRepository.findById(userId)).willReturn(Optional.of(existing));
 
-        userService.delete(1L);
+        userService.delete(userId);
 
         // 로그에서 사용자 삭제 메시지 확인
         assertThat(appender.list

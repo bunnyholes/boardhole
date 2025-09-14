@@ -24,7 +24,6 @@ comprehensive quality tooling.
 ./gradlew e2eTest           # @Tag("e2e") tests only
 
 # Quality
-./gradlew jacocoTestReport   # Generate coverage report
 ./gradlew sonarAnalysis      # Run SonarCloud analysis
 ```
 
@@ -110,12 +109,10 @@ Profiles:
 - Documentation: SpringDoc OpenAPI 2.8.12
 - Mapping: MapStruct 1.6.3
 - Testing: JUnit 5, RestAssured 5.5.0, Testcontainers, ArchUnit 1.4.1
-- Quality: JaCoCo 0.8.12
 - Null Safety: JSpecify 1.0.0
 
 ## Quality Standards
 
-- Code coverage: ≥60%
 - SonarCloud integration
 - IntelliJ IDEA inspections
 - RFC 7807 Problem Details for errors

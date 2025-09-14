@@ -1,5 +1,7 @@
 package bunny.boardhole.board.application.mapper;
 
+import java.util.UUID;
+
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;
 
@@ -15,5 +17,5 @@ public interface BoardCommandMapper {
     /**
      * boardId로 조회수 증가 명령 생성
      */
-    IncrementViewCountCommand toIncrementViewCountCommand(Long boardId);
+    IncrementViewCountCommand toIncrementViewCountCommand(UUID boardId);
 }

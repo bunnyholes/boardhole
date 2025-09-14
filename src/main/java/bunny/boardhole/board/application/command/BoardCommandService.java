@@ -1,6 +1,7 @@
 package bunny.boardhole.board.application.command;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -45,7 +46,7 @@ public class BoardCommandService {
      */
     @Transactional
     public BoardResult create(@Valid CreateBoardCommand cmd) {
-        Long authorId = cmd.authorId();
+        UUID authorId = cmd.authorId();
         User author = userRepository
                 .findById(authorId)
                 .orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.user.not-found.id", authorId)));
@@ -68,7 +69,7 @@ public class BoardCommandService {
     @Transactional
     @PreAuthorize("hasPermission(#cmd.boardId, 'BOARD', 'WRITE')")
     public BoardResult update(@Valid UpdateBoardCommand cmd) {
-        Long id = cmd.boardId();
+        UUID id = cmd.boardId();
         Board board = boardRepository
                 .findById(id).orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.board.not-found.id", id)));
 
@@ -90,7 +91,7 @@ public class BoardCommandService {
      */
     @Transactional
     @PreAuthorize("hasPermission(#id, 'BOARD', 'DELETE')")
-    public void delete(@NotNull @Positive Long id) {
+    public void delete(@NotNull UUID id) {
         Board board = loadBoardOrThrow(id);
         boardRepository.delete(board);
     }
@@ -105,7 +106,7 @@ public class BoardCommandService {
      */
     @Transactional(propagation = org.springframework.transaction.annotation.Propagation.REQUIRES_NEW)
     public void incrementViewCount(@Valid IncrementViewCountCommand cmd) {
-        Long boardId = cmd.boardId();
+        UUID boardId = cmd.boardId();
         Board board = boardRepository
                 .findById(boardId)
                 .orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.board.not-found.id", boardId)));
@@ -123,7 +124,7 @@ public class BoardCommandService {
      * @return 게시글 엔티티
      * @throws ResourceNotFoundException 게시글을 찾을 수 없는 경우
      */
-    private Board loadBoardOrThrow(Long id) {
+    private Board loadBoardOrThrow(UUID id) {
         return boardRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.board.not-found.id", id)));
     }
 

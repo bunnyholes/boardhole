@@ -2,6 +2,7 @@ package bunny.boardhole.user.infrastructure;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,7 +18,7 @@ import bunny.boardhole.user.domain.User;
  * 사용자 엔티티에 대한 CRUD 작업 및 검색 기능을 제공합니다.
  */
 @Validated
-public interface UserRepository extends JpaRepository<User, Long> {
+public interface UserRepository extends JpaRepository<User, UUID> {
     /**
      * 사용자명 중복 확인
      *
@@ -63,7 +64,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Override
     @EntityGraph(attributePaths = "roles")
-    Optional<User> findById(Long id);
+    Optional<User> findById(UUID id);
 
     /**
      * 사용자명, 이름, 이메일로 대소문자 구분 없이 검색
@@ -99,5 +100,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
      * @return 사용자 (삭제 여부 상관없이)
      */
     @Query(value = "SELECT * FROM users WHERE id = ?1", nativeQuery = true)
-    Optional<User> findByIdIncludingDeleted(Long id);
+    Optional<User> findByIdIncludingDeleted(UUID id);
 }

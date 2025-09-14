@@ -1,5 +1,7 @@
 package bunny.boardhole.user.application.command;
 
+import java.util.UUID;
+
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -80,7 +82,7 @@ public class UserCommandService {
     @Transactional
     @PreAuthorize("hasPermission(#cmd.userId, 'USER', 'WRITE')")
     public UserResult update(@Valid UpdateUserCommand cmd) {
-        Long id = cmd.userId();
+        UUID id = cmd.userId();
         User user = userRepository
                 .findById(id).orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.user.not-found.id", id)));
 
@@ -95,12 +97,12 @@ public class UserCommandService {
     /**
      * 사용자 삭제
      *
-     * @param id 삭제할 사용자 ID
+     * @param id 삭제할 사용자 ID (UUID)
      * @throws ResourceNotFoundException 사용자를 찾을 수 없는 경우
      */
     @Transactional
     @PreAuthorize("hasPermission(#id, 'USER', 'DELETE')")
-    public void delete(@NotNull @Positive Long id) {
+    public void delete(@NotNull UUID id) {
         User existing = userRepository
                 .findById(id).orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.user.not-found.id", id)));
 
@@ -114,7 +116,7 @@ public class UserCommandService {
      * @throws ResourceNotFoundException 사용자를 찾을 수 없는 경우
      */
     @Transactional
-    public void updateLastLogin(@NotNull @Positive Long userId) {
+    public void updateLastLogin(@NotNull UUID userId) {
         User user = userRepository
                 .findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.user.not-found.id", userId)));

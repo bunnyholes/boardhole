@@ -1,6 +1,7 @@
 package bunny.boardhole.auth.presentation;
 
 import java.util.Set;
+import java.util.UUID;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -36,7 +37,6 @@ import bunny.boardhole.user.presentation.dto.UserCreateRequest;
 import bunny.boardhole.user.presentation.mapper.UserWebMapper;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.BDDMockito.willDoNothing;
@@ -90,7 +90,7 @@ class AuthControllerTest {
     private AppUserPrincipal testPrincipal;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
         testUser = User.builder()
                        .username("testuser")
                        .password("encoded_password")
@@ -98,6 +98,12 @@ class AuthControllerTest {
                        .email("test@example.com")
                        .roles(Set.of(Role.USER))
                        .build();
+        
+        // Use reflection to set the UUID ID for testing
+        var idField = User.class.getDeclaredField("id");
+        idField.setAccessible(true);
+        idField.set(testUser, UUID.randomUUID());
+        
         testPrincipal = new AppUserPrincipal(testUser);
     }
 
@@ -118,7 +124,7 @@ class AuthControllerTest {
 
             given(userWebMapper.toCreateCommand(request)).willReturn(command);
             given(userCommandService.create(command)).willReturn(new bunny.boardhole.user.application.result.UserResult(
-                    1L, "testuser", "Test User", "test@example.com",
+                    UUID.randomUUID(), "testuser", "Test User", "test@example.com",
                     java.time.LocalDateTime.now(), null, null, java.util.Set.of(bunny.boardhole.user.domain.Role.USER)
             ));
 
@@ -144,7 +150,7 @@ class AuthControllerTest {
 
             given(authWebMapper.toLoginCommand(loginRequest)).willReturn(loginCommand);
             given(authCommandService.login(loginCommand)).willReturn(new bunny.boardhole.auth.application.result.AuthResult(
-                    1L, "testuser", "test@example.com", "Test User", "USER", true
+                    UUID.randomUUID(), "testuser", "test@example.com", "Test User", "USER", true
             ));
 
             try (MockedStatic<SecurityContextHolder> mockedSecurityContextHolder = mockStatic(SecurityContextHolder.class)) {
@@ -177,7 +183,7 @@ class AuthControllerTest {
 
             given(authWebMapper.toLoginCommand(loginRequest)).willReturn(loginCommand);
             given(authCommandService.login(loginCommand)).willReturn(new bunny.boardhole.auth.application.result.AuthResult(
-                    1L, "testuser", "test@example.com", "Test User", "USER", true
+                    UUID.randomUUID(), "testuser", "test@example.com", "Test User", "USER", true
             ));
 
             try (MockedStatic<SecurityContextHolder> mockedSecurityContextHolder = mockStatic(SecurityContextHolder.class)) {
@@ -192,7 +198,7 @@ class AuthControllerTest {
                 then(authWebMapper).should().toLoginCommand(loginRequest);
                 then(authCommandService).should().login(loginCommand);
                 then(securityContextRepository).should(never()).saveContext(any(), any(), any());
-                then(userCommandService).should(never()).updateLastLogin(anyLong());
+                then(userCommandService).should(never()).updateLastLogin(any(UUID.class));
             }
         }
 
@@ -205,7 +211,7 @@ class AuthControllerTest {
 
             given(authWebMapper.toLoginCommand(loginRequest)).willReturn(loginCommand);
             given(authCommandService.login(loginCommand)).willReturn(new bunny.boardhole.auth.application.result.AuthResult(
-                    1L, "testuser", "test@example.com", "Test User", "USER", true
+                    UUID.randomUUID(), "testuser", "test@example.com", "Test User", "USER", true
             ));
 
             try (MockedStatic<SecurityContextHolder> mockedSecurityContextHolder = mockStatic(SecurityContextHolder.class)) {
@@ -300,7 +306,7 @@ class AuthControllerTest {
 
         @Test
         @DisplayName("✅ 관리자 전용 엔드포인트 호출")
-        void shouldCallAdminOnlyEndpoint() {
+        void shouldCallAdminOnlyEndpoint() throws Exception {
             // given
             User adminUser = User.builder()
                                  .username("admin")
@@ -309,6 +315,12 @@ class AuthControllerTest {
                                  .email("admin@example.com")
                                  .roles(Set.of(Role.ADMIN))
                                  .build();
+            
+            // Use reflection to set the UUID ID for testing
+            var idField = User.class.getDeclaredField("id");
+            idField.setAccessible(true);
+            idField.set(adminUser, UUID.randomUUID());
+            
             AppUserPrincipal adminPrincipal = new AppUserPrincipal(adminUser);
 
             // when

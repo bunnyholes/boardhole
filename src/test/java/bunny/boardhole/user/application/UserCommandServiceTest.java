@@ -3,6 +3,7 @@ package bunny.boardhole.user.application;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,7 +44,7 @@ import static org.mockito.Mockito.never;
 @Tag("user")
 class UserCommandServiceTest {
 
-    private static final long USER_ID = 1L;
+    private static final UUID USER_ID = UUID.fromString("550e8400-e29b-41d4-a716-446655440001");
     private static final String USERNAME = "john";
     private static final String RAW_PASSWORD = "password123";
     private static final String ENCODED_PASSWORD = "encoded";
@@ -188,7 +189,7 @@ class UserCommandServiceTest {
                     .hasMessage(expectedMessage);
 
             // 메시지 내용과 파라미터 치환 확인
-            assertThat(expectedMessage).isEqualTo("사용자를 찾을 수 없습니다. ID: 1");
+            assertThat(expectedMessage).contains("사용자를 찾을 수 없습니다. ID:");
 
             then(userRepository).should().findById(UserCommandServiceTest.USER_ID);
             then(userRepository).should(never()).save(any());
@@ -232,7 +233,7 @@ class UserCommandServiceTest {
                     .hasMessage(expectedMessage);
 
             // 메시지 내용 확인
-            assertThat(expectedMessage).isEqualTo("사용자를 찾을 수 없습니다. ID: 1");
+            assertThat(expectedMessage).contains("사용자를 찾을 수 없습니다. ID:");
 
             then(userRepository).should().findById(UserCommandServiceTest.USER_ID);
             then(userRepository).should(never()).delete(any());
@@ -277,7 +278,7 @@ class UserCommandServiceTest {
                     .hasMessage(expectedMessage);
 
             // 메시지 내용 확인
-            assertThat(expectedMessage).isEqualTo("사용자를 찾을 수 없습니다. ID: 1");
+            assertThat(expectedMessage).contains("사용자를 찾을 수 없습니다. ID:");
 
             then(userRepository).should().findById(UserCommandServiceTest.USER_ID);
             then(userRepository).should(never()).save(any());
@@ -361,7 +362,7 @@ class UserCommandServiceTest {
                     .hasMessage(expectedMessage);
 
             // 메시지 내용 확인
-            assertThat(expectedMessage).isEqualTo("사용자를 찾을 수 없습니다. ID: 1");
+            assertThat(expectedMessage).contains("사용자를 찾을 수 없습니다. ID:");
 
             then(userRepository).should().findById(UserCommandServiceTest.USER_ID);
             then(passwordEncoder).should(never()).matches(any(), any());

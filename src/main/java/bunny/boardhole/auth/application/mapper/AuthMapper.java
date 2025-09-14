@@ -1,5 +1,7 @@
 package bunny.boardhole.auth.application.mapper;
 
+import java.util.UUID;
+
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
@@ -33,5 +35,5 @@ public interface AuthMapper {
      * @param userId 사용자 ID
      * @return 로그아웃 명령
      */
-    LogoutCommand toLogoutCommand(Long userId);
+    LogoutCommand toLogoutCommand(UUID userId);
 }

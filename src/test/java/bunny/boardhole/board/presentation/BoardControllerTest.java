@@ -3,6 +3,7 @@ package bunny.boardhole.board.presentation;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Set;
+import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -74,12 +75,12 @@ class BoardControllerTest {
         testPrincipal = new AppUserPrincipal(testUser);
 
         testBoardResult = new BoardResult(
-                1L, "Test Title", "Test Content", 1L,
+                UUID.randomUUID(), "Test Title", "Test Content", UUID.randomUUID(),
                 "testuser", 0, LocalDateTime.now(), null
         );
 
         testBoardResponse = new BoardResponse(
-                1L, "Test Title", "Test Content", 1L,
+                UUID.randomUUID(), "Test Title", "Test Content", UUID.randomUUID(),
                 "testuser", 0, LocalDateTime.now(), null
         );
 
@@ -171,7 +172,7 @@ class BoardControllerTest {
         @DisplayName("✅ 게시글 ID로 조회 성공")
         void shouldGetBoardById() {
             // given
-            final Long boardId = 1L;
+            final UUID boardId = UUID.randomUUID();
             GetBoardQuery query = new GetBoardQuery(boardId);
 
             given(boardWebMapper.toGetBoardQuery(boardId)).willReturn(query);
@@ -198,15 +199,15 @@ class BoardControllerTest {
         @DisplayName("✅ 게시글 수정 성공")
         void shouldUpdateBoardSuccessfully() {
             // given
-            final Long boardId = 1L;
+            final UUID boardId = UUID.randomUUID();
             BoardUpdateRequest request = new BoardUpdateRequest("Updated Title", "Updated Content");
             UpdateBoardCommand command = new UpdateBoardCommand(boardId, testUser.getId(), "Updated Title", "Updated Content");
             BoardResult updatedResult = new BoardResult(
-                    boardId, "Updated Title", "Updated Content", testUser.getId(),
+                    boardId, "Updated Title", "Updated Content", UUID.randomUUID(),
                     "testuser", 0, LocalDateTime.now(), LocalDateTime.now()
             );
             BoardResponse updatedResponse = new BoardResponse(
-                    boardId, "Updated Title", "Updated Content", testUser.getId(),
+                    boardId, "Updated Title", "Updated Content", UUID.randomUUID(),
                     "testuser", 0, LocalDateTime.now(), LocalDateTime.now()
             );
 
@@ -233,7 +234,7 @@ class BoardControllerTest {
         @DisplayName("✅ 게시글 삭제 성공")
         void shouldDeleteBoardSuccessfully() {
             // given
-            final Long boardId = 1L;
+            final UUID boardId = UUID.randomUUID();
             willDoNothing().given(boardCommandService).delete(boardId);
 
             // when

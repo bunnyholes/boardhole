@@ -189,32 +189,34 @@ class BoardE2ETest extends E2ETestBase {
         @DisplayName("익명 → 200 (공개)")
         void anonymous() {
             String uid = UUID.randomUUID().toString().substring(0, 8);
-            long id = BoardSteps.create(regular, "Hello " + uid, "Content " + uid).jsonPath().getLong("id");
-            given().when().get("boards/" + id).then().statusCode(200).body("title", equalTo("Hello " + uid));
+            UUID id = UUID.fromString(BoardSteps.create(regular, "Hello " + uid, "Content " + uid).jsonPath().getString("id"));
+            given().when().get("boards/" + id.toString()).then().statusCode(200).body("title", equalTo("Hello " + uid));
         }
 
         @Test
         @DisplayName("일반 → 200")
         void regular() {
             String uid = UUID.randomUUID().toString().substring(0, 8);
-            long id = BoardSteps.create(regular, "My " + uid, "Mine").jsonPath().getLong("id");
-            given().cookie("JSESSIONID", regular).when().get("boards/" + id).then().statusCode(200).body("id", equalTo((int) id));
+            UUID id = UUID.fromString(BoardSteps.create(regular, "My " + uid, "Mine").jsonPath().getString("id"));
+            given().cookie("JSESSIONID", regular).when().get("boards/" + id.toString()).then().statusCode(200).body("id", equalTo(id.toString()));
         }
 
         @Test
         @DisplayName("관리자 → 200 (타 사용자)")
         void admin_other() {
             String uid = UUID.randomUUID().toString().substring(0, 8);
-            long id = BoardSteps.create(regular, "Someone " + uid, "C").jsonPath().getLong("id");
-            given().cookie("JSESSIONID", admin).when().get("boards/" + id).then().statusCode(200);
+            UUID id = UUID.fromString(BoardSteps.create(regular, "Someone " + uid, "C").jsonPath().getString("id"));
+            given().cookie("JSESSIONID", admin).when().get("boards/" + id.toString()).then().statusCode(200);
         }
 
         @Test
         @DisplayName("미존재 → 404")
         void not_found() {
+            // Use a valid UUID that doesn't exist
+            String nonExistentId = "00000000-0000-0000-0000-000000000000";
             given()
                     .when()
-                    .get("boards/999999")
+                    .get("boards/" + nonExistentId)
                     .then()
                     .statusCode(404)
                     .body("type", equalTo("urn:problem-type:not-found"))
@@ -225,10 +227,10 @@ class BoardE2ETest extends E2ETestBase {
         @DisplayName("조회수 증가")
         void view_count_increments() throws InterruptedException {
             String uid = UUID.randomUUID().toString().substring(0, 8);
-            long id = BoardSteps.create(regular, "V " + uid, "VC").jsonPath().getLong("id");
-            int v1 = given().when().get("boards/" + id).then().statusCode(200).extract().jsonPath().getInt("viewCount");
+            UUID id = UUID.fromString(BoardSteps.create(regular, "V " + uid, "VC").jsonPath().getString("id"));
+            int v1 = given().when().get("boards/" + id.toString()).then().statusCode(200).extract().jsonPath().getInt("viewCount");
             Thread.sleep(100);
-            int v2 = given().when().get("boards/" + id).then().statusCode(200).extract().jsonPath().getInt("viewCount");
+            int v2 = given().when().get("boards/" + id.toString()).then().statusCode(200).extract().jsonPath().getInt("viewCount");
             org.assertj.core.api.Assertions.assertThat(v2).isGreaterThanOrEqualTo(v1);
         }
 
@@ -239,15 +241,17 @@ class BoardE2ETest extends E2ETestBase {
         }
 
         @Test
-        @DisplayName("음수 ID → 404")
+        @DisplayName("잘못된 UUID 형식 (음수) → 400")
         void negative_id() {
-            given().when().get("boards/-1").then().statusCode(404).body("type", equalTo("urn:problem-type:not-found"));
+            // Negative numbers are not valid UUIDs
+            given().when().get("boards/-1").then().statusCode(400);
         }
 
         @Test
-        @DisplayName("초대형 ID → 404")
+        @DisplayName("잘못된 UUID 형식 (숫자) → 400")
         void extremely_large_id() {
-            given().when().get("boards/9999999999").then().statusCode(404).body("type", equalTo("urn:problem-type:not-found"));
+            // Large numbers are not valid UUIDs
+            given().when().get("boards/9999999999").then().statusCode(400);
         }
     }
 
@@ -271,7 +275,7 @@ class BoardE2ETest extends E2ETestBase {
         @Test
         @DisplayName("일반(본인) → 200")
         void regular_owner() {
-            long id = BoardSteps.create(regular, "U1", "C").jsonPath().getLong("id");
+            UUID id = UUID.fromString(BoardSteps.create(regular, "U1", "C").jsonPath().getString("id"));
             BoardSteps.update(regular, id, "U1-upd", "C2").then().statusCode(200).body("title", equalTo("U1-upd"));
         }
 
@@ -284,7 +288,7 @@ class BoardE2ETest extends E2ETestBase {
             String oe = ou + "@example.com";
             AuthSteps.register(ou, op, "Other", oe);
             String other = AuthSteps.loginAs(ou, op);
-            long id = BoardSteps.create(other, "O-title", "O-content").jsonPath().getLong("id");
+            UUID id = UUID.fromString(BoardSteps.create(other, "O-title", "O-content").jsonPath().getString("id"));
 
             BoardSteps
                     .update(regular, id, "Hack", "Hack")
@@ -299,7 +303,7 @@ class BoardE2ETest extends E2ETestBase {
         @Test
         @DisplayName("관리자(타인) → 200")
         void admin_other() {
-            long id = BoardSteps.create(regular, "A-upd", "C").jsonPath().getLong("id");
+            UUID id = UUID.fromString(BoardSteps.create(regular, "A-upd", "C").jsonPath().getString("id"));
             BoardSteps.update(admin, id, "Admin-upd", "AC").then().statusCode(200).body("title", equalTo("Admin-upd"));
         }
 
@@ -313,7 +317,7 @@ class BoardE2ETest extends E2ETestBase {
                     .formParam("title", "Updated")
                     .formParam("content", "Updated")
                     .when()
-                    .put("boards/999999")
+                    .put("boards/00000000-0000-0000-0000-000000000000")
                     .then()
                     .statusCode(403)
                     .body("type", equalTo("urn:problem-type:forbidden"));
@@ -323,7 +327,7 @@ class BoardE2ETest extends E2ETestBase {
         @DisplayName("빈 title → 500 (DB constraint violation)")
         void empty_title_db_error() {
             // Empty string passes validation but fails at DB level (NOT NULL constraint)
-            long id = BoardSteps.create(regular, "Orig", "Content").jsonPath().getLong("id");
+            UUID id = UUID.fromString(BoardSteps.create(regular, "Orig", "Content").jsonPath().getString("id"));
             BoardSteps.update(regular, id, "", "Updated").then().statusCode(500);
         }
 
@@ -331,7 +335,7 @@ class BoardE2ETest extends E2ETestBase {
         @DisplayName("빈 content → 500 (DB constraint violation)")
         void empty_content_db_error() {
             // Empty string passes validation but fails at DB level (NOT NULL constraint)
-            long id = BoardSteps.create(regular, "Orig", "Content").jsonPath().getLong("id");
+            UUID id = UUID.fromString(BoardSteps.create(regular, "Orig", "Content").jsonPath().getString("id"));
             BoardSteps.update(regular, id, "Updated", "").then().statusCode(500);
         }
 
@@ -339,7 +343,7 @@ class BoardE2ETest extends E2ETestBase {
         @DisplayName("필드 길이 초과(title > " + BoardValidationConstants.BOARD_TITLE_MAX_LENGTH + ") → 422")
         void validation_title_too_long() {
             // @OptionalBoardTitle has @Size(max = BoardValidationConstants.BOARD_TITLE_MAX_LENGTH) validation
-            long id = BoardSteps.create(regular, "Orig", "Content").jsonPath().getLong("id");
+            UUID id = UUID.fromString(BoardSteps.create(regular, "Orig", "Content").jsonPath().getString("id"));
             String longTitle = "A".repeat(BoardValidationConstants.BOARD_TITLE_MAX_LENGTH + 1);
             given()
                     .cookie("JSESSIONID", regular)
@@ -347,7 +351,7 @@ class BoardE2ETest extends E2ETestBase {
                     .formParam("title", longTitle)
                     .formParam("content", "Updated")
                     .when()
-                    .put("boards/" + id)
+                    .put("boards/" + id.toString())
                     .then()
                     .statusCode(422)
                     .body("type", equalTo("urn:problem-type:validation-error"));
@@ -380,23 +384,23 @@ class BoardE2ETest extends E2ETestBase {
         @Test
         @DisplayName("일반(타인) → 403")
         void regular_other() {
-            long id = BoardSteps.create(admin, "Admin-own", "C").jsonPath().getLong("id");
+            UUID id = UUID.fromString(BoardSteps.create(admin, "Admin-own", "C").jsonPath().getString("id"));
             BoardSteps.delete(regular, id).then().statusCode(403).body("type", equalTo("urn:problem-type:forbidden"));
         }
 
         @Test
         @DisplayName("일반(본인) → 204")
         void regular_owner() {
-            long id = BoardSteps.create(regular, "Mine", "C").jsonPath().getLong("id");
+            UUID id = UUID.fromString(BoardSteps.create(regular, "Mine", "C").jsonPath().getString("id"));
             BoardSteps.delete(regular, id).then().statusCode(204);
         }
 
         @Test
         @DisplayName("관리자(타인) → 204")
         void admin_other() {
-            long id = BoardSteps.create(regular, "TBD", "C").jsonPath().getLong("id");
+            UUID id = UUID.fromString(BoardSteps.create(regular, "TBD", "C").jsonPath().getString("id"));
             BoardSteps.delete(admin, id).then().statusCode(204);
-            given().when().get("boards/" + id).then().statusCode(404);
+            given().when().get("boards/" + id.toString()).then().statusCode(404);
         }
 
         @Test
@@ -406,7 +410,7 @@ class BoardE2ETest extends E2ETestBase {
             given()
                     .cookie("JSESSIONID", regular)
                     .when()
-                    .delete("boards/999999")
+                    .delete("boards/00000000-0000-0000-0000-000000000000")
                     .then()
                     .statusCode(403)
                     .body("type", equalTo("urn:problem-type:forbidden"));
@@ -421,7 +425,7 @@ class BoardE2ETest extends E2ETestBase {
         @Test
         @DisplayName("이미 삭제된 게시글 → 403 (권한 체크 우선)")
         void already_deleted() {
-            long id = BoardSteps.create(regular, "ToDelete", "C").jsonPath().getLong("id");
+            UUID id = UUID.fromString(BoardSteps.create(regular, "ToDelete", "C").jsonPath().getString("id"));
             BoardSteps.delete(regular, id).then().statusCode(204);
             // Even for deleted resources, permission check happens first
             BoardSteps.delete(regular, id).then().statusCode(403);

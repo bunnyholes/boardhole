@@ -2,6 +2,7 @@ package bunny.boardhole.board.infrastructure;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,11 +19,11 @@ import bunny.boardhole.board.domain.Board;
  * 게시글 엔티티에 대한 CRUD 작업 및 검색, 집계 기능을 제공합니다.
  */
 @Validated
-public interface BoardRepository extends JpaRepository<Board, Long> {
+public interface BoardRepository extends JpaRepository<Board, UUID> {
 
     @Override
     @EntityGraph(attributePaths = "author")
-    Optional<Board> findById(Long id);
+    Optional<Board> findById(UUID id);
 
     @Override
     @EntityGraph(attributePaths = "author")
@@ -47,7 +48,7 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
      * @return 작성자 ID (Optional)
      */
     @Query("SELECT b.author.id FROM Board b WHERE b.id = :boardId")
-    Optional<Long> findAuthorIdById(@Param("boardId") Long boardId);
+    Optional<UUID> findAuthorIdById(@Param("boardId") UUID boardId);
 
     /**
      * 삭제된 게시글 포함 전체 조회 (Native Query)
@@ -72,5 +73,5 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
      * @return 게시글 (삭제 여부 상관없이)
      */
     @Query(value = "SELECT * FROM boards WHERE id = ?1", nativeQuery = true)
-    Optional<Board> findByIdIncludingDeleted(Long id);
+    Optional<Board> findByIdIncludingDeleted(UUID id);
 }

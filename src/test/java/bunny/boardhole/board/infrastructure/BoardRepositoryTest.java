@@ -2,6 +2,7 @@ package bunny.boardhole.board.infrastructure;
 
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -114,7 +115,7 @@ class BoardRepositoryTest extends EntityTestBase {
         @DisplayName("존재하지 않는 ID로 조회 시 빈 결과")
         void findById_NonExistingBoard_ReturnsEmpty() {
             // When
-            Optional<Board> found = boardRepository.findById(999L);
+            Optional<Board> found = boardRepository.findById(UUID.randomUUID());
 
             // Then
             assertThat(found).isEmpty();
@@ -138,7 +139,7 @@ class BoardRepositoryTest extends EntityTestBase {
         @DisplayName("작성자 ID 조회")
         void findAuthorIdById_ExistingBoard_ReturnsAuthorId() {
             // When
-            Optional<Long> authorId = boardRepository.findAuthorIdById(testBoard.getId());
+            Optional<UUID> authorId = boardRepository.findAuthorIdById(testBoard.getId());
 
             // Then
             assertThat(authorId).isPresent();
@@ -209,7 +210,7 @@ class BoardRepositoryTest extends EntityTestBase {
         @DisplayName("게시글 삭제 - Soft Delete 검증")
         void delete_ExistingBoard_SoftDeletesSuccessfully() {
             // Given
-            Long boardId = testBoard.getId();
+            UUID boardId = testBoard.getId();
             long countBefore = boardRepository.count();
             long totalCountBefore = boardRepository.findAllIncludingDeleted().size();
 
@@ -230,7 +231,7 @@ class BoardRepositoryTest extends EntityTestBase {
         @DisplayName("ID로 게시글 삭제 - Soft Delete 검증")
         void deleteById_ExistingBoard_SoftDeletesSuccessfully() {
             // Given
-            Long boardId = testBoard.getId();
+            UUID boardId = testBoard.getId();
             long countBefore = boardRepository.count();
             long totalCountBefore = boardRepository.findAllIncludingDeleted().size();
 
@@ -274,8 +275,8 @@ class BoardRepositoryTest extends EntityTestBase {
         @DisplayName("게시글 삭제 시 작성자는 유지")
         void delete_Board_AuthorRemains() {
             // Given
-            Long boardId = testBoard.getId();
-            Long authorId = author.getId();
+            UUID boardId = testBoard.getId();
+            UUID authorId = author.getId();
 
             // When
             boardRepository.delete(testBoard);

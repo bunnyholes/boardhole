@@ -1,5 +1,7 @@
 package bunny.boardhole.board.presentation.mapper;
 
+import java.util.UUID;
+
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
@@ -38,7 +40,7 @@ public interface BoardWebMapper {
     @Mapping(target = "authorId", source = "authorId")
     @Mapping(target = "title", source = "req.title")
     @Mapping(target = "content", source = "req.content")
-    CreateBoardCommand toCreateCommand(BoardCreateRequest req, Long authorId);
+    CreateBoardCommand toCreateCommand(BoardCreateRequest req, UUID authorId);
 
     /**
      * 게시글 수정 요청을 명령으로 변환
@@ -52,7 +54,7 @@ public interface BoardWebMapper {
     @Mapping(target = "authorId", source = "authorId")
     @Mapping(target = "title", source = "req.title")
     @Mapping(target = "content", source = "req.content")
-    UpdateBoardCommand toUpdateCommand(Long id, Long authorId, BoardUpdateRequest req);
+    UpdateBoardCommand toUpdateCommand(UUID id, UUID authorId, BoardUpdateRequest req);
 
     /**
      * ID로 게시글 조회 쿼리 생성
@@ -60,6 +62,6 @@ public interface BoardWebMapper {
      * @param id 게시글 ID
      * @return 게시글 조회 쿼리
      */
-    GetBoardQuery toGetBoardQuery(Long id);
+    GetBoardQuery toGetBoardQuery(UUID id);
 
 }

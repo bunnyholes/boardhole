@@ -1,5 +1,7 @@
 package bunny.boardhole.auth.application.command;
 
+import java.util.UUID;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -80,12 +82,12 @@ class SessionAuthCommandServiceTest {
                 .roles(java.util.Set.of(Role.USER))
                 .build();
         user.verifyEmail();
-        ReflectionTestUtils.setField(user, "id", 1L);
+        ReflectionTestUtils.setField(user, "id", UUID.randomUUID());
         // User는 기본적으로 권한을 가짐
 
         principal = new AppUserPrincipal(user);
 
-        authResult = new AuthResult(1L, "testuser", "test@example.com", "Test User", "USER", true);
+        authResult = new AuthResult(UUID.randomUUID(), "testuser", "test@example.com", "Test User", "USER", true);
     }
 
     @AfterEach
@@ -216,7 +218,7 @@ class SessionAuthCommandServiceTest {
         @DisplayName("정상적인 로그아웃 처리")
         void logout_ClearsSecurityContext() {
             // Given
-            LogoutCommand command = new LogoutCommand(1L);
+            LogoutCommand command = new LogoutCommand(UUID.randomUUID());
 
             // SecurityContext에 인증 정보 설정
             Authentication authentication = mock(Authentication.class);
@@ -239,7 +241,7 @@ class SessionAuthCommandServiceTest {
         @DisplayName("이미 로그아웃 상태에서 로그아웃 시도")
         void logout_AlreadyLoggedOut_NoException() {
             // Given
-            LogoutCommand command = new LogoutCommand(1L);
+            LogoutCommand command = new LogoutCommand(UUID.randomUUID());
 
             // SecurityContext가 이미 비어있는 상태
             assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();

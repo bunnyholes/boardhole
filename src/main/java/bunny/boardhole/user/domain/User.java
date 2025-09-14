@@ -1,9 +1,12 @@
 package bunny.boardhole.user.domain;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
@@ -46,17 +49,14 @@ import bunny.boardhole.user.domain.validation.required.ValidUsername;
 @EntityListeners(ValidationListener.class)
 @DynamicUpdate
 @SoftDelete(columnName = "deleted")
-@Table(name = "users", indexes = {
-        @Index(name = "idx_user_username", columnList = "username"),
-        @Index(name = "idx_user_email", columnList = "email"),
-        @Index(name = "idx_user_name", columnList = "name")
-})
-public class User extends BaseEntity implements java.io.Serializable {
+@Table(name = "users", indexes = {@Index(name = "idx_user_username", columnList = "username"), @Index(name = "idx_user_email", columnList = "email"), @Index(name = "idx_user_name", columnList = "name")})
+public class User extends BaseEntity implements Serializable {
+    @Serial
     private static final long serialVersionUID = 1L;
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.UUID)
     @EqualsAndHashCode.Include
-    private Long id;
+    private UUID id;
 
     @ValidUsername
     @Column(nullable = false, unique = true)

@@ -3,6 +3,7 @@ package bunny.boardhole.board.application.command;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -72,7 +73,7 @@ class BoardCommandServiceTest {
         @DisplayName("❌ 작성자 미존재 → ResourceNotFoundException with 국제화 메시지")
         void shouldThrowWhenAuthorNotFound() {
             // given
-            final Long authorId = 99L;
+            final UUID authorId = UUID.randomUUID();
             CreateBoardCommand cmd = new CreateBoardCommand(authorId, "title", "content");
             when(userRepository.findById(authorId)).thenReturn(Optional.empty());
 
@@ -86,8 +87,8 @@ class BoardCommandServiceTest {
 
             // 메시지 내용과 파라미터 치환 확인
             assertThat(expectedMessage)
-                    .isEqualTo("사용자를 찾을 수 없습니다. ID: 99")
-                    .contains("99");
+                    .contains("사용자를 찾을 수 없습니다. ID:")
+                    .contains(authorId.toString());
 
             verify(userRepository).findById(authorId);
         }
@@ -96,7 +97,7 @@ class BoardCommandServiceTest {
         @DisplayName("✅ 게시글 생성 성공")
         void shouldCreateBoard() {
             // given
-            final Long authorId = 1L;
+            final UUID authorId = UUID.randomUUID();
             User author = User.builder()
                               .username("writer")
                               .password("Password123!")
@@ -114,12 +115,13 @@ class BoardCommandServiceTest {
                                .content(cmd.content())
                                .author(author)
                                .build();
-            ReflectionTestUtils.setField(board, "id", 1L);
+            final UUID boardId = UUID.randomUUID();
+            ReflectionTestUtils.setField(board, "id", boardId);
 
             when(boardRepository.save(any(Board.class))).thenReturn(board);
 
             BoardResult expectedResult = new BoardResult(
-                    1L, "title", "content", authorId, "writer", 0, null, null
+                    boardId, "title", "content", authorId, "writer", 0, null, null
             );
             when(boardMapper.toResult(board)).thenReturn(expectedResult);
 
@@ -141,8 +143,9 @@ class BoardCommandServiceTest {
         @DisplayName("❌ 게시글 미존재 → ResourceNotFoundException with 국제화 메시지")
         void shouldThrowWhenBoardNotFound() {
             // given
-            final Long boardId = 123L;
-            UpdateBoardCommand cmd = new UpdateBoardCommand(boardId, 1L, "new title", "new content");
+            final UUID boardId = UUID.randomUUID();
+            final UUID authorId = UUID.randomUUID();
+            UpdateBoardCommand cmd = new UpdateBoardCommand(boardId, authorId, "new title", "new content");
             when(boardRepository.findById(boardId)).thenReturn(Optional.empty());
 
             // 실제 메시지 로드
@@ -155,8 +158,8 @@ class BoardCommandServiceTest {
 
             // 메시지 내용과 파라미터 치환 확인
             assertThat(expectedMessage)
-                    .isEqualTo("게시글을 찾을 수 없습니다. ID: 123")
-                    .contains("123");
+                    .contains("게시글을 찾을 수 없습니다. ID:")
+                    .contains(boardId.toString());
 
             verify(boardRepository).findById(boardId);
         }
@@ -170,7 +173,7 @@ class BoardCommandServiceTest {
         @DisplayName("❌ 게시글 미존재 → ResourceNotFoundException with 국제화 메시지")
         void shouldThrowWhenBoardNotFoundForDelete() {
             // given
-            final Long boardId = 456L;
+            final UUID boardId = UUID.randomUUID();
             when(boardRepository.findById(boardId)).thenReturn(Optional.empty());
 
             // 실제 메시지 로드
@@ -183,8 +186,8 @@ class BoardCommandServiceTest {
 
             // 메시지 내용과 파라미터 치환 확인
             assertThat(expectedMessage)
-                    .isEqualTo("게시글을 찾을 수 없습니다. ID: 456")
-                    .contains("456");
+                    .contains("게시글을 찾을 수 없습니다. ID:")
+                    .contains(boardId.toString());
 
             verify(boardRepository).findById(boardId);
         }
@@ -205,20 +208,22 @@ class BoardCommandServiceTest {
                               .email("writer@example.com")
                               .roles(Set.of(Role.USER))
                               .build();
-            ReflectionTestUtils.setField(author, "id", 1L);
+            final UUID authorId = UUID.randomUUID();
+            ReflectionTestUtils.setField(author, "id", authorId);
 
             Board board = Board.builder()
                                .title("title")
                                .content("content")
                                .author(author)
                                .build();
-            ReflectionTestUtils.setField(board, "id", 1L);
+            final UUID boardId = UUID.randomUUID();
+            ReflectionTestUtils.setField(board, "id", boardId);
 
-            given(boardRepository.findById(1L)).willReturn(Optional.of(board));
+            given(boardRepository.findById(boardId)).willReturn(Optional.of(board));
             given(boardRepository.save(board)).willReturn(board);
 
             // when
-            service.incrementViewCount(new IncrementViewCountCommand(1L));
+            service.incrementViewCount(new IncrementViewCountCommand(boardId));
 
             // then
             verify(boardRepository).save(board);
@@ -230,7 +235,7 @@ class BoardCommandServiceTest {
         @DisplayName("❌ 게시글 미존재 → ResourceNotFoundException with 국제화 메시지")
         void shouldThrowWhenBoardNotFoundForViewCount() {
             // given
-            final Long boardId = 789L;
+            final UUID boardId = UUID.randomUUID();
             when(boardRepository.findById(boardId)).thenReturn(Optional.empty());
 
             // 실제 메시지 로드
@@ -243,8 +248,8 @@ class BoardCommandServiceTest {
 
             // 메시지 내용과 파라미터 치환 확인
             assertThat(expectedMessage)
-                    .isEqualTo("게시글을 찾을 수 없습니다. ID: 789")
-                    .contains("789");
+                    .contains("게시글을 찾을 수 없습니다. ID:")
+                    .contains(boardId.toString());
 
             verify(boardRepository).findById(boardId);
         }

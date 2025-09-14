@@ -1,5 +1,7 @@
 package bunny.boardhole.user.presentation.mapper;
 
+import java.util.UUID;
+
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
@@ -50,7 +52,7 @@ public interface UserWebMapper {
      */
     @Mapping(target = "userId", source = "id")
     @Mapping(target = "name", source = "req.name")
-    UpdateUserCommand toUpdateCommand(Long id, UserUpdateRequest req);
+    UpdateUserCommand toUpdateCommand(UUID id, UserUpdateRequest req);
 
     /**
      * 패스워드 변경 요청을 명령으로 변환
@@ -62,6 +64,6 @@ public interface UserWebMapper {
     @Mapping(target = "userId", source = "id")
     @Mapping(target = "currentPassword", source = "req.currentPassword")
     @Mapping(target = "newPassword", source = "req.newPassword")
-    UpdatePasswordCommand toUpdatePasswordCommand(Long id, PasswordUpdateRequest req);
+    UpdatePasswordCommand toUpdatePasswordCommand(UUID id, PasswordUpdateRequest req);
 
 }

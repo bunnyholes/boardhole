@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -84,14 +85,15 @@ class BoardQueryServiceTest {
                 .email("test@example.com")
                 .roles(java.util.Set.of(bunny.boardhole.user.domain.Role.USER))
                 .build();
-        ReflectionTestUtils.setField(author, "id", 1L);
+        ReflectionTestUtils.setField(author, "id", UUID.randomUUID());
 
         board = Board.builder().title("Test Board").content("Test Content").author(author).build();
-        ReflectionTestUtils.setField(board, "id", 1L);
+        UUID boardId = UUID.randomUUID();
+        ReflectionTestUtils.setField(board, "id", boardId);
         ReflectionTestUtils.setField(board, "viewCount", 0);
         ReflectionTestUtils.setField(board, "createdAt", LocalDateTime.now());
 
-        boardResult = new BoardResult(1L, "Test Board", "Test Content", 1L, "testuser", 0, LocalDateTime.now(), LocalDateTime.now());
+        boardResult = new BoardResult(boardId, "Test Board", "Test Content", UUID.randomUUID(), "testuser", 0, LocalDateTime.now(), LocalDateTime.now());
     }
 
     @Nested
@@ -102,13 +104,19 @@ class BoardQueryServiceTest {
         @DisplayName("존재하는 게시글 조회 시 결과 반환 및 조회 이벤트 발행")
         void handle_ExistingBoard_ReturnsResultAndPublishesEvent() {
             // Given
-            final Long boardId = 1L;
+            final UUID boardId = UUID.randomUUID();
             GetBoardQuery query = new GetBoardQuery(boardId);
             ViewedEvent viewedEvent = new ViewedEvent(boardId);
+            
+            // Set the board ID to match
+            ReflectionTestUtils.setField(board, "id", boardId);
+            
+            // Create boardResult with matching boardId
+            BoardResult localBoardResult = new BoardResult(boardId, "Test Board", "Test Content", UUID.randomUUID(), "testuser", 0, LocalDateTime.now(), LocalDateTime.now());
 
             given(boardRepository.findById(boardId)).willReturn(Optional.of(board));
             given(boardMapper.toResult(board)).willReturn(
-                    boardResult);
+                    localBoardResult);
             given(boardMapper.toViewedEvent(boardId)).willReturn(viewedEvent);
 
             // When
@@ -131,7 +139,7 @@ class BoardQueryServiceTest {
         @DisplayName("❌ 존재하지 않는 게시글 조회 → ResourceNotFoundException with 국제화 메시지")
         void handle_NonExistingBoard_ThrowsResourceNotFoundException() {
             // Given
-            final Long boardId = 999L;
+            final UUID boardId = UUID.randomUUID();
             GetBoardQuery query = new GetBoardQuery(boardId);
 
             given(boardRepository.findById(boardId)).willReturn(Optional.empty());
@@ -146,8 +154,8 @@ class BoardQueryServiceTest {
 
             // 메시지 내용과 파라미터 치환 확인
             assertThat(expectedMessage)
-                    .isEqualTo("게시글을 찾을 수 없습니다. ID: 999")
-                    .contains("999");
+                    .contains("게시글을 찾을 수 없습니다. ID:")
+                    .contains(boardId.toString());
 
             verify(boardRepository).findById(boardId);
             verify(boardMapper, never()).toResult(any());

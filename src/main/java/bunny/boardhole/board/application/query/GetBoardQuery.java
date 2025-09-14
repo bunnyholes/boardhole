@@ -1,4 +1,6 @@
 package bunny.boardhole.board.application.query;
 
-public record GetBoardQuery(Long id) {
+import java.util.UUID;
+
+public record GetBoardQuery(UUID id) {
 }

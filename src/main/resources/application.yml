@@ -74,7 +74,7 @@ boardhole:
       email: user@boardhole.com
   api:
     title: Board-Hole API
-    version: 1.2.0
+    version: 1.3.0
     description: |
       ## Board-Hole - Spring Boot Sample Code Repository
 

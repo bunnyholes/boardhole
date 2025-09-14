@@ -1,5 +1,7 @@
 package bunny.boardhole.user.application.query;
 
+import java.util.UUID;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -36,7 +38,7 @@ public class UserQueryService {
      */
     @Transactional(readOnly = true)
     @PreAuthorize("hasPermission(#id, 'USER', 'READ')")
-    public UserResult get(Long id) {
+    public UserResult get(UUID id) {
         return userRepository
                 .findById(id)
                 .map(userMapper::toResult)

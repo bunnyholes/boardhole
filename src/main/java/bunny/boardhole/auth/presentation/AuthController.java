@@ -1,5 +1,7 @@
 package bunny.boardhole.auth.presentation;
 
+import java.util.UUID;
+
 import jakarta.annotation.security.PermitAll;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -109,7 +111,7 @@ public class AuthController {
     @ApiResponses({@ApiResponse(responseCode = "204", description = "로그아웃 성공"), @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")})
     public void logout(HttpServletRequest request, HttpServletResponse response, @AuthenticationPrincipal AppUserPrincipal principal) {
         // CQRS 패턴을 통한 로그아웃 처리
-        Long userId = principal.user().getId();
+        UUID userId = principal.user().getId();
         var logoutCommand = authMapper.toLogoutCommand(userId);
         authCommandService.logout(logoutCommand);
 

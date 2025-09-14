@@ -1,5 +1,7 @@
 package bunny.boardhole.board.presentation;
 
+import java.util.UUID;
+
 import jakarta.annotation.Nullable;
 import jakarta.annotation.security.PermitAll;
 
@@ -91,7 +93,7 @@ public class BoardController {
     @PermitAll
     @Operation(summary = "게시글 상세 조회", description = "[PUBLIC] 특정 게시글의 상세 정보를 조회합니다. 조회수가 자동으로 증가됩니다.")
     @ApiResponses({@ApiResponse(responseCode = "200", description = "게시글 조회 성공", content = @Content(schema = @Schema(implementation = BoardResponse.class))), @ApiResponse(responseCode = "404", description = "게시글을 찾을 수 없음")})
-    public BoardResponse get(@Parameter(description = "조회할 게시글 ID") @PathVariable Long id) {
+    public BoardResponse get(@Parameter(description = "조회할 게시글 ID") @PathVariable UUID id) {
         BoardResult result = boardQueryService.handle(boardWebMapper.toGetBoardQuery(id));
         return boardWebMapper.toResponse(result);
     }
@@ -108,7 +110,7 @@ public class BoardController {
             @ApiResponse(responseCode = "403", description = "수정 권한 없음 (작성자가 아님)"),
             @ApiResponse(responseCode = "404", description = "게시글을 찾을 수 없음")
     })
-    public BoardResponse update(@Parameter(description = "수정할 게시글 ID") @PathVariable Long id, @Validated @ModelAttribute BoardUpdateRequest req, @AuthenticationPrincipal AppUserPrincipal principal) {
+    public BoardResponse update(@Parameter(description = "수정할 게시글 ID") @PathVariable UUID id, @Validated @ModelAttribute BoardUpdateRequest req, @AuthenticationPrincipal AppUserPrincipal principal) {
         // 권한 검증은 서비스 @PreAuthorize가 처리
         var cmd = boardWebMapper.toUpdateCommand(id, principal.user().getId(), req);
         var updated = boardCommandService.update(cmd);
@@ -122,7 +124,7 @@ public class BoardController {
 
     )
     @ApiResponses({@ApiResponse(responseCode = "204", description = "게시글 삭제 성공"), @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"), @ApiResponse(responseCode = "403", description = "삭제 권한 없음 (작성자가 아님)"), @ApiResponse(responseCode = "404", description = "게시글을 찾을 수 없음")})
-    public void delete(@Parameter(description = "삭제할 게시글 ID") @PathVariable Long id) {
+    public void delete(@Parameter(description = "삭제할 게시글 ID") @PathVariable UUID id) {
         // 권한 검증은 서비스 @PreAuthorize가 처리
         boardCommandService.delete(id);
     }

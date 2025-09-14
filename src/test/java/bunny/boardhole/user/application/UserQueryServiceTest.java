@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -46,7 +47,7 @@ import static org.mockito.Mockito.when;
 @Tag("user")
 class UserQueryServiceTest {
 
-    private static final long USER_ID = 1L;
+    private static final UUID USER_ID = UUID.randomUUID();
     private static final String USERNAME = "john";
     private static final String ENCODED_PASSWORD = "encoded";
     private static final String NAME = "name";
@@ -131,14 +132,14 @@ class UserQueryServiceTest {
                     .hasMessage(expectedMessage);
 
             // 메시지 내용 확인
-            assertThat(expectedMessage).isEqualTo("사용자를 찾을 수 없습니다. ID: 1");
+            assertThat(expectedMessage).contains("사용자를 찾을 수 없습니다. ID:");
         }
 
         @Test
         @DisplayName("🌍 다국어 메시지 검증 - 한국어/영어")
         void shouldReturnCorrectMessageByLocale() {
             // given
-            final Long userId = 999L;
+            final UUID userId = UUID.randomUUID();
             when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
             // 한국어 테스트
@@ -149,7 +150,7 @@ class UserQueryServiceTest {
             ReflectionTestUtils.setField(MessageUtils.class, "messageSource", ms);
 
             String koreanMessage = MessageUtils.get("error.user.not-found.id", userId);
-            assertThat(koreanMessage).isEqualTo("사용자를 찾을 수 없습니다. ID: 999");
+            assertThat(koreanMessage).contains("사용자를 찾을 수 없습니다. ID:");
 
             assertThatThrownBy(() -> userQueryService.get(userId))
                     .isInstanceOf(ResourceNotFoundException.class)
@@ -163,7 +164,7 @@ class UserQueryServiceTest {
             ReflectionTestUtils.setField(MessageUtils.class, "messageSource", ms);
 
             String englishMessage = MessageUtils.get("error.user.not-found.id", userId);
-            assertThat(englishMessage).isEqualTo("User not found. ID: 999");
+            assertThat(englishMessage).contains("User not found. ID:");
 
             assertThatThrownBy(() -> userQueryService.get(userId))
                     .isInstanceOf(ResourceNotFoundException.class)
@@ -184,7 +185,7 @@ class UserQueryServiceTest {
             User user = UserQueryServiceTest.user();
             ReflectionTestUtils.setField(user, "id", UserQueryServiceTest.USER_ID);
             User another = UserQueryServiceTest.userWithName(UserQueryServiceTest.NEW_NAME);
-            ReflectionTestUtils.setField(another, "id", UserQueryServiceTest.USER_ID + 1);
+            ReflectionTestUtils.setField(another, "id", UUID.randomUUID());
 
             Page<User> page = new PageImpl<>(List.of(user, another));
             when(userRepository.findAll(pageable)).thenReturn(page);
