@@ -94,3 +94,16 @@ tasks.named('test') {
     useJUnitPlatform()
     maxParallelForks = Runtime.runtime.availableProcessors() ?: 1
 }
+
+// Resource filtering for @project.version@ placeholder replacement
+processResources {
+    filesMatching('**/*.yml') {
+        expand(project.properties)
+    }
+    filesMatching('**/*.yaml') {
+        expand(project.properties)
+    }
+    filesMatching('**/*.properties') {
+        expand(project.properties)
+    }
+}

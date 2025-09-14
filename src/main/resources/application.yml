@@ -74,7 +74,7 @@ boardhole:
       email: user@boardhole.com
   api:
     title: Board-Hole API
-    version: 1.3.0
+    version: ${version}
     description: |
       ## Board-Hole - Spring Boot Sample Code Repository
 
@@ -98,35 +98,41 @@ boardhole:
 
       ### 주요 샘플 코드 패턴
 
+      #### UUID 기반 엔티티 시스템
+      - 모든 엔티티 ID를 UUID로 통일하여 보안 강화
+      - 순차적 ID 추측 방지 및 분산 시스템 적합성 제공
+      - UUID v4 사용으로 충돌 확률 최소화
+      - API 엔드포인트: `/api/{domain}/{uuid}` 형태
+
       #### 세션 기반 인증 시스템
       - Spring Security + Redis Session Store
       - 메소드 레벨 권한 제어(`@PreAuthorize` 활용)
       - 권한별 접근 제어(PUBLIC, AUTH, ROLE:USER, ROLE:ADMIN, OWNER)
+      - UUID 기반 사용자 식별로 보안 강화
 
       #### 게시판 CRUD 시스템
       - 페이지네이션 + 검색 기능 구현
       - Event-Driven(`@EventListener`로 조회수 증가 비동기 처리)
       - 커스텀 검증(`@Valid*` / `@Optional*` 어노테이션)
+      - UUID 기반 게시글 식별 및 소유권 검증
 
       #### 사용자 관리 시스템
       - 사용자 CRUD + 프로필 관리
       - 패스워드 정책 검증 및 이메일 변경 플로우
+      - UUID 기반 사용자 식별로 개인정보 보호 강화
 
       #### 이메일 인증 시스템
-      - 이메일 템플릿 시스템(HTML/Text)
-      - Dummy/SMTP 이메일 서비스 구현체
-      - Rate Limiting(시간당 5회, 일일 20회)
-      - 검증 코드 만료 관리(2시간)
+      - 현재 비활성화: 향후 JWT 기반 이메일 인증으로 대체 예정
 
       ### 프로파일별 활성화 기능
 
       #### dev 프로파일(기본값)
-      - Docker Compose: MySQL(13306) + Redis(16379) 자동 실행
-      - 더미 이메일: 실제 발송 없이 로그로만 출력
+      - Docker Compose: MySQL + Redis 동적 포트로 자동 실행
+      - 이메일 기능: 현재 비활성화됨 (향후 JWT 기반 인증으로 대체 예정)
       - 개발 도구: SQL 로깅, DDL 자동 업데이트, 디버그 로깅
       - 컬러 로깅: 콘솔에서 색상 출력으로 가독성 향상
       - 로컬 CORS: localhost/127.0.0.1 허용
-      - 간단 비밀번호: admin123, user123
+      - 기본 비밀번호: Admin123!, User123! (정책 준수: 대소문자+숫자+특수문자)
 
       #### prod 프로파일
       - 보안 강화: 환경변수 기반 설정, Secure Cookie
@@ -136,9 +142,7 @@ boardhole:
       - 환경변수 비밀번호: DATABASE_URL, ADMIN_PASSWORD 등
 
       #### smtp 프로파일
-      - 실제 이메일 발송: Gmail SMTP 서버 사용
-      - 재시도 메커니즘: 발송 실패 시 자동 재시도
-      - 비동기 처리: 이메일 발송 비동기 처리로 성능 향상
+      - 현재 사용 불가: 이메일 기능이 비활성화됨 (향후 구현 예정)
 
       ### 기술 스택
 
@@ -148,9 +152,9 @@ boardhole:
       Security:   Spring Security + Session
       ORM:        Spring Data JPA + Hibernate
       Mapping:    MapStruct 1.6.3
-      Testing:    JUnit 5 + Testcontainers + ArchUnit
+      Testing:    JUnit 5 + Testcontainers + RestAssured 5.5.6
       Quality:    Checkstyle + PMD + SpotBugs + SonarCloud
-      API Doc:    SpringDoc OpenAPI 3
+      API Doc:    SpringDoc OpenAPI 2.8.12
       ```
 
       ---
