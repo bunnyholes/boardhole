@@ -49,7 +49,8 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
             try {
                 log.info(logFormatter.formatRequestEnd(request.getMethod(), request.getRequestURI(), response.getStatus(), tookMs));
             } catch (Throwable formatEx) {
-                log.warn("Request log formatting failed (end): {} {} [{}] - {}", request.getMethod(), request.getRequestURI(), response.getStatus(), formatEx.toString());
+                log.warn("Request log formatting failed (end): {} {} [{}] - {}", request.getMethod(), request.getRequestURI(), response.getStatus(),
+                        formatEx.toString());
             }
             MDCUtil.clearRequest();
         }

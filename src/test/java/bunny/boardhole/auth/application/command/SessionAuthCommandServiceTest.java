@@ -71,7 +71,14 @@ class SessionAuthCommandServiceTest {
         SecurityContextHolder.clearContext();
 
         // 테스트 데이터 준비 - 이메일 인증 완료된 사용자
-        user = User.builder().username("testuser").password("password").name("Test User").email("test@example.com").roles(java.util.Set.of(Role.USER)).build();
+        user = User
+                .builder()
+                .username("testuser")
+                .password("password")
+                .name("Test User")
+                .email("test@example.com")
+                .roles(java.util.Set.of(Role.USER))
+                .build();
         user.verifyEmail();
         ReflectionTestUtils.setField(user, "id", 1L);
         // User는 기본적으로 권한을 가짐
@@ -100,7 +107,8 @@ class SessionAuthCommandServiceTest {
 
             given(authenticationManager.authenticate(any(Authentication.class))).willReturn(authentication);
             given(authentication.getPrincipal()).willReturn(principal);
-            given(authMapper.toAuthResult(user)).willReturn(authResult);
+            given(authMapper.toAuthResult(user)).willReturn(
+                    authResult);
 
             // When
             AuthResult result = service.login(command);
@@ -129,7 +137,9 @@ class SessionAuthCommandServiceTest {
             given(authenticationManager.authenticate(any(Authentication.class))).willThrow(new BadCredentialsException("Invalid credentials"));
 
             // When & Then
-            assertThatThrownBy(() -> service.login(command)).isInstanceOf(UnauthorizedException.class).hasMessageContaining(MessageUtils.get("error.auth.invalid-credentials"));
+            assertThatThrownBy(() -> service.login(command))
+                    .isInstanceOf(UnauthorizedException.class)
+                    .hasMessageContaining(MessageUtils.get("error.auth.invalid-credentials"));
 
             // SecurityContext가 비어있는지 확인
             SecurityContext context = SecurityContextHolder.getContext();
@@ -256,7 +266,8 @@ class SessionAuthCommandServiceTest {
 
             given(authenticationManager.authenticate(any(Authentication.class))).willReturn(authentication);
             given(authentication.getPrincipal()).willReturn(principal);
-            given(authMapper.toAuthResult(user)).willReturn(authResult);
+            given(authMapper.toAuthResult(user)).willReturn(
+                    authResult);
 
             // When
             service.login(command);

@@ -26,30 +26,19 @@ import bunny.boardhole.user.domain.User;
 @Import(ContainersConfig.class)
 public abstract class EntityTestBase {
 
-    @Autowired
-    protected TestEntityManager entityManager;
-
     protected static final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-
-    // 테스트 데이터 상수
-    private static final String TEST_USERNAME = "testuser";
     protected static final String TEST_PASSWORD = "Password123!";
     protected static final String TEST_NAME = "Test User";
     protected static final String TEST_EMAIL = "test@example.com";
     protected static final String TEST_BOARD_TITLE = "Test Board Title";
     protected static final String TEST_BOARD_CONTENT = "Test Board Content";
+    // 테스트 데이터 상수
+    private static final String TEST_USERNAME = "testuser";
+    @Autowired
+    protected TestEntityManager entityManager;
 
     protected static String createUniqueEmail() {
         return UUID.randomUUID().toString().substring(0, 8) + "@example.com";
-    }
-
-    @BeforeEach
-    void initializeMessageUtils() {
-        ResourceBundleMessageSource ms = new ResourceBundleMessageSource();
-        ms.setBasename("messages");
-        ms.setDefaultEncoding("UTF-8");
-        ms.setUseCodeAsDefaultMessage(true);
-        ReflectionTestUtils.setField(MessageUtils.class, "messageSource", ms);
     }
 
     protected static String createUniqueUsername() {
@@ -66,6 +55,15 @@ public abstract class EntityTestBase {
                         .build();
         user.verifyEmail();
         return user;
+    }
+
+    @BeforeEach
+    void initializeMessageUtils() {
+        ResourceBundleMessageSource ms = new ResourceBundleMessageSource();
+        ms.setBasename("messages");
+        ms.setDefaultEncoding("UTF-8");
+        ms.setUseCodeAsDefaultMessage(true);
+        ReflectionTestUtils.setField(MessageUtils.class, "messageSource", ms);
     }
 
     protected User createAndPersistUser() {

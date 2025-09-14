@@ -73,7 +73,8 @@ class LogFormatter {
     private static boolean isJdkType(Class<?> cls) {
         Package pkg = cls.getPackage();
         String packageName = (pkg != null) ? pkg.getName() : "";
-        return cls.isPrimitive() || packageName.startsWith("java.") || packageName.startsWith("jakarta.") || packageName.startsWith("org.springframework.");
+        return cls.isPrimitive() || packageName.startsWith("java.") || packageName.startsWith("jakarta.") || packageName.startsWith(
+                "org.springframework.");
     }
 
     String formatMethodStart(String signature, Object[] args) {
@@ -82,7 +83,8 @@ class LogFormatter {
         Object[] safeArgs = (args == null) ? new Object[0] : args;
         String argsString = Arrays.stream(safeArgs).map(this::safeToString).collect(Collectors.joining(", "));
 
-        return messageSource.getMessage("log.method.start", new Object[]{layerColor + layerIcon + signature + LogConstants.RESET, argsString}, LocaleContextHolder.getLocale());
+        return messageSource.getMessage("log.method.start", new Object[]{layerColor + layerIcon + signature + LogConstants.RESET, argsString},
+                LocaleContextHolder.getLocale());
     }
 
     String formatMethodEnd(String signature, long tookMs) {
@@ -91,11 +93,14 @@ class LogFormatter {
         String perfColor = getPerformanceColor(tookMs);
         String perfIcon = getPerformanceIcon(tookMs);
 
-        return messageSource.getMessage("log.method.end", new Object[]{layerColor + layerIcon + signature + LogConstants.RESET, perfColor + perfIcon + tookMs + LogConstants.RESET}, LocaleContextHolder.getLocale());
+        return messageSource.getMessage("log.method.end",
+                new Object[]{layerColor + layerIcon + signature + LogConstants.RESET, perfColor + perfIcon + tookMs + LogConstants.RESET},
+                LocaleContextHolder.getLocale());
     }
 
     String formatMethodError(String signature, long tookMs, String errorMessage) {
-        return messageSource.getMessage("log.method.error", new Object[]{LogConstants.RED + signature + LogConstants.RESET, tookMs, errorMessage}, LocaleContextHolder.getLocale());
+        return messageSource.getMessage("log.method.error", new Object[]{LogConstants.RED + signature + LogConstants.RESET, tookMs, errorMessage},
+                LocaleContextHolder.getLocale());
     }
 
     String formatRequestStart(String method, String uri, String remoteAddr) {
@@ -106,7 +111,8 @@ class LogFormatter {
         String statusColor = getStatusColor(status);
         String perfIcon = getPerformanceIcon(tookMs);
 
-        return messageSource.getMessage("log.request.end", new Object[]{method, uri, statusColor + status + LogConstants.RESET, perfIcon + tookMs}, LocaleContextHolder.getLocale());
+        return messageSource.getMessage("log.request.end", new Object[]{method, uri, statusColor + status + LogConstants.RESET, perfIcon + tookMs},
+                LocaleContextHolder.getLocale());
     }
 
     // 성능 기반 색상 (설정 값 활용)

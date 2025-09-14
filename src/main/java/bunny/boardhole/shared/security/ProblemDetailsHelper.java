@@ -31,7 +31,10 @@ final class ProblemDetailsHelper {
             log.warn("Invalid request URI: {}", request.getRequestURI(), e);
         }
 
-        Optional.ofNullable(MDC.get(RequestLoggingFilter.TRACE_ID)).filter(traceId -> !traceId.isBlank()).ifPresent(traceId -> pd.setProperty("traceId", traceId));
+        Optional
+                .ofNullable(MDC.get(RequestLoggingFilter.TRACE_ID))
+                .filter(traceId -> !traceId.isBlank())
+                .ifPresent(traceId -> pd.setProperty("traceId", traceId));
 
         pd.setProperty("path", request.getRequestURI());
         pd.setProperty("method", request.getMethod());

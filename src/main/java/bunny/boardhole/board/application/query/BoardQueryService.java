@@ -38,7 +38,9 @@ public class BoardQueryService {
      */
     @Transactional(readOnly = true)
     public BoardResult handle(GetBoardQuery query) {
-        Board board = boardRepository.findById(query.id()).orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.board.not-found.id", query.id())));
+        Board board = boardRepository
+                .findById(query.id())
+                .orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.board.not-found.id", query.id())));
         eventPublisher.publishEvent(boardMapper.toViewedEvent(query.id()));
         return boardMapper.toResult(board);
     }

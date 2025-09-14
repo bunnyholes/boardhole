@@ -43,9 +43,9 @@ class GlobalExceptionHandlerTest {
     private static final String TRACE_ID = "test-trace-id-123";
     private static final String REQUEST_PATH = "/api/test";
     private static final String REQUEST_METHOD = "POST";
-    
+
     private GlobalExceptionHandler handler;
-    
+
     @Mock
     private HttpServletRequest request;
 
@@ -54,7 +54,7 @@ class GlobalExceptionHandlerTest {
         // Create handler with test ProblemProperties
         ProblemProperties problemProperties = new ProblemProperties("");
         handler = new GlobalExceptionHandler(problemProperties);
-        
+
         LocaleContextHolder.setLocale(Locale.KOREAN);
         MDC.put(RequestLoggingFilter.TRACE_ID, TRACE_ID);
 

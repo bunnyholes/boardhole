@@ -12,7 +12,7 @@ public record SecurityProperties(
          * Spring Security에서 권한을 확인할 때 사용
          */
         String rolePrefix,
-        
+
         /**
          * 세션 타임아웃 시간 (분 단위)
          */

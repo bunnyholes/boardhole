@@ -111,7 +111,9 @@ class BusinessLogAspectTest {
         given(boardRepository.save(any(Board.class))).willThrow(new RuntimeException("db error"));
 
         assertThrows(RuntimeException.class, () -> boardService.create(new CreateBoardCommand(1L, "t", "c")));
-        assertThat(appender.list.stream().anyMatch(e -> e.getFormattedMessage().contains("Method failed") || e.getFormattedMessage().contains("메소드 실패"))).isTrue();
+        assertThat(appender.list
+                .stream()
+                .anyMatch(e -> e.getFormattedMessage().contains("Method failed") || e.getFormattedMessage().contains("메소드 실패"))).isTrue();
     }
 
     @Test
@@ -130,6 +132,8 @@ class BusinessLogAspectTest {
         userService.delete(1L);
 
         // 로그에서 사용자 삭제 메시지 확인
-        assertThat(appender.list.stream().anyMatch(e -> e.getFormattedMessage().contains("User deleted") || e.getFormattedMessage().contains("사용자 삭제"))).isTrue();
+        assertThat(appender.list
+                .stream()
+                .anyMatch(e -> e.getFormattedMessage().contains("User deleted") || e.getFormattedMessage().contains("사용자 삭제"))).isTrue();
     }
 }

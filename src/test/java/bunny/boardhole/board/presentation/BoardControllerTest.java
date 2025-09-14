@@ -65,24 +65,24 @@ class BoardControllerTest {
     @BeforeEach
     void setUp() {
         testUser = User.builder()
-            .username("testuser")
-            .password("encoded_password")
-            .name("Test User")
-            .email("test@example.com")
-            .roles(Set.of(Role.USER))
-            .build();
+                       .username("testuser")
+                       .password("encoded_password")
+                       .name("Test User")
+                       .email("test@example.com")
+                       .roles(Set.of(Role.USER))
+                       .build();
         testPrincipal = new AppUserPrincipal(testUser);
-        
+
         testBoardResult = new BoardResult(
-            1L, "Test Title", "Test Content", 1L,
-            "testuser", 0, LocalDateTime.now(), null
+                1L, "Test Title", "Test Content", 1L,
+                "testuser", 0, LocalDateTime.now(), null
         );
-        
+
         testBoardResponse = new BoardResponse(
-            1L, "Test Title", "Test Content", 1L,
-            "testuser", 0, LocalDateTime.now(), null
+                1L, "Test Title", "Test Content", 1L,
+                "testuser", 0, LocalDateTime.now(), null
         );
-        
+
         pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "id"));
     }
 
@@ -99,7 +99,8 @@ class BoardControllerTest {
 
             given(boardWebMapper.toCreateCommand(request, testUser.getId())).willReturn(command);
             given(boardCommandService.create(command)).willReturn(testBoardResult);
-            given(boardWebMapper.toResponse(testBoardResult)).willReturn(testBoardResponse);
+            given(boardWebMapper.toResponse(testBoardResult)).willReturn(
+                    testBoardResponse);
 
             // when
             BoardResponse result = boardController.create(request, testPrincipal);
@@ -120,11 +121,14 @@ class BoardControllerTest {
         @DisplayName("✅ 검색어 없이 전체 게시글 목록 조회")
         void shouldListAllBoards() {
             // given
-            Page<BoardResult> resultPage = new PageImpl<>(Collections.singletonList(testBoardResult), pageable, 1);
-            Page<BoardResponse> responsePage = new PageImpl<>(Collections.singletonList(testBoardResponse), pageable, 1);
+            Page<BoardResult> resultPage = new PageImpl<>(Collections.singletonList(testBoardResult),
+                    pageable, 1);
+            Page<BoardResponse> responsePage = new PageImpl<>(Collections.singletonList(testBoardResponse),
+                    pageable, 1);
 
             given(boardQueryService.listWithPaging(pageable)).willReturn(resultPage);
-            given(boardWebMapper.toResponse(testBoardResult)).willReturn(testBoardResponse);
+            given(boardWebMapper.toResponse(testBoardResult)).willReturn(
+                    testBoardResponse);
 
             // when
             Page<BoardResponse> result = boardController.list(pageable, null);
@@ -139,12 +143,15 @@ class BoardControllerTest {
         @DisplayName("✅ 검색어로 게시글 검색")
         void shouldSearchBoards() {
             // given
-            String searchTerm = "test";
-            Page<BoardResult> resultPage = new PageImpl<>(Collections.singletonList(testBoardResult), pageable, 1);
-            Page<BoardResponse> responsePage = new PageImpl<>(Collections.singletonList(testBoardResponse), pageable, 1);
+            final String searchTerm = "test";
+            Page<BoardResult> resultPage = new PageImpl<>(Collections.singletonList(testBoardResult),
+                    pageable, 1);
+            Page<BoardResponse> responsePage = new PageImpl<>(Collections.singletonList(testBoardResponse),
+                    pageable, 1);
 
             given(boardQueryService.listWithPaging(pageable, searchTerm)).willReturn(resultPage);
-            given(boardWebMapper.toResponse(testBoardResult)).willReturn(testBoardResponse);
+            given(boardWebMapper.toResponse(testBoardResult)).willReturn(
+                    testBoardResponse);
 
             // when
             Page<BoardResponse> result = boardController.list(pageable, searchTerm);
@@ -164,12 +171,13 @@ class BoardControllerTest {
         @DisplayName("✅ 게시글 ID로 조회 성공")
         void shouldGetBoardById() {
             // given
-            Long boardId = 1L;
+            final Long boardId = 1L;
             GetBoardQuery query = new GetBoardQuery(boardId);
-            
+
             given(boardWebMapper.toGetBoardQuery(boardId)).willReturn(query);
             given(boardQueryService.handle(query)).willReturn(testBoardResult);
-            given(boardWebMapper.toResponse(testBoardResult)).willReturn(testBoardResponse);
+            given(boardWebMapper.toResponse(testBoardResult)).willReturn(
+                    testBoardResponse);
 
             // when
             BoardResponse result = boardController.get(boardId);
@@ -190,16 +198,16 @@ class BoardControllerTest {
         @DisplayName("✅ 게시글 수정 성공")
         void shouldUpdateBoardSuccessfully() {
             // given
-            Long boardId = 1L;
+            final Long boardId = 1L;
             BoardUpdateRequest request = new BoardUpdateRequest("Updated Title", "Updated Content");
             UpdateBoardCommand command = new UpdateBoardCommand(boardId, testUser.getId(), "Updated Title", "Updated Content");
             BoardResult updatedResult = new BoardResult(
-                boardId, "Updated Title", "Updated Content", testUser.getId(),
-                "testuser", 0, LocalDateTime.now(), LocalDateTime.now()
+                    boardId, "Updated Title", "Updated Content", testUser.getId(),
+                    "testuser", 0, LocalDateTime.now(), LocalDateTime.now()
             );
             BoardResponse updatedResponse = new BoardResponse(
-                boardId, "Updated Title", "Updated Content", testUser.getId(),
-                "testuser", 0, LocalDateTime.now(), LocalDateTime.now()
+                    boardId, "Updated Title", "Updated Content", testUser.getId(),
+                    "testuser", 0, LocalDateTime.now(), LocalDateTime.now()
             );
 
             given(boardWebMapper.toUpdateCommand(boardId, testUser.getId(), request)).willReturn(command);
@@ -225,7 +233,7 @@ class BoardControllerTest {
         @DisplayName("✅ 게시글 삭제 성공")
         void shouldDeleteBoardSuccessfully() {
             // given
-            Long boardId = 1L;
+            final Long boardId = 1L;
             willDoNothing().given(boardCommandService).delete(boardId);
 
             // when

@@ -52,7 +52,14 @@ public class UserCommandService {
             throw new DuplicateUsernameException(MessageUtils.get("error.user.username.already-exists"));
         if (userRepository.existsByEmail(cmd.email()))
             throw new DuplicateEmailException(MessageUtils.get("error.user.email.already-exists"));
-        User user = User.builder().username(cmd.username()).password(passwordEncoder.encode(cmd.password())).name(cmd.name()).email(cmd.email()).roles(java.util.Set.of(Role.USER)).build();
+        User user = User
+                .builder()
+                .username(cmd.username())
+                .password(passwordEncoder.encode(cmd.password()))
+                .name(cmd.name())
+                .email(cmd.email())
+                .roles(java.util.Set.of(Role.USER))
+                .build();
         User saved = userRepository.save(user);
 
         // 사용자 생성 이벤트 발행 (필요시 향후 사용)
@@ -74,7 +81,8 @@ public class UserCommandService {
     @PreAuthorize("hasPermission(#cmd.userId, 'USER', 'WRITE')")
     public UserResult update(@Valid UpdateUserCommand cmd) {
         Long id = cmd.userId();
-        User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.user.not-found.id", id)));
+        User user = userRepository
+                .findById(id).orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.user.not-found.id", id)));
 
         // MapStruct가 null이 아닌 필드만 업데이트 (@DynamicUpdate가 변경된 필드만 SQL 업데이트)
         userMapper.updateUserFromCommand(cmd, user);
@@ -93,7 +101,8 @@ public class UserCommandService {
     @Transactional
     @PreAuthorize("hasPermission(#id, 'USER', 'DELETE')")
     public void delete(@NotNull @Positive Long id) {
-        User existing = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.user.not-found.id", id)));
+        User existing = userRepository
+                .findById(id).orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.user.not-found.id", id)));
 
         userRepository.delete(existing);
     }
@@ -106,7 +115,9 @@ public class UserCommandService {
      */
     @Transactional
     public void updateLastLogin(@NotNull @Positive Long userId) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.user.not-found.id", userId)));
+        User user = userRepository
+                .findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.user.not-found.id", userId)));
         user.recordLastLogin();
         userRepository.save(user);
     }
@@ -121,7 +132,9 @@ public class UserCommandService {
     @Transactional
     @PreAuthorize("hasPermission(#cmd.userId, 'USER', 'WRITE')")
     public void updatePassword(@Valid UpdatePasswordCommand cmd) {
-        User user = userRepository.findById(cmd.userId()).orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.user.not-found.id", cmd.userId())));
+        User user = userRepository
+                .findById(cmd.userId())
+                .orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.user.not-found.id", cmd.userId())));
 
         // 현재 패스워드 확인
         if (!passwordEncoder.matches(cmd.currentPassword(), user.getPassword())) {

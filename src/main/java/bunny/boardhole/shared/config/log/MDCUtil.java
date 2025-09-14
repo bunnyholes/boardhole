@@ -14,7 +14,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 class MDCUtil {
 
     void setUserId() {
-        Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication()).filter(Authentication::isAuthenticated).map(Authentication::getName).ifPresent(username -> MDC.put("userId", username));
+        Optional
+                .ofNullable(SecurityContextHolder.getContext().getAuthentication())
+                .filter(Authentication::isAuthenticated)
+                .map(Authentication::getName)
+                .ifPresent(username -> MDC.put("userId", username));
     }
 
     void setSessionId(HttpServletRequest request) {

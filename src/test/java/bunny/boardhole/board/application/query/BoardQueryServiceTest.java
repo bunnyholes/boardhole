@@ -67,7 +67,7 @@ class BoardQueryServiceTest {
 
         // Spring LocaleContextHolder를 한국어로 설정
         LocaleContextHolder.setLocale(Locale.KOREAN);
-        
+
         // MessageUtils 초기화
         ResourceBundleMessageSource ms = new ResourceBundleMessageSource();
         ms.setBasename("messages");
@@ -76,7 +76,14 @@ class BoardQueryServiceTest {
         ReflectionTestUtils.setField(MessageUtils.class, "messageSource", ms);
 
         // 테스트 데이터 준비
-        User author = User.builder().username("testuser").password("Password123!").name("Test User").email("test@example.com").roles(java.util.Set.of(bunny.boardhole.user.domain.Role.USER)).build();
+        User author = User
+                .builder()
+                .username("testuser")
+                .password("Password123!")
+                .name("Test User")
+                .email("test@example.com")
+                .roles(java.util.Set.of(bunny.boardhole.user.domain.Role.USER))
+                .build();
         ReflectionTestUtils.setField(author, "id", 1L);
 
         board = Board.builder().title("Test Board").content("Test Content").author(author).build();
@@ -100,7 +107,8 @@ class BoardQueryServiceTest {
             ViewedEvent viewedEvent = new ViewedEvent(boardId);
 
             given(boardRepository.findById(boardId)).willReturn(Optional.of(board));
-            given(boardMapper.toResult(board)).willReturn(boardResult);
+            given(boardMapper.toResult(board)).willReturn(
+                    boardResult);
             given(boardMapper.toViewedEvent(boardId)).willReturn(viewedEvent);
 
             // When
@@ -127,19 +135,19 @@ class BoardQueryServiceTest {
             GetBoardQuery query = new GetBoardQuery(boardId);
 
             given(boardRepository.findById(boardId)).willReturn(Optional.empty());
-            
+
             // 실제 메시지 로드
             String expectedMessage = MessageUtils.get("error.board.not-found.id", boardId);
 
             // When & Then
             assertThatThrownBy(() -> service.handle(query))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessage(expectedMessage);
-            
+                    .isInstanceOf(ResourceNotFoundException.class)
+                    .hasMessage(expectedMessage);
+
             // 메시지 내용과 파라미터 치환 확인
             assertThat(expectedMessage)
-                .isEqualTo("게시글을 찾을 수 없습니다. ID: 999")
-                .contains("999");
+                    .isEqualTo("게시글을 찾을 수 없습니다. ID: 999")
+                    .contains("999");
 
             verify(boardRepository).findById(boardId);
             verify(boardMapper, never()).toResult(any());

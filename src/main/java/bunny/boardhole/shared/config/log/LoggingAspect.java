@@ -65,10 +65,9 @@ public class LoggingAspect {
         // Repository 레이어는 기본적으로 로깅 최소화 (DB 호출이 많아 오버헤드 큼)
         boolean shouldLog = !"repository".equals(layer) || log.isTraceEnabled();
 
-        if (!shouldLog) {
-            // 로깅 없이 바로 실행 (Repository 레이어 성능 최적화)
+        // 로깅 없이 바로 실행 (Repository 레이어 성능 최적화)
+        if (!shouldLog)
             return pjp.proceed();
-        }
 
         MDCUtil.setLayer(layer);
         MDCUtil.setUserId();
@@ -76,31 +75,30 @@ public class LoggingAspect {
         long start = System.nanoTime();
 
         // 메서드 시작 로깅은 DEBUG 레벨에서만 (로깅 포맷 실패 시 비즈니스에 영향 없도록 보호)
-        if (log.isDebugEnabled()) {
+        if (log.isDebugEnabled())
             try {
                 log.debug(logFormatter.formatMethodStart(signature, pjp.getArgs()));
             } catch (Throwable formatEx) {
                 log.warn("Log formatting failed for {}: {}", signature, formatEx.toString());
             }
-        }
 
         try {
             Object result = pjp.proceed();
             long tookMs = (System.nanoTime() - start) / 1_000_000;
 
             // 성능 경고는 임계값 초과 시에만 (불필요한 로깅 감소)
-            if (logFormatter.shouldWarnPerformance(tookMs)) {
-                log.warn(messageSource.getMessage("log.performance.warning", new Object[]{signature, tookMs}, org.springframework.context.i18n.LocaleContextHolder.getLocale()));
-            }
+            if (logFormatter.shouldWarnPerformance(tookMs))
+                log.warn(messageSource.getMessage("log.performance.warning", new Object[]{signature, tookMs},
+                        org.springframework.context.i18n.LocaleContextHolder.getLocale()));
 
             // 메서드 종료 로깅은 DEBUG 레벨에서만 (로깅 포맷 오류가 있어도 비즈니스 흐름에 영향 주지 않도록 보호)
-            if (log.isDebugEnabled() && tookMs > 10) { // 10ms 이상인 경우만 로깅
+            // 10ms 이상인 경우만 로깅
+            if (log.isDebugEnabled() && tookMs > 10)
                 try {
                     log.debug(logFormatter.formatMethodEnd(signature, tookMs));
                 } catch (Throwable formatEx) {
                     log.warn("Log formatting failed for {}: {}", signature, formatEx.toString());
                 }
-            }
             return result;
         } catch (Throwable ex) {
             long tookMs = (System.nanoTime() - start) / 1_000_000;
@@ -109,7 +107,7 @@ public class LoggingAspect {
             try {
                 log.error(logFormatter.formatMethodError(signature, tookMs, ex.getMessage()));
             } catch (Throwable formatEx) {
-                log.error("Log formatting failed for {}: {} (original error: {})", signature, formatEx.toString(), ex.toString());
+                log.error("Log formatting failed for {}: {} (original error: {})", signature, formatEx, ex.toString());
             }
             throw ex;
         } finally {
@@ -117,7 +115,7 @@ public class LoggingAspect {
         }
     }
 
-    private String extractLayer(String signature) {
+    private static String extractLayer(String signature) {
         if (signature.contains("Controller"))
             return "controller";
         if (signature.contains("Service"))

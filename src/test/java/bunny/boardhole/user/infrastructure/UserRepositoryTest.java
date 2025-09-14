@@ -43,9 +43,23 @@ class UserRepositoryTest extends bunny.boardhole.testsupport.jpa.EntityTestBase 
 
     @BeforeEach
     void setUp() {
-        testUser = userRepository.save(User.builder().username("test_user").password(passwordEncoder.encode("Password123!")).name("Test User").email("test@example.com").roles(Set.of(Role.USER)).build());
+        testUser = userRepository.save(User
+                .builder()
+                .username("test_user")
+                .password(passwordEncoder.encode("Password123!"))
+                .name("Test User")
+                .email("test@example.com")
+                .roles(Set.of(Role.USER))
+                .build());
 
-        adminUser = userRepository.save(User.builder().username("admin_user").password(passwordEncoder.encode("Admin123!")).name("Admin User").email("admin@example.com").roles(Set.of(Role.USER, Role.ADMIN)).build());
+        adminUser = userRepository.save(User
+                .builder()
+                .username("admin_user")
+                .password(passwordEncoder.encode("Admin123!"))
+                .name("Admin User")
+                .email("admin@example.com")
+                .roles(Set.of(Role.USER, Role.ADMIN))
+                .build());
     }
 
     // =====================================
@@ -59,7 +73,14 @@ class UserRepositoryTest extends bunny.boardhole.testsupport.jpa.EntityTestBase 
         @DisplayName("새 사용자 생성 성공")
         void save_NewUser_CreatesSuccessfully() {
             // Given
-            User newUser = User.builder().username("new_user").password(UserRepositoryTest.passwordEncoder.encode("Password123!")).name("New User").email("new@example.com").roles(Set.of(Role.USER)).build();
+            User newUser = User
+                    .builder()
+                    .username("new_user")
+                    .password(UserRepositoryTest.passwordEncoder.encode("Password123!"))
+                    .name("New User")
+                    .email("new@example.com")
+                    .roles(Set.of(Role.USER))
+                    .build();
 
             // When
             User saved = userRepository.save(newUser);
@@ -76,7 +97,14 @@ class UserRepositoryTest extends bunny.boardhole.testsupport.jpa.EntityTestBase 
         @Transactional
         void save_DuplicateUsername_ThrowsException() {
             // Given
-            User duplicate = User.builder().username(testUser.getUsername()).password(UserRepositoryTest.passwordEncoder.encode("Password123!")).name("Duplicate").email("duplicate@example.com").roles(Set.of(Role.USER)).build();
+            User duplicate = User
+                    .builder()
+                    .username(testUser.getUsername())
+                    .password(UserRepositoryTest.passwordEncoder.encode("Password123!"))
+                    .name("Duplicate")
+                    .email("duplicate@example.com")
+                    .roles(Set.of(Role.USER))
+                    .build();
 
             // When & Then
             assertThatThrownBy(() -> userRepository.saveAndFlush(duplicate)).isInstanceOf(DataIntegrityViolationException.class);
@@ -87,7 +115,14 @@ class UserRepositoryTest extends bunny.boardhole.testsupport.jpa.EntityTestBase 
         @Transactional
         void save_DuplicateEmail_ThrowsException() {
             // Given
-            User duplicate = User.builder().username("unique_user").password(UserRepositoryTest.passwordEncoder.encode("Password123!")).name("Duplicate Email").email(testUser.getEmail()).roles(Set.of(Role.USER)).build();
+            User duplicate = User
+                    .builder()
+                    .username("unique_user")
+                    .password(UserRepositoryTest.passwordEncoder.encode("Password123!"))
+                    .name("Duplicate Email")
+                    .email(testUser.getEmail())
+                    .roles(Set.of(Role.USER))
+                    .build();
 
             // When & Then
             assertThatThrownBy(() -> userRepository.saveAndFlush(duplicate)).isInstanceOf(DataIntegrityViolationException.class);
@@ -265,7 +300,7 @@ class UserRepositoryTest extends bunny.boardhole.testsupport.jpa.EntityTestBase 
             // Then
             assertThat(userRepository.findById(userId)).isEmpty(); // Normal query doesn't find it
             assertThat(userRepository.count()).isEqualTo(countBefore - 1);
-            
+
             // Verify soft delete using native query
             assertThat(userRepository.findByIdIncludingDeleted(userId)).isPresent(); // Still exists in DB
             assertThat(userRepository.findAllIncludingDeleted()).hasSize((int) totalCountBefore); // Total count unchanged
@@ -286,17 +321,17 @@ class UserRepositoryTest extends bunny.boardhole.testsupport.jpa.EntityTestBase 
             // Then
             assertThat(userRepository.findById(userId)).isEmpty(); // Normal query doesn't find it
             assertThat(userRepository.count()).isEqualTo(countBefore - 1);
-            
+
             // Verify soft delete using native query
             assertThat(userRepository.findByIdIncludingDeleted(userId)).isPresent(); // Still exists in DB
             assertThat(userRepository.findAllIncludingDeleted()).hasSize((int) totalCountBefore); // Total count unchanged
-            
+
             // Verify the deleted user appears in deleted records
             var deletedUsers = userRepository.findAllDeleted();
             assertThat(deletedUsers)
-                .isNotEmpty()
-                .extracting("id")
-                .contains(userId);
+                    .isNotEmpty()
+                    .extracting("id")
+                    .contains(userId);
         }
 
         @Test
@@ -311,7 +346,7 @@ class UserRepositoryTest extends bunny.boardhole.testsupport.jpa.EntityTestBase 
             // Then
             assertThat(userRepository.count()).isEqualTo(0); // Normal query finds nothing
             assertThat(userRepository.findAll()).isEmpty();
-            
+
             // Verify soft delete using native query
             assertThat(userRepository.findAllIncludingDeleted()).hasSize((int) totalCountBefore); // All still exist in DB
             assertThat(userRepository.findAllDeleted()).hasSize((int) totalCountBefore); // All marked as deleted
@@ -328,7 +363,14 @@ class UserRepositoryTest extends bunny.boardhole.testsupport.jpa.EntityTestBase 
         @BeforeEach
         void setUpAdditionalUsers() {
             for (int i = 1; i <= 5; i++)
-                userRepository.save(User.builder().username("user_" + i).password(UserRepositoryTest.passwordEncoder.encode("Password123!")).name("User " + i).email("user" + i + "@example.com").roles(Set.of(Role.USER)).build());
+                userRepository.save(User
+                        .builder()
+                        .username("user_" + i)
+                        .password(UserRepositoryTest.passwordEncoder.encode("Password123!"))
+                        .name("User " + i)
+                        .email("user" + i + "@example.com")
+                        .roles(Set.of(Role.USER))
+                        .build());
         }
 
         @Test
@@ -354,7 +396,8 @@ class UserRepositoryTest extends bunny.boardhole.testsupport.jpa.EntityTestBase 
             Pageable pageable = PageRequest.of(0, 10);
 
             // When
-            Page<User> result = userRepository.findByUsernameContainingIgnoreCaseOrNameContainingIgnoreCaseOrEmailContainingIgnoreCase("user", "user", "user", pageable);
+            Page<User> result = userRepository.findByUsernameContainingIgnoreCaseOrNameContainingIgnoreCaseOrEmailContainingIgnoreCase("user", "user",
+                    "user", pageable);
 
             // Then
             assertThat(result.getContent()).hasSize(7); // test_user, admin_user, user_1~5
@@ -368,7 +411,8 @@ class UserRepositoryTest extends bunny.boardhole.testsupport.jpa.EntityTestBase 
             Pageable pageable = PageRequest.of(0, 10);
 
             // When
-            Page<User> result = userRepository.findByUsernameContainingIgnoreCaseOrNameContainingIgnoreCaseOrEmailContainingIgnoreCase("ADMIN", "ADMIN", "ADMIN", pageable);
+            Page<User> result = userRepository.findByUsernameContainingIgnoreCaseOrNameContainingIgnoreCaseOrEmailContainingIgnoreCase("ADMIN",
+                    "ADMIN", "ADMIN", pageable);
 
             // Then
             assertThat(result.getContent()).hasSize(1);
@@ -387,7 +431,14 @@ class UserRepositoryTest extends bunny.boardhole.testsupport.jpa.EntityTestBase 
         @DisplayName("생성 시 createdAt, updatedAt 자동 설정")
         void save_NewEntity_SetsAuditFields() {
             // Given
-            User newUser = User.builder().username("audit_test").password(UserRepositoryTest.passwordEncoder.encode("Password123!")).name("Audit Test").email("audit@example.com").roles(Set.of(Role.USER)).build();
+            User newUser = User
+                    .builder()
+                    .username("audit_test")
+                    .password(UserRepositoryTest.passwordEncoder.encode("Password123!"))
+                    .name("Audit Test")
+                    .email("audit@example.com")
+                    .roles(Set.of(Role.USER))
+                    .build();
 
             // When
             User saved = userRepository.save(newUser);

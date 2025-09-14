@@ -12,13 +12,13 @@ public record DefaultUsersProperties(
          * 관리자 계정 정보
          */
         UserInfo admin,
-        
+
         /**
          * 일반 사용자 계정 정보
          */
         UserInfo regular
 ) {
-    
+
     /**
      * 사용자 정보
      */
@@ -27,20 +27,21 @@ public record DefaultUsersProperties(
              * 사용자명
              */
             String username,
-            
+
             /**
              * 비밀번호 (환경별 오버라이드 권장)
              */
             String password,
-            
+
             /**
              * 이름
              */
             String name,
-            
+
             /**
              * 이메일 주소
              */
             String email
-    ) {}
+    ) {
+    }
 }

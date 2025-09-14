@@ -47,10 +47,9 @@ import bunny.boardhole.user.domain.validation.required.ValidUsername;
 @DynamicUpdate
 @SoftDelete(columnName = "deleted")
 @Table(name = "users", indexes = {
-    @Index(name = "idx_user_username", columnList = "username"), 
-    @Index(name = "idx_user_email", columnList = "email"), 
-    @Index(name = "idx_user_name", columnList = "name"),
-    @Index(name = "idx_user_deleted", columnList = "deleted")
+        @Index(name = "idx_user_username", columnList = "username"),
+        @Index(name = "idx_user_email", columnList = "email"),
+        @Index(name = "idx_user_name", columnList = "name")
 })
 public class User extends BaseEntity implements java.io.Serializable {
     private static final long serialVersionUID = 1L;

@@ -46,7 +46,9 @@ public class BoardCommandService {
     @Transactional
     public BoardResult create(@Valid CreateBoardCommand cmd) {
         Long authorId = cmd.authorId();
-        User author = userRepository.findById(authorId).orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.user.not-found.id", authorId)));
+        User author = userRepository
+                .findById(authorId)
+                .orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.user.not-found.id", authorId)));
 
         Board board = Board.builder().title(cmd.title()).content(cmd.content()).author(author).build();
         Board saved = boardRepository.save(board);
@@ -67,7 +69,8 @@ public class BoardCommandService {
     @PreAuthorize("hasPermission(#cmd.boardId, 'BOARD', 'WRITE')")
     public BoardResult update(@Valid UpdateBoardCommand cmd) {
         Long id = cmd.boardId();
-        Board board = boardRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.board.not-found.id", id)));
+        Board board = boardRepository
+                .findById(id).orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.board.not-found.id", id)));
 
         // Optional을 사용한 선택적 필드 업데이트
         Optional.ofNullable(cmd.title()).ifPresent(board::changeTitle);
@@ -103,7 +106,9 @@ public class BoardCommandService {
     @Transactional(propagation = org.springframework.transaction.annotation.Propagation.REQUIRES_NEW)
     public void incrementViewCount(@Valid IncrementViewCountCommand cmd) {
         Long boardId = cmd.boardId();
-        Board board = boardRepository.findById(boardId).orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.board.not-found.id", boardId)));
+        Board board = boardRepository
+                .findById(boardId)
+                .orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.board.not-found.id", boardId)));
 
         board.increaseViewCount();
 

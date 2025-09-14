@@ -41,7 +41,11 @@ class AuthE2ETest extends E2ETestBase {
     class Signup {
 
         static Stream<Arguments> provideInvalidSignupData() {
-            return Stream.of(Arguments.of("username 누락", "", "Password123!", "Test User", "test@example.com"), Arguments.of("password 누락", "testuser", "", "Test User", "test@example.com"), Arguments.of("name 누락", "testuser", "Password123!", "", "test@example.com"), Arguments.of("email 누락", "testuser", "Password123!", "Test User", ""), Arguments.of("잘못된 이메일 형식", "testuser", "Password123!", "Test User", "invalid-email"));
+            return Stream.of(Arguments.of("username 누락", "", "Password123!", "Test User", "test@example.com"),
+                    Arguments.of("password 누락", "testuser", "", "Test User", "test@example.com"),
+                    Arguments.of("name 누락", "testuser", "Password123!", "", "test@example.com"),
+                    Arguments.of("email 누락", "testuser", "Password123!", "Test User", ""),
+                    Arguments.of("잘못된 이메일 형식", "testuser", "Password123!", "Test User", "invalid-email"));
         }
 
         @BeforeEach
@@ -56,7 +60,16 @@ class AuthE2ETest extends E2ETestBase {
         @Order(1)
         @DisplayName("✅ 유효한 데이터로 회원가입 성공")
         void shouldCreateUserWithValidData() {
-            given().contentType(ContentType.URLENC).formParam("username", AuthE2ETest.testUsername).formParam("password", AuthE2ETest.testPassword).formParam("name", "Test User").formParam("email", AuthE2ETest.testEmail).when().post("/auth/signup").then().statusCode(204);
+            given()
+                    .contentType(ContentType.URLENC)
+                    .formParam("username", AuthE2ETest.testUsername)
+                    .formParam("password", AuthE2ETest.testPassword)
+                    .formParam("name", "Test User")
+                    .formParam("email", AuthE2ETest.testEmail)
+                    .when()
+                    .post("/auth/signup")
+                    .then()
+                    .statusCode(204);
         }
 
         @Test
@@ -65,27 +78,36 @@ class AuthE2ETest extends E2ETestBase {
         void shouldFailWhenUsernameDuplicated() {
             // First signup - should succeed
             String duplicateUsername = "dup_" + UUID.randomUUID().toString().substring(0, 8);
-            given().contentType(ContentType.URLENC).formParam("username", duplicateUsername).formParam("password", "Password123!").formParam("name", "First User").formParam("email", "first_" + UUID.randomUUID().toString().substring(0, 8) + "@example.com").when().post("/auth/signup").then().statusCode(204);
-
-            // Second signup with same username - should fail
-            given().contentType(ContentType.URLENC)
+            given()
+                    .contentType(ContentType.URLENC)
                     .formParam("username", duplicateUsername)
-                    .formParam("password", "Password456!")
-                    .formParam("name", "Second User")
-                    .formParam("email", "second_" + UUID.randomUUID().toString().substring(0, 8) + "@example.com")
+                    .formParam("password", "Password123!")
+                    .formParam("name", "First User")
+                    .formParam("email", "first_" + UUID.randomUUID().toString().substring(0, 8) + "@example.com")
                     .when()
                     .post("/auth/signup")
                     .then()
-                    .statusCode(409)
-                    .body("type", equalTo("urn:problem-type:duplicate-username"))
-                    .body("title", equalTo(MessageUtils.get("exception.title.duplicate-username")))
-                    .body("detail", equalTo(MessageUtils.get("error.user.username.already-exists")))
-                    .body("status", equalTo(409))
-                    .body("code", equalTo("USER_DUPLICATE_USERNAME"))
-                    .body("path", equalTo("/api/auth/signup"))
-                    .body("method", equalTo("POST"))
-                    .body("timestamp", notNullValue())
-                    .body("instance", equalTo("/api/auth/signup"));
+                    .statusCode(204);
+
+            // Second signup with same username - should fail
+            given().contentType(ContentType.URLENC)
+                   .formParam("username", duplicateUsername)
+                   .formParam("password", "Password456!")
+                   .formParam("name", "Second User")
+                   .formParam("email", "second_" + UUID.randomUUID().toString().substring(0, 8) + "@example.com")
+                   .when()
+                   .post("/auth/signup")
+                   .then()
+                   .statusCode(409)
+                   .body("type", equalTo("urn:problem-type:duplicate-username"))
+                   .body("title", equalTo(MessageUtils.get("exception.title.duplicate-username")))
+                   .body("detail", equalTo(MessageUtils.get("error.user.username.already-exists")))
+                   .body("status", equalTo(409))
+                   .body("code", equalTo("USER_DUPLICATE_USERNAME"))
+                   .body("path", equalTo("/api/auth/signup"))
+                   .body("method", equalTo("POST"))
+                   .body("timestamp", notNullValue())
+                   .body("instance", equalTo("/api/auth/signup"));
         }
 
         @Test
@@ -95,27 +117,36 @@ class AuthE2ETest extends E2ETestBase {
             String duplicateEmail = "dup_" + UUID.randomUUID().toString().substring(0, 8) + "@example.com";
 
             // First signup - should succeed
-            given().contentType(ContentType.URLENC).formParam("username", "user1_" + UUID.randomUUID().toString().substring(0, 8)).formParam("password", "Password123!").formParam("name", "First User").formParam("email", duplicateEmail).when().post("/auth/signup").then().statusCode(204);
-
-            // Second signup with same email - should fail
-            given().contentType(ContentType.URLENC)
-                    .formParam("username", "user2_" + UUID.randomUUID().toString().substring(0, 8))
-                    .formParam("password", "Password456!")
-                    .formParam("name", "Second User")
+            given()
+                    .contentType(ContentType.URLENC)
+                    .formParam("username", "user1_" + UUID.randomUUID().toString().substring(0, 8))
+                    .formParam("password", "Password123!")
+                    .formParam("name", "First User")
                     .formParam("email", duplicateEmail)
                     .when()
                     .post("/auth/signup")
                     .then()
-                    .statusCode(409)
-                    .body("type", equalTo("urn:problem-type:duplicate-email"))
-                    .body("title", equalTo(MessageUtils.get("exception.title.duplicate-email")))
-                    .body("detail", equalTo(MessageUtils.get("error.user.email.already-exists")))
-                    .body("status", equalTo(409))
-                    .body("code", equalTo("USER_DUPLICATE_EMAIL"))
-                    .body("path", equalTo("/api/auth/signup"))
-                    .body("method", equalTo("POST"))
-                    .body("timestamp", notNullValue())
-                    .body("instance", equalTo("/api/auth/signup"));
+                    .statusCode(204);
+
+            // Second signup with same email - should fail
+            given().contentType(ContentType.URLENC)
+                   .formParam("username", "user2_" + UUID.randomUUID().toString().substring(0, 8))
+                   .formParam("password", "Password456!")
+                   .formParam("name", "Second User")
+                   .formParam("email", duplicateEmail)
+                   .when()
+                   .post("/auth/signup")
+                   .then()
+                   .statusCode(409)
+                   .body("type", equalTo("urn:problem-type:duplicate-email"))
+                   .body("title", equalTo(MessageUtils.get("exception.title.duplicate-email")))
+                   .body("detail", equalTo(MessageUtils.get("error.user.email.already-exists")))
+                   .body("status", equalTo(409))
+                   .body("code", equalTo("USER_DUPLICATE_EMAIL"))
+                   .body("path", equalTo("/api/auth/signup"))
+                   .body("method", equalTo("POST"))
+                   .body("timestamp", notNullValue())
+                   .body("instance", equalTo("/api/auth/signup"));
         }
 
         @ParameterizedTest(name = "[{index}] {0}")
@@ -124,17 +155,17 @@ class AuthE2ETest extends E2ETestBase {
         @DisplayName("❌ 유효성 검증 실패 → 422 Unprocessable Content")
         void shouldFailWhenValidationFails(String description, String username, String password, String name, String email) {
             given().contentType(ContentType.URLENC)
-                    .formParam("username", username)
-                    .formParam("password", password)
-                    .formParam("name", name)
-                    .formParam("email", email)
-                    .when().post("/auth/signup")
-                    .then().statusCode(422)
-                    .body("title", equalTo(MessageUtils.get("exception.title.validation-failed")))
-                    .body("type", notNullValue())
-                    .body("status", equalTo(422))
-                    .body("code", equalTo("VALIDATION_ERROR"))
-                    .body("errors", notNullValue());
+                   .formParam("username", username)
+                   .formParam("password", password)
+                   .formParam("name", name)
+                   .formParam("email", email)
+                   .when().post("/auth/signup")
+                   .then().statusCode(422)
+                   .body("title", equalTo(MessageUtils.get("exception.title.validation-failed")))
+                   .body("type", notNullValue())
+                   .body("status", equalTo(422))
+                   .body("code", equalTo("VALIDATION_ERROR"))
+                   .body("errors", notNullValue());
         }
     }
 
@@ -153,14 +184,30 @@ class AuthE2ETest extends E2ETestBase {
             loginPassword = "Password123!";
 
             // Create user for login tests
-            given().contentType(ContentType.URLENC).formParam("username", loginUsername).formParam("password", loginPassword).formParam("name", "Login Test User").formParam("email", "login_" + uniqueId + "@example.com").when().post("/auth/signup").then().statusCode(204);
+            given()
+                    .contentType(ContentType.URLENC)
+                    .formParam("username", loginUsername)
+                    .formParam("password", loginPassword)
+                    .formParam("name", "Login Test User")
+                    .formParam("email", "login_" + uniqueId + "@example.com")
+                    .when()
+                    .post("/auth/signup")
+                    .then()
+                    .statusCode(204);
         }
 
         @Test
         @Order(1)
         @DisplayName("✅ 유효한 자격증명으로 로그인 성공")
         void shouldLoginWithValidCredentials() {
-            ValidatableResponse response = given().contentType(ContentType.URLENC).formParam("username", loginUsername).formParam("password", loginPassword).when().post("/auth/login").then().statusCode(204);
+            ValidatableResponse response = given()
+                    .contentType(ContentType.URLENC)
+                    .formParam("username", loginUsername)
+                    .formParam("password", loginPassword)
+                    .when()
+                    .post("/auth/login")
+                    .then()
+                    .statusCode(204);
 
             // Verify session cookie is set (JSESSIONID for test environment without Redis)
             response.cookie("JSESSIONID", notNullValue());
@@ -171,20 +218,20 @@ class AuthE2ETest extends E2ETestBase {
         @DisplayName("❌ 잘못된 비밀번호로 로그인 실패 → 401 Unauthorized")
         void shouldFailWithWrongPassword() {
             given().contentType(ContentType.URLENC)
-                    .formParam("username", loginUsername)
-                    .formParam("password", "WrongPassword123!")
-                    .when()
-                    .post("/auth/login")
-                    .then()
-                    .statusCode(401)
-                    .body("type", equalTo("urn:problem-type:unauthorized"))
-                    .body("title", equalTo(MessageUtils.get("exception.title.unauthorized")))
-                    .body("status", equalTo(401))
-                    .body("code", equalTo("UNAUTHORIZED"))
-                    .body("path", equalTo("/api/auth/login"))
-                    .body("method", equalTo("POST"))
-                    .body("timestamp", notNullValue())
-                    .body("instance", equalTo("/api/auth/login"));
+                   .formParam("username", loginUsername)
+                   .formParam("password", "WrongPassword123!")
+                   .when()
+                   .post("/auth/login")
+                   .then()
+                   .statusCode(401)
+                   .body("type", equalTo("urn:problem-type:unauthorized"))
+                   .body("title", equalTo(MessageUtils.get("exception.title.unauthorized")))
+                   .body("status", equalTo(401))
+                   .body("code", equalTo("UNAUTHORIZED"))
+                   .body("path", equalTo("/api/auth/login"))
+                   .body("method", equalTo("POST"))
+                   .body("timestamp", notNullValue())
+                   .body("instance", equalTo("/api/auth/login"));
         }
 
         @Test
@@ -192,20 +239,20 @@ class AuthE2ETest extends E2ETestBase {
         @DisplayName("❌ 존재하지 않는 사용자로 로그인 실패 → 401 Unauthorized")
         void shouldFailWithNonExistentUser() {
             given().contentType(ContentType.URLENC)
-                    .formParam("username", "nonexistent_" + UUID.randomUUID().toString().substring(0, 8))
-                    .formParam("password", "AnyPassword123!")
-                    .when()
-                    .post("/auth/login")
-                    .then()
-                    .statusCode(401)
-                    .body("type", equalTo("urn:problem-type:unauthorized"))
-                    .body("title", equalTo(MessageUtils.get("exception.title.unauthorized")))
-                    .body("status", equalTo(401))
-                    .body("code", equalTo("UNAUTHORIZED"))
-                    .body("path", equalTo("/api/auth/login"))
-                    .body("method", equalTo("POST"))
-                    .body("timestamp", notNullValue())
-                    .body("instance", equalTo("/api/auth/login"));
+                   .formParam("username", "nonexistent_" + UUID.randomUUID().toString().substring(0, 8))
+                   .formParam("password", "AnyPassword123!")
+                   .when()
+                   .post("/auth/login")
+                   .then()
+                   .statusCode(401)
+                   .body("type", equalTo("urn:problem-type:unauthorized"))
+                   .body("title", equalTo(MessageUtils.get("exception.title.unauthorized")))
+                   .body("status", equalTo(401))
+                   .body("code", equalTo("UNAUTHORIZED"))
+                   .body("path", equalTo("/api/auth/login"))
+                   .body("method", equalTo("POST"))
+                   .body("timestamp", notNullValue())
+                   .body("instance", equalTo("/api/auth/login"));
         }
     }
 
@@ -224,10 +271,28 @@ class AuthE2ETest extends E2ETestBase {
             final String password = "Password123!";
 
             // Signup
-            given().contentType(ContentType.URLENC).formParam("username", username).formParam("password", password).formParam("name", "Logout Test User").formParam("email", "logout_" + uniqueId + "@example.com").when().post("/auth/signup").then().statusCode(204);
+            given()
+                    .contentType(ContentType.URLENC)
+                    .formParam("username", username)
+                    .formParam("password", password)
+                    .formParam("name", "Logout Test User")
+                    .formParam("email", "logout_" + uniqueId + "@example.com")
+                    .when()
+                    .post("/auth/signup")
+                    .then()
+                    .statusCode(204);
 
             // Login and get session cookie (JSESSIONID in test profile)
-            sessionCookie = given().contentType(ContentType.URLENC).formParam("username", username).formParam("password", password).when().post("/auth/login").then().statusCode(204).extract().cookie("JSESSIONID");
+            sessionCookie = given()
+                    .contentType(ContentType.URLENC)
+                    .formParam("username", username)
+                    .formParam("password", password)
+                    .when()
+                    .post("/auth/login")
+                    .then()
+                    .statusCode(204)
+                    .extract()
+                    .cookie("JSESSIONID");
         }
 
         @Test
@@ -244,7 +309,14 @@ class AuthE2ETest extends E2ETestBase {
         @Order(2)
         @DisplayName("❌ 인증되지 않은 상태에서 로그아웃 → 401 Unauthorized")
         void shouldFailWhenNotAuthenticated() {
-            given().when().post("/auth/logout").then().statusCode(401).body("title", equalTo(MessageUtils.get("exception.title.unauthorized"))).body("status", equalTo(401)).body("code", equalTo("UNAUTHORIZED"));
+            given()
+                    .when()
+                    .post("/auth/logout")
+                    .then()
+                    .statusCode(401)
+                    .body("title", equalTo(MessageUtils.get("exception.title.unauthorized")))
+                    .body("status", equalTo(401))
+                    .body("code", equalTo("UNAUTHORIZED"));
         }
     }
 
@@ -263,17 +335,41 @@ class AuthE2ETest extends E2ETestBase {
             // Create regular user
             String regularUsername = "user_" + uniqueId;
             final String regularPassword = "Password123!";
-            given().contentType(ContentType.URLENC).formParam("username", regularUsername).formParam("password", regularPassword).formParam("name", "Regular User").formParam("email", "user_" + uniqueId + "@example.com").when().post("/auth/signup").then().statusCode(204);
+            given()
+                    .contentType(ContentType.URLENC)
+                    .formParam("username", regularUsername)
+                    .formParam("password", regularPassword)
+                    .formParam("name", "Regular User")
+                    .formParam("email", "user_" + uniqueId + "@example.com")
+                    .when()
+                    .post("/auth/signup")
+                    .then()
+                    .statusCode(204);
 
             // Login as regular user
-            userSessionCookie = given().contentType(ContentType.URLENC).formParam("username", regularUsername).formParam("password", regularPassword).when().post("/auth/login").then().statusCode(204).extract().cookie("JSESSIONID");
+            userSessionCookie = given()
+                    .contentType(ContentType.URLENC)
+                    .formParam("username", regularUsername)
+                    .formParam("password", regularPassword)
+                    .when()
+                    .post("/auth/login")
+                    .then()
+                    .statusCode(204)
+                    .extract()
+                    .cookie("JSESSIONID");
 
             // Note: Admin user creation would typically be done through database seeding
             // or special admin creation endpoint. For this test, we'll assume an admin
             // user already exists in the test database with username "admin" and known password
 
             // Try to login as admin (assuming test data includes an admin user)
-            ValidatableResponse adminLoginResponse = given().contentType(ContentType.URLENC).formParam("username", "admin").formParam("password", "Admin123!").when().post("/auth/login").then();
+            ValidatableResponse adminLoginResponse = given()
+                    .contentType(ContentType.URLENC)
+                    .formParam("username", "admin")
+                    .formParam("password", "Admin123!")
+                    .when()
+                    .post("/auth/login")
+                    .then();
 
             // If admin doesn't exist, create one (this would typically be handled differently)
             // For testing purposes, we'll skip admin-specific tests if admin doesn't exist
@@ -295,14 +391,14 @@ class AuthE2ETest extends E2ETestBase {
         @DisplayName("❌ 사용자 전용 엔드포인트 - 인증 없이 접근 실패 → 401")
         void shouldDenyUserAccessWithoutAuth() {
             given().when().get("/auth/user-access").then().statusCode(401)
-                    .body("type", equalTo("urn:problem-type:unauthorized"))
-                    .body("title", equalTo(MessageUtils.get("exception.title.unauthorized")))
-                    .body("status", equalTo(401))
-                    .body("code", equalTo("UNAUTHORIZED"))
-                    .body("path", equalTo("/api/auth/user-access"))
-                    .body("method", equalTo("GET"))
-                    .body("timestamp", notNullValue())
-                    .body("instance", equalTo("/api/auth/user-access"));
+                   .body("type", equalTo("urn:problem-type:unauthorized"))
+                   .body("title", equalTo(MessageUtils.get("exception.title.unauthorized")))
+                   .body("status", equalTo(401))
+                   .body("code", equalTo("UNAUTHORIZED"))
+                   .body("path", equalTo("/api/auth/user-access"))
+                   .body("method", equalTo("GET"))
+                   .body("timestamp", notNullValue())
+                   .body("instance", equalTo("/api/auth/user-access"));
         }
 
         @Test
@@ -327,14 +423,29 @@ class AuthE2ETest extends E2ETestBase {
         @Order(5)
         @DisplayName("❌ 관리자 전용 엔드포인트 - 인증 없이 접근 → 401")
         void shouldDenyAdminAccessWithoutAuth() {
-            given().when().get("/auth/admin-only").then().statusCode(401).body("title", equalTo(MessageUtils.get("exception.title.unauthorized"))).body("status", equalTo(401)).body("code", equalTo("UNAUTHORIZED"));
+            given()
+                    .when()
+                    .get("/auth/admin-only")
+                    .then()
+                    .statusCode(401)
+                    .body("title", equalTo(MessageUtils.get("exception.title.unauthorized")))
+                    .body("status", equalTo(401))
+                    .body("code", equalTo("UNAUTHORIZED"));
         }
 
         @Test
         @Order(6)
         @DisplayName("❌ 관리자 전용 엔드포인트 - 일반 사용자 접근 → 403")
         void shouldDenyAdminAccessWithUserRole() {
-            given().cookie("JSESSIONID", userSessionCookie).when().get("/auth/admin-only").then().statusCode(403).body("title", equalTo(MessageUtils.get("exception.title.access-denied"))).body("status", equalTo(403)).body("code", equalTo("FORBIDDEN"));
+            given()
+                    .cookie("JSESSIONID", userSessionCookie)
+                    .when()
+                    .get("/auth/admin-only")
+                    .then()
+                    .statusCode(403)
+                    .body("title", equalTo(MessageUtils.get("exception.title.access-denied")))
+                    .body("status", equalTo(403))
+                    .body("code", equalTo("FORBIDDEN"));
         }
 
         @Test
@@ -363,10 +474,28 @@ class AuthE2ETest extends E2ETestBase {
             final String password = "Password123!";
 
             // Signup
-            given().contentType(ContentType.URLENC).formParam("username", username).formParam("password", password).formParam("name", "Session Test User").formParam("email", "session_" + uniqueId + "@example.com").when().post("/auth/signup").then().statusCode(204);
+            given()
+                    .contentType(ContentType.URLENC)
+                    .formParam("username", username)
+                    .formParam("password", password)
+                    .formParam("name", "Session Test User")
+                    .formParam("email", "session_" + uniqueId + "@example.com")
+                    .when()
+                    .post("/auth/signup")
+                    .then()
+                    .statusCode(204);
 
             // Login and get session
-            String sessionCookie = given().contentType(ContentType.URLENC).formParam("username", username).formParam("password", password).when().post("/auth/login").then().statusCode(204).extract().cookie("JSESSIONID");
+            String sessionCookie = given()
+                    .contentType(ContentType.URLENC)
+                    .formParam("username", username)
+                    .formParam("password", password)
+                    .when()
+                    .post("/auth/login")
+                    .then()
+                    .statusCode(204)
+                    .extract()
+                    .cookie("JSESSIONID");
 
             // Use session for multiple requests
             given().cookie("JSESSIONID", sessionCookie).when().get("/auth/user-access").then().statusCode(204);
@@ -379,17 +508,17 @@ class AuthE2ETest extends E2ETestBase {
         @DisplayName("❌ 잘못된 세션 쿠키로 접근 실패")
         void shouldFailWithInvalidSessionCookie() {
             given().cookie("JSESSIONID", "invalid-session-id")
-                    .when()
-                    .get("/auth/user-access")
-                    .then()
-                    .statusCode(401)
-                    .body("type", equalTo("urn:problem-type:unauthorized"))
-                    .body("title", equalTo(MessageUtils.get("exception.title.unauthorized")))
-                    .body("code", equalTo("UNAUTHORIZED"))
-                    .body("path", equalTo("/api/auth/user-access"))
-                    .body("method", equalTo("GET"))
-                    .body("timestamp", notNullValue())
-                    .body("instance", equalTo("/api/auth/user-access"));
+                   .when()
+                   .get("/auth/user-access")
+                   .then()
+                   .statusCode(401)
+                   .body("type", equalTo("urn:problem-type:unauthorized"))
+                   .body("title", equalTo(MessageUtils.get("exception.title.unauthorized")))
+                   .body("code", equalTo("UNAUTHORIZED"))
+                   .body("path", equalTo("/api/auth/user-access"))
+                   .body("method", equalTo("GET"))
+                   .body("timestamp", notNullValue())
+                   .body("instance", equalTo("/api/auth/user-access"));
         }
     }
 
@@ -408,10 +537,28 @@ class AuthE2ETest extends E2ETestBase {
             String email = "flow_" + uniqueId + "@example.com";
 
             // Step 1: Signup
-            given().contentType(ContentType.URLENC).formParam("username", username).formParam("password", password).formParam("name", "Flow Test User").formParam("email", email).when().post("/auth/signup").then().statusCode(204);
+            given()
+                    .contentType(ContentType.URLENC)
+                    .formParam("username", username)
+                    .formParam("password", password)
+                    .formParam("name", "Flow Test User")
+                    .formParam("email", email)
+                    .when()
+                    .post("/auth/signup")
+                    .then()
+                    .statusCode(204);
 
             // Step 2: Login
-            String sessionCookie = given().contentType(ContentType.URLENC).formParam("username", username).formParam("password", password).when().post("/auth/login").then().statusCode(204).extract().cookie("JSESSIONID");
+            String sessionCookie = given()
+                    .contentType(ContentType.URLENC)
+                    .formParam("username", username)
+                    .formParam("password", password)
+                    .when()
+                    .post("/auth/login")
+                    .then()
+                    .statusCode(204)
+                    .extract()
+                    .cookie("JSESSIONID");
 
             // Step 3: Access protected endpoint with session
             given().cookie("JSESSIONID", sessionCookie).when().get("/auth/user-access").then().statusCode(204);

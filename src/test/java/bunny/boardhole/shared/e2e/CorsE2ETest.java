@@ -48,9 +48,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class CorsE2ETest {
 
+    private static final String ALLOWED_ORIGIN = "http://localhost:8080";
+    private static final String DISALLOWED_ORIGIN = "http://evil.com";
+    private static final String API_ENDPOINT = "/api/boards";
     @Autowired
     private WebApplicationContext context;
-
     private MockMvc mockMvc;
 
     @BeforeEach
@@ -60,10 +62,6 @@ class CorsE2ETest {
                 .apply(org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity())
                 .build();
     }
-
-    private static final String ALLOWED_ORIGIN = "http://localhost:8080";
-    private static final String DISALLOWED_ORIGIN = "http://evil.com";
-    private static final String API_ENDPOINT = "/api/boards";
 
     // ==================== 허용된 CORS 테스트 케이스 ====================
 

@@ -37,10 +37,8 @@ import bunny.boardhole.user.domain.User;
 @DynamicUpdate
 @SoftDelete(columnName = "deleted")
 @Table(name = "boards", indexes = {
-    @Index(name = "idx_board_title", columnList = "title"), 
-    @Index(name = "idx_board_created_at", columnList = "created_at"),
-    @Index(name = "idx_board_deleted", columnList = "deleted"),
-    @Index(name = "idx_board_deleted_created", columnList = "deleted,created_at")
+        @Index(name = "idx_board_title", columnList = "title"),
+        @Index(name = "idx_board_created_at", columnList = "created_at"),
 })
 public class Board extends BaseEntity {
     @Id

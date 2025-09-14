@@ -28,7 +28,7 @@ public class OpenApiConfiguration {
     public OpenAPI boardHoleOpenAPI() {
         ApiProperties.Contact contact = apiProperties.contact();
         ApiProperties.License license = apiProperties.license();
-        
+
         return new OpenAPI()
                 .info(new Info()
                         .title(apiProperties.title())
