@@ -9,7 +9,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.validation.annotation.Validated;
 
 import bunny.boardhole.user.domain.User;
 
@@ -17,7 +16,6 @@ import bunny.boardhole.user.domain.User;
  * 사용자 데이터 접근 리포지토리
  * 사용자 엔티티에 대한 CRUD 작업 및 검색 기능을 제공합니다.
  */
-@Validated
 public interface UserRepository extends JpaRepository<User, UUID> {
     /**
      * 사용자명 중복 확인
@@ -43,15 +41,6 @@ public interface UserRepository extends JpaRepository<User, UUID> {
      */
     @EntityGraph(attributePaths = "roles")
     Optional<User> findByUsername(String username);
-
-    /**
-     * 사용자명으로 사용자 조회 (Optional)
-     *
-     * @param username 조회할 사용자명
-     * @return 사용자 엔티티 Optional
-     */
-    @EntityGraph(attributePaths = "roles")
-    Optional<User> findOptionalByUsername(String username);
 
     /**
      * 이메일로 사용자 조회

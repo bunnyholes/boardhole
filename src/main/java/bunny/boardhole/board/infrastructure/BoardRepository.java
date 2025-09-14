@@ -10,7 +10,6 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.validation.annotation.Validated;
 
 import bunny.boardhole.board.domain.Board;
 
@@ -18,7 +17,6 @@ import bunny.boardhole.board.domain.Board;
  * 게시글 데이터 접근 리포지토리
  * 게시글 엔티티에 대한 CRUD 작업 및 검색, 집계 기능을 제공합니다.
  */
-@Validated
 public interface BoardRepository extends JpaRepository<Board, UUID> {
 
     @Override

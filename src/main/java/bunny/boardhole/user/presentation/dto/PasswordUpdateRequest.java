@@ -2,10 +2,12 @@ package bunny.boardhole.user.presentation.dto;
 
 import jakarta.validation.constraints.NotBlank;
 
+import bunny.boardhole.shared.validation.PasswordConfirmed;
 import bunny.boardhole.user.domain.validation.required.ValidPassword;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
+@PasswordConfirmed
 @Schema(name = "PasswordUpdateRequest", description = "패스워드 변경 요청")
 public record PasswordUpdateRequest(
         @NotBlank(message = "{validation.user.password.current.required}") @Schema(description = "현재 패스워드", example = "CurrentPass123!", requiredMode = Schema.RequiredMode.REQUIRED) String currentPassword,

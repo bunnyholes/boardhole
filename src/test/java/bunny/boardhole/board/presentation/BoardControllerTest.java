@@ -201,7 +201,7 @@ class BoardControllerTest {
             // given
             final UUID boardId = UUID.randomUUID();
             BoardUpdateRequest request = new BoardUpdateRequest("Updated Title", "Updated Content");
-            UpdateBoardCommand command = new UpdateBoardCommand(boardId, testUser.getId(), "Updated Title", "Updated Content");
+            UpdateBoardCommand command = new UpdateBoardCommand(boardId, "Updated Title", "Updated Content");
             BoardResult updatedResult = new BoardResult(
                     boardId, "Updated Title", "Updated Content", UUID.randomUUID(),
                     "testuser", 0, LocalDateTime.now(), LocalDateTime.now()
@@ -211,7 +211,7 @@ class BoardControllerTest {
                     "testuser", 0, LocalDateTime.now(), LocalDateTime.now()
             );
 
-            given(boardWebMapper.toUpdateCommand(boardId, testUser.getId(), request)).willReturn(command);
+            given(boardWebMapper.toUpdateCommand(boardId, request)).willReturn(command);
             given(boardCommandService.update(command)).willReturn(updatedResult);
             given(boardWebMapper.toResponse(updatedResult)).willReturn(updatedResponse);
 
@@ -220,7 +220,7 @@ class BoardControllerTest {
 
             // then
             assertThat(result).isEqualTo(updatedResponse);
-            then(boardWebMapper).should().toUpdateCommand(boardId, testUser.getId(), request);
+            then(boardWebMapper).should().toUpdateCommand(boardId, request);
             then(boardCommandService).should().update(command);
             then(boardWebMapper).should().toResponse(updatedResult);
         }

@@ -51,10 +51,9 @@ public interface BoardWebMapper {
      * @return 게시글 수정 명령
      */
     @Mapping(target = "boardId", source = "id")
-    @Mapping(target = "authorId", source = "authorId")
     @Mapping(target = "title", source = "req.title")
     @Mapping(target = "content", source = "req.content")
-    UpdateBoardCommand toUpdateCommand(UUID id, UUID authorId, BoardUpdateRequest req);
+    UpdateBoardCommand toUpdateCommand(UUID id, BoardUpdateRequest req);
 
     /**
      * ID로 게시글 조회 쿼리 생성

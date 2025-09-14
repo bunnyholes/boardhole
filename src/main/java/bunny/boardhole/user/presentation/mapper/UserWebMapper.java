@@ -64,6 +64,7 @@ public interface UserWebMapper {
     @Mapping(target = "userId", source = "id")
     @Mapping(target = "currentPassword", source = "req.currentPassword")
     @Mapping(target = "newPassword", source = "req.newPassword")
+    @Mapping(target = "confirmPassword", source = "req.confirmPassword")
     UpdatePasswordCommand toUpdatePasswordCommand(UUID id, PasswordUpdateRequest req);
 
 }

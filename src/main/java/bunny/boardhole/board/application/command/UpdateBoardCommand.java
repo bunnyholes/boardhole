@@ -9,8 +9,6 @@ import bunny.boardhole.board.domain.validation.optional.OptionalBoardTitle;
 public record UpdateBoardCommand(
         @NotNull(message = "{validation.board.boardId.required}") UUID boardId,
 
-        @NotNull(message = "{validation.board.authorId.required}") UUID authorId,
-
         @OptionalBoardTitle String title,
 
         @OptionalBoardContent String content) {

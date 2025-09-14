@@ -40,7 +40,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
@@ -63,11 +62,9 @@ public class AuthController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PermitAll
     @Operation(summary = "회원가입", description = "[PUBLIC] 새로운 사용자 계정을 생성합니다.", requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content = @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE, schema = @Schema(implementation = UserCreateRequest.class))))
-    @ApiResponses({
-            @ApiResponse(responseCode = "204", description = "회원가입 성공"),
-            @ApiResponse(responseCode = "422", description = "유효성 검증 실패 (필수 필드 누락, 패스워드 패턴 불일치 등)"),
-            @ApiResponse(responseCode = "409", description = "중복된 사용자명 또는 이메일")
-    })
+    @ApiResponse(responseCode = "204", description = "회원가입 성공")
+    @ApiResponse(responseCode = "422", description = "유효성 검증 실패 (필수 필드 누락, 패스워드 패턴 불일치 등)")
+    @ApiResponse(responseCode = "409", description = "중복된 사용자명 또는 이메일")
     public void signup(@Validated @ModelAttribute UserCreateRequest req) {
         // Map request to command; keep repository returning entities in service
         var cmd = userWebMapper.toCreateCommand(req);
@@ -78,7 +75,8 @@ public class AuthController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PermitAll
     @Operation(summary = "로그인", description = "[PUBLIC] 사용자의 인증 정보를 확인하고 세션을 생성합니다.", requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content = @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE, schema = @Schema(implementation = LoginRequest.class))))
-    @ApiResponses({@ApiResponse(responseCode = "204", description = "로그인 성공"), @ApiResponse(responseCode = "401", description = "잘못된 인증 정보")})
+    @ApiResponse(responseCode = "204", description = "로그인 성공")
+    @ApiResponse(responseCode = "401", description = "잘못된 인증 정보")
     public void login(@Validated @ModelAttribute LoginRequest req, HttpServletRequest request, HttpServletResponse response) {
         // CQRS 패턴을 통한 로그인 처리
         var loginCommand = authWebMapper.toLoginCommand(req);
@@ -108,7 +106,8 @@ public class AuthController {
     @Operation(summary = "로그아웃", description = "[AUTH] 현재 사용자의 세션을 종료하고 로그아웃합니다."
 
     )
-    @ApiResponses({@ApiResponse(responseCode = "204", description = "로그아웃 성공"), @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")})
+    @ApiResponse(responseCode = "204", description = "로그아웃 성공")
+    @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
     public void logout(HttpServletRequest request, HttpServletResponse response, @AuthenticationPrincipal AppUserPrincipal principal) {
         // CQRS 패턴을 통한 로그아웃 처리
         UUID userId = principal.user().getId();
@@ -129,7 +128,9 @@ public class AuthController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("isAuthenticated() and hasRole('ADMIN')")
     @Operation(summary = "관리자 전용 엔드포인트", description = "[ROLE:ADMIN] 관리자 권한을 가진 사용자만 접근할 수 있는 테스트 엔드포인트입니다.", security = @SecurityRequirement(name = "admin-role"))
-    @ApiResponses({@ApiResponse(responseCode = "204", description = "관리자 접근 성공"), @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"), @ApiResponse(responseCode = "403", description = "관리자 권한 없음")})
+    @ApiResponse(responseCode = "204", description = "관리자 접근 성공")
+    @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
+    @ApiResponse(responseCode = "403", description = "관리자 권한 없음")
     public void adminOnly(@AuthenticationPrincipal AppUserPrincipal principal) {
         // Validate admin access and log the request
         log.info("Admin-only endpoint accessed by user: {}", principal.user().getUsername());
@@ -139,7 +140,9 @@ public class AuthController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("isAuthenticated() and hasAnyRole('USER', 'ADMIN')")
     @Operation(summary = "일반 사용자 접근 엔드포인트", description = "[MULTI-ROLE:USER,ADMIN] USER 또는 ADMIN 권한을 가진 사용자가 접근할 수 있는 테스트 엔드포인트입니다.", security = @SecurityRequirement(name = "user-role"))
-    @ApiResponses({@ApiResponse(responseCode = "204", description = "사용자 접근 성공"), @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"), @ApiResponse(responseCode = "403", description = "사용자 권한 없음")})
+    @ApiResponse(responseCode = "204", description = "사용자 접근 성공")
+    @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
+    @ApiResponse(responseCode = "403", description = "사용자 권한 없음")
     public void userAccess(@AuthenticationPrincipal AppUserPrincipal principal) {
         // Validate user access and log the request
         log.info("User access endpoint accessed by user: {} with roles: {}", principal.user().getUsername(), principal.getAuthorities());
@@ -149,7 +152,7 @@ public class AuthController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PermitAll
     @Operation(summary = "공개 엔드포인트", description = "[PUBLIC] 인증 없이 모든 사용자가 접근할 수 있는 공개 테스트 엔드포인트입니다.")
-    @ApiResponses(@ApiResponse(responseCode = "204", description = "공개 엔드포인트 접근 성공"))
+    @ApiResponse(responseCode = "204", description = "공개 엔드포인트 접근 성공")
     public void publicAccess() {
         // Public endpoint accessible to everyone
         log.info("Public access endpoint accessed");

@@ -245,7 +245,7 @@ class UserControllerTest {
             PasswordUpdateRequest request = new PasswordUpdateRequest(
                     "currentPassword", "newPassword123!", "newPassword123!"
             );
-            UpdatePasswordCommand command = new UpdatePasswordCommand(userId, "currentPassword", "newPassword123!");
+            UpdatePasswordCommand command = new UpdatePasswordCommand(userId, "currentPassword", "newPassword123!", "newPassword123!");
 
             given(userWebMapper.toUpdatePasswordCommand(userId, request)).willReturn(command);
             willDoNothing().given(userCommandService).updatePassword(command);

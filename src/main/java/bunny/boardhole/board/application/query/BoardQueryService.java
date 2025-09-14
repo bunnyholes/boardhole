@@ -34,6 +34,9 @@ public class BoardQueryService {
     /**
      * 게시글 단일 조회 쿼리 처리
      *
+     * 주의: 본 메서드는 조회 성공 시 조회수 증가 이벤트(ViewedEvent)를 발행합니다.
+     * CQRS 순수 조회 원칙과 달리, 실무 성능/경험(조회 시점에 viewCount 증가) 목적의 의도적 부수효과입니다.
+     *
      * @param query 게시글 조회 쿼리
      * @return 게시글 조회 결과
      * @throws ResourceNotFoundException 게시글을 찾을 수 없는 경우

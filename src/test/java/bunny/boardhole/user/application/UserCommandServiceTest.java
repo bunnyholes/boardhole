@@ -301,7 +301,7 @@ class UserCommandServiceTest {
             given(passwordEncoder.matches(UserCommandServiceTest.WRONG_PASSWORD, UserCommandServiceTest.ENCODED_PASSWORD)).willReturn(false);
 
             UpdatePasswordCommand cmd = new UpdatePasswordCommand(UserCommandServiceTest.USER_ID, UserCommandServiceTest.WRONG_PASSWORD,
-                    UserCommandServiceTest.NEW_PASSWORD);
+                    UserCommandServiceTest.NEW_PASSWORD, UserCommandServiceTest.NEW_PASSWORD);
 
             // 실제 메시지 로드
             String expectedMessage = MessageUtils.get("error.user.password.current.mismatch");
@@ -332,7 +332,7 @@ class UserCommandServiceTest {
             given(userRepository.save(existing)).willReturn(existing);
 
             UpdatePasswordCommand cmd = new UpdatePasswordCommand(UserCommandServiceTest.USER_ID, UserCommandServiceTest.RAW_PASSWORD,
-                    UserCommandServiceTest.NEW_PASSWORD);
+                    UserCommandServiceTest.NEW_PASSWORD, UserCommandServiceTest.NEW_PASSWORD);
 
             // when
             userCommandService.updatePassword(cmd);
@@ -351,7 +351,7 @@ class UserCommandServiceTest {
             given(userRepository.findById(UserCommandServiceTest.USER_ID)).willReturn(Optional.empty());
 
             UpdatePasswordCommand cmd = new UpdatePasswordCommand(UserCommandServiceTest.USER_ID, UserCommandServiceTest.RAW_PASSWORD,
-                    UserCommandServiceTest.NEW_PASSWORD);
+                    UserCommandServiceTest.NEW_PASSWORD, UserCommandServiceTest.NEW_PASSWORD);
 
             // 실제 메시지 로드
             String expectedMessage = MessageUtils.get("error.user.not-found.id", UserCommandServiceTest.USER_ID);

@@ -1,14 +1,14 @@
 package bunny.boardhole.shared.exception;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import java.io.Serial;
 
 /**
  * 유효성 검증 실패 예외
- * HTTP 400 Bad Request로 응답됩니다.
  */
-@ResponseStatus(HttpStatus.BAD_REQUEST)
 public class ValidationException extends RuntimeException {
+    @Serial
+    private static final long serialVersionUID = 793805120125587994L;
+
     public ValidationException(String message) {
         super(message);
     }

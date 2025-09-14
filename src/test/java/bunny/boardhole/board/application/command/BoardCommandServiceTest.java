@@ -144,8 +144,7 @@ class BoardCommandServiceTest {
         void shouldThrowWhenBoardNotFound() {
             // given
             final UUID boardId = UUID.randomUUID();
-            final UUID authorId = UUID.randomUUID();
-            UpdateBoardCommand cmd = new UpdateBoardCommand(boardId, authorId, "new title", "new content");
+            UpdateBoardCommand cmd = new UpdateBoardCommand(boardId, "new title", "new content");
             when(boardRepository.findById(boardId)).thenReturn(Optional.empty());
 
             // 실제 메시지 로드

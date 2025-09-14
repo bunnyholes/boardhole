@@ -61,7 +61,9 @@ public class UserController {
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "사용자 목록 조회", description = "[ROLE:ADMIN] 관리자가 사용자 목록을 페이지네이션으로 조회합니다. 검색 기능을 제공합니다.", security = @SecurityRequirement(name = "admin-role"))
-    @ApiResponses({@ApiResponse(responseCode = "200", description = "사용자 목록 조회 성공", content = @Content(schema = @Schema(implementation = Page.class))), @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"), @ApiResponse(responseCode = "403", description = "관리자 권한 없음")})
+    @ApiResponse(responseCode = "200", description = "사용자 목록 조회 성공", content = @Content(schema = @Schema(implementation = Page.class)))
+    @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
+    @ApiResponse(responseCode = "403", description = "관리자 권한 없음")
     public Page<UserResponse> list(@Parameter(description = "검색어 (사용자명, 이름, 이메일)") @RequestParam(required = false) @Nullable String search, @ParameterObject @PageableDefault(size = 20) Pageable pageable) {
 
         Page<UserResult> results = search != null && !search.trim().isEmpty() ? userQueryService.listWithPaging(pageable,
@@ -73,7 +75,8 @@ public class UserController {
     @GetMapping("/{id}")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "사용자 상세 조회", description = "[AUTH] 특정 사용자의 상세 정보를 조회합니다. 관리자이거나 본인만 조회 가능합니다.")
-    @ApiResponses({@ApiResponse(responseCode = "200", description = "사용자 조회 성공", content = @Content(schema = @Schema(implementation = UserResponse.class))), @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음")})
+    @ApiResponse(responseCode = "200", description = "사용자 조회 성공", content = @Content(schema = @Schema(implementation = UserResponse.class)))
+    @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음")
     public UserResponse get(@Parameter(description = "조회할 사용자 ID") @PathVariable UUID id) {
         var userResult = userQueryService.get(id);
         return userWebMapper.toResponse(userResult);
@@ -82,7 +85,10 @@ public class UserController {
     @PutMapping(value = "/{id}", consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE}, produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "사용자 정보 수정", description = "[AUTH] 사용자의 개인 정보를 수정합니다. 인증된 사용자만 사용할 수 있습니다.", requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content = @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE, schema = @Schema(implementation = UserUpdateRequest.class))))
-    @ApiResponses({@ApiResponse(responseCode = "200", description = "사용자 정보 수정 성공", content = @Content(schema = @Schema(implementation = UserResponse.class))), @ApiResponse(responseCode = "422", description = "유효성 검증 실패"), @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"), @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음")})
+    @ApiResponse(responseCode = "200", description = "사용자 정보 수정 성공", content = @Content(schema = @Schema(implementation = UserResponse.class)))
+    @ApiResponse(responseCode = "422", description = "유효성 검증 실패")
+    @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
+    @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음")
     public UserResponse update(@Parameter(description = "수정할 사용자 ID") @PathVariable UUID id, @Validated @ModelAttribute UserUpdateRequest req) {
         var cmd = userWebMapper.toUpdateCommand(id, req);
         var updated = userCommandService.update(cmd);
@@ -93,7 +99,9 @@ public class UserController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "사용자 삭제", description = "[AUTH] 사용자 계정을 삭제합니다. 인증된 사용자만 사용할 수 있습니다.")
-    @ApiResponses({@ApiResponse(responseCode = "204", description = "사용자 삭제 성공"), @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"), @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음")})
+    @ApiResponse(responseCode = "204", description = "사용자 삭제 성공")
+    @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
+    @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음")
     public void delete(@Parameter(description = "삭제할 사용자 ID") @PathVariable UUID id) {
         userCommandService.delete(id);
     }
@@ -102,10 +110,12 @@ public class UserController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "패스워드 변경", description = "[AUTH] 사용자의 패스워드를 변경합니다. 현재 패스워드 확인이 필요합니다.", requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content = @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE, schema = @Schema(implementation = PasswordUpdateRequest.class))))
-    @ApiResponses({@ApiResponse(responseCode = "204", description = "패스워드 변경 성공"), @ApiResponse(responseCode = "422", description = "유효성 검증 실패"), @ApiResponse(responseCode = "401", description = "현재 패스워드 불일치"), @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음")})
+    @ApiResponse(responseCode = "204", description = "패스워드 변경 성공")
+    @ApiResponse(responseCode = "422", description = "유효성 검증 실패")
+    @ApiResponse(responseCode = "401", description = "현재 패스워드 불일치")
+    @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음")
     public void updatePassword(@Parameter(description = "사용자 ID") @PathVariable UUID id, @Validated @ModelAttribute PasswordUpdateRequest req) {
-
-        // 패스워드 확인 불일치 처리
+        // 이중 방어: 프레젠테이션 레이어 자체 검증 (테스트/프록시 미적용 상황 대비)
         if (!req.newPassword().equals(req.confirmPassword()))
             throw new ValidationException(MessageUtils.get("error.user.password.confirm.mismatch"));
 
@@ -118,7 +128,8 @@ public class UserController {
     @GetMapping(ApiPaths.USERS_ME)
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "현재 로그인한 사용자 정보 조회", description = "[AUTH] 현재 로그인한 사용자의 상세 정보를 조회합니다.")
-    @ApiResponses({@ApiResponse(responseCode = "200", description = "현재 사용자 정보 조회 성공", content = @Content(schema = @Schema(implementation = UserResponse.class))), @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")})
+    @ApiResponse(responseCode = "200", description = "현재 사용자 정보 조회 성공", content = @Content(schema = @Schema(implementation = UserResponse.class)))
+    @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
     public UserResponse me(@AuthenticationPrincipal AppUserPrincipal principal) {
         UserResult result = userQueryService.get(principal.user().getId());
         return userWebMapper.toResponse(result);
