@@ -4,13 +4,9 @@ import java.io.Serial;
 
 import lombok.experimental.StandardException;
 
-import org.springframework.context.MessageSource;
-import org.springframework.lang.Nullable;
 
 @StandardException
 class ConflictException extends RuntimeException {
     @Serial
     private static final long serialVersionUID = -5270944463690949893L;
-    @Nullable
-    protected transient MessageSource messageSource = null;
 }

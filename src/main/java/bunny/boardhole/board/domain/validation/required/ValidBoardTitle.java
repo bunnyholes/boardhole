@@ -22,7 +22,7 @@ import bunny.boardhole.board.domain.validation.BoardValidationConstants;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @NotBlank(message = "{validation.board.title.required}")
-@Size(max = BoardValidationConstants.BOARD_TITLE_MAX_LENGTH, message = "{validation.board.title.size}")
+@Size(max = BoardValidationConstants.BOARD_TITLE_MAX_LENGTH, message = "{validation.board.title.too-long}")
 @Constraint(validatedBy = {})
 public @interface ValidBoardTitle {
     String message() default "{validation.board.title.invalid}";

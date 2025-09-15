@@ -42,6 +42,7 @@ public final class AuthSteps {
     }
 
     public static String loginRegular() {
+        register(REGULAR_USERNAME, REGULAR_PASSWORD, "Regular User", "user@example.com");
         return loginAs(REGULAR_USERNAME, REGULAR_PASSWORD);
     }
 

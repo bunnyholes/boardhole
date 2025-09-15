@@ -17,6 +17,8 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import bunny.boardhole.shared.util.MessageUtils;
+
 @Slf4j
 @Component
 @ConditionalOnProperty(name = "boardhole.logging.enabled", havingValue = "true", matchIfMissing = true)
@@ -41,7 +43,7 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
             try {
                 log.info(logFormatter.formatRequestStart(request.getMethod(), request.getRequestURI(), request.getRemoteAddr()));
             } catch (Throwable formatEx) {
-                log.warn("Request log formatting failed (start): {} {} - {}", request.getMethod(), request.getRequestURI(), formatEx.toString());
+                log.warn(MessageUtils.get("log.request.format.failed.start", request.getMethod(), request.getRequestURI(), formatEx.toString()));
             }
             filterChain.doFilter(request, response);
         } finally {
@@ -49,8 +51,7 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
             try {
                 log.info(logFormatter.formatRequestEnd(request.getMethod(), request.getRequestURI(), response.getStatus(), tookMs));
             } catch (Throwable formatEx) {
-                log.warn("Request log formatting failed (end): {} {} [{}] - {}", request.getMethod(), request.getRequestURI(), response.getStatus(),
-                        formatEx.toString());
+                log.warn(MessageUtils.get("log.request.format.failed.end", request.getMethod(), request.getRequestURI(), response.getStatus(), formatEx.toString()));
             }
             MDCUtil.clearRequest();
         }

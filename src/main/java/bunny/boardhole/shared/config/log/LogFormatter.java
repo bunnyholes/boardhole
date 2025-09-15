@@ -8,9 +8,9 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.MessageSource;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Component;
+
+import bunny.boardhole.shared.util.MessageUtils;
 
 @Slf4j
 @Component
@@ -18,11 +18,9 @@ import org.springframework.stereotype.Component;
 class LogFormatter {
 
     private static final Set<String> SENSITIVE_FIELD_NAMES = Set.of(LogConstants.SENSITIVE_FIELDS);
-    private final MessageSource messageSource;
     private final LoggingProperties loggingProperties;
 
-    public LogFormatter(MessageSource messageSource, LoggingProperties loggingProperties) {
-        this.messageSource = messageSource;
+    public LogFormatter(LoggingProperties loggingProperties) {
         this.loggingProperties = loggingProperties;
     }
 
@@ -83,8 +81,7 @@ class LogFormatter {
         Object[] safeArgs = (args == null) ? new Object[0] : args;
         String argsString = Arrays.stream(safeArgs).map(this::safeToString).collect(Collectors.joining(", "));
 
-        return messageSource.getMessage("log.method.start", new Object[]{layerColor + layerIcon + signature + LogConstants.RESET, argsString},
-                LocaleContextHolder.getLocale());
+        return MessageUtils.get("log.method.start", layerColor + layerIcon + signature + LogConstants.RESET, argsString);
     }
 
     String formatMethodEnd(String signature, long tookMs) {
@@ -93,26 +90,22 @@ class LogFormatter {
         String perfColor = getPerformanceColor(tookMs);
         String perfIcon = getPerformanceIcon(tookMs);
 
-        return messageSource.getMessage("log.method.end",
-                new Object[]{layerColor + layerIcon + signature + LogConstants.RESET, perfColor + perfIcon + tookMs + LogConstants.RESET},
-                LocaleContextHolder.getLocale());
+        return MessageUtils.get("log.method.end", layerColor + layerIcon + signature + LogConstants.RESET, perfColor + perfIcon + tookMs + LogConstants.RESET);
     }
 
     String formatMethodError(String signature, long tookMs, String errorMessage) {
-        return messageSource.getMessage("log.method.error", new Object[]{LogConstants.RED + signature + LogConstants.RESET, tookMs, errorMessage},
-                LocaleContextHolder.getLocale());
+        return MessageUtils.get("log.method.error", LogConstants.RED + signature + LogConstants.RESET, tookMs, errorMessage);
     }
 
     String formatRequestStart(String method, String uri, String remoteAddr) {
-        return messageSource.getMessage("log.request.start", new Object[]{method, uri, remoteAddr}, LocaleContextHolder.getLocale());
+        return MessageUtils.get("log.request.start", method, uri, remoteAddr);
     }
 
     String formatRequestEnd(String method, String uri, int status, long tookMs) {
         String statusColor = getStatusColor(status);
         String perfIcon = getPerformanceIcon(tookMs);
 
-        return messageSource.getMessage("log.request.end", new Object[]{method, uri, statusColor + status + LogConstants.RESET, perfIcon + tookMs},
-                LocaleContextHolder.getLocale());
+        return MessageUtils.get("log.request.end", method, uri, statusColor + status + LogConstants.RESET, perfIcon + tookMs);
     }
 
     // 성능 기반 색상 (설정 값 활용)
@@ -207,17 +200,17 @@ class LogFormatter {
     private String getSensitiveFieldMask(String fieldName) {
         String lowerName = fieldName.toLowerCase();
         if (lowerName.contains("password") || lowerName.contains("pwd"))
-            return messageSource.getMessage("mask.password", null, LocaleContextHolder.getLocale());
+            return MessageUtils.get("mask.password");
         else if (lowerName.contains("token"))
-            return messageSource.getMessage("mask.token", null, LocaleContextHolder.getLocale());
+            return MessageUtils.get("mask.token");
         else if (lowerName.contains("secret"))
-            return messageSource.getMessage("mask.secret", null, LocaleContextHolder.getLocale());
+            return MessageUtils.get("mask.secret");
         else if (lowerName.contains("credential"))
-            return messageSource.getMessage("mask.credential", null, LocaleContextHolder.getLocale());
+            return MessageUtils.get("mask.credential");
         else if (lowerName.contains("key"))
-            return messageSource.getMessage("mask.key", null, LocaleContextHolder.getLocale());
+            return MessageUtils.get("mask.key");
         else
-            return messageSource.getMessage("mask.sensitive", null, LocaleContextHolder.getLocale());
+            return MessageUtils.get("mask.sensitive");
     }
 
 }

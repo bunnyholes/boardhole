@@ -85,6 +85,8 @@ public class SecurityConfig {
                         .requestMatchers("/login.html", "/signup.html", "/welcome.html", "/my-page.html").permitAll() // 현재는 실제 배포 전까지는 항상 유지
                         // Swagger UI - explicitly permit
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**").permitAll()
+                        // Actuator - expose health/info only
+                        .requestMatchers("/actuator/health", "/actuator/info").permitAll()
                         // Error page
                         .requestMatchers("/error").permitAll()
                         // Public API endpoints - explicit permit only

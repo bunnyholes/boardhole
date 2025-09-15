@@ -8,8 +8,12 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.OptimisticLockException;
 import jakarta.persistence.PessimisticLockException;
+import jakarta.persistence.metamodel.Attribute;
+import jakarta.persistence.metamodel.EntityType;
+import jakarta.persistence.metamodel.SingularAttribute;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 
@@ -19,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
@@ -52,6 +57,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 public class GlobalExceptionHandler {
 
     private final ProblemProperties problemProperties;
+    private final EntityManager entityManager;
 
     private static void addCommon(ProblemDetail pd, @Nullable HttpServletRequest request) {
         // Optional을 사용한 null 체크 제거
@@ -176,15 +182,72 @@ public class GlobalExceptionHandler {
         return pd;
     }
 
-    @ExceptionHandler({ConstraintViolationException.class, IllegalArgumentException.class})
+    @ExceptionHandler(ConstraintViolationException.class)
     @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
-    public ProblemDetail handleBadRequest(Exception ex, HttpServletRequest request) {
+    public ProblemDetail handleBadRequest(ConstraintViolationException ex, HttpServletRequest request) {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_ENTITY, ex.getMessage());
         pd.setTitle(MessageUtils.get("exception.title.validation-failed"));
         pd.setProperty("code", ErrorCode.VALIDATION_ERROR.getCode());
         pd.setType(buildType("validation-error"));
         addCommon(pd, request);
         return pd;
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ProblemDetail handleIllegalArgument(IllegalArgumentException ex, HttpServletRequest request) {
+        // 정렬 방향값 오류(asc/desc 이외) 등을 400으로 분류
+        if (isSortDirectionError(ex, request)) {
+            ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST,
+                    MessageUtils.get("error.invalid-sort-direction", extractDirectionFromSort(request)));
+            pd.setTitle(MessageUtils.get("exception.title.bad-request"));
+            pd.setProperty("code", ErrorCode.BAD_REQUEST.getCode());
+            String[] sortParams = Optional.ofNullable(request.getParameterValues("sort")).orElse(new String[]{});
+            if (sortParams.length > 0)
+                pd.setProperty("sort", sortParams);
+            pd.setType(buildType("invalid-sort"));
+            addCommon(pd, request);
+            return pd;
+        }
+
+        // 그 외 IllegalArgumentException은 기존 정책(422) 유지
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_ENTITY, ex.getMessage());
+        pd.setTitle(MessageUtils.get("exception.title.validation-failed"));
+        pd.setProperty("code", ErrorCode.VALIDATION_ERROR.getCode());
+        pd.setType(buildType("validation-error"));
+        addCommon(pd, request);
+        return pd;
+    }
+
+    private static boolean isSortDirectionError(IllegalArgumentException ex, HttpServletRequest request) {
+        if (request == null)
+            return false;
+        String[] sortParams = request.getParameterValues("sort");
+        if (sortParams == null || sortParams.length == 0)
+            return false;
+        String msg = Optional.ofNullable(ex.getMessage()).orElse("").toLowerCase();
+        // 방향값 오류로 흔히 보이는 키워드 검사
+        if (msg.contains("direction") || msg.contains("order") || msg.contains("sort"))
+            return true;
+        // 메시지에 의존하지 않도록 파라미터 패턴도 간단 점검: property,dir 형태인데 dir이 asc/desc가 아닐 때
+        for (String s : sortParams) {
+            String[] parts = s.split(",");
+            if (parts.length >= 2) {
+                String dir = parts[1].trim().toLowerCase();
+                if (!dir.isEmpty() && !dir.equals("asc") && !dir.equals("desc"))
+                    return true;
+            }
+        }
+        return false;
+    }
+
+    private static String extractDirectionFromSort(HttpServletRequest request) {
+        String[] sortParams = Optional.ofNullable(request.getParameterValues("sort")).orElse(new String[]{});
+        for (String s : sortParams) {
+            String[] parts = s.split(",");
+            if (parts.length >= 2)
+                return parts[1].trim();
+        }
+        return "";
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
@@ -195,6 +258,50 @@ public class GlobalExceptionHandler {
         pd.setType(buildType("invalid-json"));
         addCommon(pd, request);
         return pd;
+    }
+
+    @ExceptionHandler(PropertyReferenceException.class)
+    public ProblemDetail handleInvalidSort(PropertyReferenceException ex, HttpServletRequest request) {
+        String invalidField = ex.getPropertyName();
+        Class<?> domainType = Optional.ofNullable(ex.getType())
+                                      .map(org.springframework.data.util.TypeInformation::getType)
+                                      .orElse(null);
+
+        List<String> allowedFields = domainType != null ? getSortableAttributes(domainType) : List.of();
+
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST,
+                MessageUtils.get("error.invalid-sort-field", invalidField));
+        pd.setTitle(MessageUtils.get("exception.title.bad-request"));
+        pd.setProperty("code", ErrorCode.BAD_REQUEST.getCode());
+        pd.setProperty("invalidField", invalidField);
+        if (domainType != null)
+            pd.setProperty("entity", domainType.getSimpleName());
+        if (!allowedFields.isEmpty())
+            pd.setProperty("allowedFields", allowedFields);
+        String[] sortParams = Optional.ofNullable(request.getParameterValues("sort")).orElse(new String[]{});
+        if (sortParams.length > 0)
+            pd.setProperty("sort", sortParams);
+        pd.setType(buildType("invalid-sort"));
+        addCommon(pd, request);
+        return pd;
+    }
+
+    private List<String> getSortableAttributes(Class<?> entityClass) {
+        try {
+            EntityType<?> type = entityManager.getMetamodel().entity(entityClass);
+            return type.getSingularAttributes()
+                       .stream()
+                       .filter(attr -> isBasicOrId(attr))
+                       .map(Attribute::getName)
+                       .sorted()
+                       .collect(Collectors.toList());
+        } catch (IllegalArgumentException e) {
+            return List.of();
+        }
+    }
+
+    private static boolean isBasicOrId(SingularAttribute<?, ?> attr) {
+        return attr.isId() || attr.getPersistentAttributeType() == Attribute.PersistentAttributeType.BASIC;
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)

@@ -225,13 +225,34 @@ class BoardE2ETest extends E2ETestBase {
 
         @Test
         @DisplayName("조회수 증가")
-        void view_count_increments() throws InterruptedException {
+        void view_count_increments() {
             String uid = UUID.randomUUID().toString().substring(0, 8);
             UUID id = UUID.fromString(BoardSteps.create(regular, "V " + uid, "VC").jsonPath().getString("id"));
-            int v1 = given().when().get("boards/" + id.toString()).then().statusCode(200).extract().jsonPath().getInt("viewCount");
-            Thread.sleep(100);
-            int v2 = given().when().get("boards/" + id.toString()).then().statusCode(200).extract().jsonPath().getInt("viewCount");
-            org.assertj.core.api.Assertions.assertThat(v2).isGreaterThanOrEqualTo(v1);
+
+            int v1 = given()
+                    .when()
+                    .get("boards/" + id)
+                    .then()
+                    .statusCode(200)
+                    .extract()
+                    .jsonPath()
+                    .getInt("viewCount");
+
+            // 비동기 증가를 안정적으로 검증: 일정 시간 동안 증가 조건을 대기
+            org.awaitility.Awaitility.await()
+                    .atMost(java.time.Duration.ofSeconds(3))
+                    .pollInterval(java.time.Duration.ofMillis(100))
+                    .untilAsserted(() -> {
+                        int current = given()
+                                .when()
+                                .get("boards/" + id)
+                                .then()
+                                .statusCode(200)
+                                .extract()
+                                .jsonPath()
+                                .getInt("viewCount");
+                        org.assertj.core.api.Assertions.assertThat(current).isGreaterThanOrEqualTo(v1);
+                    });
         }
 
         @Test
@@ -526,10 +547,22 @@ class BoardE2ETest extends E2ETestBase {
         }
 
         @Test
-        @DisplayName("정렬 옵션 잘못된 필드 → 500 (PropertyReferenceException)")
+        @DisplayName("정렬 옵션 잘못된 필드 → 400 (PropertyReferenceException)")
         void invalid_sort_field() {
             // Spring Data JPA throws PropertyReferenceException for invalid sort fields
-            given().when().get("boards?sort=nonexistentField,asc").then().statusCode(500);
+            given().when().get("boards?sort=nonexistentField,asc").then().statusCode(400);
+        }
+
+        @Test
+        @DisplayName("정렬 옵션 잘못된 방향 → 400")
+        void invalid_sort_direction() {
+            given()
+                    .when()
+                    .get("boards?sort=createdAt,wrongdir")
+                    .then()
+                    .statusCode(400)
+                    .body("type", equalTo("urn:problem-type:invalid-sort"))
+                    .body("code", equalTo("BAD_REQUEST"));
         }
     }
 }

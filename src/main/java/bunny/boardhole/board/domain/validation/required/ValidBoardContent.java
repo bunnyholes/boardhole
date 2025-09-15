@@ -22,7 +22,7 @@ import bunny.boardhole.board.domain.validation.BoardValidationConstants;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @NotBlank(message = "{validation.board.content.required}")
-@Size(max = BoardValidationConstants.BOARD_CONTENT_MAX_LENGTH, message = "{validation.board.content.size}")
+@Size(max = BoardValidationConstants.BOARD_CONTENT_MAX_LENGTH, message = "{validation.board.content.too-long}")
 @Constraint(validatedBy = {})
 public @interface ValidBoardContent {
     String message() default "{validation.board.content.invalid}";

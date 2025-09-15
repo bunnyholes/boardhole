@@ -6,14 +6,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.context.MessageSource;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import bunny.boardhole.board.domain.Board;
 import bunny.boardhole.board.infrastructure.BoardRepository;
 import bunny.boardhole.shared.properties.DefaultUsersProperties;
+import bunny.boardhole.shared.util.MessageUtils;
 import bunny.boardhole.user.domain.Role;
 import bunny.boardhole.user.domain.User;
 import bunny.boardhole.user.infrastructure.UserRepository;
@@ -29,8 +28,7 @@ public class DataInitializer implements CommandLineRunner {
      * - This initializer is intentionally enabled in every environment and will ensure
      *   that the following default users exist (idempotently):
      *     1) Admin (ROLE_ADMIN)
-     *     2) Regular (ROLE_USER)
-     *     3) Anon convenience user (ROLE_USER)
+     *     2) Anon convenience user (ROLE_USER)
      * - The responsibility to rotate or change the default passwords belongs to the
      *   operator/consumer of this software. Default credentials are provided via
      *   configuration (see application*.yml) and SHOULD be overridden per environment.
@@ -45,7 +43,6 @@ public class DataInitializer implements CommandLineRunner {
     private final UserRepository userRepository;
     private final BoardRepository boardRepository;
     private final PasswordEncoder passwordEncoder;
-    private final MessageSource messageSource;
     private final DefaultUsersProperties defaultUsersProperties;
 
     @Override
@@ -53,12 +50,11 @@ public class DataInitializer implements CommandLineRunner {
         // NOTE: Runs in ALL environments (including production) by design.
         // 기본 관리자/사용자 계정과 환영 게시글을 삽입합니다 (멱등 보장).
         // 비밀번호 변경/회전 책임은 운영자/소비자에게 있습니다.
-        log.info(messageSource.getMessage("log.user.init.start", null, LocaleContextHolder.getLocale()));
+        log.info(MessageUtils.get("log.user.init.start"));
 
         DefaultUsersProperties.UserInfo adminInfo = defaultUsersProperties.admin();
-        DefaultUsersProperties.UserInfo regularInfo = defaultUsersProperties.regular();
 
-        // 관리자 계정 확인 및 생성
+        // 관리자 계정 확인 및 생성/보정
         if (!userRepository.existsByUsername(adminInfo.username())) {
             User admin = User.builder()
                              .username(adminInfo.username())
@@ -69,29 +65,14 @@ public class DataInitializer implements CommandLineRunner {
                              .build();
             admin.verifyEmail(); // 기본 사용자는 이메일 인증 완료 상태로 생성
             userRepository.save(admin);
-            log.info(messageSource.getMessage("log.user.admin.created", new Object[]{adminInfo.username()}, LocaleContextHolder.getLocale()));
+            log.info(MessageUtils.get("log.user.admin.created", adminInfo.username()));
         } else
-            log.info(messageSource.getMessage("log.user.admin.exists", new Object[]{adminInfo.username()}, LocaleContextHolder.getLocale()));
-
-        // 일반 사용자 계정 확인 및 생성
-        if (!userRepository.existsByUsername(regularInfo.username())) {
-            User regularUser = User.builder()
-                                   .username(regularInfo.username())
-                                   .password(passwordEncoder.encode(regularInfo.password()))
-                                   .name(regularInfo.name())
-                                   .email(regularInfo.email())
-                                   .roles(Set.of(Role.USER))
-                                   .build();
-            regularUser.verifyEmail(); // 기본 사용자는 이메일 인증 완료 상태로 생성
-            userRepository.save(regularUser);
-            log.info(messageSource.getMessage("log.user.regular.created", new Object[]{regularInfo.username()}, LocaleContextHolder.getLocale()));
-        } else
-            log.info(messageSource.getMessage("log.user.regular.exists", new Object[]{regularInfo.username()}, LocaleContextHolder.getLocale()));
+            log.info(MessageUtils.get("log.user.admin.exists", adminInfo.username()));
 
         // 기본 환영 게시글 생성
         if (boardRepository.count() == 0) {
             createWelcomeBoard();
-            log.info(messageSource.getMessage("log.board.welcome.created", null, LocaleContextHolder.getLocale()));
+            log.info(MessageUtils.get("log.board.welcome.created"));
         }
 
         // Ensure anonymous default user exists for E2E tests
@@ -104,8 +85,8 @@ public class DataInitializer implements CommandLineRunner {
                 .findByUsername(adminUsername)
                 .orElseThrow(() -> new IllegalStateException("Admin user not found: " + adminUsername));
 
-        String title = messageSource.getMessage("data.welcome.board.title", null, LocaleContextHolder.getLocale());
-        String content = messageSource.getMessage("data.welcome.board.content", null, LocaleContextHolder.getLocale());
+        String title = MessageUtils.get("data.welcome.board.title");
+        String content = MessageUtils.get("data.welcome.board.content");
 
         Board welcomeBoard = Board.builder().title(title).content(content).author(admin).build();
         boardRepository.save(welcomeBoard);

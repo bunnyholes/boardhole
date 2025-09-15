@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import jakarta.persistence.EntityManager;
 import jakarta.servlet.http.HttpServletRequest;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -48,11 +49,14 @@ class GlobalExceptionHandlerTest {
     @Mock
     private HttpServletRequest request;
 
+    @Mock
+    private EntityManager entityManager;
+
     @BeforeEach
     void setUp() {
         // Create handler with test ProblemProperties
         ProblemProperties problemProperties = new ProblemProperties("");
-        handler = new GlobalExceptionHandler(problemProperties);
+        handler = new GlobalExceptionHandler(problemProperties, entityManager);
 
         LocaleContextHolder.setLocale(Locale.KOREAN);
         MDC.put(RequestLoggingFilter.TRACE_ID, TRACE_ID);
@@ -243,7 +247,7 @@ class GlobalExceptionHandlerTest {
         IllegalArgumentException ex = new IllegalArgumentException(errorMessage);
 
         // When
-        ProblemDetail result = handler.handleBadRequest(ex, request);
+        ProblemDetail result = handler.handleIllegalArgument(ex, request);
 
         // Then
         assertThat(result.getStatus()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY.value());
@@ -302,7 +306,7 @@ class GlobalExceptionHandlerTest {
         // Given
         setupRequestMock();
         ProblemProperties problemProperties = new ProblemProperties("https://api.boardhole.com/problems");
-        GlobalExceptionHandler handlerWithBaseUri = new GlobalExceptionHandler(problemProperties);
+        GlobalExceptionHandler handlerWithBaseUri = new GlobalExceptionHandler(problemProperties, entityManager);
         final String errorMessage = "테스트 오류";
         ResourceNotFoundException ex = new ResourceNotFoundException(errorMessage);
 
@@ -319,7 +323,7 @@ class GlobalExceptionHandlerTest {
         // Given
         setupRequestMock();
         ProblemProperties problemProperties = new ProblemProperties("https://api.boardhole.com/problems/");
-        GlobalExceptionHandler handlerWithBaseUri = new GlobalExceptionHandler(problemProperties);
+        GlobalExceptionHandler handlerWithBaseUri = new GlobalExceptionHandler(problemProperties, entityManager);
         final String errorMessage = "테스트 오류";
         ResourceNotFoundException ex = new ResourceNotFoundException(errorMessage);
 

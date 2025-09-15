@@ -20,7 +20,7 @@ import bunny.boardhole.board.domain.validation.BoardValidationConstants;
 @Target({ElementType.FIELD, ElementType.PARAMETER, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-@Size(max = BoardValidationConstants.BOARD_CONTENT_MAX_LENGTH, message = "{validation.board.content.size}")
+@Size(max = BoardValidationConstants.BOARD_CONTENT_MAX_LENGTH, message = "{validation.board.content.too-long}")
 @Constraint(validatedBy = {})
 public @interface OptionalBoardContent {
     String message() default "{validation.board.content.invalid}";

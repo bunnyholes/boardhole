@@ -113,15 +113,8 @@ src/main/java/bunny/boardhole/
 ## 🧪 테스트 실행
 
 ```bash
-# 전체 테스트
+# 모든 테스트
 ./gradlew test
-
-# 단위 테스트만
-./gradlew test --tests "*Test"
-
-# E2E 테스트
-./gradlew e2eTest
-
 ```
 
 ## 🔧 유용한 명령어
@@ -140,19 +133,7 @@ MIT License
 
 ## 📚 개발 가이드
 
-### 상세한 테스트 명령어
-
-```bash
-# 특정 패키지 테스트
-./gradlew test --tests "bunny.boardhole.board.*"
-
-# 특정 테스트 클래스 실행
-./gradlew test --tests BoardControllerTest
-
-# 모든 테스트 스위트 실행
-./gradlew test
-
-```
+테스트 실행은 단일 명령(`./gradlew test`)만 안내합니다. 복잡한 분리/필터링은 현재 단계에서는 문서화하지 않습니다.
 
 ### 아키텍처 구조
 

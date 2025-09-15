@@ -6,6 +6,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.aop.aspectj.annotation.AspectJProxyFactory;
 import org.springframework.context.support.ResourceBundleMessageSource;
 
+import bunny.boardhole.shared.util.MessageUtils;
+
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
@@ -23,9 +25,12 @@ class LoggingAspectTest {
         ResourceBundleMessageSource ms = new ResourceBundleMessageSource();
         ms.setBasename("messages");
         ms.setDefaultEncoding("UTF-8");
+        ms.setUseCodeAsDefaultMessage(true);
+        MessageUtils.setMessageSource(ms);
+        
         LoggingProperties properties = new LoggingProperties();
-        LogFormatter formatter = new LogFormatter(ms, properties);
-        loggingAspect = new LoggingAspect(ms, formatter);
+        LogFormatter formatter = new LogFormatter(properties);
+        loggingAspect = new LoggingAspect(formatter);
     }
 
     @Test

@@ -8,10 +8,11 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.MessageSource;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+
+import bunny.boardhole.shared.util.MessageUtils;
 
 @Slf4j
 @Aspect
@@ -21,7 +22,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class LoggingAspect {
 
-    private final MessageSource messageSource;
     private final LogFormatter logFormatter;
 
     /**
@@ -79,7 +79,7 @@ public class LoggingAspect {
             try {
                 log.debug(logFormatter.formatMethodStart(signature, pjp.getArgs()));
             } catch (Throwable formatEx) {
-                log.warn("Log formatting failed for {}: {}", signature, formatEx.toString());
+                log.warn(MessageUtils.get("log.method.format.failed", signature, formatEx.toString()));
             }
 
         try {
@@ -88,8 +88,7 @@ public class LoggingAspect {
 
             // 성능 경고는 임계값 초과 시에만 (불필요한 로깅 감소)
             if (logFormatter.shouldWarnPerformance(tookMs))
-                log.warn(messageSource.getMessage("log.performance.warning", new Object[]{signature, tookMs},
-                        org.springframework.context.i18n.LocaleContextHolder.getLocale()));
+                log.warn(MessageUtils.get("log.performance.warning", signature, tookMs));
 
             // 메서드 종료 로깅은 DEBUG 레벨에서만 (로깅 포맷 오류가 있어도 비즈니스 흐름에 영향 주지 않도록 보호)
             // 10ms 이상인 경우만 로깅
@@ -97,7 +96,7 @@ public class LoggingAspect {
                 try {
                     log.debug(logFormatter.formatMethodEnd(signature, tookMs));
                 } catch (Throwable formatEx) {
-                    log.warn("Log formatting failed for {}: {}", signature, formatEx.toString());
+                    log.warn(MessageUtils.get("log.method.format.failed", signature, formatEx.toString()));
                 }
             return result;
         } catch (Throwable ex) {
@@ -107,7 +106,7 @@ public class LoggingAspect {
             try {
                 log.error(logFormatter.formatMethodError(signature, tookMs, ex.getMessage()));
             } catch (Throwable formatEx) {
-                log.error("Log formatting failed for {}: {} (original error: {})", signature, formatEx, ex.toString());
+                log.error(MessageUtils.get("log.method.format.failed.with.error", signature, formatEx, ex.toString()));
             }
             throw ex;
         } finally {
