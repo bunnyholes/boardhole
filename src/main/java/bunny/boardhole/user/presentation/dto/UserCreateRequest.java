@@ -1,5 +1,6 @@
 package bunny.boardhole.user.presentation.dto;
 
+import bunny.boardhole.user.domain.validation.UserValidationConstants;
 import bunny.boardhole.user.domain.validation.required.ValidEmail;
 import bunny.boardhole.user.domain.validation.required.ValidName;
 import bunny.boardhole.user.domain.validation.required.ValidPassword;
@@ -9,11 +10,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(name = "UserCreateRequest", description = "사용자 생성 요청")
 public record UserCreateRequest(
-        @ValidUsername @Schema(description = "사용자명 (3-20자, 영문/숫자)", example = "user01", minLength = 3, maxLength = 20, requiredMode = Schema.RequiredMode.REQUIRED) String username,
+        @ValidUsername @Schema(description = "사용자명 (3-20자, 영문/숫자)", example = "user01", minLength = UserValidationConstants.USER_USERNAME_MIN_LENGTH, maxLength = UserValidationConstants.USER_USERNAME_MAX_LENGTH, requiredMode = Schema.RequiredMode.REQUIRED) String username,
 
-        @ValidPassword @Schema(description = "비밀번호 (8-100자)", example = "User1234!", minLength = 8, maxLength = 100, requiredMode = Schema.RequiredMode.REQUIRED) String password,
+        @ValidPassword @Schema(description = "비밀번호 (8-100자)", example = "User1234!", minLength = UserValidationConstants.USER_PASSWORD_MIN_LENGTH, maxLength = UserValidationConstants.USER_PASSWORD_MAX_LENGTH, requiredMode = Schema.RequiredMode.REQUIRED) String password,
 
-        @ValidName @Schema(description = "이름 (1-50자)", example = "홍길동", minLength = 1, maxLength = 50, requiredMode = Schema.RequiredMode.REQUIRED) String name,
+        @ValidName @Schema(description = "이름 (1-50자)", example = "홍길동", minLength = UserValidationConstants.USER_NAME_MIN_LENGTH, maxLength = UserValidationConstants.USER_NAME_MAX_LENGTH, requiredMode = Schema.RequiredMode.REQUIRED) String name,
 
         @ValidEmail @Schema(description = "이메일 주소", example = "user@example.com", requiredMode = Schema.RequiredMode.REQUIRED) String email) {
 }

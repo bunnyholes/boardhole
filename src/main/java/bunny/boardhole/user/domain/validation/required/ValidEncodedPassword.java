@@ -11,6 +11,8 @@ import jakarta.validation.Payload;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 
+import bunny.boardhole.user.domain.validation.UserValidationConstants;
+
 /**
  * 인코딩된 비밀번호 검증 애너테이션
  * BCrypt로 인코딩된 비밀번호 형식을 검증
@@ -21,7 +23,7 @@ import jakarta.validation.constraints.Pattern;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @NotBlank(message = "{validation.user.password.required}")
-@Pattern(regexp = "^\\$2[aby]\\$\\d{2}\\$[./A-Za-z0-9]{53}$", message = "{validation.user.password.encoded}")
+@Pattern(regexp = UserValidationConstants.ENCODED_PASSWORD_BCRYPT_PATTERN, message = "{validation.user.password.encoded}")
 @Constraint(validatedBy = {})
 public @interface ValidEncodedPassword {
     String message() default "{validation.user.password.invalid.encoded}";

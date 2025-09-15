@@ -36,6 +36,7 @@ import org.springframework.lang.Nullable;
 
 import bunny.boardhole.shared.domain.BaseEntity;
 import bunny.boardhole.shared.domain.listener.ValidationListener;
+import bunny.boardhole.user.domain.validation.UserValidationConstants;
 import bunny.boardhole.user.domain.validation.required.ValidEmail;
 import bunny.boardhole.user.domain.validation.required.ValidEncodedPassword;
 import bunny.boardhole.user.domain.validation.required.ValidName;
@@ -59,19 +60,19 @@ public class User extends BaseEntity implements Serializable {
     private UUID id;
 
     @ValidUsername
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true, length = UserValidationConstants.USER_USERNAME_MAX_LENGTH)
     private String username;
 
     @ValidEncodedPassword
-    @Column(nullable = false)
+    @Column(nullable = false, length = UserValidationConstants.PASSWORD_ENCODED_BCRYPT_LENGTH)
     private String password;
 
     @ValidName
-    @Column(nullable = false)
+    @Column(nullable = false, length = UserValidationConstants.USER_NAME_MAX_LENGTH)
     private String name;
 
     @ValidEmail
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true, length = UserValidationConstants.USER_EMAIL_MAX_LENGTH)
     private String email;
 
     @Column

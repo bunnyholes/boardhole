@@ -26,6 +26,7 @@ import lombok.ToString;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.SoftDelete;
 
+import bunny.boardhole.board.domain.validation.BoardValidationConstants;
 import bunny.boardhole.board.domain.validation.required.ValidBoardContent;
 import bunny.boardhole.board.domain.validation.required.ValidBoardTitle;
 import bunny.boardhole.shared.domain.BaseEntity;
@@ -51,11 +52,11 @@ public class Board extends BaseEntity implements Serializable {
     private UUID id;
 
     @ValidBoardTitle
-    @Column(nullable = false)
+    @Column(nullable = false, length = BoardValidationConstants.BOARD_TITLE_MAX_LENGTH)
     private String title;
 
     @ValidBoardContent
-    @Column(nullable = false)
+    @Column(nullable = false, length = BoardValidationConstants.BOARD_CONTENT_MAX_LENGTH)
     private String content;
 
     @NotNull(message = "{validation.board.author.required}")

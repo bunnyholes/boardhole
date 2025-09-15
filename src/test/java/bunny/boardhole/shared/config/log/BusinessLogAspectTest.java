@@ -48,12 +48,12 @@ class BusinessLogAspectTest {
 
     @BeforeEach
     void setUp() {
-        // Setup MessageUtils for static access
+        // Setup MessageUtils using setter (no reflection)
         ResourceBundleMessageSource ms = new ResourceBundleMessageSource();
         ms.setBasename("messages");
         ms.setDefaultEncoding("UTF-8");
         ms.setUseCodeAsDefaultMessage(true);
-        ReflectionTestUtils.setField(MessageUtils.class, "messageSource", ms);
+        MessageUtils.setMessageSource(ms);
 
         BusinessLogAspect aspect = new BusinessLogAspect();
 

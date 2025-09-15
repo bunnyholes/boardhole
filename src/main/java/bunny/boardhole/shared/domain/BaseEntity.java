@@ -15,6 +15,8 @@ import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import bunny.boardhole.shared.domain.schema.SchemaConstants;
+
 @Getter
 @MappedSuperclass
 @EntityListeners(AuditingEntityListener.class)
@@ -26,7 +28,7 @@ public abstract class BaseEntity {
     private LocalDateTime createdAt;
 
     @CreatedBy
-    @Column(name = "created_by", updatable = false, length = 100)
+    @Column(name = "created_by", updatable = false, length = SchemaConstants.AUDIT_ACTOR_MAX_LENGTH)
     private String createdBy;
 
     @LastModifiedDate
@@ -34,7 +36,7 @@ public abstract class BaseEntity {
     private LocalDateTime updatedAt;
 
     @LastModifiedBy
-    @Column(name = "updated_by", length = 100)
+    @Column(name = "updated_by", length = SchemaConstants.AUDIT_ACTOR_MAX_LENGTH)
     private String updatedBy;
 
 }

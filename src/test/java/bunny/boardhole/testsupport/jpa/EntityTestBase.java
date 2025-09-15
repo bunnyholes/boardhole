@@ -13,7 +13,6 @@ import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import bunny.boardhole.shared.util.MessageUtils;
 import bunny.boardhole.testsupport.container.ContainersConfig;
@@ -63,7 +62,7 @@ public abstract class EntityTestBase {
         ms.setBasename("messages");
         ms.setDefaultEncoding("UTF-8");
         ms.setUseCodeAsDefaultMessage(true);
-        ReflectionTestUtils.setField(MessageUtils.class, "messageSource", ms);
+        MessageUtils.setMessageSource(ms);
     }
 
     protected User createAndPersistUser() {

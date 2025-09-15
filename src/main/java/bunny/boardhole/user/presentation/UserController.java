@@ -1,9 +1,9 @@
 package bunny.boardhole.user.presentation;
 
+import java.util.UUID;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.UUID;
 
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
@@ -27,9 +27,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import bunny.boardhole.shared.constants.ApiPaths;
-import bunny.boardhole.shared.exception.ValidationException;
 import bunny.boardhole.shared.security.AppUserPrincipal;
-import bunny.boardhole.shared.util.MessageUtils;
 import bunny.boardhole.user.application.command.UserCommandService;
 import bunny.boardhole.user.application.query.UserQueryService;
 import bunny.boardhole.user.application.result.UserResult;
@@ -43,7 +41,6 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
@@ -115,10 +112,6 @@ public class UserController {
     @ApiResponse(responseCode = "401", description = "현재 패스워드 불일치")
     @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음")
     public void updatePassword(@Parameter(description = "사용자 ID") @PathVariable UUID id, @Validated @ModelAttribute PasswordUpdateRequest req) {
-        // 이중 방어: 프레젠테이션 레이어 자체 검증 (테스트/프록시 미적용 상황 대비)
-        if (!req.newPassword().equals(req.confirmPassword()))
-            throw new ValidationException(MessageUtils.get("error.user.password.confirm.mismatch"));
-
         var cmd = userWebMapper.toUpdatePasswordCommand(id, req);
         userCommandService.updatePassword(cmd);
     }

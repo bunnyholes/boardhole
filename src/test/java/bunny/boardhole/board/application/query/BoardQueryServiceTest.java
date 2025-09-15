@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -30,6 +31,7 @@ import bunny.boardhole.board.application.result.BoardResult;
 import bunny.boardhole.board.domain.Board;
 import bunny.boardhole.board.infrastructure.BoardRepository;
 import bunny.boardhole.shared.exception.ResourceNotFoundException;
+import bunny.boardhole.shared.test.FixedKoreanLocaleExtension;
 import bunny.boardhole.shared.util.MessageUtils;
 import bunny.boardhole.user.domain.User;
 
@@ -41,6 +43,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 @Tag("unit")
+@org.junit.jupiter.api.extension.ExtendWith(FixedKoreanLocaleExtension.class)
 class BoardQueryServiceTest {
 
     @Mock
@@ -69,12 +72,12 @@ class BoardQueryServiceTest {
         // Spring LocaleContextHolder를 한국어로 설정
         LocaleContextHolder.setLocale(Locale.KOREAN);
 
-        // MessageUtils 초기화
+        // MessageUtils 초기화 (setter 사용)
         ResourceBundleMessageSource ms = new ResourceBundleMessageSource();
         ms.setBasename("messages");
         ms.setDefaultEncoding("UTF-8");
         ms.setUseCodeAsDefaultMessage(true);
-        ReflectionTestUtils.setField(MessageUtils.class, "messageSource", ms);
+        MessageUtils.setMessageSource(ms);
 
         // 테스트 데이터 준비
         User author = User
@@ -83,7 +86,7 @@ class BoardQueryServiceTest {
                 .password("Password123!")
                 .name("Test User")
                 .email("test@example.com")
-                .roles(java.util.Set.of(bunny.boardhole.user.domain.Role.USER))
+                .roles(Set.of(bunny.boardhole.user.domain.Role.USER))
                 .build();
         ReflectionTestUtils.setField(author, "id", UUID.randomUUID());
 

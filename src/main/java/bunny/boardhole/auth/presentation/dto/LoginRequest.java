@@ -1,7 +1,6 @@
 package bunny.boardhole.auth.presentation.dto;
 
-import jakarta.validation.constraints.NotBlank;
-
+import bunny.boardhole.user.domain.validation.required.ValidPassword;
 import bunny.boardhole.user.domain.validation.required.ValidUsername;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -10,5 +9,5 @@ import io.swagger.v3.oas.annotations.media.Schema;
 public record LoginRequest(
         @ValidUsername @Schema(description = "사용자명", example = "admin", requiredMode = Schema.RequiredMode.REQUIRED) String username,
 
-        @NotBlank(message = "{validation.user.password.required}") @Schema(description = "비밀번호", example = "admin123", requiredMode = Schema.RequiredMode.REQUIRED) String password) {
+        @ValidPassword @Schema(description = "비밀번호", example = "P@ssw0rd1!", requiredMode = Schema.RequiredMode.REQUIRED) String password) {
 }

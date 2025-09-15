@@ -19,7 +19,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
-import bunny.boardhole.shared.exception.ValidationException;
 import bunny.boardhole.shared.security.AppUserPrincipal;
 import bunny.boardhole.user.application.command.UpdatePasswordCommand;
 import bunny.boardhole.user.application.command.UpdateUserCommand;
@@ -34,7 +33,6 @@ import bunny.boardhole.user.presentation.dto.UserUpdateRequest;
 import bunny.boardhole.user.presentation.mapper.UserWebMapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.BDDMockito.willDoNothing;
@@ -164,7 +162,7 @@ class UserControllerTest {
         @DisplayName("✅ 사용자 ID로 조회 성공")
         void shouldGetUserById() {
             // given
-            final UUID userId = UUID.randomUUID();
+            UUID userId = UUID.randomUUID();
             given(userQueryService.get(userId)).willReturn(testUserResult);
             given(userWebMapper.toResponse(testUserResult)).willReturn(
                     testUserResponse);
@@ -187,7 +185,7 @@ class UserControllerTest {
         @DisplayName("✅ 사용자 정보 수정 성공")
         void shouldUpdateUserSuccessfully() {
             // given
-            final UUID userId = UUID.randomUUID();
+            UUID userId = UUID.randomUUID();
             UserUpdateRequest request = new UserUpdateRequest("Updated Name");
             UpdateUserCommand command = new UpdateUserCommand(userId, "Updated Name");
             UserResult updatedResult = new UserResult(
@@ -222,7 +220,7 @@ class UserControllerTest {
         @DisplayName("✅ 사용자 삭제 성공")
         void shouldDeleteUserSuccessfully() {
             // given
-            final UUID userId = UUID.randomUUID();
+            UUID userId = UUID.randomUUID();
             willDoNothing().given(userCommandService).delete(userId);
 
             // when
@@ -241,7 +239,7 @@ class UserControllerTest {
         @DisplayName("✅ 패스워드 변경 성공")
         void shouldUpdatePasswordSuccessfully() {
             // given
-            final UUID userId = UUID.randomUUID();
+            UUID userId = UUID.randomUUID();
             PasswordUpdateRequest request = new PasswordUpdateRequest(
                     "currentPassword", "newPassword123!", "newPassword123!"
             );
@@ -260,17 +258,19 @@ class UserControllerTest {
 
         @Test
         @DisplayName("❌ 패스워드 확인 불일치 시 예외 발생")
-        void shouldThrowExceptionWhenPasswordConfirmationMismatch() {
+        void shouldFailBeanValidationWhenConfirmationMismatch() {
             // given
-            final UUID userId = UUID.randomUUID();
             PasswordUpdateRequest request = new PasswordUpdateRequest(
                     "currentPassword", "newPassword123!", "differentPassword"
             );
 
-            // when & then
-            assertThatThrownBy(() -> userController.updatePassword(userId, request))
-                    .isInstanceOf(ValidationException.class);
+            // when
+            var factory = jakarta.validation.Validation.buildDefaultValidatorFactory();
+            var validator = factory.getValidator();
+            var violations = validator.validate(request);
 
+            // then
+            assertThat(violations).isNotEmpty();
             then(userWebMapper).shouldHaveNoInteractions();
             then(userCommandService).shouldHaveNoInteractions();
         }

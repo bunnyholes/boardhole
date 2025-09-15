@@ -1,6 +1,9 @@
 package bunny.boardhole.auth.application.command;
 
+import java.util.Set;
 import java.util.UUID;
+
+import jakarta.validation.ConstraintViolationException;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -8,10 +11,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.springframework.context.support.ResourceBundleMessageSource;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Import;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
@@ -20,15 +22,21 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import bunny.boardhole.auth.application.AuthCommandService;
 import bunny.boardhole.auth.application.mapper.AuthMapper;
 import bunny.boardhole.auth.application.result.AuthResult;
 import bunny.boardhole.shared.exception.UnauthorizedException;
 import bunny.boardhole.shared.security.AppUserPrincipal;
+import bunny.boardhole.shared.test.MessageSourceTestConfig;
+import bunny.boardhole.shared.test.ValidationEnabledTestConfig;
 import bunny.boardhole.shared.util.MessageUtils;
 import bunny.boardhole.user.domain.Role;
 import bunny.boardhole.user.domain.User;
+import bunny.boardhole.user.domain.validation.UserValidationConstants;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -38,17 +46,20 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
+@ExtendWith(SpringExtension.class)
+@Import({SessionAuthCommandService.class, ValidationEnabledTestConfig.class, MessageSourceTestConfig.class})
 @Tag("unit")
 class SessionAuthCommandServiceTest {
+    private static final String VALID_USERNAME = "testuser"; // meets @ValidUsername (3-20 chars, not blank)
 
-    @Mock
+    @MockitoBean
     private AuthenticationManager authenticationManager;
 
-    @Mock
+    @MockitoBean
     private AuthMapper authMapper;
 
-    @InjectMocks
-    private SessionAuthCommandService service;
+    @Autowired
+    private AuthCommandService service;
 
     private User user;
     private AuthResult authResult;
@@ -56,19 +67,6 @@ class SessionAuthCommandServiceTest {
 
     @BeforeEach
     void setUp() {
-        try (var mocks = MockitoAnnotations.openMocks(this)) {
-            // Mocks will be cleaned up automatically
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to setup mocks", e);
-        }
-
-        // MessageUtils 초기화
-        ResourceBundleMessageSource ms = new ResourceBundleMessageSource();
-        ms.setBasename("messages");
-        ms.setDefaultEncoding("UTF-8");
-        ms.setUseCodeAsDefaultMessage(true);
-        ReflectionTestUtils.setField(MessageUtils.class, "messageSource", ms);
-
         // SecurityContext 초기화
         SecurityContextHolder.clearContext();
 
@@ -79,7 +77,7 @@ class SessionAuthCommandServiceTest {
                 .password("password")
                 .name("Test User")
                 .email("test@example.com")
-                .roles(java.util.Set.of(Role.USER))
+                .roles(Set.of(Role.USER))
                 .build();
         user.verifyEmail();
         ReflectionTestUtils.setField(user, "id", UUID.randomUUID());
@@ -98,12 +96,13 @@ class SessionAuthCommandServiceTest {
     @Nested
     @DisplayName("로그인 처리")
     class LoginTest {
+        private static final String VALID_PASSWORD = "P@ssw0rd1!"; // meets pattern
 
         @Test
         @DisplayName("유효한 자격증명으로 로그인 성공")
         void login_ValidCredentials_Success() {
             // Given
-            LoginCommand command = new LoginCommand("testuser", "password");
+            LoginCommand command = new LoginCommand(SessionAuthCommandServiceTest.VALID_USERNAME, VALID_PASSWORD);
             Authentication authRequest = new UsernamePasswordAuthenticationToken("testuser", "password");
             Authentication authentication = mock(Authentication.class);
 
@@ -134,7 +133,7 @@ class SessionAuthCommandServiceTest {
         @DisplayName("잘못된 자격증명으로 로그인 실패")
         void login_InvalidCredentials_ThrowsUnauthorizedException() {
             // Given
-            LoginCommand command = new LoginCommand("testuser", "wrongpassword");
+            LoginCommand command = new LoginCommand(SessionAuthCommandServiceTest.VALID_USERNAME, VALID_PASSWORD);
 
             given(authenticationManager.authenticate(any(Authentication.class))).willThrow(new BadCredentialsException("Invalid credentials"));
 
@@ -155,7 +154,7 @@ class SessionAuthCommandServiceTest {
         @DisplayName("계정이 잠긴 경우 로그인 실패")
         void login_AccountLocked_ThrowsAuthenticationException() {
             // Given
-            LoginCommand command = new LoginCommand("testuser", "password");
+            LoginCommand command = new LoginCommand(SessionAuthCommandServiceTest.VALID_USERNAME, VALID_PASSWORD);
 
             given(authenticationManager.authenticate(any(Authentication.class))).willThrow(new LockedException("Account is locked"));
 
@@ -170,7 +169,7 @@ class SessionAuthCommandServiceTest {
         @DisplayName("계정이 비활성화된 경우 로그인 실패")
         void login_AccountDisabled_ThrowsAuthenticationException() {
             // Given
-            LoginCommand command = new LoginCommand("testuser", "password");
+            LoginCommand command = new LoginCommand(SessionAuthCommandServiceTest.VALID_USERNAME, VALID_PASSWORD);
 
             given(authenticationManager.authenticate(any(Authentication.class))).willThrow(new DisabledException("Account is disabled"));
 
@@ -187,12 +186,11 @@ class SessionAuthCommandServiceTest {
             // Given
             LoginCommand command = new LoginCommand("", "password");
 
-            given(authenticationManager.authenticate(any(Authentication.class))).willThrow(new BadCredentialsException("Invalid credentials"));
+            // When & Then: 메서드 레벨 검증 실패 기대
+            assertThatThrownBy(() -> service.login(command)).isInstanceOf(ConstraintViolationException.class);
 
-            // When & Then
-            assertThatThrownBy(() -> service.login(command)).isInstanceOf(UnauthorizedException.class);
-
-            verify(authenticationManager).authenticate(any(Authentication.class));
+            // 검증 단계에서 차단되므로 authenticate 호출되지 않음
+            verify(authenticationManager, never()).authenticate(any(Authentication.class));
         }
 
         @Test
@@ -201,12 +199,62 @@ class SessionAuthCommandServiceTest {
             // Given
             LoginCommand command = new LoginCommand("testuser", "");
 
-            given(authenticationManager.authenticate(any(Authentication.class))).willThrow(new BadCredentialsException("Invalid credentials"));
+            // When & Then: 메서드 레벨 검증 실패 기대
+            assertThatThrownBy(() -> service.login(command)).isInstanceOf(ConstraintViolationException.class);
 
-            // When & Then
-            assertThatThrownBy(() -> service.login(command)).isInstanceOf(UnauthorizedException.class);
+            // 검증 단계에서 차단되므로 authenticate 호출되지 않음
+            verify(authenticationManager, never()).authenticate(any(Authentication.class));
+        }
 
-            verify(authenticationManager).authenticate(any(Authentication.class));
+        @Test
+        @DisplayName("패스워드가 규칙(대/소문자,숫자,특수) 미충족")
+        void login_InvalidPasswordPattern_ValidationFails() {
+            // Given: 소문자만
+            LoginCommand cmd1 = new LoginCommand(SessionAuthCommandServiceTest.VALID_USERNAME, "lowercaseonly");
+            // 숫자/특수만
+            LoginCommand cmd2 = new LoginCommand(SessionAuthCommandServiceTest.VALID_USERNAME, "12345678!");
+            // 대문자/소문자만
+            LoginCommand cmd3 = new LoginCommand(SessionAuthCommandServiceTest.VALID_USERNAME, "NoSpecial1");
+
+            // Then
+            assertThatThrownBy(() -> service.login(cmd1)).isInstanceOf(ConstraintViolationException.class);
+            assertThatThrownBy(() -> service.login(cmd2)).isInstanceOf(ConstraintViolationException.class);
+            assertThatThrownBy(() -> service.login(cmd3)).isInstanceOf(ConstraintViolationException.class);
+            verify(authenticationManager, never()).authenticate(any(Authentication.class));
+        }
+
+        @Test
+        @DisplayName("패스워드가 8자 미만")
+        void login_ShortPassword_ValidationFails() {
+            LoginCommand command = new LoginCommand(SessionAuthCommandServiceTest.VALID_USERNAME, "P@ss1!");
+            assertThatThrownBy(() -> service.login(command)).isInstanceOf(ConstraintViolationException.class);
+            verify(authenticationManager, never()).authenticate(any(Authentication.class));
+        }
+
+        @Test
+        @DisplayName("사용자명이 3자 미만")
+        void login_UsernameTooShort_ValidationFails() {
+            String shortUsername = "a".repeat(UserValidationConstants.USER_USERNAME_MIN_LENGTH - 1);
+            LoginCommand command = new LoginCommand(shortUsername, VALID_PASSWORD);
+            assertThatThrownBy(() -> service.login(command)).isInstanceOf(ConstraintViolationException.class);
+            verify(authenticationManager, never()).authenticate(any(Authentication.class));
+        }
+
+        @Test
+        @DisplayName("사용자명이 20자 초과")
+        void login_UsernameTooLong_ValidationFails() {
+            String longUsername = "a".repeat(UserValidationConstants.USER_USERNAME_MAX_LENGTH + 1);
+            LoginCommand command = new LoginCommand(longUsername, VALID_PASSWORD);
+            assertThatThrownBy(() -> service.login(command)).isInstanceOf(ConstraintViolationException.class);
+            verify(authenticationManager, never()).authenticate(any(Authentication.class));
+        }
+
+        @Test
+        @DisplayName("사용자명이 공백")
+        void login_UsernameBlank_ValidationFails() {
+            LoginCommand command = new LoginCommand("   ", VALID_PASSWORD);
+            assertThatThrownBy(() -> service.login(command)).isInstanceOf(ConstraintViolationException.class);
+            verify(authenticationManager, never()).authenticate(any(Authentication.class));
         }
     }
 
@@ -263,7 +311,7 @@ class SessionAuthCommandServiceTest {
         @DisplayName("로그인 성공 후 SecurityContext 상태 확인")
         void login_Success_SecurityContextProperlySet() {
             // Given
-            LoginCommand command = new LoginCommand("testuser", "password");
+            LoginCommand command = new LoginCommand(SessionAuthCommandServiceTest.VALID_USERNAME, LoginTest.VALID_PASSWORD);
             Authentication authentication = mock(Authentication.class);
 
             given(authenticationManager.authenticate(any(Authentication.class))).willReturn(authentication);
@@ -285,7 +333,7 @@ class SessionAuthCommandServiceTest {
         @DisplayName("로그인 실패 시 SecurityContext가 비어있음")
         void login_Failure_SecurityContextRemainsClear() {
             // Given
-            LoginCommand command = new LoginCommand("testuser", "wrongpassword");
+            LoginCommand command = new LoginCommand(SessionAuthCommandServiceTest.VALID_USERNAME, LoginTest.VALID_PASSWORD);
 
             given(authenticationManager.authenticate(any(Authentication.class))).willThrow(new BadCredentialsException("Invalid"));
 

@@ -1,5 +1,6 @@
 package bunny.boardhole.shared.util;
 
+import lombok.Setter;
 import lombok.experimental.UtilityClass;
 
 import org.springframework.context.MessageSource;
@@ -14,8 +15,9 @@ import org.springframework.context.support.ResourceBundleMessageSource;
 @UtilityClass
 public class MessageUtils {
 
-    // Suppress final warning: field must be mutable for test reflection access
+    // Suppress final warning: field must be mutable for test access
     @SuppressWarnings("FieldMayBeFinal")
+    @Setter
     private MessageSource messageSource = createDefaultMessageSource();
 
     private MessageSource createDefaultMessageSource() {

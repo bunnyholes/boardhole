@@ -14,7 +14,9 @@ public final class UserValidationConstants {
     public static final int USER_PASSWORD_MIN_LENGTH = 8;
     public static final int USER_PASSWORD_MAX_LENGTH = 100;
     public static final String PASSWORD_PATTERN = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$";
+    public static final String ENCODED_PASSWORD_BCRYPT_PATTERN = "^\\$2[aby]\\$\\d{2}\\$[./A-Za-z0-9]{53}$";
     public static final int USER_EMAIL_MAX_LENGTH = 255;
     public static final int USER_NAME_MIN_LENGTH = 1;
     public static final int USER_NAME_MAX_LENGTH = 50;
+    public static final int PASSWORD_ENCODED_BCRYPT_LENGTH = 60;
 }

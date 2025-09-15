@@ -1,10 +1,10 @@
 package bunny.boardhole.user.application.command;
 
+import java.util.Set;
 import java.util.UUID;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -60,7 +60,7 @@ public class UserCommandService {
                 .password(passwordEncoder.encode(cmd.password()))
                 .name(cmd.name())
                 .email(cmd.email())
-                .roles(java.util.Set.of(Role.USER))
+                .roles(Set.of(Role.USER))
                 .build();
         User saved = userRepository.save(user);
 

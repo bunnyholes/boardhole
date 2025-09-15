@@ -1,6 +1,7 @@
 package bunny.boardhole.board.application.command;
 
 import java.util.UUID;
+
 import jakarta.validation.constraints.NotNull;
 
 import bunny.boardhole.board.domain.validation.optional.OptionalBoardContent;

@@ -11,20 +11,23 @@ import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * 새 비밀번호와 확인 비밀번호 일치 검증
- * 대상 타입은 다음 두 개의 접근자 메서드를 가져야 합니다:
- * - String newPassword()
- * - String confirmPassword()
+ * 주어진 두 필드가 서로 다른지 검증합니다.
+ * 정확히 2개의 필드명을 제공하는 것을 권장합니다.
  */
-@Target({TYPE})
+@Target(TYPE)
 @Retention(RUNTIME)
 @Documented
-@Constraint(validatedBy = PasswordConfirmedValidator.class)
-public @interface PasswordConfirmed {
-    String message() default "{error.user.password.confirm.mismatch}";
+@Constraint(validatedBy = FieldsNotEqualValidator.class)
+public @interface FieldsNotEqual {
+    String message() default "{validation.fields.not_equal.mismatch}";
 
     Class<?>[] groups() default {};
 
     Class<? extends Payload>[] payload() default {};
+
+    /**
+     * 서로 달라야 하는 필드명 목록 (2개 권장)
+     */
+    String[] fields();
 }
 

@@ -26,6 +26,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import bunny.boardhole.shared.exception.ResourceNotFoundException;
+import bunny.boardhole.shared.test.FixedKoreanLocaleExtension;
 import bunny.boardhole.shared.util.MessageUtils;
 import bunny.boardhole.user.application.mapper.UserMapper;
 import bunny.boardhole.user.application.query.UserQueryService;
@@ -39,7 +40,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
+@ExtendWith({MockitoExtension.class, FixedKoreanLocaleExtension.class})
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.DisplayName.class)
 @DisplayName("사용자 조회 서비스 단위 테스트")
@@ -66,6 +67,8 @@ class UserQueryServiceTest {
     private static User userWithName(String name) {
         User user = User.builder().username(USERNAME).password(ENCODED_PASSWORD).name(name).email(EMAIL).roles(Set.of(Role.USER)).build();
         user.verifyEmail();
+        // JPA에서 @GeneratedValue는 저장시에 생성되므로 테스트에서는 수동으로 ID 설정
+        ReflectionTestUtils.setField(user, "id", USER_ID);
         return user;
     }
 
@@ -88,7 +91,7 @@ class UserQueryServiceTest {
         ms.setBasename("messages");
         ms.setDefaultEncoding("UTF-8");
         ms.setUseCodeAsDefaultMessage(true);
-        ReflectionTestUtils.setField(MessageUtils.class, "messageSource", ms);
+        MessageUtils.setMessageSource(ms);
 
         userQueryService = new UserQueryService(userRepository, userMapper);
     }
@@ -139,7 +142,7 @@ class UserQueryServiceTest {
         @DisplayName("🌍 다국어 메시지 검증 - 한국어/영어")
         void shouldReturnCorrectMessageByLocale() {
             // given
-            final UUID userId = UUID.randomUUID();
+            UUID userId = UUID.randomUUID();
             when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
             // 한국어 테스트

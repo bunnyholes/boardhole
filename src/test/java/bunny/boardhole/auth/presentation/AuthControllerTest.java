@@ -125,7 +125,7 @@ class AuthControllerTest {
             given(userWebMapper.toCreateCommand(request)).willReturn(command);
             given(userCommandService.create(command)).willReturn(new bunny.boardhole.user.application.result.UserResult(
                     UUID.randomUUID(), "testuser", "Test User", "test@example.com",
-                    java.time.LocalDateTime.now(), null, null, java.util.Set.of(bunny.boardhole.user.domain.Role.USER)
+                    java.time.LocalDateTime.now(), null, null, Set.of(bunny.boardhole.user.domain.Role.USER)
             ));
 
             // when

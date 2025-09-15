@@ -30,8 +30,6 @@ public class ContainersConfig {
     @Bean
     @ServiceConnection
     public MySQLContainer<?> mysql() {
-        MySQLContainer<?> container = new MySQLContainer<>(DockerImageName.parse("mysql:8.4"));
-
-        return container;
+        return new MySQLContainer<>(DockerImageName.parse("mysql:8.4"));
     }
 }

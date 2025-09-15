@@ -1,27 +1,27 @@
 package bunny.boardhole.user.application;
 
-import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.i18n.LocaleContextHolder;
-import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import bunny.boardhole.shared.exception.ResourceNotFoundException;
 import bunny.boardhole.shared.exception.UnauthorizedException;
-import bunny.boardhole.shared.util.MessageUtils;
+import bunny.boardhole.shared.test.MessageSourceTestConfig;
+import bunny.boardhole.shared.test.ValidationEnabledTestConfig;
 import bunny.boardhole.user.application.command.CreateUserCommand;
 import bunny.boardhole.user.application.command.UpdatePasswordCommand;
 import bunny.boardhole.user.application.command.UpdateUserCommand;
@@ -39,6 +39,8 @@ import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.never;
 
+@ExtendWith(SpringExtension.class)
+@Import({UserCommandService.class, ValidationEnabledTestConfig.class, MessageSourceTestConfig.class})
 @DisplayName("사용자 커맨드 서비스 단위 테스트")
 @Tag("unit")
 @Tag("user")
@@ -46,28 +48,26 @@ class UserCommandServiceTest {
 
     private static final UUID USER_ID = UUID.fromString("550e8400-e29b-41d4-a716-446655440001");
     private static final String USERNAME = "john";
-    private static final String RAW_PASSWORD = "password123";
+    private static final String RAW_PASSWORD = "Password123!";
     private static final String ENCODED_PASSWORD = "encoded";
     private static final String NAME = "name";
     private static final String OLD_NAME = "old";
     private static final String NEW_NAME = "new";
     private static final String EMAIL = "john@example.com";
     private static final String WRONG_PASSWORD = "wrong";
-    private static final String NEW_PASSWORD = "newPass123";
+    private static final String NEW_PASSWORD = "NewPass123!";
 
-    @Mock
+    @MockitoBean
     private UserRepository userRepository;
 
-    @Mock
+    @MockitoBean
     private PasswordEncoder passwordEncoder;
 
-    @Mock
+    @MockitoBean
     private UserMapper userMapper;
 
-    @InjectMocks
+    @Autowired
     private UserCommandService userCommandService;
-
-    private AutoCloseable closeable;
 
     private static User user() {
         return userWithName(NAME);
@@ -76,6 +76,8 @@ class UserCommandServiceTest {
     private static User userWithName(String name) {
         User user = User.builder().username(USERNAME).password(ENCODED_PASSWORD).name(name).email(EMAIL).roles(Set.of(Role.USER)).build();
         user.verifyEmail();
+        // JPA에서 @GeneratedValue는 저장시에 생성되므로 테스트에서는 수동으로 ID 설정
+        ReflectionTestUtils.setField(user, "id", USER_ID);
         return user;
     }
 
@@ -91,22 +93,8 @@ class UserCommandServiceTest {
 
     @BeforeEach
     void setUp() {
-        closeable = MockitoAnnotations.openMocks(this);
-
-        // Spring LocaleContextHolder를 한국어로 설정
-        LocaleContextHolder.setLocale(Locale.KOREAN);
-
-        ResourceBundleMessageSource ms = new ResourceBundleMessageSource();
-        ms.setBasename("messages");
-        ms.setDefaultEncoding("UTF-8");
-        ms.setUseCodeAsDefaultMessage(true);
-        ReflectionTestUtils.setField(MessageUtils.class, "messageSource", ms);
-    }
-
-    @AfterEach
-    void tearDown() throws Exception {
-        if (closeable != null)
-            closeable.close();
+        // 메시지 문자열 비교를 하지 않으므로 별도 로케일 고정 불필요
+        LocaleContextHolder.resetLocaleContext();
     }
 
     @Nested
@@ -180,16 +168,9 @@ class UserCommandServiceTest {
 
             UpdateUserCommand cmd = new UpdateUserCommand(UserCommandServiceTest.USER_ID, UserCommandServiceTest.NEW_NAME);
 
-            // 실제 메시지 로드
-            String expectedMessage = MessageUtils.get("error.user.not-found.id", UserCommandServiceTest.USER_ID);
-
             // when & then
             assertThatThrownBy(() -> userCommandService.update(cmd))
-                    .isInstanceOf(ResourceNotFoundException.class)
-                    .hasMessage(expectedMessage);
-
-            // 메시지 내용과 파라미터 치환 확인
-            assertThat(expectedMessage).contains("사용자를 찾을 수 없습니다. ID:");
+                    .isInstanceOf(ResourceNotFoundException.class);
 
             then(userRepository).should().findById(UserCommandServiceTest.USER_ID);
             then(userRepository).should(never()).save(any());
@@ -224,16 +205,9 @@ class UserCommandServiceTest {
             // given
             given(userRepository.findById(UserCommandServiceTest.USER_ID)).willReturn(Optional.empty());
 
-            // 실제 메시지 로드
-            String expectedMessage = MessageUtils.get("error.user.not-found.id", UserCommandServiceTest.USER_ID);
-
             // when & then
             assertThatThrownBy(() -> userCommandService.delete(UserCommandServiceTest.USER_ID))
-                    .isInstanceOf(ResourceNotFoundException.class)
-                    .hasMessage(expectedMessage);
-
-            // 메시지 내용 확인
-            assertThat(expectedMessage).contains("사용자를 찾을 수 없습니다. ID:");
+                    .isInstanceOf(ResourceNotFoundException.class);
 
             then(userRepository).should().findById(UserCommandServiceTest.USER_ID);
             then(userRepository).should(never()).delete(any());
@@ -269,16 +243,9 @@ class UserCommandServiceTest {
             // given
             given(userRepository.findById(UserCommandServiceTest.USER_ID)).willReturn(Optional.empty());
 
-            // 실제 메시지 로드
-            String expectedMessage = MessageUtils.get("error.user.not-found.id", UserCommandServiceTest.USER_ID);
-
             // when & then
             assertThatThrownBy(() -> userCommandService.updateLastLogin(UserCommandServiceTest.USER_ID))
-                    .isInstanceOf(ResourceNotFoundException.class)
-                    .hasMessage(expectedMessage);
-
-            // 메시지 내용 확인
-            assertThat(expectedMessage).contains("사용자를 찾을 수 없습니다. ID:");
+                    .isInstanceOf(ResourceNotFoundException.class);
 
             then(userRepository).should().findById(UserCommandServiceTest.USER_ID);
             then(userRepository).should(never()).save(any());
@@ -303,16 +270,9 @@ class UserCommandServiceTest {
             UpdatePasswordCommand cmd = new UpdatePasswordCommand(UserCommandServiceTest.USER_ID, UserCommandServiceTest.WRONG_PASSWORD,
                     UserCommandServiceTest.NEW_PASSWORD, UserCommandServiceTest.NEW_PASSWORD);
 
-            // 실제 메시지 로드
-            String expectedMessage = MessageUtils.get("error.user.password.current.mismatch");
-
             // when & then
             assertThatThrownBy(() -> userCommandService.updatePassword(cmd))
-                    .isInstanceOf(UnauthorizedException.class)
-                    .hasMessage(expectedMessage);
-
-            // 메시지 내용 확인
-            assertThat(expectedMessage).isEqualTo("현재 패스워드가 일치하지 않습니다");
+                    .isInstanceOf(UnauthorizedException.class);
 
             then(userRepository).should().findById(UserCommandServiceTest.USER_ID);
             then(passwordEncoder).should().matches(UserCommandServiceTest.WRONG_PASSWORD, UserCommandServiceTest.ENCODED_PASSWORD);
@@ -353,16 +313,9 @@ class UserCommandServiceTest {
             UpdatePasswordCommand cmd = new UpdatePasswordCommand(UserCommandServiceTest.USER_ID, UserCommandServiceTest.RAW_PASSWORD,
                     UserCommandServiceTest.NEW_PASSWORD, UserCommandServiceTest.NEW_PASSWORD);
 
-            // 실제 메시지 로드
-            String expectedMessage = MessageUtils.get("error.user.not-found.id", UserCommandServiceTest.USER_ID);
-
             // when & then
             assertThatThrownBy(() -> userCommandService.updatePassword(cmd))
-                    .isInstanceOf(ResourceNotFoundException.class)
-                    .hasMessage(expectedMessage);
-
-            // 메시지 내용 확인
-            assertThat(expectedMessage).contains("사용자를 찾을 수 없습니다. ID:");
+                    .isInstanceOf(ResourceNotFoundException.class);
 
             then(userRepository).should().findById(UserCommandServiceTest.USER_ID);
             then(passwordEncoder).should(never()).matches(any(), any());

@@ -4,8 +4,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -91,7 +89,7 @@ public class BoardCommandService {
      */
     @Transactional
     @PreAuthorize("hasPermission(#id, 'BOARD', 'DELETE')")
-    public void delete(@NotNull UUID id) {
+    public void delete(UUID id) {
         Board board = loadBoardOrThrow(id);
         boardRepository.delete(board);
     }
