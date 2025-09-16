@@ -78,6 +78,16 @@ public class GlobalExceptionHandler {
         pd.setProperty("timestamp", Instant.now().toString());
     }
 
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ProblemDetail handleNoResourceFound(NoResourceFoundException ex, HttpServletRequest request) {
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, MessageUtils.get("error.resource.not-found"));
+        pd.setTitle(MessageUtils.get("exception.title.not-found"));
+        pd.setProperty("code", ErrorCode.NOT_FOUND.getCode());
+        pd.setType(buildType("not-found"));
+        addCommon(pd, request);
+        return pd;
+    }
+
     @ExceptionHandler(ResourceNotFoundException.class)
     public ProblemDetail handleNotFound(ResourceNotFoundException ex, HttpServletRequest request) {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());

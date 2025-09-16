@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{fragments/base :: layout(~{::title}, ~{::main})}">
+<head>
+    <title th:text="${board.title + ' - Board Hole'}">게시글 상세</title>
+</head>
+
+<main>
+    <!-- 네비게이션 -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="/boards" class="text-decoration-none">게시판</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">게시글 상세</li>
+        </ol>
+    </nav>
+
+    <!-- 게시글 상세 -->
+    <div class="card card-modern">
+        <!-- 게시글 헤더 -->
+        <div class="card-header bg-transparent border-bottom">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <h1 class="h4 mb-0" th:text="${board.title}">게시글 제목</h1>
+                
+                <!-- 관리 메뉴 (Fragment 사용) -->
+                <div sec:authorize="isAuthenticated()" th:if="${#authentication.name == board.authorEmail}">
+                    <button class="btn btn-outline-secondary btn-sm" popovertarget="manage-menu" type="button">
+                        관리
+                        <svg width="12" height="12" fill="currentColor" viewBox="0 0 16 16" class="ms-1">
+                            <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 게시글 메타 정보 -->
+            <div class="d-flex flex-wrap gap-3 text-muted small">
+                <div class="d-flex align-items-center">
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16" class="me-1">
+                        <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4zm-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10c-2.29 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10z"/>
+                    </svg>
+                    <span th:text="${board.authorName}">작성자</span>
+                </div>
+                <div class="d-flex align-items-center">
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16" class="me-1">
+                        <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"/>
+                        <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z"/>
+                    </svg>
+                    <span th:text="${#temporals.format(board.createdAt, 'yyyy년 MM월 dd일 HH:mm')}">작성일</span>
+                </div>
+                <div class="d-flex align-items-center" th:if="${board.updatedAt != board.createdAt}">
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16" class="me-1">
+                        <path fill-rule="evenodd" d="M8.515 1.019A7 7 0 0 0 8 1V0a8 8 0 0 1 .589.022l-.074.997zm2.004.45a7.003 7.003 0 0 0-.985-.299l.219-.976c.383.086.76.2 1.126.342l-.36.933zm1.37.71a7.01 7.01 0 0 0-.439-.27l.493-.87a8.025 8.025 0 0 1 .979.654l-.615.789a6.996 6.996 0 0 0-.418-.302zm1.834 1.79a6.99 6.99 0 0 0-.653-.796l.724-.69c.27.285.52.59.747.91l-.818.576zm.744 1.352a7.08 7.08 0 0 0-.214-.468l.893-.45a7.976 7.976 0 0 1 .45 1.088l-.95.313a7.023 7.023 0 0 0-.179-.483zm.53 2.507a6.991 6.991 0 0 0-.1-1.025l.985-.17c.067.386.106.778.116 1.17l-1.001.025zm-.131 1.538c.033-.17.06-.339.081-.51l.993.123a7.957 7.957 0 0 1-.23 1.155l-.956-.288c.043-.165.082-.332.112-.5z"/>
+                        <path d="M8.5 5.5a.5.5 0 0 0-1 0v3.362l-1.429 2.38a.5.5 0 1 0 .858.515l1.5-2.5A.5.5 0 0 0 8.5 9V5.5z"/>
+                        <path d="M6.5 1A.5.5 0 0 1 7 .5h2a.5.5 0 0 1 0 1h-2A.5.5 0 0 1 6.5 1zM8 16a8 8 0 1 0 0-16 8 8 0 0 0 0 16zm0-1a7 7 0 1 1 0-14 7 7 0 0 1 0 14z"/>
+                    </svg>
+                    <span th:text="${'수정: ' + #temporals.format(board.updatedAt, 'yyyy년 MM월 dd일 HH:mm')}">수정일</span>
+                </div>
+                <div class="d-flex align-items-center">
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16" class="me-1">
+                        <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/>
+                        <path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/>
+                    </svg>
+                    <span>조회 <span th:text="${board.viewCount}">0</span></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 게시글 내용 -->
+        <div class="card-body">
+            <div class="content-area" th:utext="${#strings.replace(board.content, T(java.lang.System).lineSeparator(), '<br>')}">
+                게시글 내용이 여기에 표시됩니다.
+            </div>
+        </div>
+
+        <!-- 게시글 푸터 (액션 버튼들) -->
+        <div class="card-footer bg-transparent d-flex justify-content-between align-items-center">
+            <a href="/boards" class="btn btn-outline-secondary">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16" class="me-2">
+                    <path fill-rule="evenodd" d="M1 8a7 7 0 1 0 14 0A7 7 0 0 0 1 8zm15 0A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-4.5-.5a.5.5 0 0 1 0 1H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H11.5z"/>
+                </svg>
+                목록으로
+            </a>
+            
+            <div>
+                <a href="/boards/write" class="btn btn-modern btn-primary">
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16" class="me-2">
+                        <path d="M14.5 3a.5.5 0 0 1 .5.5v9a.5.5 0 0 1-.5.5h-13a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h13zm-13-1A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 1h-13z"/>
+                        <path d="M3 5.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zM3 8a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9A.5.5 0 0 1 3 8zm0 2.5a.5.5 0 0 1 .5-.5h6a.5.5 0 0 1 0 1h-6a.5.5 0 0 1-.5-.5z"/>
+                    </svg>
+                    새 글 작성
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 관리 메뉴 Popover Fragment 포함 -->
+    <th:block th:replace="~{fragments/popover :: manage-menu}"></th:block>
+
+    <!-- 페이지별 스타일 -->
+    <style>
+        .content-area {
+            line-height: 1.8;
+            font-size: 1.1rem;
+            min-height: 200px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+        
+        .breadcrumb {
+            background: none;
+            padding: 0;
+        }
+        
+        .breadcrumb-item + .breadcrumb-item::before {
+            color: #6c757d;
+        }
+        
+        /* 반응형 디자인 */
+        @media (max-width: 768px) {
+            .card-header .d-flex {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .card-footer .d-flex {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+            
+            .content-area {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</main>
+</html>
