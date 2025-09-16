@@ -65,7 +65,7 @@ public class DataInitializer implements CommandLineRunner {
                              .password(passwordEncoder.encode(adminInfo.password()))
                              .name(adminInfo.name())
                              .email(adminInfo.email())
-                             .roles(Set.of(Role.ADMIN))
+                             .roles(Set.of(Role.ADMIN, Role.USER))
                              .build();
             admin.verifyEmail(); // 기본 사용자는 이메일 인증 완료 상태로 생성
             userRepository.save(admin);
