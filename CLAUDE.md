@@ -120,3 +120,4 @@ Profiles:
 - IntelliJ IDEA inspections
 - RFC 7807 Problem Details for errors
 - GlobalExceptionHandler for centralized error handling
+- mockbean 사용 금지 반드시 mokitoBean을 사용

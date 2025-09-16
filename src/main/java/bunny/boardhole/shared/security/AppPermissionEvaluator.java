@@ -13,7 +13,6 @@ import org.springframework.stereotype.Component;
 
 import bunny.boardhole.board.infrastructure.BoardRepository;
 import bunny.boardhole.shared.constants.PermissionType;
-import bunny.boardhole.shared.properties.SecurityProperties;
 import bunny.boardhole.user.domain.User;
 
 @Component
@@ -21,7 +20,6 @@ import bunny.boardhole.user.domain.User;
 public class AppPermissionEvaluator implements PermissionEvaluator {
 
     private final BoardRepository boardRepository;
-    private final SecurityProperties securityProperties;
 
     private static boolean hasRole(Authentication auth, String role) {
         if (!auth.isAuthenticated())
@@ -62,7 +60,7 @@ public class AppPermissionEvaluator implements PermissionEvaluator {
         String perm = permission.toString().toUpperCase(Locale.ROOT);
 
         // Admin shortcut
-        if (hasRole(auth, securityProperties.rolePrefix() + "ADMIN"))
+        if (hasRole(auth, "ROLE_ADMIN"))
             return true;
 
         if (!(targetId instanceof Long id))

@@ -1,5 +1,6 @@
 package bunny.boardhole.board.infrastructure;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -73,4 +74,23 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
      */
     @Query(value = "SELECT * FROM boards WHERE id = ?1", nativeQuery = true)
     Optional<Board> findByIdIncludingDeleted(Long id);
+
+    // 대시보드용 통계 메서드들
+    
+    /**
+     * 특정 기간 내 작성된 게시글 수 조회
+     *
+     * @param startDate 시작 일시
+     * @param endDate   종료 일시
+     * @return 기간 내 게시글 수
+     */
+    Long countByCreatedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
+
+    /**
+     * 특정 작성자의 게시글 수 조회
+     *
+     * @param authorId 작성자 ID
+     * @return 작성자의 게시글 수
+     */
+    Long countByAuthorId(Long authorId);
 }
