@@ -35,22 +35,11 @@ server:
 # 애플리케이션 도메인 설정
 # ========================================
 boardhole:
-  # 보안 설정
-  security:
-    role-prefix: "ROLE_"
-    session-timeout-minutes: 30
-  
-  # 인증 설정
-  auth:
-    default-role: "USER"
-
-  # 성능 임계값
-  performance:
-    logging:
-      fast-threshold-ms: 100
-      normal-threshold-ms: 500
-      slow-threshold-ms: 1000
-      duration-threshold-ms: 1000
+  # 로깅 성능 임계값
+  logging:
+    performance:
+      fast-threshold: 100
+      normal-threshold: 500
   
   # CORS 기본값 (환경별 프로필에서 오버라이드 권장)
   cors:
@@ -173,9 +162,3 @@ boardhole:
       name: Apache 2.0
       url: https://www.apache.org/licenses/LICENSE-2.0
 
-  # 유효성 기본값 (테스트 기대와 일치)
-  validation:
-    board:
-      title-max-length: 200
-    user:
-      username-min-length: 3
