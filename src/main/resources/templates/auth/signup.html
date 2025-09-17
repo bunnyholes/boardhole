@@ -1,304 +1,100 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/base :: layout(title='Board Hole 회원가입', content=~{::section})}">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>회원가입 - Board Hole</title>
-    
-    <!-- Pretendard 폰트 -->
-    <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable.css" rel="stylesheet">
-    
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" 
-          integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    
-    <style>
-        body {
-            font-family: 'Pretendard Variable', system-ui, -apple-system, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 2rem 0;
-        }
-        
-        .signup-container {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            padding: 3rem;
-            width: 100%;
-            max-width: 450px;
-            animation: slideUp 0.6s ease-out;
-        }
-        
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        .form-control {
-            border: 2px solid #e9ecef;
-            border-radius: 12px;
-            padding: 0.75rem 1rem;
-            transition: all 0.3s ease;
-            background: rgba(255, 255, 255, 0.9);
-        }
-        
-        .form-control:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-            background: white;
-        }
-        
-        .form-control.is-invalid {
-            border-color: #dc3545;
-        }
-        
-        .form-control.is-valid {
-            border-color: #28a745;
-        }
-        
-        .btn-signup {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border: none;
-            border-radius: 12px;
-            padding: 0.75rem 2rem;
-            font-weight: 600;
-            color: white;
-            transition: all 0.3s ease;
-            width: 100%;
-        }
-        
-        .btn-signup:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
-            color: white;
-        }
-        
-        .btn-secondary {
-            border-radius: 12px;
-            padding: 0.75rem 2rem;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
-        
-        .logo {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            font-weight: 700;
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-        
-        .form-floating > label {
-            color: #6c757d;
-        }
-        
-        .form-floating > .form-control:focus ~ label {
-            color: #667eea;
-        }
-        
-        .alert {
-            border-radius: 12px;
-            border: none;
-        }
-        
-        .password-strength {
-            height: 4px;
-            border-radius: 2px;
-            background: #e9ecef;
-            margin-top: 0.5rem;
-            overflow: hidden;
-        }
-        
-        .password-strength-bar {
-            height: 100%;
-            transition: all 0.3s ease;
-            border-radius: 2px;
-        }
-        
-        .strength-weak { background: #dc3545; width: 33%; }
-        .strength-medium { background: #ffc107; width: 66%; }
-        .strength-strong { background: #28a745; width: 100%; }
-        
-        /* 다크모드 지원 */
-        @media (prefers-color-scheme: dark) {
-            .signup-container {
-                background: rgba(40, 40, 40, 0.95);
-                color: white;
-            }
-            
-            .form-control {
-                background: rgba(60, 60, 60, 0.9);
-                border-color: #495057;
-                color: white;
-            }
-            
-            .form-control::placeholder {
-                color: #adb5bd;
-            }
-            
-            .form-floating > label {
-                color: #adb5bd;
-            }
-        }
-    </style>
+    <title>Board Hole 회원가입</title>
 </head>
 <body>
-    <div class="signup-container">
-        <h1 class="logo h2">Board Hole 가입</h1>
-        
-        <!-- 에러 메시지 -->
-        <div th:if="${error}" class="alert alert-danger">
-            <small th:text="${error}">오류가 발생했습니다.</small>
-        </div>
-        
-        <form th:action="@{/api/auth/signup}" method="post" novalidate>
-            <div class="form-floating mb-3">
-                <input type="email" class="form-control" id="email" name="email" 
-                       placeholder="이메일" required th:value="${param.email}">
-                <label for="email">이메일</label>
-                <div class="invalid-feedback">
-                    유효한 이메일 주소를 입력해주세요.
-                </div>
-            </div>
-            
-            <div class="form-floating mb-3">
-                <input type="text" class="form-control" id="name" name="name" 
-                       placeholder="이름" required th:value="${param.name}" maxlength="50">
-                <label for="name">이름</label>
-                <div class="invalid-feedback">
-                    이름을 입력해주세요. (최대 50자)
-                </div>
-            </div>
-            
-            <div class="form-floating mb-3">
-                <input type="text" class="form-control" id="nickname" name="nickname" 
-                       placeholder="닉네임" required th:value="${param.nickname}" maxlength="20">
-                <label for="nickname">닉네임</label>
-                <div class="invalid-feedback">
-                    닉네임을 입력해주세요. (최대 20자)
-                </div>
-            </div>
-            
-            <div class="form-floating mb-3">
-                <input type="password" class="form-control" id="password" name="password" 
-                       placeholder="비밀번호" required minlength="8">
-                <label for="password">비밀번호</label>
-                <div class="password-strength">
-                    <div class="password-strength-bar" id="strengthBar"></div>
-                </div>
-                <small class="text-muted">최소 8자 이상, 영문/숫자/특수문자 조합</small>
-                <div class="invalid-feedback">
-                    비밀번호는 최소 8자 이상이어야 합니다.
-                </div>
-            </div>
-            
-            <div class="form-floating mb-3">
-                <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" 
-                       placeholder="비밀번호 확인" required>
-                <label for="confirmPassword">비밀번호 확인</label>
-                <div class="invalid-feedback">
-                    비밀번호가 일치하지 않습니다.
-                </div>
-            </div>
-            
-            <div class="form-check mb-3">
-                <input type="checkbox" class="form-check-input" id="agree" name="agree" required>
-                <label class="form-check-label" for="agree">
-                    <small>이용약관 및 개인정보처리방침에 동의합니다.</small>
-                </label>
-                <div class="invalid-feedback">
-                    약관에 동의해주세요.
-                </div>
-            </div>
-            
-            <button type="submit" class="btn btn-signup mb-3">
-                회원가입
-            </button>
-            
-            <div class="text-center">
-                <small class="text-muted">이미 계정이 있으신가요?</small>
-                <a href="/login" class="text-decoration-none ms-1">로그인</a>
-            </div>
-            
-            <hr class="my-3">
-            
-            <div class="text-center">
-                <a href="/" class="btn btn-outline-secondary">
-                    메인으로 돌아가기
-                </a>
-            </div>
-        </form>
-    </div>
-    
-    <!-- 최소한의 폼 검증 스크립트 -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const form = document.querySelector('form');
-            const password = document.getElementById('password');
-            const confirmPassword = document.getElementById('confirmPassword');
-            const strengthBar = document.getElementById('strengthBar');
-            
-            // 비밀번호 강도 표시
-            password.addEventListener('input', function() {
-                const value = this.value;
-                let strength = 0;
-                
-                if (value.length >= 8) strength++;
-                if (/[a-zA-Z]/.test(value)) strength++;
-                if (/[0-9]/.test(value)) strength++;
-                if (/[^a-zA-Z0-9]/.test(value)) strength++;
-                
-                strengthBar.className = 'password-strength-bar';
-                if (strength >= 3) {
-                    strengthBar.classList.add('strength-strong');
-                } else if (strength >= 2) {
-                    strengthBar.classList.add('strength-medium');
-                } else if (strength >= 1) {
-                    strengthBar.classList.add('strength-weak');
-                } else {
-                    strengthBar.style.width = '0%';
-                }
-            });
-            
-            // 폼 검증
-            form.addEventListener('submit', function(e) {
-                if (!form.checkValidity() || password.value !== confirmPassword.value) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    
-                    // 비밀번호 확인 검증
-                    if (password.value !== confirmPassword.value) {
-                        confirmPassword.setCustomValidity('비밀번호가 일치하지 않습니다.');
-                    } else {
-                        confirmPassword.setCustomValidity('');
-                    }
-                }
-                
-                form.classList.add('was-validated');
-            });
-            
-            // 비밀번호 확인 실시간 검증
-            confirmPassword.addEventListener('input', function() {
-                if (password.value !== this.value) {
-                    this.setCustomValidity('비밀번호가 일치하지 않습니다.');
-                } else {
-                    this.setCustomValidity('');
-                }
-            });
-        });
-    </script>
+
+<section>
+    <article>
+        <header>
+            <hgroup>
+                <h1>회원가입</h1>
+                <p>Board Hole 계정을 만들고 커뮤니티에 참여하세요.</p>
+            </hgroup>
+        </header>
+
+        <main>
+            <form th:action="@{/auth/signup}" th:object="${userCreateRequest}" method="post">
+                <fieldset>
+                    <label for="email">
+                        이메일
+                        <input id="email" type="email" placeholder="you@example.com" 
+                               th:field="*{email}" autocomplete="email" required
+                               th:attr="aria-invalid=${#fields.hasErrors('email')} ? 'true' : (${#fields.hasAnyErrors()} ? 'false' : null),aria-describedby=${#fields.hasErrors('email')} ? 'email-help' : null">
+                        <small>로그인 확인 및 알림에 사용됩니다.</small>
+                    </label>
+                    <small id="email-help" th:if="${#fields.hasErrors('email')}" th:errors="*{email}">
+                        이메일 오류
+                    </small>
+
+                    <label for="name">
+                        이름
+                        <input id="name" type="text" placeholder="홍길동" maxlength="50"
+                               th:field="*{name}" autocomplete="name" required
+                               th:attr="aria-invalid=${#fields.hasErrors('name')} ? 'true' : (${#fields.hasAnyErrors()} ? 'false' : null),aria-describedby=${#fields.hasErrors('name')} ? 'name-help' : null">
+                    </label>
+                    <small id="name-help" th:if="${#fields.hasErrors('name')}" th:errors="*{name}">
+                        이름 오류
+                    </small>
+
+                    <label for="username">
+                        사용자명
+                        <input id="username" type="text" placeholder="영문과 숫자 조합으로 3-20자" 
+                               minlength="3" maxlength="20" pattern="^[a-zA-Z0-9]{3,20}$"
+                               title="영문과 숫자만 사용하여 3-20자로 입력해주세요."
+                               th:field="*{username}" autocomplete="username" required
+                               th:attr="aria-invalid=${#fields.hasErrors('username')} ? 'true' : (${#fields.hasAnyErrors()} ? 'false' : null),aria-describedby=${#fields.hasErrors('username')} ? 'username-help' : null">
+                        <small>영문, 숫자 조합으로 3-20자 이내로 입력해주세요.</small>
+                    </label>
+                    <small id="username-help" th:if="${#fields.hasErrors('username')}" th:errors="*{username}">
+                        사용자명 오류
+                    </small>
+
+                    <label for="password">
+                        비밀번호
+                        <input id="password" type="password" placeholder="보안이 강한 비밀번호" 
+                               minlength="8" maxlength="100" th:field="*{password}" autocomplete="new-password" required
+                               pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[@$!%*?&])[A-Za-z0-9@$!%*?&]{8,100}$"
+                               title="8자 이상, 대/소문자, 숫자, 특수문자를 모두 포함해야 합니다."
+                               th:attr="aria-invalid=${#fields.hasErrors('password')} ? 'true' : (${#fields.hasAnyErrors()} ? 'false' : null),aria-describedby=${#fields.hasErrors('password')} ? 'password-help' : null">
+                        <small>8자 이상이며 대/소문자 · 숫자 · 특수문자를 각각 포함해야 합니다.</small>
+                    </label>
+                    <small id="password-help" th:if="${#fields.hasErrors('password')}" th:errors="*{password}">
+                        비밀번호 오류
+                    </small>
+
+                    <label for="confirmPassword">
+                        비밀번호 확인
+                        <input id="confirmPassword" type="password" placeholder="비밀번호를 다시 입력"
+                               th:field="*{confirmPassword}" autocomplete="new-password" required
+                               th:attr="aria-invalid=${#fields.hasErrors('confirmPassword')} ? 'true' : (${#fields.hasAnyErrors()} ? 'false' : null),aria-describedby=${#fields.hasErrors('confirmPassword')} ? 'confirm-password-help' : null">
+                    </label>
+                    <small id="confirm-password-help" th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}">
+                        비밀번호 확인 오류
+                    </small>
+
+                    <label>
+                        <input type="checkbox" name="agree" required>
+                        이용약관과 개인정보 처리방침에 동의합니다.
+                    </label>
+                </fieldset>
+
+                <input type="submit" value="회원가입" class="primary">
+            </form>
+
+            <p>
+                <small>이미 계정이 있으신가요? <a th:href="@{/auth/login}">로그인</a></small>
+            </p>
+        </main>
+
+        <footer th:if="${error} or ${globalError}">
+            <del th:if="${error}" th:text="${error}">입력값을 다시 확인해 주세요.</del>
+            <del th:if="${globalError}" th:text="${globalError}">회원가입 에러</del>
+        </footer>
+    </article>
+</section>
+
 </body>
 </html>

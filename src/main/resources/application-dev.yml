@@ -20,6 +20,9 @@ spring:
     restart:
       enabled: true     # 자동 재시작 활성화
 
+  thymeleaf:
+    cache: false        # 개발 환경 템플릿 캐시 비활성화
+
 # 개발 환경 로깅 설정 - 루트 프로파일에서 상속
 logging:
   level:

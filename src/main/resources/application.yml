@@ -38,18 +38,24 @@ management:
       show-details: never
 
 # ========================================
+# SpringDoc OpenAPI 설정
+# ========================================
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui/index.html
+    enabled: true
+    config-url: /v3/api-docs/swagger-config
+    url: /v3/api-docs
+    display-request-duration: true
+    display-operation-id: true
+
+# ========================================
 # 애플리케이션 도메인 설정
 # ========================================
 boardhole:
-  # 보안 설정
-  security:
-    role-prefix: "ROLE_"
-    session-timeout-minutes: 30
-  
-  # 인증 설정
-  auth:
-    default-role: "USER"
-
   # 성능 임계값
   performance:
     logging:
@@ -87,7 +93,7 @@ boardhole:
       name: 일반 사용자
       email: user@boardhole.com
   api:
-    title: Board-Hole API
+    title: ${apiTitle}
     version: ${version}
     description: |
       ## Board-Hole - Spring Boot Sample Code Repository
@@ -174,18 +180,11 @@ boardhole:
       ---
 
       이 API는 학습 목적의 샘플 코드입니다. 실무 프로젝트 구축 시 참고자료로 활용하세요.
-    terms-of-service: https://boardhole.com/terms
+    terms-of-service: ${apiTermsOfService}
     contact:
-      name: XIYO
-      email: bunny@xiyo.dev
-      url: https://github.com/XIYO/board-hole
+      name: ${contactName}
+      email: ${contactEmail}
+      url: ${githubUrl}
     license:
-      name: Apache 2.0
-      url: https://www.apache.org/licenses/LICENSE-2.0
-
-  # 유효성 기본값 (테스트 기대와 일치)
-  validation:
-    board:
-      title-max-length: 200
-    user:
-      username-min-length: 3
+      name: ${apiLicenseName}
+      url: ${apiLicenseUrl}

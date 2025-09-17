@@ -24,7 +24,6 @@ public abstract class E2ETestBase {
     void restAssuredSetup() {
         RestAssured.port = port;
         RestAssured.baseURI = "http://localhost";
-        RestAssured.basePath = "/api";
         RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
     }
 }

@@ -73,4 +73,21 @@ public interface BoardRepository extends JpaRepository<Board, UUID> {
      */
     @Query(value = "SELECT * FROM boards WHERE id = ?1", nativeQuery = true)
     Optional<Board> findByIdIncludingDeleted(UUID id);
+
+    /**
+     * 특정 기간 내 생성된 게시글 수 조회
+     *
+     * @param startDate 시작 날짜
+     * @param endDate   종료 날짜
+     * @return 게시글 수
+     */
+    long countByCreatedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
+
+    /**
+     * 특정 작성자의 게시글 수 조회
+     *
+     * @param authorId 작성자 ID
+     * @return 게시글 수
+     */
+    long countByAuthorId(UUID authorId);
 }

@@ -84,7 +84,7 @@ public class UserQueryService {
      * 사용자 단일 조회 (권한 체크 없는 버전)
      */
     @Transactional(readOnly = true)
-    public UserResult getUser(Long id) {
+    public UserResult getUser(UUID id) {
         return userRepository.findById(id)
             .map(userMapper::toResult)
             .orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.user.not-found.id", id)));

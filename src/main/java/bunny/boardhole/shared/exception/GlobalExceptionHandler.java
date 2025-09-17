@@ -38,9 +38,11 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.async.AsyncRequestTimeoutException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import bunny.boardhole.shared.config.log.RequestLoggingFilter;
 import bunny.boardhole.shared.constants.ErrorCode;
@@ -50,8 +52,7 @@ import bunny.boardhole.shared.util.MessageUtils;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @Slf4j
-@RestControllerAdvice
-@org.springframework.core.annotation.Order(org.springframework.core.Ordered.HIGHEST_PRECEDENCE)
+@RestControllerAdvice(annotations = RestController.class)
 @RequiredArgsConstructor
 @Tag(name = "예외 처리", description = "전역 예외 처리 및 에러 응답 관리")
 public class GlobalExceptionHandler {
