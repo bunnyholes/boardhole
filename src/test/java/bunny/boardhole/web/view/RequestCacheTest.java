@@ -42,10 +42,11 @@ class RequestCacheTest extends E2ETestBase {
     @DisplayName("보호된 View 페이지(/users) 접근 시 RequestCache가 세션에 요청 저장")
     void protectedPageCreatesSessionViaRequestCache() throws Exception {
         // View 컨트롤러는 브라우저 요청을 가정 (Accept: text/html)
+        // Spring Security의 LoginUrlAuthenticationEntryPoint가 /auth/login으로 리다이렉트
         mockMvc.perform(get("/users")
                         .accept("text/html,application/xhtml+xml"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/error/401?redirect=%2Fusers"))
+                .andExpect(redirectedUrl("http://localhost/auth/login"))  // Spring Security 표준 동작
                 .andExpect(result -> {
                     var session = result.getRequest().getSession(false);
                     // RequestCache가 세션을 생성하고 요청을 저장

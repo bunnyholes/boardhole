@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:fragment="delete-confirm(modalId, title, message, deleteAction, itemName)">
+    <dialog th:id="${modalId}" th:aria-labelledby="|${modalId}-title|">
+        <article>
+            <form method="dialog">
+                <header>
+                    <h3 th:id="|${modalId}-title|" th:text="${title}">확인</h3>
+                    <button aria-label="닫기" value="close">❌</button>
+                </header>
+                
+                <main>
+                    <p th:text="${message}">이 작업을 진행하시겠습니까?</p>
+                    <p th:if="${itemName != null}">
+                        <strong th:text="${itemName}">항목</strong>
+                    </p>
+                </main>
+                
+                <footer>
+                    <button class="secondary outline" value="cancel">취소</button>
+                </footer>
+            </form>
+            
+            <!-- 실제 삭제는 별도 form -->
+            <form th:action="${deleteAction}" method="post">
+                <button type="submit" class="secondary">삭제</button>
+            </form>
+        </article>
+    </dialog>
+</th:block>
+</body>
+</html>
