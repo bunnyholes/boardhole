@@ -24,6 +24,16 @@ public class LoggingAspect {
 
     private final LogFormatter logFormatter;
 
+    private static String extractLayer(String signature) {
+        if (signature.contains("Controller"))
+            return "controller";
+        if (signature.contains("Service"))
+            return "service";
+        if (signature.contains("Repository"))
+            return "repository";
+        return "unknown";
+    }
+
     /**
      * Controller 레이어 메소드 포인트컷
      * 모든 Controller 클래스의 public 메소드를 대상으로 합니다.
@@ -77,7 +87,7 @@ public class LoggingAspect {
         // 메서드 시작 로깅은 DEBUG 레벨에서만 (로깅 포맷 실패 시 비즈니스에 영향 없도록 보호)
         if (log.isDebugEnabled())
             try {
-                log.debug(logFormatter.formatMethodStart(signature, pjp.getArgs()));
+                log.debug(LogFormatter.formatMethodStart(signature, pjp.getArgs()));
             } catch (Throwable formatEx) {
                 log.warn(MessageUtils.get("log.method.format.failed", signature, formatEx.toString()));
             }
@@ -104,7 +114,7 @@ public class LoggingAspect {
 
             // 에러 로깅 중 포맷 실패가 비즈니스 예외를 가리지 않도록 보호
             try {
-                log.error(logFormatter.formatMethodError(signature, tookMs, ex.getMessage()));
+                log.error(LogFormatter.formatMethodError(signature, tookMs, ex.getMessage()));
             } catch (Throwable formatEx) {
                 log.error(MessageUtils.get("log.method.format.failed.with.error", signature, formatEx, ex.toString()));
             }
@@ -112,16 +122,6 @@ public class LoggingAspect {
         } finally {
             MDCUtil.clearMethod();
         }
-    }
-
-    private static String extractLayer(String signature) {
-        if (signature.contains("Controller"))
-            return "controller";
-        if (signature.contains("Service"))
-            return "service";
-        if (signature.contains("Repository"))
-            return "repository";
-        return "unknown";
     }
 
 }

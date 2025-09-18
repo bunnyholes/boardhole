@@ -71,7 +71,7 @@ public class UserQueryService {
     }
 
     // WebController 호환 메서드들 (기존 API 유지)
-    
+
     /**
      * 사용자 목록 조회
      */
@@ -86,12 +86,12 @@ public class UserQueryService {
     @Transactional(readOnly = true)
     public UserResult getUser(UUID id) {
         return userRepository.findById(id)
-            .map(userMapper::toResult)
-            .orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.user.not-found.id", id)));
+                             .map(userMapper::toResult)
+                             .orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.user.not-found.id", id)));
     }
 
     // 대시보드용 메서드들
-    
+
     /**
      * 활성 사용자 수 조회 (간단한 구현: 전체 사용자 수)
      * TODO: 실제로는 최근 로그인 기록 등을 기반으로 활성 사용자를 판단해야 함

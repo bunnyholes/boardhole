@@ -81,12 +81,12 @@ public class ViewControllerAdvice {
             Authentication authentication
     ) {
         log.warn("🚫 403 Forbidden in view: path={}, authenticated={}, message={}",
-                request.getRequestURI(), 
+                request.getRequestURI(),
                 authentication != null && authentication.isAuthenticated(),
                 ex.getMessage());
 
         // 인증 여부 확인
-        if (authentication == null || !authentication.isAuthenticated() 
+        if (authentication == null || !authentication.isAuthenticated()
                 || authentication.getPrincipal() instanceof String) {
             // 미인증 상태인 경우 로그인 페이지로 리디렉트 (실제로는 401 상황)
             log.debug("🔐 Not authenticated, redirecting to login");
@@ -100,7 +100,7 @@ public class ViewControllerAdvice {
         model.addAttribute("error", MessageUtils.get("error.access.denied"));
         model.addAttribute("path", request.getRequestURI());
         model.addAttribute("timestamp", Instant.now());
-        
+
         // forward로 403 에러 페이지 표시 (URL 변경 없음)
         return "error/403";
     }

@@ -47,9 +47,9 @@ public class MyPageViewController {
      */
     @GetMapping
     public String mypage(@AuthenticationPrincipal AppUserPrincipal principal, Model model) {
-        if (principal == null) {
+        if (principal == null)
             model.addAttribute("user", new Object());
-        } else {
+        else {
             var user = userQueryService.getUser(principal.user().getId());
             model.addAttribute("user", user != null ? user : new Object());
         }
@@ -84,7 +84,7 @@ public class MyPageViewController {
 
         var command = new UpdateUserCommand(principal.user().getId(), request.name());
         userCommandService.update(command);
-        
+
         redirectAttributes.addFlashAttribute("success", "프로필이 성공적으로 수정되었습니다.");
         return "redirect:/users/me";
     }
@@ -98,5 +98,6 @@ public class MyPageViewController {
      */
     public record UpdateUserRequest(
             String name
-    ) {}
+    ) {
+    }
 }

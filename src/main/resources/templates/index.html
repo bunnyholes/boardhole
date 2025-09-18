@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{fragments/base :: layout(null, ~{::main})}">
+<html lang="ko" th:replace="~{fragments/base :: layout(null, ~{::main})}"
+      xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>Board Hole - Spring Boot 게시판</title>
-    <meta name="description" content="실무형 게시판 기능과 인증 흐름을 학습할 수 있는 Spring Boot 샘플 프로젝트입니다.">
+    <meta content="실무형 게시판 기능과 인증 흐름을 학습할 수 있는 Spring Boot 샘플 프로젝트입니다." name="description">
 </head>
 
 <main>
@@ -15,7 +15,7 @@
                 실무형 게시판 기능과 인증 흐름을 학습할 수 있는 Spring Boot 샘플 프로젝트입니다.
             </p>
             <div class="hero-actions">
-                <a href="/boards" role="button" class="primary">📋 게시판 바로가기</a>
+                <a class="primary" href="/boards" role="button">📋 게시판 바로가기</a>
             </div>
         </div>
     </section>

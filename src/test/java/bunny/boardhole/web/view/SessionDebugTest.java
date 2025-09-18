@@ -3,7 +3,6 @@ package bunny.boardhole.web.view;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.microsoft.playwright.Page;
 import com.microsoft.playwright.options.Cookie;
 
 import bunny.boardhole.testsupport.e2e.ViewE2ETestBase;
@@ -80,7 +79,7 @@ class SessionDebugTest extends ViewE2ETestBase {
         page.fill("input[name='username']", "admin");
         page.fill("input[name='password']", "Admin123!");
         page.click("button[type='submit'], input[type='submit']");
-        
+
         // 로그인 후 리다이렉션을 기다림 (/boards로 이동)
         page.waitForURL("**/boards");
 

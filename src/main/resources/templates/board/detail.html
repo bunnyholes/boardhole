@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+<html lang="ko" th:replace="~{fragments/base :: layout(null, ~{::main})}"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
-      th:replace="~{fragments/base :: layout(null, ~{::main})}">
+      xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>게시글 상세 - Board Hole</title>
 </head>
@@ -26,7 +26,8 @@
                         <p>
                             <small>
                                 👤 <span th:text="${board.authorName}">홍길동</span> |
-                                📅 <span th:text="${#temporals.format(board.createdAt, 'MM-dd HH:mm')}">01-15 14:30</span>
+                                📅 <span
+                                    th:text="${#temporals.format(board.createdAt, 'MM-dd HH:mm')}">01-15 14:30</span>
                                 <span th:if="${board.updatedAt != board.createdAt}">
                                     | ✏️ <span th:text="|수정: ${#temporals.format(board.updatedAt, 'MM-dd HH:mm')}|">수정: 01-15 15:30</span>
                                 </span>
@@ -35,16 +36,18 @@
                         </p>
                     </hgroup>
                 </div>
-                
+
                 <!-- 관리 메뉴 (Pico.css dropdown) -->
                 <div sec:authorize="isAuthenticated() and #authentication.principal.user.id == #vars.board.authorId">
                     <details class="dropdown">
-                        <summary role="button" class="secondary outline">관리 ▼</summary>
+                        <summary class="secondary outline" role="button">관리 ▼</summary>
                         <ul role="listbox">
                             <li><a th:href="@{/boards/{id}/edit(id=${board.id})}">✏️ 수정</a></li>
                             <li>
-                                <form th:action="@{/forms/boards/{id}/delete(id=${board.id})}" method="post" style="margin: 0;">
-                                    <button type="submit" class="contrast" style="all: unset; cursor: pointer; padding: 0.5rem;">
+                                <form method="post" style="margin: 0;"
+                                      th:action="@{/forms/boards/{id}/delete(id=${board.id})}">
+                                    <button class="contrast" style="all: unset; cursor: pointer; padding: 0.5rem;"
+                                            type="submit">
                                         🗑️ 삭제
                                     </button>
                                 </form>
@@ -64,19 +67,18 @@
         <footer>
             <div class="grid">
                 <div>
-                    <a href="/boards" role="button" class="secondary outline">
+                    <a class="secondary outline" href="/boards" role="button">
                         ← 목록으로
                     </a>
                 </div>
                 <div>
-                    <a href="/boards/write" role="button" class="primary">
+                    <a class="primary" href="/boards/write" role="button">
                         📄 새 글 작성
                     </a>
                 </div>
             </div>
         </footer>
     </article>
-
 
 
 </main>

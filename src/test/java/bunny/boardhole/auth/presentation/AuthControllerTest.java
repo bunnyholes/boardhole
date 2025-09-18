@@ -98,12 +98,12 @@ class AuthControllerTest {
                        .email("test@example.com")
                        .roles(Set.of(Role.USER))
                        .build();
-        
+
         // Use reflection to set the UUID ID for testing
         var idField = User.class.getDeclaredField("id");
         idField.setAccessible(true);
         idField.set(testUser, UUID.randomUUID());
-        
+
         testPrincipal = new AppUserPrincipal(testUser);
     }
 
@@ -315,12 +315,12 @@ class AuthControllerTest {
                                  .email("admin@example.com")
                                  .roles(Set.of(Role.ADMIN))
                                  .build();
-            
+
             // Use reflection to set the UUID ID for testing
             var idField = User.class.getDeclaredField("id");
             idField.setAccessible(true);
             idField.set(adminUser, UUID.randomUUID());
-            
+
             AppUserPrincipal adminPrincipal = new AppUserPrincipal(adminUser);
 
             // when

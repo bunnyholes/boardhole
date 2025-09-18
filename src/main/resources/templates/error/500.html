@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="ko" 
-      xmlns:th="http://www.thymeleaf.org"
+<html data-theme="auto"
+      lang="ko"
       th:replace="~{fragments/base :: layout(~{::title}, ~{::main})}"
-      data-theme="auto">
+      xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>서버 오류 - Board Hole</title>
 </head>
@@ -24,7 +24,11 @@
         </p>
 
         <p th:if="${timestamp}">
-            <small>발생 시간: <time th:text="${timestamp instanceof T(java.time.temporal.TemporalAccessor) ? #temporals.format(timestamp, 'MM-dd HH:mm') : (timestamp instanceof T(java.util.Date) ? #dates.format(timestamp, 'MM-dd HH:mm') : timestamp)}">01-01 00:00</time></small>
+            <small>발생 시간:
+                <time th:text="${timestamp instanceof T(java.time.temporal.TemporalAccessor) ? #temporals.format(timestamp, 'MM-dd HH:mm') : (timestamp instanceof T(java.util.Date) ? #dates.format(timestamp, 'MM-dd HH:mm') : timestamp)}">
+                    01-01 00:00
+                </time>
+            </small>
         </p>
 
         <section>
@@ -39,9 +43,9 @@
         <footer>
             <nav>
                 <ul>
-                    <li><a href="." role="button" class="secondary">🔄 다시 시도</a></li>
+                    <li><a class="secondary" href="." role="button">🔄 다시 시도</a></li>
                     <li><a href="/" role="button">홈으로 돌아가기</a></li>
-                    <li><a href="/boards" role="button" class="secondary outline">게시판 보기</a></li>
+                    <li><a class="secondary outline" href="/boards" role="button">게시판 보기</a></li>
                 </ul>
             </nav>
         </footer>

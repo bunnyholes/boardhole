@@ -27,7 +27,7 @@ class LoggingAspectTest {
         ms.setDefaultEncoding("UTF-8");
         ms.setUseCodeAsDefaultMessage(true);
         MessageUtils.setMessageSource(ms);
-        
+
         LoggingProperties properties = new LoggingProperties();
         LogFormatter formatter = new LogFormatter(properties);
         loggingAspect = new LoggingAspect(formatter);

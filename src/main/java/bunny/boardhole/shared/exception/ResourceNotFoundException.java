@@ -4,7 +4,6 @@ import java.io.Serial;
 
 import lombok.experimental.StandardException;
 
-
 @StandardException
 public class ResourceNotFoundException extends RuntimeException {
     @Serial

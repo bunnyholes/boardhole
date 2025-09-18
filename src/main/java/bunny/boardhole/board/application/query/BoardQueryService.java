@@ -78,15 +78,14 @@ public class BoardQueryService {
     }
 
     // WebController 호환 메서드들 (기존 API 유지)
-    
+
     /**
      * 게시글 목록 조회 (검색 포함)
      */
     @Transactional(readOnly = true)
     public Page<BoardResult> getBoards(String search, Pageable pageable) {
-        if (search != null && !search.trim().isEmpty()) {
+        if (search != null && !search.trim().isEmpty())
             return listWithPaging(pageable, search.trim());
-        }
         return listWithPaging(pageable);
     }
 
@@ -99,7 +98,7 @@ public class BoardQueryService {
     }
 
     // 대시보드용 메서드들
-    
+
     /**
      * 최근 게시글 목록 조회
      *
@@ -131,8 +130,8 @@ public class BoardQueryService {
     public Long getTodayBoardCount() {
         LocalDate today = LocalDate.now();
         return boardRepository.countByCreatedAtBetween(
-            today.atStartOfDay(),
-            today.plusDays(1).atStartOfDay()
+                today.atStartOfDay(),
+                today.plusDays(1).atStartOfDay()
         );
     }
 

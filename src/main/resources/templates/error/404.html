@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="ko" 
-      xmlns:th="http://www.thymeleaf.org"
+<html data-theme="auto"
+      lang="ko"
       th:replace="~{fragments/base :: layout(~{::title}, ~{::main})}"
-      data-theme="auto">
+      xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>페이지를 찾을 수 없습니다 - Board Hole</title>
 </head>
@@ -24,15 +24,19 @@
         </p>
 
         <p th:if="${timestamp}">
-            <small>발생 시간: <time th:text="${timestamp instanceof T(java.time.temporal.TemporalAccessor) ? #temporals.format(timestamp, 'MM-dd HH:mm') : (timestamp instanceof T(java.util.Date) ? #dates.format(timestamp, 'MM-dd HH:mm') : timestamp)}">01-01 00:00</time></small>
+            <small>발생 시간:
+                <time th:text="${timestamp instanceof T(java.time.temporal.TemporalAccessor) ? #temporals.format(timestamp, 'MM-dd HH:mm') : (timestamp instanceof T(java.util.Date) ? #dates.format(timestamp, 'MM-dd HH:mm') : timestamp)}">
+                    01-01 00:00
+                </time>
+            </small>
         </p>
 
         <footer>
             <nav>
                 <ul>
-                    <li><a href="/" role="button" class="secondary">홈으로 돌아가기</a></li>
+                    <li><a class="secondary" href="/" role="button">홈으로 돌아가기</a></li>
                     <li><a href="/boards" role="button">게시판 보기</a></li>
-                    <li><a href="/auth/login" role="button" class="secondary outline">로그인</a></li>
+                    <li><a class="secondary outline" href="/auth/login" role="button">로그인</a></li>
                 </ul>
             </nav>
         </footer>

@@ -79,6 +79,42 @@ public class GlobalExceptionHandler {
         pd.setProperty("timestamp", Instant.now().toString());
     }
 
+    private static boolean isSortDirectionError(IllegalArgumentException ex, HttpServletRequest request) {
+        if (request == null)
+            return false;
+        String[] sortParams = request.getParameterValues("sort");
+        if (sortParams == null || sortParams.length == 0)
+            return false;
+        String msg = Optional.ofNullable(ex.getMessage()).orElse("").toLowerCase();
+        // 방향값 오류로 흔히 보이는 키워드 검사
+        if (msg.contains("direction") || msg.contains("order") || msg.contains("sort"))
+            return true;
+        // 메시지에 의존하지 않도록 파라미터 패턴도 간단 점검: property,dir 형태인데 dir이 asc/desc가 아닐 때
+        for (String s : sortParams) {
+            String[] parts = s.split(",");
+            if (parts.length >= 2) {
+                String dir = parts[1].trim().toLowerCase();
+                if (!dir.isEmpty() && !dir.equals("asc") && !dir.equals("desc"))
+                    return true;
+            }
+        }
+        return false;
+    }
+
+    private static String extractDirectionFromSort(HttpServletRequest request) {
+        String[] sortParams = Optional.ofNullable(request.getParameterValues("sort")).orElse(new String[]{});
+        for (String s : sortParams) {
+            String[] parts = s.split(",");
+            if (parts.length >= 2)
+                return parts[1].trim();
+        }
+        return "";
+    }
+
+    private static boolean isBasicOrId(SingularAttribute<?, ?> attr) {
+        return attr.isId() || attr.getPersistentAttributeType() == Attribute.PersistentAttributeType.BASIC;
+    }
+
     @ExceptionHandler(NoResourceFoundException.class)
     public ProblemDetail handleNoResourceFound(NoResourceFoundException ex, HttpServletRequest request) {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, MessageUtils.get("error.resource.not-found"));
@@ -229,38 +265,6 @@ public class GlobalExceptionHandler {
         return pd;
     }
 
-    private static boolean isSortDirectionError(IllegalArgumentException ex, HttpServletRequest request) {
-        if (request == null)
-            return false;
-        String[] sortParams = request.getParameterValues("sort");
-        if (sortParams == null || sortParams.length == 0)
-            return false;
-        String msg = Optional.ofNullable(ex.getMessage()).orElse("").toLowerCase();
-        // 방향값 오류로 흔히 보이는 키워드 검사
-        if (msg.contains("direction") || msg.contains("order") || msg.contains("sort"))
-            return true;
-        // 메시지에 의존하지 않도록 파라미터 패턴도 간단 점검: property,dir 형태인데 dir이 asc/desc가 아닐 때
-        for (String s : sortParams) {
-            String[] parts = s.split(",");
-            if (parts.length >= 2) {
-                String dir = parts[1].trim().toLowerCase();
-                if (!dir.isEmpty() && !dir.equals("asc") && !dir.equals("desc"))
-                    return true;
-            }
-        }
-        return false;
-    }
-
-    private static String extractDirectionFromSort(HttpServletRequest request) {
-        String[] sortParams = Optional.ofNullable(request.getParameterValues("sort")).orElse(new String[]{});
-        for (String s : sortParams) {
-            String[] parts = s.split(",");
-            if (parts.length >= 2)
-                return parts[1].trim();
-        }
-        return "";
-    }
-
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ProblemDetail handleMessageNotReadable(HttpMessageNotReadableException ex, HttpServletRequest request) {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, MessageUtils.get("error.invalid-json"));
@@ -309,10 +313,6 @@ public class GlobalExceptionHandler {
         } catch (IllegalArgumentException e) {
             return List.of();
         }
-    }
-
-    private static boolean isBasicOrId(SingularAttribute<?, ?> attr) {
-        return attr.isId() || attr.getPersistentAttributeType() == Attribute.PersistentAttributeType.BASIC;
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)

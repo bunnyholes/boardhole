@@ -1,7 +1,10 @@
 package bunny.boardhole.auth.presentation.view;
 
+import java.util.UUID;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -13,8 +16,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import bunny.boardhole.auth.application.AuthCommandService;
 import bunny.boardhole.auth.application.mapper.AuthMapper;
 import bunny.boardhole.shared.security.AppUserPrincipal;
-
-import java.util.UUID;
 
 /**
  * 로그아웃 뷰 컨트롤러
@@ -47,17 +48,16 @@ public class LogoutViewController {
             UUID userId = principal.user().getId();
             var logoutCommand = authMapper.toLogoutCommand(userId);
             authCommandService.logout(logoutCommand);
-            
+
             log.info("로그아웃 성공: username={}", principal.user().getUsername());
         }
-        
+
         // HTTP 세션 처리
         SecurityContextHolder.clearContext();
         HttpSession session = request.getSession(false);
-        if (session != null) {
+        if (session != null)
             session.invalidate();
-        }
-        
+
         // 홈페이지로 리디렉트
         return "redirect:/";
     }

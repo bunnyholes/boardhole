@@ -26,18 +26,10 @@ import io.restassured.RestAssured;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public abstract class ViewE2ETestBase {
 
-    @LocalServerPort
-    protected int port;
-
-    @BeforeAll
-    void restAssuredSetup() {
-        RestAssured.port = port;
-        RestAssured.baseURI = "http://localhost";
-        RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
-    }
-
     private static Playwright playwright;
     private static Browser browser;
+    @LocalServerPort
+    protected int port;
     protected BrowserContext context;
     protected Page page;
 
@@ -54,6 +46,13 @@ public abstract class ViewE2ETestBase {
             browser.close();
         if (playwright != null)
             playwright.close();
+    }
+
+    @BeforeAll
+    void restAssuredSetup() {
+        RestAssured.port = port;
+        RestAssured.baseURI = "http://localhost";
+        RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
     }
 
     @BeforeEach

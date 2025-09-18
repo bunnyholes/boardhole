@@ -1,9 +1,9 @@
 <nav class="container-fluid" th:fragment="header">
     <ul>
         <li>
-            <button id="menu-toggle" type="button" class="secondary outline" 
-                    commandfor="side-navigation" command="show-modal"
-                    aria-label="메뉴 열기">
+            <button aria-label="메뉴 열기" class="secondary outline" command="show-modal"
+                    commandfor="side-navigation" id="menu-toggle"
+                    type="button">
                 ☰
             </button>
         </li>
@@ -11,14 +11,14 @@
     </ul>
     <ul>
         <li sec:authorize="!isAuthenticated()">
-            <a th:href="@{/auth/login}" role="button" class="secondary outline">로그인</a>
+            <a class="secondary outline" role="button" th:href="@{/auth/login}">로그인</a>
         </li>
         <li sec:authorize="!isAuthenticated()">
-            <a th:href="@{/auth/signup}" role="button" class="primary">회원가입</a>
+            <a class="primary" role="button" th:href="@{/auth/signup}">회원가입</a>
         </li>
         <li sec:authorize="isAuthenticated()">
-            <form th:action="@{/auth/logout}" method="post" class="logout-form">
-                <button type="submit" class="secondary outline">로그아웃</button>
+            <form class="logout-form" method="post" th:action="@{/auth/logout}">
+                <button class="secondary outline" type="submit">로그아웃</button>
             </form>
         </li>
     </ul>

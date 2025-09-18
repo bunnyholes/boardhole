@@ -190,7 +190,7 @@ class BoardE2ETest extends E2ETestBase {
         void anonymous() {
             String uid = UUID.randomUUID().toString().substring(0, 8);
             UUID id = UUID.fromString(BoardSteps.create(regular, "Hello " + uid, "Content " + uid).jsonPath().getString("id"));
-            given().when().get("/api/boards/" + id.toString()).then().statusCode(200).body("title", equalTo("Hello " + uid));
+            given().when().get("/api/boards/" + id).then().statusCode(200).body("title", equalTo("Hello " + uid));
         }
 
         @Test
@@ -198,7 +198,13 @@ class BoardE2ETest extends E2ETestBase {
         void regular() {
             String uid = UUID.randomUUID().toString().substring(0, 8);
             UUID id = UUID.fromString(BoardSteps.create(regular, "My " + uid, "Mine").jsonPath().getString("id"));
-            given().cookie("JSESSIONID", regular).when().get("/api/boards/" + id.toString()).then().statusCode(200).body("id", equalTo(id.toString()));
+            given()
+                    .cookie("JSESSIONID", regular)
+                    .when()
+                    .get("/api/boards/" + id)
+                    .then()
+                    .statusCode(200)
+                    .body("id", equalTo(id.toString()));
         }
 
         @Test
@@ -206,14 +212,14 @@ class BoardE2ETest extends E2ETestBase {
         void admin_other() {
             String uid = UUID.randomUUID().toString().substring(0, 8);
             UUID id = UUID.fromString(BoardSteps.create(regular, "Someone " + uid, "C").jsonPath().getString("id"));
-            given().cookie("JSESSIONID", admin).when().get("/api/boards/" + id.toString()).then().statusCode(200);
+            given().cookie("JSESSIONID", admin).when().get("/api/boards/" + id).then().statusCode(200);
         }
 
         @Test
         @DisplayName("미존재 → 404")
         void not_found() {
             // Use a valid UUID that doesn't exist
-            String nonExistentId = "00000000-0000-0000-0000-000000000000";
+            final String nonExistentId = "00000000-0000-0000-0000-000000000000";
             given()
                     .when()
                     .get("/api/boards/" + nonExistentId)
@@ -240,19 +246,19 @@ class BoardE2ETest extends E2ETestBase {
 
             // 비동기 증가를 안정적으로 검증: 일정 시간 동안 증가 조건을 대기
             org.awaitility.Awaitility.await()
-                    .atMost(java.time.Duration.ofSeconds(3))
-                    .pollInterval(java.time.Duration.ofMillis(100))
-                    .untilAsserted(() -> {
-                        int current = given()
-                                .when()
-                                .get("/api/boards/" + id)
-                                .then()
-                                .statusCode(200)
-                                .extract()
-                                .jsonPath()
-                                .getInt("viewCount");
-                        org.assertj.core.api.Assertions.assertThat(current).isGreaterThanOrEqualTo(v1);
-                    });
+                                     .atMost(java.time.Duration.ofSeconds(3))
+                                     .pollInterval(java.time.Duration.ofMillis(100))
+                                     .untilAsserted(() -> {
+                                         int current = given()
+                                                 .when()
+                                                 .get("/api/boards/" + id)
+                                                 .then()
+                                                 .statusCode(200)
+                                                 .extract()
+                                                 .jsonPath()
+                                                 .getInt("viewCount");
+                                         org.assertj.core.api.Assertions.assertThat(current).isGreaterThanOrEqualTo(v1);
+                                     });
         }
 
         @Test
@@ -372,7 +378,7 @@ class BoardE2ETest extends E2ETestBase {
                     .formParam("title", longTitle)
                     .formParam("content", "Updated")
                     .when()
-                    .put("/api/boards/" + id.toString())
+                    .put("/api/boards/" + id)
                     .then()
                     .statusCode(422)
                     .body("type", equalTo("urn:problem-type:validation-error"));
@@ -421,7 +427,7 @@ class BoardE2ETest extends E2ETestBase {
         void admin_other() {
             UUID id = UUID.fromString(BoardSteps.create(regular, "TBD", "C").jsonPath().getString("id"));
             BoardSteps.delete(admin, id).then().statusCode(204);
-            given().when().get("/api/boards/" + id.toString()).then().statusCode(404);
+            given().when().get("/api/boards/" + id).then().statusCode(404);
         }
 
         @Test

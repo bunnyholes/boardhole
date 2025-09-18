@@ -5,27 +5,32 @@
 <!-- 날짜 포맷팅 Fragment - 간단한 포맷으로 최적화 -->
 <th:block th:fragment="date-short(date)" th:text="${#temporals.format(date, 'MM-dd')}">01-01</th:block>
 <th:block th:fragment="date-medium(date)" th:text="${#temporals.format(date, 'yyyy-MM-dd')}">2024-01-01</th:block>
-<th:block th:fragment="date-long(date)" th:text="${#temporals.format(date, 'yyyy-MM-dd HH:mm')}">2024-01-01 00:00</th:block>
-<th:block th:fragment="date-korean(date)" th:text="${#temporals.format(date, 'yyyy년 MM월 dd일 HH:mm')}">2024년 01월 01일 00:00</th:block>
+<th:block th:fragment="date-long(date)" th:text="${#temporals.format(date, 'yyyy-MM-dd HH:mm')}">2024-01-01 00:00
+</th:block>
+<th:block th:fragment="date-korean(date)" th:text="${#temporals.format(date, 'yyyy년 MM월 dd일 HH:mm')}">2024년 01월 01일
+    00:00
+</th:block>
 
 <!-- 사용자 메타정보 Fragment -->
-<div th:fragment="user-meta(authorName, createdAt, viewCount, showUpdated, updatedAt)" class="meta-info">
+<div class="meta-info" th:fragment="user-meta(authorName, createdAt, viewCount, showUpdated, updatedAt)">
     <div class="meta-item">
         👤 <span th:text="${authorName}">사용자명</span>
     </div>
     <div class="meta-item">
-        ⏰ <th:block th:replace="~{fragments/common :: date-long(${createdAt})}">날짜</th:block>
+        ⏰
+        <th:block th:replace="~{fragments/common :: date-long(${createdAt})}">날짜</th:block>
     </div>
-    <div th:if="${showUpdated and updatedAt != createdAt}" class="meta-item">
-        📅 수정: <th:block th:replace="~{fragments/common :: date-long(${updatedAt})}">수정날짜</th:block>
+    <div class="meta-item" th:if="${showUpdated and updatedAt != createdAt}">
+        📅 수정:
+        <th:block th:replace="~{fragments/common :: date-long(${updatedAt})}">수정날짜</th:block>
     </div>
-    <div th:if="${viewCount != null}" class="meta-item">
+    <div class="meta-item" th:if="${viewCount != null}">
         👁 조회 <span th:text="${viewCount}">0</span>
     </div>
 </div>
 
 <!-- 활동 통계 Fragment -->
-<div th:fragment="activity-stats(boardCount, commentCount, showLabels)" class="activity-stats">
+<div class="activity-stats" th:fragment="activity-stats(boardCount, commentCount, showLabels)">
     <div class="stat-item">
         <div class="stat-value" th:text="${boardCount ?: 0}">0</div>
         <small th:text="${showLabels ? '게시글' : '글'}">글</small>
@@ -37,10 +42,10 @@
 </div>
 
 <!-- 빈 상태 Fragment -->
-<div th:fragment="empty-state(icon, message, actionUrl, actionText)" class="empty-state">
+<div class="empty-state" th:fragment="empty-state(icon, message, actionUrl, actionText)">
     <span th:text="${icon}">📭</span>
     <p th:text="${message}">내용이 없습니다.</p>
-    <a th:if="${actionUrl}" th:href="${actionUrl}" th:text="${actionText}" class="primary">액션</a>
+    <a class="primary" th:href="${actionUrl}" th:if="${actionUrl}" th:text="${actionText}">액션</a>
 </div>
 
 </body>

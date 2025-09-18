@@ -1,12 +1,13 @@
 package bunny.boardhole.user.presentation.dto;
 
+import jakarta.validation.constraints.NotBlank;
+
 import bunny.boardhole.shared.validation.PasswordMatch;
 import bunny.boardhole.user.domain.validation.UserValidationConstants;
 import bunny.boardhole.user.domain.validation.required.ValidEmail;
 import bunny.boardhole.user.domain.validation.required.ValidName;
 import bunny.boardhole.user.domain.validation.required.ValidPassword;
 import bunny.boardhole.user.domain.validation.required.ValidUsername;
-import jakarta.validation.constraints.NotBlank;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 

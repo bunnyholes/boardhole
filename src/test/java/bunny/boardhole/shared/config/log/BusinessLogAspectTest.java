@@ -91,7 +91,8 @@ class BusinessLogAspectTest {
         ReflectionTestUtils.setField(board, "id", boardId);
         given(boardRepository.save(any(Board.class))).willReturn(board);
         // Suppress null warning: test record with null timestamps for logging test purposes
-        @SuppressWarnings("DataFlowIssue") BoardResult boardResult = new BoardResult(boardId, "title", "secret content", authorId, "writer", 0, null, null);
+        @SuppressWarnings("DataFlowIssue") BoardResult boardResult = new BoardResult(boardId, "title", "secret content", authorId, "writer", 0, null,
+                null);
         given(boardMapper.toResult(board)).willReturn(boardResult);
 
         boardService.create(new CreateBoardCommand(authorId, "title", "secret content"));

@@ -96,7 +96,8 @@ class BoardQueryServiceTest {
         ReflectionTestUtils.setField(board, "viewCount", 0);
         ReflectionTestUtils.setField(board, "createdAt", LocalDateTime.now());
 
-        boardResult = new BoardResult(boardId, "Test Board", "Test Content", UUID.randomUUID(), "testuser", 0, LocalDateTime.now(), LocalDateTime.now());
+        boardResult = new BoardResult(boardId, "Test Board", "Test Content", UUID.randomUUID(), "testuser", 0, LocalDateTime.now(),
+                LocalDateTime.now());
     }
 
     @Nested
@@ -107,15 +108,16 @@ class BoardQueryServiceTest {
         @DisplayName("존재하는 게시글 조회 시 결과 반환 및 조회 이벤트 발행")
         void handle_ExistingBoard_ReturnsResultAndPublishesEvent() {
             // Given
-            final UUID boardId = UUID.randomUUID();
+            UUID boardId = UUID.randomUUID();
             GetBoardQuery query = new GetBoardQuery(boardId);
             ViewedEvent viewedEvent = new ViewedEvent(boardId);
-            
+
             // Set the board ID to match
             ReflectionTestUtils.setField(board, "id", boardId);
-            
+
             // Create boardResult with matching boardId
-            BoardResult localBoardResult = new BoardResult(boardId, "Test Board", "Test Content", UUID.randomUUID(), "testuser", 0, LocalDateTime.now(), LocalDateTime.now());
+            BoardResult localBoardResult = new BoardResult(boardId, "Test Board", "Test Content", UUID.randomUUID(), "testuser", 0,
+                    LocalDateTime.now(), LocalDateTime.now());
 
             given(boardRepository.findById(boardId)).willReturn(Optional.of(board));
             given(boardMapper.toResult(board)).willReturn(
@@ -142,7 +144,7 @@ class BoardQueryServiceTest {
         @DisplayName("❌ 존재하지 않는 게시글 조회 → ResourceNotFoundException with 국제화 메시지")
         void handle_NonExistingBoard_ThrowsResourceNotFoundException() {
             // Given
-            final UUID boardId = UUID.randomUUID();
+            UUID boardId = UUID.randomUUID();
             GetBoardQuery query = new GetBoardQuery(boardId);
 
             given(boardRepository.findById(boardId)).willReturn(Optional.empty());

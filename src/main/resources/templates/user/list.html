@@ -1,6 +1,6 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{fragments/base :: layout(~{::title}, ~{::main})}">
+<html lang="ko" th:replace="~{fragments/base :: layout(~{::title}, ~{::main})}"
+      xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>사용자 관리 - Board Hole</title>
 </head>
@@ -40,46 +40,51 @@
             <dl class="grid">
                 <div>
                     <dt>게시글</dt>
-                    <dd><mark th:text="${user.boardCount ?: 0}">0</mark></dd>
+                    <dd>
+                        <mark th:text="${user.boardCount ?: 0}">0</mark>
+                    </dd>
                 </div>
                 <div>
                     <dt>댓글</dt>
-                    <dd><mark th:text="${user.commentCount ?: 0}">0</mark></dd>
+                    <dd>
+                        <mark th:text="${user.commentCount ?: 0}">0</mark>
+                    </dd>
                 </div>
             </dl>
 
             <p>
-                가입일 <time th:text="${#temporals.format(user.createdAt, 'yy-MM-dd')}">24-01-01</time>
+                가입일
+                <time th:text="${#temporals.format(user.createdAt, 'yy-MM-dd')}">24-01-01</time>
             </p>
 
             <footer>
-                <a th:href="@{/users/{id}(id=${user.id})}" role="button" class="secondary outline">상세보기</a>
+                <a class="secondary outline" role="button" th:href="@{/users/{id}(id=${user.id})}">상세보기</a>
             </footer>
         </article>
     </section>
 
-    <nav th:if="${users.totalPages > 1}" aria-label="사용자 페이지네이션">
+    <nav aria-label="사용자 페이지네이션" th:if="${users.totalPages > 1}">
         <ul>
             <li th:if="${users.first}">
-                <span class="secondary outline" aria-disabled="true">이전</span>
+                <span aria-disabled="true" class="secondary outline">이전</span>
             </li>
             <li th:unless="${users.first}">
-                <a th:href="@{/users(page=${users.number - 1})}" class="secondary outline">이전</a>
+                <a class="secondary outline" th:href="@{/users(page=${users.number - 1})}">이전</a>
             </li>
 
             <li th:each="pageNum : ${#numbers.sequence(0, users.totalPages - 1)}"
                 th:if="${pageNum >= users.number - 2 and pageNum <= users.number + 2}">
-                <a th:href="@{/users(page=${pageNum})}"
-                   th:text="${pageNum + 1}"
-                   th:aria-current="${pageNum == users.number} ? 'page'"
-                   th:class="${pageNum == users.number} ? 'contrast' : 'secondary outline'}">1</a>
+                <a th:aria-current="${pageNum == users.number} ? 'page'"
+                   th:class="${pageNum == users.number} ? 'contrast' : 'secondary outline'}"
+                   th:href="@{/users(page=${pageNum})}"
+                   th:text="${pageNum + 1}">1</a>
             </li>
 
             <li th:if="${users.last}">
-                <span class="secondary outline" aria-disabled="true">다음</span>
+                <span aria-disabled="true" class="secondary outline">다음</span>
             </li>
             <li th:unless="${users.last}">
-                <a th:href="@{/users(page=${users.number + 1})}" class="secondary outline">다음</a>
+                <a class="secondary outline" th:href="@{/users(page=${users.number + 1})}">다음</a>
             </li>
         </ul>
     </nav>

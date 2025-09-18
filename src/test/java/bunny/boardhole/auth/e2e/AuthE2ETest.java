@@ -370,17 +370,17 @@ class AuthE2ETest extends E2ETestBase {
         void shouldBeSecureAgainstSQLInjection() {
             // SQL Injection 시도는 유효성 검증(422) 또는 인증 실패(401)로 막힘
             ValidatableResponse response = given().contentType(ContentType.URLENC)
-                   .formParam("username", "' OR '1'='1")
-                   .formParam("password", "' OR '1'='1")
-                   .when()
-                   .post("/api/auth/login")
-                   .then();
-            
+                                                  .formParam("username", "' OR '1'='1")
+                                                  .formParam("password", "' OR '1'='1")
+                                                  .when()
+                                                  .post("/api/auth/login")
+                                                  .then();
+
             // 422(Validation Error) 또는 401(Unauthorized) 둘 다 보안상 성공
             int statusCode = response.extract().statusCode();
             org.assertj.core.api.Assertions.assertThat(statusCode)
-                    .withFailMessage("SQL Injection should be blocked with 422 or 401, but got " + statusCode)
-                    .isIn(422, 401);
+                                           .withFailMessage("SQL Injection should be blocked with 422 or 401, but got " + statusCode)
+                                           .isIn(422, 401);
         }
     }
 

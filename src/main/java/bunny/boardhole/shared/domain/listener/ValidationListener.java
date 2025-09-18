@@ -12,7 +12,7 @@ import jakarta.validation.Validator;
 /**
  * JPA Entity Listener for automatic Bean Validation
  * 엔티티가 저장되거나 업데이트되기 전에 자동으로 검증을 수행합니다.
- *
+ * <p>
  * 스프링 컨텍스트의 Validator(LocalValidatorFactoryBean)를 사용하도록
  * 외부에서 setValidator로 주입할 수 있으며, 주입되지 않은 경우
  * 기본 Validator(표준)로 폴백합니다.

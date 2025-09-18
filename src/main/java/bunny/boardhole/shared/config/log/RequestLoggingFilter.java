@@ -41,7 +41,7 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
         long start = System.nanoTime();
         try {
             try {
-                log.info(logFormatter.formatRequestStart(request.getMethod(), request.getRequestURI(), request.getRemoteAddr()));
+                log.info(LogFormatter.formatRequestStart(request.getMethod(), request.getRequestURI(), request.getRemoteAddr()));
             } catch (Throwable formatEx) {
                 log.warn(MessageUtils.get("log.request.format.failed.start", request.getMethod(), request.getRequestURI(), formatEx.toString()));
             }
@@ -51,7 +51,8 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
             try {
                 log.info(logFormatter.formatRequestEnd(request.getMethod(), request.getRequestURI(), response.getStatus(), tookMs));
             } catch (Throwable formatEx) {
-                log.warn(MessageUtils.get("log.request.format.failed.end", request.getMethod(), request.getRequestURI(), response.getStatus(), formatEx.toString()));
+                log.warn(MessageUtils.get("log.request.format.failed.end", request.getMethod(), request.getRequestURI(), response.getStatus(),
+                        formatEx.toString()));
             }
             MDCUtil.clearRequest();
         }

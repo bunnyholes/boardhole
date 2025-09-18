@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
  */
 @Controller
 public class TestViewController {
-    
+
     @GetMapping("/test-no-sec")
     public String testNoSec() {
         return "test-no-sec";

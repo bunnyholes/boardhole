@@ -63,13 +63,13 @@ public class PasswordViewController {
         }
 
         var command = new UpdatePasswordCommand(
-                principal.user().getId(), 
-                request.currentPassword(), 
-                request.newPassword(), 
+                principal.user().getId(),
+                request.currentPassword(),
+                request.newPassword(),
                 request.confirmPassword()
         );
         userCommandService.updatePassword(command);
-        
+
         redirectAttributes.addFlashAttribute("success", "비밀번호가 성공적으로 변경되었습니다.");
         return "redirect:/users/me";
     }
@@ -87,5 +87,6 @@ public class PasswordViewController {
             String currentPassword,
             String newPassword,
             String confirmPassword
-    ) {}
+    ) {
+    }
 }

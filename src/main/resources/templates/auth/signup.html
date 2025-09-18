@@ -1,6 +1,6 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{fragments/base :: layout(title='Board Hole 회원가입', content=~{::section})}">
+<html lang="ko" th:replace="~{fragments/base :: layout(title='Board Hole 회원가입', content=~{::section})}"
+      xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>Board Hole 회원가입</title>
 </head>
@@ -16,72 +16,83 @@
         </header>
 
         <main>
-            <form th:action="@{/auth/signup}" th:object="${userCreateRequest}" method="post">
+            <form method="post" th:action="@{/auth/signup}" th:object="${userCreateRequest}">
                 <fieldset>
                     <label for="email">
                         이메일
-                        <input id="email" type="email" placeholder="you@example.com" 
-                               th:field="*{email}" autocomplete="email" required
-                               th:attr="aria-invalid=${#fields.hasErrors('email')} ? 'true' : (${#fields.hasAnyErrors()} ? 'false' : null),aria-describedby=${#fields.hasErrors('email')} ? 'email-help' : null">
+                        <input autocomplete="email" id="email" placeholder="you@example.com"
+                               required
+                               th:attr="aria-invalid=${#fields.hasErrors('email')} ? 'true' : (${#fields.hasAnyErrors()} ? 'false' : null),aria-describedby=${#fields.hasErrors('email')} ? 'email-help' : null"
+                               th:field="*{email}"
+                               type="email">
                         <small>로그인 확인 및 알림에 사용됩니다.</small>
                     </label>
-                    <small id="email-help" th:if="${#fields.hasErrors('email')}" th:errors="*{email}">
+                    <small id="email-help" th:errors="*{email}" th:if="${#fields.hasErrors('email')}">
                         이메일 오류
                     </small>
 
                     <label for="name">
                         이름
-                        <input id="name" type="text" placeholder="홍길동" maxlength="50"
-                               th:field="*{name}" autocomplete="name" required
-                               th:attr="aria-invalid=${#fields.hasErrors('name')} ? 'true' : (${#fields.hasAnyErrors()} ? 'false' : null),aria-describedby=${#fields.hasErrors('name')} ? 'name-help' : null">
+                        <input autocomplete="name" id="name" maxlength="50" placeholder="홍길동"
+                               required
+                               th:attr="aria-invalid=${#fields.hasErrors('name')} ? 'true' : (${#fields.hasAnyErrors()} ? 'false' : null),aria-describedby=${#fields.hasErrors('name')} ? 'name-help' : null"
+                               th:field="*{name}"
+                               type="text">
                     </label>
-                    <small id="name-help" th:if="${#fields.hasErrors('name')}" th:errors="*{name}">
+                    <small id="name-help" th:errors="*{name}" th:if="${#fields.hasErrors('name')}">
                         이름 오류
                     </small>
 
                     <label for="username">
                         사용자명
-                        <input id="username" type="text" placeholder="영문과 숫자 조합으로 3-20자" 
-                               minlength="3" maxlength="20" pattern="^[a-zA-Z0-9]{3,20}$"
-                               title="영문과 숫자만 사용하여 3-20자로 입력해주세요."
-                               th:field="*{username}" autocomplete="username" required
-                               th:attr="aria-invalid=${#fields.hasErrors('username')} ? 'true' : (${#fields.hasAnyErrors()} ? 'false' : null),aria-describedby=${#fields.hasErrors('username')} ? 'username-help' : null">
+                        <input autocomplete="username" id="username" maxlength="20"
+                               minlength="3" pattern="^[a-zA-Z0-9]{3,20}$" placeholder="영문과 숫자 조합으로 3-20자"
+                               required
+                               th:attr="aria-invalid=${#fields.hasErrors('username')} ? 'true' : (${#fields.hasAnyErrors()} ? 'false' : null),aria-describedby=${#fields.hasErrors('username')} ? 'username-help' : null"
+                               th:field="*{username}" title="영문과 숫자만 사용하여 3-20자로 입력해주세요."
+                               type="text">
                         <small>영문, 숫자 조합으로 3-20자 이내로 입력해주세요.</small>
                     </label>
-                    <small id="username-help" th:if="${#fields.hasErrors('username')}" th:errors="*{username}">
+                    <small id="username-help" th:errors="*{username}" th:if="${#fields.hasErrors('username')}">
                         사용자명 오류
                     </small>
 
                     <label for="password">
                         비밀번호
-                        <input id="password" type="password" placeholder="보안이 강한 비밀번호" 
-                               minlength="8" maxlength="100" th:field="*{password}" autocomplete="new-password" required
+                        <input autocomplete="new-password" id="password" maxlength="100"
+                               minlength="8"
                                pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[@$!%*?&])[A-Za-z0-9@$!%*?&]{8,100}$"
+                               placeholder="보안이 강한 비밀번호" required
+                               th:attr="aria-invalid=${#fields.hasErrors('password')} ? 'true' : (${#fields.hasAnyErrors()} ? 'false' : null),aria-describedby=${#fields.hasErrors('password')} ? 'password-help' : null"
+                               th:field="*{password}"
                                title="8자 이상, 대/소문자, 숫자, 특수문자를 모두 포함해야 합니다."
-                               th:attr="aria-invalid=${#fields.hasErrors('password')} ? 'true' : (${#fields.hasAnyErrors()} ? 'false' : null),aria-describedby=${#fields.hasErrors('password')} ? 'password-help' : null">
+                               type="password">
                         <small>8자 이상이며 대/소문자 · 숫자 · 특수문자를 각각 포함해야 합니다.</small>
                     </label>
-                    <small id="password-help" th:if="${#fields.hasErrors('password')}" th:errors="*{password}">
+                    <small id="password-help" th:errors="*{password}" th:if="${#fields.hasErrors('password')}">
                         비밀번호 오류
                     </small>
 
                     <label for="confirmPassword">
                         비밀번호 확인
-                        <input id="confirmPassword" type="password" placeholder="비밀번호를 다시 입력"
-                               th:field="*{confirmPassword}" autocomplete="new-password" required
-                               th:attr="aria-invalid=${#fields.hasErrors('confirmPassword')} ? 'true' : (${#fields.hasAnyErrors()} ? 'false' : null),aria-describedby=${#fields.hasErrors('confirmPassword')} ? 'confirm-password-help' : null">
+                        <input autocomplete="new-password" id="confirmPassword" placeholder="비밀번호를 다시 입력"
+                               required
+                               th:attr="aria-invalid=${#fields.hasErrors('confirmPassword')} ? 'true' : (${#fields.hasAnyErrors()} ? 'false' : null),aria-describedby=${#fields.hasErrors('confirmPassword')} ? 'confirm-password-help' : null"
+                               th:field="*{confirmPassword}"
+                               type="password">
                     </label>
-                    <small id="confirm-password-help" th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}">
+                    <small id="confirm-password-help" th:errors="*{confirmPassword}"
+                           th:if="${#fields.hasErrors('confirmPassword')}">
                         비밀번호 확인 오류
                     </small>
 
                     <label>
-                        <input type="checkbox" name="agree" required>
+                        <input name="agree" required type="checkbox">
                         이용약관과 개인정보 처리방침에 동의합니다.
                     </label>
                 </fieldset>
 
-                <input type="submit" value="회원가입" class="primary">
+                <input class="primary" type="submit" value="회원가입">
             </form>
 
             <p>

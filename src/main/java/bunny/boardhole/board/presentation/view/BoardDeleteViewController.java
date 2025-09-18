@@ -44,7 +44,7 @@ public class BoardDeleteViewController {
             RedirectAttributes redirectAttributes
     ) {
         boardCommandService.delete(id);
-        
+
         redirectAttributes.addFlashAttribute("success", "게시글이 성공적으로 삭제되었습니다.");
         return "redirect:/boards";
     }

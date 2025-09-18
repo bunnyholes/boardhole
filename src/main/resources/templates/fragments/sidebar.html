@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html lang="ko" 
-      xmlns:th="http://www.thymeleaf.org" 
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html lang="ko"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      xmlns:th="http://www.thymeleaf.org">
 <body>
 <!-- 극한 최적화 사이드바 -->
 <aside th:fragment="sidebar">
@@ -13,7 +13,7 @@
                     📋 게시판
                 </a>
             </li>
-            
+
             <!-- 관리자 전용 -->
             <li sec:authorize="hasRole('ADMIN')">
                 <a href="/users"
@@ -21,7 +21,7 @@
                     👥 사용자 관리
                 </a>
             </li>
-            
+
             <!-- 사용자 메뉴 -->
             <li sec:authorize="hasRole('USER')">
                 <a href="/users/mypage"

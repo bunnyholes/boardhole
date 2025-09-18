@@ -75,11 +75,11 @@ class LogFormatter {
                 "org.springframework.");
     }
 
-    String formatMethodStart(String signature, Object[] args) {
+    static String formatMethodStart(String signature, Object[] args) {
         String layerColor = getLayerColor(signature);
         String layerIcon = getLayerIcon(signature);
         Object[] safeArgs = (args == null) ? new Object[0] : args;
-        String argsString = Arrays.stream(safeArgs).map(this::safeToString).collect(Collectors.joining(", "));
+        String argsString = Arrays.stream(safeArgs).map(LogFormatter::safeToString).collect(Collectors.joining(", "));
 
         return MessageUtils.get("log.method.start", layerColor + layerIcon + signature + LogConstants.RESET, argsString);
     }
@@ -90,14 +90,15 @@ class LogFormatter {
         String perfColor = getPerformanceColor(tookMs);
         String perfIcon = getPerformanceIcon(tookMs);
 
-        return MessageUtils.get("log.method.end", layerColor + layerIcon + signature + LogConstants.RESET, perfColor + perfIcon + tookMs + LogConstants.RESET);
+        return MessageUtils.get("log.method.end", layerColor + layerIcon + signature + LogConstants.RESET,
+                perfColor + perfIcon + tookMs + LogConstants.RESET);
     }
 
-    String formatMethodError(String signature, long tookMs, String errorMessage) {
+    static String formatMethodError(String signature, long tookMs, String errorMessage) {
         return MessageUtils.get("log.method.error", LogConstants.RED + signature + LogConstants.RESET, tookMs, errorMessage);
     }
 
-    String formatRequestStart(String method, String uri, String remoteAddr) {
+    static String formatRequestStart(String method, String uri, String remoteAddr) {
         return MessageUtils.get("log.request.start", method, uri, remoteAddr);
     }
 
@@ -134,7 +135,7 @@ class LogFormatter {
     }
 
     // 안전한 객체 문자열 변환
-    private String safeToString(Object arg) {
+    private static String safeToString(Object arg) {
         // null 인자는 그대로 문자열 "null" 로 처리
         if (arg == null)
             return "null";
@@ -151,7 +152,7 @@ class LogFormatter {
     }
 
     // 객체 정보 안전하게 추출 (StringBuilder 최적화)
-    private String sanitizeObject(Object obj) throws IllegalAccessException {
+    private static String sanitizeObject(Object obj) throws IllegalAccessException {
         Class<?> cls = obj.getClass();
         if (isJdkType(cls))
             return String.valueOf(obj);
@@ -197,7 +198,7 @@ class LogFormatter {
     }
 
     // 민감정보 마스킹 (강화된 보안)
-    private String getSensitiveFieldMask(String fieldName) {
+    private static String getSensitiveFieldMask(String fieldName) {
         String lowerName = fieldName.toLowerCase();
         if (lowerName.contains("password") || lowerName.contains("pwd"))
             return MessageUtils.get("mask.password");

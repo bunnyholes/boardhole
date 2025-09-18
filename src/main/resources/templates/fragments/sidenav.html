@@ -1,26 +1,26 @@
 <!DOCTYPE html>
-<html lang="ko" 
-      xmlns:th="http://www.thymeleaf.org" 
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html lang="ko"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      xmlns:th="http://www.thymeleaf.org">
 <body>
-<dialog id="side-navigation" th:fragment="sidenav" aria-labelledby="sidenav-title">
+<dialog aria-labelledby="sidenav-title" id="side-navigation" th:fragment="sidenav">
     <article>
         <header>
-            <button aria-label="메뉴 닫기" rel="prev" 
-                    commandfor="side-navigation" command="close"></button>
+            <button aria-label="메뉴 닫기" command="close"
+                    commandfor="side-navigation" rel="prev"></button>
             <h2 id="sidenav-title">메뉴</h2>
         </header>
-        
+
         <nav>
             <menu>
                 <!-- 일반 메뉴 -->
                 <li>
-                    <a href="/boards" 
+                    <a href="/boards"
                        th:attr="aria-current=${#httpServletRequest != null and #httpServletRequest.requestURI != null and #httpServletRequest.requestURI.startsWith('/boards') ? 'page' : null}">
                         📋 게시판
                     </a>
                 </li>
-                
+
                 <li sec:authorize="hasRole('USER')">
                     <a href="/users/mypage"
                        th:attr="aria-current=${#httpServletRequest != null and #httpServletRequest.requestURI != null and #httpServletRequest.requestURI.startsWith('/users/mypage') ? 'page' : null}">
@@ -33,13 +33,15 @@
                 </li>
 
                 <!-- 구분선 -->
-                <li><hr></li>
+                <li>
+                    <hr>
+                </li>
 
                 <!-- 관리자 기능 -->
                 <li sec:authorize="hasRole('ADMIN')">
                     <h3>관리자 기능</h3>
                 </li>
-                
+
                 <li sec:authorize="hasRole('ADMIN')">
                     <a href="/users"
                        th:attr="aria-current=${#httpServletRequest != null and #httpServletRequest.requestURI != null and #httpServletRequest.requestURI.startsWith('/users') ? 'page' : null}">

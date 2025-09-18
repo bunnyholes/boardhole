@@ -23,34 +23,35 @@ public class PasswordMatchValidator implements ConstraintValidator<PasswordMatch
 
     @Override
     public boolean isValid(Object value, ConstraintValidatorContext context) {
-        if (value == null) return true;
-        
+        if (value == null)
+            return true;
+
         try {
             Object passwordValue = getFieldValue(value, "password");
             Object confirmPasswordValue = getFieldValue(value, "confirmPassword");
-            
+
             // 비밀번호가 일치하지 않으면 confirmPassword 필드 에러로 등록
             if (!Objects.equals(passwordValue, confirmPasswordValue)) {
                 // 기본 에러 메시지 비활성화
                 context.disableDefaultConstraintViolation();
-                
+
                 // confirmPassword 필드의 에러로 등록
                 context.buildConstraintViolationWithTemplate(context.getDefaultConstraintMessageTemplate())
-                        .addPropertyNode("confirmPassword")
-                        .addConstraintViolation();
-                
+                       .addPropertyNode("confirmPassword")
+                       .addConstraintViolation();
+
                 return false;
             }
-            
+
             return true;
-            
+
         } catch (Exception e) {
             log.warn("PasswordMatch 검증 중 오류 발생: {}", e.getMessage());
             return true; // 오류 시 검증 통과 (다른 검증이 담당)
         }
     }
 
-    private Object getFieldValue(Object bean, String fieldName) throws ReflectiveOperationException {
+    private static Object getFieldValue(Object bean, String fieldName) throws ReflectiveOperationException {
         Field field = bean.getClass().getDeclaredField(fieldName);
         field.setAccessible(true);
         return field.get(bean);

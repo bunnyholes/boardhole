@@ -1,6 +1,6 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{fragments/base :: layout(~{::title}, ~{::main})}">
+<html lang="ko" th:replace="~{fragments/base :: layout(~{::title}, ~{::main})}"
+      xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>글 수정 - Board Hole</title>
 </head>
@@ -9,11 +9,11 @@
     <div>
         <h1 class="h3">글 수정</h1>
         <div>
-            <a th:href="@{/boards/{id}(id=${board.id})}" class="secondary outline">
+            <a class="secondary outline" th:href="@{/boards/{id}(id=${board.id})}">
                 🔍
                 상세보기
             </a>
-            <a href="/boards" class="primary outline">
+            <a class="primary outline" href="/boards">
                 ←
                 목록으로
             </a>
@@ -21,35 +21,42 @@
     </div>
 
     <article>
-        <form th:action="@{/forms/boards/{id}(id=${board.id})}" method="post" id="boardEditForm">
+        <form id="boardEditForm" method="post" th:action="@{/forms/boards/{id}(id=${board.id})}">
             <label for="title">
                 제목
-                <input type="text"
-                       id="title" 
-                       name="title" 
+                <input id="title"
+                       maxlength="255"
+                       name="title"
+                       placeholder="제목을 입력하세요"
+                       required
                        th:value="${board.title}"
-                       placeholder="제목을 입력하세요" 
-                       required 
-                       maxlength="255">
+                       type="text">
             </label>
 
             <label for="content">
                 내용
-                <textarea id="content" 
-                          name="content" 
+                <textarea id="content"
+                          name="content"
+                          placeholder="내용을 입력하세요 (마크다운 지원)"
+                          required
                           rows="15"
-                          placeholder="내용을 입력하세요 (마크다운 지원)" 
-                          required 
                           th:text="${board.content}"></textarea>
                 <small>마크다운 문법을 지원합니다</small>
             </label>
 
             <footer>
-                <small>📄 최종 수정: <time th:datetime="${board.modifiedAt}" th:text="${#temporals.format(board.modifiedAt, 'MM-dd HH:mm')}">01-15 15:30</time></small>
+                <small>📄 최종 수정:
+                    <time th:datetime="${board.modifiedAt}"
+                          th:text="${#temporals.format(board.modifiedAt, 'MM-dd HH:mm')}">01-15 15:30
+                    </time>
+                </small>
                 <nav>
                     <ul>
-                        <li><a th:href="@{/boards/{id}(id=${board.id})}" role="button" class="secondary outline">취소</a></li>
-                        <li><button type="submit">✅ 수정 완료</button></li>
+                        <li><a class="secondary outline" role="button" th:href="@{/boards/{id}(id=${board.id})}">취소</a>
+                        </li>
+                        <li>
+                            <button type="submit">✅ 수정 완료</button>
+                        </li>
                     </ul>
                 </nav>
             </footer>
@@ -62,10 +69,14 @@
         <dl>
             <dt>작성자</dt>
             <dd th:text="${board.authorName}">홍길동</dd>
-            
+
             <dt>작성일</dt>
-            <dd><time th:datetime="${board.createdAt}" th:text="${#temporals.format(board.createdAt, 'MM-dd HH:mm')}">01-15 14:30</time></dd>
-            
+            <dd>
+                <time th:datetime="${board.createdAt}" th:text="${#temporals.format(board.createdAt, 'MM-dd HH:mm')}">
+                    01-15 14:30
+                </time>
+            </dd>
+
             <dt>조회수</dt>
             <dd th:text="${board.viewCount}">123</dd>
         </dl>
@@ -77,24 +88,24 @@
         <dl>
             <dt><code># 제목</code></dt>
             <dd>큰 제목</dd>
-            
+
             <dt><code>## 소제목</code></dt>
             <dd>작은 제목</dd>
-            
+
             <dt><code>**굵게**</code></dt>
             <dd>굵은 글씨</dd>
-            
+
             <dt><code>`코드`</code></dt>
             <dd>인라인 코드</dd>
-            
+
             <dt><code>- 목록</code></dt>
             <dd>글머리 기호</dd>
-            
+
             <dt><code>```코드블록```</code></dt>
             <dd>코드 블록</dd>
         </dl>
     </details>
-        </div>
+    </div>
     </div>
 
 

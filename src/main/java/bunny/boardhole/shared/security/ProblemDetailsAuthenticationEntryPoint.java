@@ -42,7 +42,7 @@ public class ProblemDetailsAuthenticationEntryPoint implements AuthenticationEnt
         ProblemDetailsHelper.addCommonProperties(pd, request, ErrorCode.UNAUTHORIZED.getCode());
 
         log.debug("🔒 Unauthorized API request: {} - returning 401 JSON response", request.getRequestURI());
-        
+
         response.setStatus(HttpStatus.UNAUTHORIZED.value());
         response.setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");

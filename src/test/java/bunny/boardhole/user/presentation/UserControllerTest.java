@@ -2,8 +2,8 @@ package bunny.boardhole.user.presentation;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
-import java.util.UUID;
 import java.util.Set;
+import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -19,7 +19,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
-import bunny.boardhole.shared.exception.ValidationException;
 import bunny.boardhole.shared.security.AppUserPrincipal;
 import bunny.boardhole.user.application.command.UpdatePasswordCommand;
 import bunny.boardhole.user.application.command.UpdateUserCommand;

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{fragments/base :: layout(title='Board Hole 로그인', content=~{::article})}">
+<html lang="ko" th:replace="~{fragments/base :: layout(title='Board Hole 로그인', content=~{::article})}"
+      xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>Board Hole 로그인</title>
 </head>
@@ -13,28 +13,28 @@
         </hgroup>
     </header>
 
-    <form th:action="@{/auth/login}" method="post" novalidate>
-        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+    <form method="post" novalidate th:action="@{/auth/login}">
+        <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden">
 
         <fieldset>
             <label for="username">
                 사용자이름
-                <input id="username" name="username" type="text" placeholder="name@example.com"
-                       autocomplete="username" inputmode="email" required>
+                <input autocomplete="username" id="username" inputmode="email" name="username"
+                       placeholder="name@example.com" required type="text">
             </label>
 
             <label for="password">
                 비밀번호
-                <input id="password" name="password" type="password" placeholder="비밀번호"
-                       autocomplete="current-password" required>
+                <input autocomplete="current-password" id="password" name="password" placeholder="비밀번호"
+                       required type="password">
             </label>
         </fieldset>
 
-        <button type="submit" class="primary">로그인</button>
+        <button class="primary" type="submit">로그인</button>
 
-        <p th:if="${param.error}"
-           class="pico-color-red-700"
-           role="alert">
+        <p class="pico-color-red-700"
+           role="alert"
+           th:if="${param.error}">
             잘못된 사용자명 또는 비밀번호입니다.
         </p>
     </form>

@@ -85,7 +85,7 @@ public class BoardEditViewController {
 
         var command = new UpdateBoardCommand(id, request.title(), request.content());
         boardCommandService.update(command);
-        
+
         redirectAttributes.addFlashAttribute("success", "게시글이 성공적으로 수정되었습니다.");
         return "redirect:/boards/" + id;
     }
@@ -101,5 +101,6 @@ public class BoardEditViewController {
     public record UpdateBoardRequest(
             String title,
             String content
-    ) {}
+    ) {
+    }
 }

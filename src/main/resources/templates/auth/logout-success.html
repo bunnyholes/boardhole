@@ -1,6 +1,6 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{fragments/base :: layout(title='로그아웃 완료', content=~{::article})}">
+<html lang="ko" th:replace="~{fragments/base :: layout(title='로그아웃 완료', content=~{::article})}"
+      xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>로그아웃 완료</title>
 </head>
@@ -16,8 +16,8 @@
     <p class="pico-color-cyan-700" role="status">정상적으로 로그아웃되었습니다.</p>
 
     <footer>
-        <a th:href="@{/auth/login}" role="button" class="primary">다시 로그인하기</a>
-        <a th:href="@{/}" role="button" class="secondary">홈으로 이동</a>
+        <a class="primary" role="button" th:href="@{/auth/login}">다시 로그인하기</a>
+        <a class="secondary" role="button" th:href="@{/}">홈으로 이동</a>
     </footer>
 </article>
 </body>

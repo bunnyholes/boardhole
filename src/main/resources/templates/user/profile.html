@@ -1,6 +1,6 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{fragments/base :: layout(~{::title}, ~{::main})}">
+<html lang="ko" th:replace="~{fragments/base :: layout(~{::title}, ~{::main})}"
+      xmlns:th="http://www.thymeleaf.org">
 <head>
     <title th:text="${user.name + ' 프로필 - Board Hole'}">사용자 프로필 - Board Hole</title>
 </head>
@@ -12,7 +12,7 @@
             <p>회원 세부 정보와 최근 활동을 확인합니다.</p>
         </hgroup>
         <p>
-            <a href="/users" role="button" class="secondary outline">← 사용자 목록</a>
+            <a class="secondary outline" href="/users" role="button">← 사용자 목록</a>
         </p>
     </header>
 
@@ -32,18 +32,23 @@
                 </div>
                 <div>
                     <dt>최근 로그인</dt>
-                    <dd th:text="${user.lastLoginAt ? #temporals.format(user.lastLoginAt, 'MM-dd HH:mm') : '없음'}">없음</dd>
+                    <dd th:text="${user.lastLoginAt ? #temporals.format(user.lastLoginAt, 'MM-dd HH:mm') : '없음'}">없음
+                    </dd>
                 </div>
             </dl>
 
             <dl class="grid">
                 <div>
                     <dt>게시글</dt>
-                    <dd><mark th:text="${user.boardCount ?: 0}">0</mark></dd>
+                    <dd>
+                        <mark th:text="${user.boardCount ?: 0}">0</mark>
+                    </dd>
                 </div>
                 <div>
                     <dt>댓글</dt>
-                    <dd><mark th:text="${user.commentCount ?: 0}">0</mark></dd>
+                    <dd>
+                        <mark th:text="${user.commentCount ?: 0}">0</mark>
+                    </dd>
                 </div>
             </dl>
 
@@ -83,7 +88,8 @@
                         <li th:each="comment : ${user.recentComments}">
                             <p th:text="${comment.content}">댓글 내용</p>
                             <small>
-                                <a th:href="@{/boards/{id}(id=${comment.boardId})}" th:text="${comment.boardTitle}">게시글 제목</a>
+                                <a th:href="@{/boards/{id}(id=${comment.boardId})}" th:text="${comment.boardTitle}">게시글
+                                    제목</a>
                                 ·
                                 <time th:text="${#temporals.format(comment.createdAt, 'MM-dd')}">01-01</time>
                             </small>

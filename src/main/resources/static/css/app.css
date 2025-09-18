@@ -1,279 +1,279 @@
 /* Board Hole - Pico CSS 극한 활용 + 최신 웹 API */
 
 /* ===== View Transitions API ===== */
-@view-transition { 
-  navigation: auto; 
+@view-transition {
+    navigation: auto;
 }
 
 /* ===== CSS 변수 (Pico 변수 재사용) ===== */
 :root {
-  /* Pico 변수 활용 */
-  --app-primary: var(--pico-primary-background);
-  --app-muted: var(--pico-muted-color);
-  --app-radius: var(--pico-border-radius);
-  --app-spacing: var(--pico-spacing);
-  
-  /* Anchor positioning 변수 */
-  --anchor-gap: 0.5rem;
+    /* Pico 변수 활용 */
+    --app-primary: var(--pico-primary-background);
+    --app-muted: var(--pico-muted-color);
+    --app-radius: var(--pico-border-radius);
+    --app-spacing: var(--pico-spacing);
+
+    /* Anchor positioning 변수 */
+    --anchor-gap: 0.5rem;
 }
 
 /* ===== Popover API 스타일링 ===== */
 [popover] {
-  border: 0;
-  padding: 0;
-  margin: 0;
-  background: transparent;
-  
-  &:popover-open {
-    display: block;
-    animation: popover-show 200ms ease-out;
-  }
-  
-  & > article {
-    max-width: min(90vw, 600px);
-    max-height: min(90vh, 600px);
-    overflow: auto;
-  }
+    border: 0;
+    padding: 0;
+    margin: 0;
+    background: transparent;
+
+    &:popover-open {
+        display: block;
+        animation: popover-show 200ms ease-out;
+    }
+
+    & > article {
+        max-width: min(90vw, 600px);
+        max-height: min(90vh, 600px);
+        overflow: auto;
+    }
 }
 
 @keyframes popover-show {
-  from { 
-    opacity: 0;
-    transform: translateY(-1rem) scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+    from {
+        opacity: 0;
+        transform: translateY(-1rem) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
 }
 
 /* ===== Dialog 개선 (Pico 기본 스타일 확장) ===== */
 dialog {
-  border: 0;
-  padding: 0;
-  
-  &::backdrop {
-    backdrop-filter: blur(4px);
-    background: rgba(0, 0, 0, 0.5);
-  }
-  
-  &[open] {
-    animation: dialog-show 200ms ease-out;
-  }
+    border: 0;
+    padding: 0;
+
+    &::backdrop {
+        backdrop-filter: blur(4px);
+        background: rgba(0, 0, 0, 0.5);
+    }
+
+    &[open] {
+        animation: dialog-show 200ms ease-out;
+    }
 }
 
 @keyframes dialog-show {
-  from { 
-    opacity: 0;
-    transform: scale(0.95);
-  }
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
 }
 
 /* ===== Container Queries ===== */
 .responsive-grid {
-  container-type: inline-size;
-  
-  @container (min-width: 768px) {
-    & > * {
-      grid-column: span 2;
+    container-type: inline-size;
+
+    @container (min-width: 768px) {
+        & > * {
+            grid-column: span 2;
+        }
     }
-  }
-  
-  @container (max-width: 767px) {
-    & > * {
-      grid-column: 1 / -1;
+
+    @container (max-width: 767px) {
+        & > * {
+            grid-column: 1 / -1;
+        }
     }
-  }
 }
 
 /* ===== :has() 선택자 활용 ===== */
 /* 폼 검증 상태 표시 */
 form:has(input:invalid) button[type="submit"] {
-  opacity: 0.6;
-  cursor: not-allowed;
+    opacity: 0.6;
+    cursor: not-allowed;
 }
 
 /* details가 열려있을 때 스타일 */
 article:has(details[open]) {
-  box-shadow: 0 0 0 2px var(--pico-primary-background);
+    box-shadow: 0 0 0 2px var(--pico-primary-background);
 }
 
 /* ===== CSS Nesting (최신 브라우저) ===== */
 nav[aria-label="프로필 액션"] {
-  ul {
-    display: flex;
-    gap: 1rem;
-    list-style: none;
-    padding: 0;
-    
-    li {
-      flex: 1;
+    ul {
+        display: flex;
+        gap: 1rem;
+        list-style: none;
+        padding: 0;
+
+        li {
+            flex: 1;
+        }
     }
-  }
 }
 
 /* ===== Anchor Positioning API (실험적) ===== */
 @supports (anchor-name: --menu) {
-  .dropdown-trigger {
-    anchor-name: --menu;
-  }
-  
-  .dropdown-content {
-    position: fixed;
-    position-anchor: --menu;
-    top: anchor(bottom);
-    left: anchor(left);
-    margin-top: var(--anchor-gap);
-  }
+    .dropdown-trigger {
+        anchor-name: --menu;
+    }
+
+    .dropdown-content {
+        position: fixed;
+        position-anchor: --menu;
+        top: anchor(bottom);
+        left: anchor(left);
+        margin-top: var(--anchor-gap);
+    }
 }
 
 /* ===== 히어로 섹션 (Pico 그리드 활용) ===== */
 .hero-section {
-  text-align: center;
-  padding-block: calc(var(--app-spacing) * 4);
-  background: linear-gradient(
-    135deg, 
-    color-mix(in srgb, var(--app-primary) 10%, transparent),
-    transparent 60%
-  );
+    text-align: center;
+    padding-block: calc(var(--app-spacing) * 4);
+    background: linear-gradient(
+            135deg,
+            color-mix(in srgb, var(--app-primary) 10%, transparent),
+            transparent 60%
+    );
 }
 
 /* ===== mypage 전용 스타일 ===== */
 figure[aria-label="사용자 프로필"] {
-  text-align: center;
-  
-  & > div[aria-label="사용자 아바타"] {
-    width: 6rem;
-    height: 6rem;
-    font-size: 3rem;
-    background: var(--pico-secondary-background);
-    border-radius: 50%;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 1rem;
-  }
+    text-align: center;
+
+    & > div[aria-label="사용자 아바타"] {
+        width: 6rem;
+        height: 6rem;
+        font-size: 3rem;
+        background: var(--pico-secondary-background);
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1rem;
+    }
 }
 
 /* 활동 통계 스타일 */
 dl.grid {
-  text-align: center;
-  
-  dt {
-    font-size: 0.875rem;
-    color: var(--app-muted);
-    margin-bottom: 0.25rem;
-  }
-  
-  dd {
-    font-size: 1.5rem;
-    font-weight: bold;
-    
-    mark {
-      background: transparent;
-      color: var(--app-primary);
-      padding: 0;
+    text-align: center;
+
+    dt {
+        font-size: 0.875rem;
+        color: var(--app-muted);
+        margin-bottom: 0.25rem;
     }
-  }
+
+    dd {
+        font-size: 1.5rem;
+        font-weight: bold;
+
+        mark {
+            background: transparent;
+            color: var(--app-primary);
+            padding: 0;
+        }
+    }
 }
 
 /* ===== 게시판 카드 (boards.html) ===== */
 .board-list {
-  display: grid;
-  gap: var(--app-spacing);
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+    display: grid;
+    gap: var(--app-spacing);
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
 }
 
 .board-card {
-  container-type: inline-size;
-  transition: transform 200ms ease, box-shadow 200ms ease;
-  
-  &:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--pico-box-shadow);
-  }
-  
-  @container (max-width: 400px) {
-    .board-meta {
-      flex-direction: column;
-      align-items: flex-start;
+    container-type: inline-size;
+    transition: transform 200ms ease, box-shadow 200ms ease;
+
+    &:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--pico-box-shadow);
     }
-  }
+
+    @container (max-width: 400px) {
+        .board-meta {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+    }
 }
 
 /* ===== 키보드 네비게이션 지원 ===== */
 :focus-visible {
-  outline: 2px solid var(--app-primary);
-  outline-offset: 2px;
+    outline: 2px solid var(--app-primary);
+    outline-offset: 2px;
 }
 
 /* 탭 포커스 트랩 (dialog/popover) */
 dialog:modal,
 [popover]:popover-open {
-  &::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    z-index: -1;
-  }
+    &::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+    }
 }
 
 /* ===== Command API 단축키 표시 ===== */
 [commandfor]::after {
-  content: attr(data-shortcut);
-  font-size: 0.75rem;
-  opacity: 0.6;
-  margin-left: auto;
-  font-family: monospace;
+    content: attr(data-shortcut);
+    font-size: 0.75rem;
+    opacity: 0.6;
+    margin-left: auto;
+    font-family: monospace;
 }
 
 /* ===== 스크롤 동작 개선 ===== */
 @supports (overscroll-behavior: contain) {
-  dialog,
-  [popover] {
-    overscroll-behavior: contain;
-  }
+    dialog,
+    [popover] {
+        overscroll-behavior: contain;
+    }
 }
 
 /* ===== 접근성 개선 ===== */
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
 }
 
 /* ===== 다크 모드 최적화 ===== */
 @media (prefers-color-scheme: dark) {
-  :root {
-    --app-primary: var(--pico-primary-inverse);
-  }
-  
-  [popover],
-  dialog {
-    & > article {
-      border: 1px solid var(--pico-muted-border-color);
+    :root {
+        --app-primary: var(--pico-primary-inverse);
     }
-  }
+
+    [popover],
+    dialog {
+        & > article {
+            border: 1px solid var(--pico-muted-border-color);
+        }
+    }
 }
 
 /* ===== 인쇄 스타일 ===== */
 @media print {
-  nav,
-  [popover],
-  dialog,
-  button,
-  .no-print {
-    display: none !important;
-  }
+    nav,
+    [popover],
+    dialog,
+    button,
+    .no-print {
+        display: none !important;
+    }
 }
 
 /* ===== 로그아웃 폼 (header) ===== */
 .logout-form {
-  margin: 0;
-  display: inline;
+    margin: 0;
+    display: inline;
 }

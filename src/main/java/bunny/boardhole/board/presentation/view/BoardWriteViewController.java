@@ -72,7 +72,7 @@ public class BoardWriteViewController {
 
         var command = new CreateBoardCommand(principal.user().getId(), request.title(), request.content());
         var result = boardCommandService.create(command);
-        
+
         redirectAttributes.addFlashAttribute("success", "게시글이 성공적으로 작성되었습니다.");
         return "redirect:/boards/" + result.id();
     }
@@ -88,5 +88,6 @@ public class BoardWriteViewController {
     public record CreateBoardRequest(
             String title,
             String content
-    ) {}
+    ) {
+    }
 }

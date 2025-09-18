@@ -1,6 +1,6 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{fragments/base :: layout(~{::title}, ~{::main})}">
+<html lang="ko" th:replace="~{fragments/base :: layout(~{::title}, ~{::main})}"
+      xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>글쓰기 - Board Hole</title>
 </head>
@@ -18,28 +18,28 @@
     </nav>
 
     <article>
-        <form th:action="@{/forms/boards}" method="post" id="boardForm">
+        <form id="boardForm" method="post" th:action="@{/forms/boards}">
             <label for="title">
                 제목
-                <input type="text" 
-                       id="title" 
-                       name="title" 
-                       placeholder="제목을 입력하세요" 
-                       required 
+                <input aria-required="true"
+                       id="title"
                        maxlength="255"
-                       aria-required="true">
+                       name="title"
+                       placeholder="제목을 입력하세요"
+                       required
+                       type="text">
             </label>
 
             <label for="content">
                 내용
-                <textarea 
-                    id="content" 
-                    name="content" 
-                    rows="15" 
-                    placeholder="내용을 입력하세요 (마크다운 지원)" 
-                    required
-                    aria-required="true"
-                    aria-describedby="markdown-help"></textarea>
+                <textarea
+                        aria-describedby="markdown-help"
+                        aria-required="true"
+                        id="content"
+                        name="content"
+                        placeholder="내용을 입력하세요 (마크다운 지원)"
+                        required
+                        rows="15"></textarea>
                 <small id="markdown-help">마크다운 문법을 지원합니다</small>
             </label>
 
@@ -47,8 +47,10 @@
                 <small>ℹ️ 작성된 글은 커뮤니티 가이드라인을 준수해야 합니다</small>
                 <nav>
                     <ul>
-                        <li><a href="/boards" role="button" class="secondary outline">취소</a></li>
-                        <li><button type="submit">게시하기</button></li>
+                        <li><a class="secondary outline" href="/boards" role="button">취소</a></li>
+                        <li>
+                            <button type="submit">게시하기</button>
+                        </li>
                     </ul>
                 </nav>
             </footer>
@@ -61,19 +63,19 @@
         <dl>
             <dt><code># 제목</code></dt>
             <dd>큰 제목</dd>
-            
+
             <dt><code>## 소제목</code></dt>
             <dd>작은 제목</dd>
-            
+
             <dt><code>**굵게**</code></dt>
             <dd>굵은 글씨</dd>
-            
+
             <dt><code>`코드`</code></dt>
             <dd>인라인 코드</dd>
-            
+
             <dt><code>- 목록</code></dt>
             <dd>글머리 기호</dd>
-            
+
             <dt><code>```코드블록```</code></dt>
             <dd>코드 블록</dd>
         </dl>

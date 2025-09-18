@@ -2,16 +2,12 @@ package bunny.boardhole.shared.web;
 
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
-
-import bunny.boardhole.auth.presentation.view.LoginViewController;
-import bunny.boardhole.auth.presentation.view.SignupViewController;
 
 /**
  * 전역 모델 속성을 제공하는 컨트롤러 어드바이스
  * <p>
  * 모든 뷰에서 사용할 수 있는 공통 URL들을 제공합니다.
- * 컨트롤러 메서드를 직접 참조하여 URL을 생성하므로 
+ * 컨트롤러 메서드를 직접 참조하여 URL을 생성하므로
  * 매핑이 변경되어도 자동으로 반영됩니다.
  * </p>
  */
@@ -35,5 +31,6 @@ public class GlobalModelAttributeController {
     public record AuthUrls(
             String login,
             String signup
-    ) {}
+    ) {
+    }
 }

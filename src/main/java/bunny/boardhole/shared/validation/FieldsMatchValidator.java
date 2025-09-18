@@ -11,19 +11,22 @@ public class FieldsMatchValidator implements ConstraintValidator<FieldsMatch, Ob
 
     @Override
     public void initialize(FieldsMatch constraintAnnotation) {
-        this.fields = constraintAnnotation.fields();
+        fields = constraintAnnotation.fields();
     }
 
     @Override
     public boolean isValid(Object value, ConstraintValidatorContext context) {
-        if (value == null) return true;
-        if (fields == null || fields.length < 2) return true; // 잘못된 설정은 통과 처리
+        if (value == null)
+            return true;
+        if (fields == null || fields.length < 2)
+            return true; // 잘못된 설정은 통과 처리
 
         try {
             Object first = read(value, fields[0]);
             for (int i = 1; i < fields.length; i++) {
                 Object next = read(value, fields[i]);
-                if (!Objects.equals(first, next)) return false;
+                if (!Objects.equals(first, next))
+                    return false;
             }
             return true;
         } catch (ReflectiveOperationException e) {
@@ -32,7 +35,7 @@ public class FieldsMatchValidator implements ConstraintValidator<FieldsMatch, Ob
         }
     }
 
-    private Object read(Object bean, String accessor) throws ReflectiveOperationException {
+    private static Object read(Object bean, String accessor) throws ReflectiveOperationException {
         Method m = bean.getClass().getMethod(accessor);
         return m.invoke(bean);
     }

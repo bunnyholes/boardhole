@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="ko" 
-      xmlns:th="http://www.thymeleaf.org"
+<html data-theme="auto"
+      lang="ko"
       th:replace="~{fragments/base :: layout(~{::title}, ~{::main})}"
-      data-theme="auto">
+      xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>인증 필요 - Board Hole</title>
 </head>
@@ -20,7 +20,7 @@
         </p>
 
         <footer>
-            <a th:href="@{/auth/login}" role="button" class="primary">로그인 페이지로 이동</a>
+            <a class="primary" role="button" th:href="@{/auth/login}">로그인 페이지로 이동</a>
         </footer>
     </article>
 </main>
