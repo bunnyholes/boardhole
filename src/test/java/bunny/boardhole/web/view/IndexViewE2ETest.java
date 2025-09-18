@@ -56,7 +56,7 @@ class IndexViewE2ETest extends ViewE2ETestBase {
         assertThat(page.textContent("h1")).contains("로그인");
         assertThat(page.isVisible("input[name='username']")).isTrue();
         assertThat(page.isVisible("input[name='password']")).isTrue();
-        assertThat(page.isVisible("input[type='submit']")).isTrue();
+        assertThat(page.isVisible("button[type='submit'], input[type='submit']")).isTrue();
     }
 
     @Test
@@ -76,7 +76,7 @@ class IndexViewE2ETest extends ViewE2ETestBase {
         assertThat(page.isVisible("input[name='confirmPassword']")).isTrue();
         assertThat(page.isVisible("input[name='name']")).isTrue();
         assertThat(page.isVisible("input[name='email']")).isTrue();
-        assertThat(page.isVisible("input[type='submit']")).isTrue();
+        assertThat(page.isVisible("button[type='submit'], input[type='submit']")).isTrue();
     }
 
     @Test

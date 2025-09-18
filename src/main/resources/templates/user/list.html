@@ -6,118 +6,90 @@
 </head>
 
 <main>
-    <div >
-        <h1 class="h3">사용자 관리</h1>
-        <div >
-            <span class="secondary outline" th:if="${users.totalElements > 0}">
-                총 <span th:text="${users.totalElements}">0</span>명
-            </span>
-        </div>
-    </div>
+    <header>
+        <hgroup>
+            <h1>사용자 관리</h1>
+            <p>활성 사용자 목록과 활동 통계를 확인합니다.</p>
+        </hgroup>
+        <p th:if="${users.totalElements > 0}">
+            총 <strong th:text="${users.totalElements}">0</strong>명 등록됨
+        </p>
+    </header>
 
-    <!-- 사용자 목록 -->
-    <div <article>
-            <div th:if="${users.content.empty}" >
-                👤
-                <p >등록된 사용자가 없습니다.</p>
-            </div>
-            
-            <div th:unless="${users.content.empty}">
-                <!-- 반응형 사용자 카드 목록 -->
-                <div >
-                    <div  th:each="user : ${users.content}">
-                        <div >
-                            <div >
-                                <!-- 사용자 아바타 -->
-                                <div  
-                                     style="width: 80px; height: 80px;">
-                                    👤
-                                </div>
-                                
-                                <!-- 사용자 정보 -->
-                                <h5  th:text="${user.name}">사용자명</h5>
-                                <p  th:text="${user.email}">email@example.com</p>
-                                
-                                <!-- 통계 정보 -->
-                                <div >
-                                    <div >
-                                        <div <mark th:text="${user.boardCount ?: 0}">0</div>
-                                            <small >게시글</small>
-                                        </div>
-                                    </div>
-                                    <div >
-                                        <div <mark th:text="${user.commentCount ?: 0}">0</div>
-                                            <small >댓글</small>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <!-- 가입일 -->
-                                <div >
-                                    가입일: <span th:text="${#temporals.format(user.createdAt, 'yy-MM-dd')}">24-01-01</span>
-                                </div>
-                                
-                                <!-- 액션 버튼 -->
-                                <a th:href="@{/users/{id}(id=${user.id})}" role="button" class="primary outline">
-                                    🔍
-                                    상세보기
-                                </a>
-                            </div>
-                        </div>
-                    </div>
+    <article class="contrast" th:if="${#lists.isEmpty(users.content)}">
+        <header>
+            <h2>등록된 사용자가 없습니다</h2>
+        </header>
+        <p>새로운 사용자가 가입하면 이곳에서 활동을 관리할 수 있습니다.</p>
+        <footer>
+            <small>
+                <a href="/auth/signup">회원가입 링크</a>를 공유해 보세요.
+            </small>
+        </footer>
+    </article>
+
+    <section class="grid" th:unless="${#lists.isEmpty(users.content)}">
+        <article class="contrast" th:each="user : ${users.content}">
+            <header>
+                <hgroup>
+                    <h2 th:text="${user.name}">사용자명</h2>
+                    <p th:text="${user.email}">email@example.com</p>
+                </hgroup>
+            </header>
+
+            <dl class="grid">
+                <div>
+                    <dt>게시글</dt>
+                    <dd><mark th:text="${user.boardCount ?: 0}">0</mark></dd>
                 </div>
-
-                <!-- 페이지네이션 -->
-                <div class="card-footer bg-transparent border-0 py-4" th:if="${users.totalPages > 1}">
-                    <nav aria-label="사용자 페이지네이션">
-                        <ul >
-                            <!-- 이전 페이지 -->
-                            <li class="page-item" th:classappend="${users.first} ? 'disabled'">
-                                <a class="page-link" 
-                                   th:href="@{/users(page=${users.number - 1})}"
-                                   th:if="${!users.first}">
-                                    ◀
-                                </a>
-                                <span class="page-link" th:if="${users.first}">
-                                    ◀
-                                </span>
-                            </li>
-
-                            <!-- 페이지 번호 -->
-                            <th:block th:each="pageNum : ${#numbers.sequence(0, users.totalPages - 1)}">
-                                <li class="page-item" 
-                                    th:if="${pageNum >= users.number - 2 and pageNum <= users.number + 2}"
-                                    th:classappend="${pageNum == users.number} ? 'active'">
-                                    <a class="page-link" 
-                                       th:href="@{/users(page=${pageNum})}"
-                                       th:text="${pageNum + 1}">1</a>
-                                </li>
-                            </th:block>
-
-                            <!-- 다음 페이지 -->
-                            <li class="page-item" th:classappend="${users.last} ? 'disabled'">
-                                <a class="page-link" 
-                                   th:href="@{/users(page=${users.number + 1})}"
-                                   th:if="${!users.last}">
-                                    ▶
-                                </a>
-                                <span class="page-link" th:if="${users.last}">
-                                    ▶
-                                </span>
-                            </li>
-                        </ul>
-                    </nav>
+                <div>
+                    <dt>댓글</dt>
+                    <dd><mark th:text="${user.commentCount ?: 0}">0</mark></dd>
                 </div>
-            </div>
-        </div>
-    </div>
+            </dl>
 
-    <!-- 총 사용자 수 표시 -->
-    <div  th:unless="${users.content.empty}">
+            <p>
+                가입일 <time th:text="${#temporals.format(user.createdAt, 'yy-MM-dd')}">24-01-01</time>
+            </p>
+
+            <footer>
+                <a th:href="@{/users/{id}(id=${user.id})}" role="button" class="secondary outline">상세보기</a>
+            </footer>
+        </article>
+    </section>
+
+    <nav th:if="${users.totalPages > 1}" aria-label="사용자 페이지네이션">
+        <ul>
+            <li th:if="${users.first}">
+                <span class="secondary outline" aria-disabled="true">이전</span>
+            </li>
+            <li th:unless="${users.first}">
+                <a th:href="@{/users(page=${users.number - 1})}" class="secondary outline">이전</a>
+            </li>
+
+            <li th:each="pageNum : ${#numbers.sequence(0, users.totalPages - 1)}"
+                th:if="${pageNum >= users.number - 2 and pageNum <= users.number + 2}">
+                <a th:href="@{/users(page=${pageNum})}"
+                   th:text="${pageNum + 1}"
+                   th:aria-current="${pageNum == users.number} ? 'page'"
+                   th:class="${pageNum == users.number} ? 'contrast' : 'secondary outline'}">1</a>
+            </li>
+
+            <li th:if="${users.last}">
+                <span class="secondary outline" aria-disabled="true">다음</span>
+            </li>
+            <li th:unless="${users.last}">
+                <a th:href="@{/users(page=${users.number + 1})}" class="secondary outline">다음</a>
+            </li>
+        </ul>
+    </nav>
+
+    <footer th:unless="${#lists.isEmpty(users.content)}">
         <small>
-            총 <strong th:text="${users.totalElements}">0</strong>명의 사용자 중 
-            <strong th:text="${users.number * users.size + 1}">1</strong>-<strong th:text="${users.number * users.size + users.numberOfElements}">10</strong>명
+            총 <strong th:text="${users.totalElements}">0</strong>명 중
+            <span th:text="${users.number * users.size + 1}">1</span>-
+            <span th:text="${users.number * users.size + users.numberOfElements}">10</span>명 표시 중입니다.
         </small>
-    </div>
- </main>
+    </footer>
+</main>
 </html>

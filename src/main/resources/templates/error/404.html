@@ -7,170 +7,35 @@
     <title>페이지를 찾을 수 없습니다 - Board Hole</title>
 </head>
 
-<body>
-<main class="container">
-    <div class="grid">
-        <article class="error-page">
-            <header >
-                <h1 class="error-code">404</h1>
-                <h2>페이지를 찾을 수 없습니다</h2>
-            </header>
+<main>
+    <article class="contrast">
+        <header>
+            <h1>404 - 페이지를 찾을 수 없습니다</h1>
+            <p>요청하신 주소가 변경되었거나 삭제된 것 같아요.</p>
+        </header>
 
-            <div class="error-content">
-                <p class="error-message">
-                    <span th:if="${error}" th:text="${error}">요청하신 페이지를 찾을 수 없습니다.</span>
-                    <span th:unless="${error}">요청하신 페이지를 찾을 수 없습니다.</span>
-                </p>
-                
-                <div class="error-details" th:if="${path}">
-                    <small>
-                        <strong>요청 경로:</strong> 
-                        <code th:text="${path}">/unknown</code>
-                    </small>
-                </div>
+        <p>
+            <span th:if="${error}" th:text="${error}">요청하신 페이지를 찾을 수 없습니다.</span>
+            <span th:unless="${error}">입력하신 주소를 다시 한 번 확인해주세요.</span>
+        </p>
 
-                <div class="error-timestamp" th:if="${timestamp}">
-                    <small>
-                        <strong>발생 시간:</strong>
-                        <time th:text="${#temporals.format(timestamp, 'MM-dd HH:mm')}">01-01 00:00</time>
-                    </small>
-                </div>
-            </div>
+        <p th:if="${path}">
+            <small>요청 경로: <code th:text="${path}">/unknown</code></small>
+        </p>
 
-            <footer class="error-actions">
-                <div class="grid">
-                    <a href="/" role="button" class="secondary">
-                        ← 홈으로 돌아가기
-                    </a>
-                    <a href="/" role="button">
-                        🏠 홈으로 돌아가기
-                    </a>
-                </div>
-                
-                <div class="additional-links">
-                    <nav>
-                        <ul>
-                            <li><a href="/boards">게시판</a></li>
-                            <li><a href="/users">사용자</a></li>
-                            <li><a href="/auth/login">로그인</a></li>
-                        </ul>
-                    </nav>
-                </div>
-            </footer>
-        </article>
-    </div>
+        <p th:if="${timestamp}">
+            <small>발생 시간: <time th:text="${timestamp instanceof T(java.time.temporal.TemporalAccessor) ? #temporals.format(timestamp, 'MM-dd HH:mm') : (timestamp instanceof T(java.util.Date) ? #dates.format(timestamp, 'MM-dd HH:mm') : timestamp)}">01-01 00:00</time></small>
+        </p>
+
+        <footer>
+            <nav>
+                <ul>
+                    <li><a href="/" role="button" class="secondary">홈으로 돌아가기</a></li>
+                    <li><a href="/boards" role="button">게시판 보기</a></li>
+                    <li><a href="/auth/login" role="button" class="secondary outline">로그인</a></li>
+                </ul>
+            </nav>
+        </footer>
+    </article>
 </main>
-
-<style>
-    .error-page {
-        text-align: center;
-        padding: 2rem;
-        max-width: 600px;
-        margin: 0 auto;
-    }
-    
-    .error-code {
-        font-size: 6rem;
-        font-weight: bold;
-        color: var(--pico-primary);
-        margin: 0;
-        line-height: 1;
-    }
-    
-    .error-page h2 {
-        color: var(--pico-color);
-        margin-bottom: 2rem;
-    }
-    
-    .error-content {
-        margin: 2rem 0;
-        padding: 1.5rem;
-        background-color: var(--pico-card-background-color);
-        border-radius: var(--pico-border-radius);
-        border-left: 4px solid var(--pico-primary);
-    }
-    
-    .error-message {
-        font-size: 1.1rem;
-        margin-bottom: 1rem;
-        color: var(--pico-color);
-    }
-    
-    .error-details, .error-timestamp {
-        margin-top: 1rem;
-        color: var(--pico-muted-color);
-    }
-    
-    .error-details code {
-        background-color: var(--pico-code-background-color);
-        padding: 0.2rem 0.4rem;
-        border-radius: 4px;
-        font-size: 0.9rem;
-    }
-    
-    .error-actions {
-        margin-top: 2rem;
-    }
-    
-    .error-actions .grid {
-        gap: 1rem;
-        margin-bottom: 1.5rem;
-    }
-    
-    .additional-links {
-        padding-top: 1rem;
-        border-top: 1px solid var(--pico-muted-border-color);
-    }
-    
-    .additional-links nav ul {
-        display: flex;
-        justify-content: center;
-        gap: 2rem;
-        list-style: none;
-        padding: 0;
-        margin: 0;
-    }
-    
-    .additional-links nav ul li {
-        margin: 0;
-    }
-    
-    .additional-links a {
-        color: var(--pico-primary);
-        text-decoration: none;
-        font-size: 0.9rem;
-    }
-    
-    .additional-links a:hover {
-        text-decoration: underline;
-    }
-    
-    /* 다크 모드 대응 */
-    @media (prefers-color-scheme: dark) {
-        .error-content {
-            background-color: var(--pico-card-background-color);
-        }
-    }
-    
-    /* 반응형 디자인 */
-    @media (max-width: 768px) {
-        .error-code {
-            font-size: 4rem;
-        }
-        
-        .error-page {
-            padding: 1rem;
-        }
-        
-        .error-content {
-            padding: 1rem;
-        }
-        
-        .additional-links nav ul {
-            flex-direction: column;
-            gap: 1rem;
-        }
-    }
-</style>
-</body>
 </html>

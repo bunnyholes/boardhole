@@ -11,32 +11,14 @@
     <meta name="theme-color" content="#667eea">
     <title>Board Hole - Spring Boot 게시판</title>
 
-    <!-- Pico CSS 2.1.1 -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2.1.1/css/pico.min.css">
+    <!-- Pico CSS 2.1.1 Cyan theme -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2.1.1/css/pico.cyan.min.css">
+
+    <!-- Pico color utilities -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.colors.min.css">
 
     <!-- 극한 최적화된 CSS -->
     <link href="/css/app.css" rel="stylesheet">
-
-
-    <!-- Speculation Rules API (선언적 방식, NoJS) -->
-    <script type="speculationrules">
-    {
-      "prefetch": [{
-        "source": "list",
-        "urls": ["/boards", "/boards/write", "/users/mypage", "/auth/login", "/auth/signup"],
-        "requires": ["anonymous-client-ip-when-cross-origin"]
-      }],
-      "prerender": [{
-        "where": {
-          "and": [
-            {"href_matches": "/boards/[0-9]+"},
-            {"not": {"selector_matches": ".no-prerender"}}
-          ]
-        },
-        "eagerness": "conservative"
-      }]
-    }
-    </script>
 </head>
 <body>
 <th:block th:replace="~{fragments/header :: header}"></th:block>

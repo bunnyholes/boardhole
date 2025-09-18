@@ -7,211 +7,40 @@
     <title>접근 권한 없음 - Board Hole</title>
 </head>
 
-<body>
-<main class="container">
-    <div class="grid">
-        <article class="error-page">
-            <header>
-                <h1 class="error-code">403</h1>
-                <h2>접근 권한이 없습니다</h2>
-            </header>
+<main>
+    <article class="contrast">
+        <header>
+            <h1>403 - 접근 권한이 없습니다</h1>
+            <p>이 페이지에 접근하려면 추가 권한이 필요합니다.</p>
+        </header>
 
-            <div class="error-content">
-                <p class="error-message">
-                    <span th:if="${error}" th:text="${error}">이 페이지에 접근할 권한이 없습니다.</span>
-                    <span th:unless="${error}">이 페이지에 접근할 권한이 없습니다.</span>
-                </p>
-                
-                <div class="error-details" th:if="${path}">
-                    <small>
-                        <strong>요청 경로:</strong> 
-                        <code th:text="${path}">/unknown</code>
-                    </small>
-                </div>
+        <p>
+            <span th:if="${error}" th:text="${error}">이 페이지에 접근할 권한이 없습니다.</span>
+            <span th:unless="${error}">로그인 계정의 권한을 확인해주세요.</span>
+        </p>
 
-                <div class="error-timestamp" th:if="${timestamp}">
-                    <small>
-                        <strong>발생 시간:</strong>
-                        <time th:text="${#temporals.format(timestamp, 'MM-dd HH:mm')}">01-01 00:00</time>
-                    </small>
-                </div>
+        <p th:if="${path}">
+            <small>요청 경로: <code th:text="${path}">/secure</code></small>
+        </p>
 
-                <div class="permission-info">
-                    <p>이 페이지에 접근하려면 적절한 권한이 필요합니다.</p>
-                    <ul>
-                        <li>관리자 권한이 필요한 페이지일 수 있습니다</li>
-                        <li>특정 사용자만 접근 가능한 페이지일 수 있습니다</li>
-                        <li>권한 문제가 계속되면 관리자에게 문의하세요</li>
-                    </ul>
-                </div>
-            </div>
+        <section>
+            <h2>가능한 원인</h2>
+            <ul>
+                <li>관리자 전용 페이지일 수 있습니다.</li>
+                <li>특정 사용자만 접근하도록 제한된 페이지일 수 있습니다.</li>
+                <li>권한이 필요한 경우 팀 관리자에게 문의해주세요.</li>
+            </ul>
+        </section>
 
-            <footer class="error-actions">
-                <div class="grid">
-                    <a href="/boards" role="button" class="secondary">
-                        ← 게시판으로
-                    </a>
-                    <a href="/" role="button">
-                        🏠 홈으로 돌아가기
-                    </a>
-                </div>
-                
-                <div class="additional-links">
-                    <nav>
-                        <ul>
-                            <li><a href="/boards">게시판</a></li>
-                            <li><a href="/users/mypage">마이페이지</a></li>
-                            <li><a href="/auth/logout">로그아웃</a></li>
-                        </ul>
-                    </nav>
-                </div>
-            </footer>
-        </article>
-    </div>
+        <footer>
+            <nav>
+                <ul>
+                    <li><a href="/boards" role="button" class="secondary">게시판으로</a></li>
+                    <li><a href="/" role="button">홈으로 돌아가기</a></li>
+                    <li><a href="/auth/login" role="button" class="secondary outline">다른 계정으로 로그인</a></li>
+                </ul>
+            </nav>
+        </footer>
+    </article>
 </main>
-
-<style>
-    .error-page {
-        text-align: center;
-        padding: 2rem;
-        max-width: 600px;
-        margin: 0 auto;
-    }
-    
-    .error-code {
-        font-size: 6rem;
-        font-weight: bold;
-        color: var(--pico-color-amber-550);
-        margin: 0;
-        line-height: 1;
-    }
-    
-    .error-page h2 {
-        color: var(--pico-color);
-        margin-bottom: 2rem;
-    }
-    
-    .error-content {
-        margin: 2rem 0;
-        padding: 1.5rem;
-        background-color: var(--pico-card-background-color);
-        border-radius: var(--pico-border-radius);
-        border-left: 4px solid var(--pico-color-amber-550);
-    }
-    
-    .error-message {
-        font-size: 1.1rem;
-        margin-bottom: 1rem;
-        color: var(--pico-color);
-    }
-    
-    .error-details, .error-timestamp {
-        margin-top: 1rem;
-        color: var(--pico-muted-color);
-    }
-    
-    .error-details code {
-        background-color: var(--pico-code-background-color);
-        padding: 0.2rem 0.4rem;
-        border-radius: 4px;
-        font-size: 0.9rem;
-    }
-    
-    .permission-info {
-        margin-top: 1.5rem;
-        text-align: left;
-    }
-    
-    .permission-info p {
-        font-weight: 500;
-        margin-bottom: 0.5rem;
-    }
-    
-    .permission-info ul {
-        margin-left: 1.5rem;
-        color: var(--pico-muted-color);
-    }
-    
-    .permission-info li {
-        margin: 0.25rem 0;
-        font-size: 0.95rem;
-    }
-    
-    .error-actions {
-        margin-top: 2rem;
-    }
-    
-    .error-actions .grid {
-        gap: 1rem;
-        margin-bottom: 1.5rem;
-    }
-    
-    .additional-links {
-        padding-top: 1rem;
-        border-top: 1px solid var(--pico-muted-border-color);
-    }
-    
-    .additional-links nav ul {
-        display: flex;
-        justify-content: center;
-        gap: 2rem;
-        list-style: none;
-        padding: 0;
-        margin: 0;
-    }
-    
-    .additional-links nav ul li {
-        margin: 0;
-    }
-    
-    .additional-links a {
-        color: var(--pico-primary);
-        text-decoration: none;
-        font-size: 0.9rem;
-    }
-    
-    .additional-links a:hover {
-        text-decoration: underline;
-    }
-    
-    /* 다크 모드 대응 */
-    @media (prefers-color-scheme: dark) {
-        .error-content {
-            background-color: var(--pico-card-background-color);
-        }
-        
-        .error-code {
-            color: var(--pico-color-amber-450);
-        }
-        
-        .error-content {
-            border-left-color: var(--pico-color-amber-450);
-        }
-    }
-    
-    /* 반응형 디자인 */
-    @media (max-width: 768px) {
-        .error-code {
-            font-size: 4rem;
-        }
-        
-        .error-page {
-            padding: 1rem;
-        }
-        
-        .error-content {
-            padding: 1rem;
-        }
-        
-        .permission-info ul {
-            margin-left: 1rem;
-        }
-        
-        .additional-links nav ul {
-            flex-direction: column;
-            gap: 1rem;
-        }
-    }
-</style>
-</body>
 </html>

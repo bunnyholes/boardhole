@@ -46,7 +46,7 @@ class SignupViewE2ETest extends ViewE2ETestBase {
         assertThat(page.locator("input[name='password']").count()).isGreaterThan(0);
         assertThat(page.locator("input[name='confirmPassword']").count()).isGreaterThan(0);
         assertThat(page.locator("input[name='agree']").count()).isGreaterThan(0);
-        assertThat(page.locator("input[type='submit']").count()).isGreaterThan(0);
+        assertThat(page.locator("button[type='submit'], input[type='submit']").count()).isGreaterThan(0);
 
         // fieldset으로 그룹화되었는지 확인
         assertThat(page.locator("fieldset").count()).isGreaterThan(0);
@@ -62,7 +62,7 @@ class SignupViewE2ETest extends ViewE2ETestBase {
         page.waitForLoadState();
 
         // 빈 폼으로 제출 시도 (HTML5 validation이 막아야 함)
-        page.click("input[type='submit']");
+        page.click("button[type='submit'], input[type='submit']");
 
         // 페이지가 변경되지 않았는지 확인 (validation이 작동함)
         assertThat(page.url()).contains("/auth/signup");
@@ -74,7 +74,7 @@ class SignupViewE2ETest extends ViewE2ETestBase {
         page.fill("input[name='password']", "Test123!");
         page.fill("input[name='confirmPassword']", "Test123!");
         page.check("input[name='agree']");
-        page.click("input[type='submit']");
+        page.click("button[type='submit'], input[type='submit']");
 
         // 잘못된 이메일로 인해 제출이 막혔는지 확인
         assertThat(page.url()).contains("/auth/signup");
@@ -82,7 +82,7 @@ class SignupViewE2ETest extends ViewE2ETestBase {
         // 사용자명 패턴 검증 (특수문자 포함)
         page.fill("input[name='email']", "test@example.com");
         page.fill("input[name='username']", "test@user"); // 특수문자 포함으로 validation 실패해야 함
-        page.click("input[type='submit']");
+        page.click("button[type='submit'], input[type='submit']");
 
         // 패턴 위반으로 제출이 막혔는지 확인
         assertThat(page.url()).contains("/auth/signup");
@@ -136,7 +136,7 @@ class SignupViewE2ETest extends ViewE2ETestBase {
         page.check("input[name='agree']");
 
         // 회원가입 제출
-        page.click("input[type='submit']");
+        page.click("button[type='submit'], input[type='submit']");
         page.waitForLoadState();
 
         // 회원가입 성공 후 메인 페이지로 리디렉션되는지 확인 (자동 로그인 시)
@@ -163,7 +163,7 @@ class SignupViewE2ETest extends ViewE2ETestBase {
         page.check("input[name='agree']");
 
         // 회원가입 시도
-        page.click("input[type='submit']");
+        page.click("button[type='submit'], input[type='submit']");
         page.waitForLoadState();
 
         // 여전히 회원가입 페이지에 있는지 확인 (서버 사이드 validation)
@@ -208,7 +208,7 @@ class SignupViewE2ETest extends ViewE2ETestBase {
         page.check("input[name='agree']");
 
         // 회원가입 시도
-        page.click("input[type='submit']");
+        page.click("button[type='submit'], input[type='submit']");
         page.waitForLoadState();
 
         // 중복으로 인해 회원가입 페이지에 머물러 있는지 확인
@@ -236,7 +236,7 @@ class SignupViewE2ETest extends ViewE2ETestBase {
         // 약관 동의 체크박스는 체크하지 않음
 
         // 회원가입 시도
-        page.click("input[type='submit']");
+        page.click("button[type='submit'], input[type='submit']");
 
         // HTML5 validation에 의해 제출이 막혔는지 확인
         assertThat(page.url()).contains("/auth/signup");
@@ -257,7 +257,7 @@ class SignupViewE2ETest extends ViewE2ETestBase {
         page.check("input[name='agree']");
 
         // 회원가입 시도
-        page.click("input[type='submit']");
+        page.click("button[type='submit'], input[type='submit']");
 
         // HTML5 pattern validation에 의해 막혔는지 확인
         assertThat(page.url()).contains("/auth/signup");

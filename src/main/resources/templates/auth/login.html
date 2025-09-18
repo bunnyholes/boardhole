@@ -1,66 +1,47 @@
 <!DOCTYPE html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{fragments/base :: layout(title='Board Hole 로그인', content=~{::section})}">
+      th:replace="~{fragments/base :: layout(title='Board Hole 로그인', content=~{::article})}">
 <head>
     <title>Board Hole 로그인</title>
 </head>
 <body>
-<section>
-    <article>
-        <header>
-            <hgroup>
-                <h1>로그인</h1>
-                <p>Board Hole 계정으로 커뮤니티에 참여하세요.</p>
-            </hgroup>
-        </header>
+<article>
+    <header>
+        <hgroup>
+            <h1>로그인</h1>
+            <p>Board Hole 계정으로 커뮤니티에 참여하세요.</p>
+        </hgroup>
+    </header>
 
-        <div>
-            <form th:action="@{/auth/login}" th:object="${loginRequest}" method="post" novalidate>
-                <input th:if="${returnUrl}" type="hidden" name="returnUrl" th:value="${returnUrl}">
+    <form th:action="@{/auth/login}" method="post" novalidate>
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
 
-                <fieldset>
-                    <label for="username">
-                   사용자이름
-                   <input id="username" type="email" placeholder="name@example.com"
-                       th:field="*{username}" autocomplete="email" inputmode="email" required
-                       th:attr="aria-invalid=${#fields.hasErrors('username')} ? 'true' : (${#fields.hasAnyErrors()} ? 'false' : null),
-                              aria-describedby=${#fields.hasErrors('username')} ? 'username-help' : null">
-                   <small id="username-help"
-                       th:if="${#fields.hasErrors('username')}"
-                       th:errors="*{username}">
-                    사용자이름 오류
-                   </small>
-                  </label>
+        <fieldset>
+            <label for="username">
+                사용자이름
+                <input id="username" name="username" type="text" placeholder="name@example.com"
+                       autocomplete="username" inputmode="email" required>
+            </label>
 
-                    <label for="password">
-                   비밀번호
-                   <input id="password" type="password" placeholder="비밀번호"
-                       th:field="*{password}" autocomplete="current-password" required
-                       th:attr="aria-invalid=${#fields.hasErrors('password')} ? 'true' : (${#fields.hasAnyErrors()} ? 'false' : null),
-                              aria-describedby=${#fields.hasErrors('password')} ? 'password-help' : null">
-                   <small id="password-help"
-                       th:if="${#fields.hasErrors('password')}"
-                       th:errors="*{password}">
-                    비밀번호를 확인해주세요.
-                   </small>
-                  </label>
-                </fieldset>
+            <label for="password">
+                비밀번호
+                <input id="password" name="password" type="password" placeholder="비밀번호"
+                       autocomplete="current-password" required>
+            </label>
+        </fieldset>
 
-                <input type="submit" value="로그인" class="primary">
+        <button type="submit" class="primary">로그인</button>
 
-                <!-- Global errors must be inside form to use #fields -->
-                <div th:if="${#fields.hasGlobalErrors()}" class="global-error">
-                    <del th:each="err : ${#fields.globalErrors()}" th:text="${err}">로그인 에러</del>
-                </div>
-            </form>
+        <p th:if="${param.error}"
+           class="pico-color-red-700"
+           role="alert">
+            잘못된 사용자명 또는 비밀번호입니다.
+        </p>
+    </form>
 
-            <p>
-                <small>계정이 없으신가요? <a th:href="@{${authUrls.signup}}">회원가입</a></small>
-            </p>
-        </div>
-
-        <footer></footer>
-    </article>
-</section>
+    <footer>
+        <small>계정이 없으신가요? <a th:href="@{/auth/signup}">회원가입</a></small>
+    </footer>
+</article>
 </body>
 </html>

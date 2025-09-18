@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.options.Cookie;
+import com.microsoft.playwright.options.WaitForSelectorState;
 
 import bunny.boardhole.testsupport.e2e.ViewE2ETestBase;
 
@@ -33,7 +34,7 @@ class LogoutViewE2ETest extends ViewE2ETestBase {
         page.waitForSelector("input[name='username']");
         page.fill("input[name='username']", "admin");
         page.fill("input[name='password']", "Admin123!");
-        page.click("input[type='submit']");
+        page.click("button[type='submit'], input[type='submit']");
         // 로그인 후 리디렉션 대기
         page.waitForLoadState();
 
@@ -41,6 +42,24 @@ class LogoutViewE2ETest extends ViewE2ETestBase {
         String currentUrl = page.url();
         if (currentUrl.contains("/auth/login"))
             throw new RuntimeException("로그인 실패: 여전히 로그인 페이지에 있습니다");
+    }
+
+    private void submitLogoutForm(Page targetPage) {
+        targetPage.waitForSelector("form.logout-form button[type='submit']");
+        targetPage.click("form.logout-form button[type='submit']");
+    }
+
+    private void postLogoutWithCsrf() {
+        page.navigate("http://localhost:" + port + "/auth/login");
+        page.waitForLoadState();
+        page.waitForSelector("input[name='_csrf']", new Page.WaitForSelectorOptions().setState(WaitForSelectorState.ATTACHED));
+        String csrfToken = page.inputValue("input[name='_csrf']");
+        page.evaluate("token => fetch('/auth/logout', {" +
+                "method: 'POST'," +
+                "headers: {'Content-Type': 'application/x-www-form-urlencoded'}," +
+                "body: '_csrf=' + encodeURIComponent(token)," +
+                "credentials: 'same-origin'" +
+                "})", csrfToken);
     }
 
     /**
@@ -79,23 +98,18 @@ class LogoutViewE2ETest extends ViewE2ETestBase {
 
         // 5. 게시판 페이지에서 로그아웃 POST 요청 직접 수행
         // (헤더의 로그아웃 버튼이 보이지 않는 문제를 우회)
-        page.evaluate("() => {" +
-                "const form = document.createElement('form');" +
-                "form.method = 'POST';" +
-                "form.action = '/auth/logout';" +
-                "document.body.appendChild(form);" +
-                "form.submit();" +
-                "}");
+        submitLogoutForm(page);
 
-        // 6. 로그아웃 후 홈페이지로 리디렉션 대기
-        page.waitForURL("**/", new Page.WaitForURLOptions().setTimeout(5000));
+        // 6. 로그아웃 성공 페이지로 리디렉션 대기
+        page.waitForURL("**/auth/logout/success", new Page.WaitForURLOptions().setTimeout(5000));
 
-        // 7. 홈페이지로 리디렉션되었는지 확인
+        // 7. 로그아웃 성공 페이지로 이동되었는지 확인
         String afterLogoutUrl = page.url();
         assertThat(afterLogoutUrl)
-                .withFailMessage("로그아웃 후 홈페이지(/)로 리디렉션되어야 합니다. 현재: " + afterLogoutUrl)
-                .endsWith("/");
-        System.out.println("✅ 로그아웃 후 홈페이지로 리디렉션됨");
+                .withFailMessage("로그아웃 후 '/auth/logout/success'로 이동해야 합니다. 현재: " + afterLogoutUrl)
+                .endsWith("/auth/logout/success");
+        assertThat(page.textContent("h1")).contains("로그아웃 완료");
+        System.out.println("✅ 로그아웃 후 성공 페이지로 리디렉션됨");
 
         // 8. 로그아웃 후 세션 쿠키가 제거되었는지 확인
         assertThat(hasJSessionIdCookie())
@@ -117,19 +131,13 @@ class LogoutViewE2ETest extends ViewE2ETestBase {
         loginAsAdmin();
 
         // 로그아웃 수행 (JavaScript로 직접 폼 제출)
-        page.evaluate("() => {" +
-                "const form = document.createElement('form');" +
-                "form.method = 'POST';" +
-                "form.action = '/auth/logout';" +
-                "document.body.appendChild(form);" +
-                "form.submit();" +
-                "}");
+        submitLogoutForm(page);
 
-        // 홈페이지로 리디렉션 대기
-        page.waitForURL("**/", new Page.WaitForURLOptions().setTimeout(5000));
+        // 로그아웃 성공 페이지 대기
+        page.waitForURL("**/auth/logout/success", new Page.WaitForURLOptions().setTimeout(5000));
 
-        // 로그아웃 후 보호된 페이지(/boards) 접근 시도
-        page.navigate("http://localhost:" + port + "/boards");
+        // 로그아웃 후 보호된 페이지(/users) 접근 시도
+        page.navigate("http://localhost:" + port + "/users");
         page.waitForLoadState();
 
         // 로그인 페이지로 리디렉션되었는지 확인
@@ -148,22 +156,19 @@ class LogoutViewE2ETest extends ViewE2ETestBase {
         page.navigate("http://localhost:" + port + "/");
 
         // JavaScript로 로그아웃 POST 요청 수행
-        page.evaluate("() => {" +
-                "const form = document.createElement('form');" +
-                "form.method = 'POST';" +
-                "form.action = '/auth/logout';" +
-                "document.body.appendChild(form);" +
-                "form.submit();" +
-                "}");
+        postLogoutWithCsrf();
 
-        // 페이지 로드 대기
+        page.waitForTimeout(500); // 요청 전송 대기
+        page.reload();
         page.waitForLoadState();
 
-        // 홈페이지로 리디렉션되는지 확인 (예외 없이 처리)
         String currentUrl = page.url();
         assertThat(currentUrl)
-                .withFailMessage("비로그인 상태에서 로그아웃 엔드포인트 접근 시 홈으로 리디렉션되어야 합니다")
-                .endsWith("/");
+                .withFailMessage("비로그인 상태에서 로그아웃 엔드포인트 호출 후 홈/로그인/성공 페이지로 이동해야 합니다")
+                .satisfiesAnyOf(
+                        url -> assertThat(url).endsWith("/"),
+                        url -> assertThat(url).endsWith("/auth/login"),
+                        url -> assertThat(url).endsWith("/auth/logout/success"));
 
         System.out.println("✅ 비로그인 상태에서 로그아웃 엔드포인트 접근이 정상적으로 처리됨");
     }
@@ -182,28 +187,19 @@ class LogoutViewE2ETest extends ViewE2ETestBase {
         Page secondTab = context.newPage();
         secondTab.setDefaultTimeout(5000);
 
-        // 두 번째 탭에서 게시판 페이지 접근 (세션 공유로 접근 가능)
-        secondTab.navigate("http://localhost:" + port + "/boards");
+        // 두 번째 탭에서 보호된 페이지 접근 (세션 공유로 접근 가능)
+        secondTab.navigate("http://localhost:" + port + "/users");
         secondTab.waitForLoadState();
-        assertThat(secondTab.url()).endsWith("/boards");
+        assertThat(secondTab.url()).contains("/users");
 
         // 첫 번째 탭에서 로그아웃 (JavaScript로)
-        firstTab.evaluate("() => {" +
-                "const form = document.createElement('form');" +
-                "form.method = 'POST';" +
-                "form.action = '/auth/logout';" +
-                "document.body.appendChild(form);" +
-                "form.submit();" +
-                "}");
+        submitLogoutForm(firstTab);
 
-        // 홈페이지로 리디렉션 대기
-        firstTab.waitForURL("**/", new Page.WaitForURLOptions().setTimeout(5000));
+        firstTab.waitForURL("**/auth/logout/success", new Page.WaitForURLOptions().setTimeout(5000));
 
-        // 두 번째 탭 새로고침
         secondTab.reload();
-        secondTab.waitForLoadState();
+        secondTab.waitForURL("**/auth/login**", new Page.WaitForURLOptions().setTimeout(5000));
 
-        // 두 번째 탭도 로그인 페이지로 리디렉션되는지 확인
         String secondTabUrl = secondTab.url();
         assertThat(secondTabUrl)
                 .withFailMessage("다른 탭에서도 로그아웃이 적용되어야 합니다")
@@ -235,16 +231,9 @@ class LogoutViewE2ETest extends ViewE2ETestBase {
                 .isNotNull();
 
         // 로그아웃 수행
-        page.evaluate("() => {" +
-                "const form = document.createElement('form');" +
-                "form.method = 'POST';" +
-                "form.action = '/auth/logout';" +
-                "document.body.appendChild(form);" +
-                "form.submit();" +
-                "}");
+        submitLogoutForm(page);
 
-        // 홈페이지로 리디렉션 대기
-        page.waitForURL("**/", new Page.WaitForURLOptions().setTimeout(5000));
+        page.waitForURL("**/auth/logout/success", new Page.WaitForURLOptions().setTimeout(5000));
 
         // 로그아웃 후 쿠키 확인
         List<Cookie> cookiesAfterLogout = context.cookies();

@@ -21,7 +21,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
-import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.savedrequest.NullRequestCache;
@@ -83,7 +82,7 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(auth -> auth
                         // Public API endpoints
-                        .requestMatchers(ApiPaths.AUTH + ApiPaths.AUTH_SIGNUP, 
+                        .requestMatchers(ApiPaths.AUTH + ApiPaths.AUTH_SIGNUP,
                                 ApiPaths.AUTH + ApiPaths.AUTH_LOGIN,
                                 ApiPaths.AUTH + ApiPaths.AUTH_PUBLIC_ACCESS).permitAll()
                         .requestMatchers(HttpMethod.GET, ApiPaths.BOARDS, ApiPaths.BOARDS + "/**").permitAll()
@@ -113,8 +112,7 @@ public class SecurityConfig {
     public SecurityFilterChain webFilterChain(
             HttpSecurity http,
             SecurityContextRepository securityContextRepository,
-            LoginUrlAuthenticationEntryPoint loginUrlAuthenticationEntryPoint,
-            SavedRequestAwareAuthenticationSuccessHandler successHandler
+            LoginUrlAuthenticationEntryPoint loginUrlAuthenticationEntryPoint
     ) throws Exception {
         http
                 .csrf(Customizer.withDefaults())  // CSRF 기본값 사용
@@ -124,7 +122,7 @@ public class SecurityConfig {
                         .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
                         .requestMatchers("/assets/**", "/favicon.ico", "/css/**", "/js/**").permitAll()
                         // Public pages
-                        .requestMatchers("/", "/auth/login", "/auth/signup", "/welcome").permitAll()
+                        .requestMatchers("/", "/auth/login", "/auth/signup", "/auth/logout/success", "/welcome").permitAll()
                         .requestMatchers("/boards", "/boards/*").permitAll()  // 게시글 목록/상세 공개
                         // Error pages
                         .requestMatchers("/error", "/error/**").permitAll()
@@ -139,13 +137,14 @@ public class SecurityConfig {
                         // All other requests require authentication
                         .anyRequest().authenticated())
                 .formLogin(form -> form
-                        .loginPage("/auth/login")  // 커스텀 로그인 페이지
-                        .loginProcessingUrl("/auth/login")  // POST 처리 URL
-                        .successHandler(successHandler)  // 자동 리다이렉트 핸들러
+                        .loginPage("/auth/login")
+                        .loginProcessingUrl("/auth/login")
+                        .failureUrl("/auth/login?error")
+                        .defaultSuccessUrl("/boards")
                         .permitAll())
                 .logout(logout -> logout
                         .logoutUrl("/auth/logout")
-                        .logoutSuccessUrl("/")
+                        .logoutSuccessUrl("/auth/logout/success")
                         .deleteCookies("JSESSIONID")
                         .permitAll())
                 // RequestCache 기본값 사용 (자동으로 원래 페이지로 리다이렉트)
@@ -168,18 +167,6 @@ public class SecurityConfig {
     @Bean
     public LoginUrlAuthenticationEntryPoint loginUrlAuthenticationEntryPoint() {
         return new LoginUrlAuthenticationEntryPoint("/auth/login");
-    }
-
-    /**
-     * View Controller용 성공 핸들러 (SavedRequest 자동 처리)
-     */
-    @Bean
-    public SavedRequestAwareAuthenticationSuccessHandler savedRequestAwareAuthenticationSuccessHandler() {
-        SavedRequestAwareAuthenticationSuccessHandler successHandler = 
-                new SavedRequestAwareAuthenticationSuccessHandler();
-        successHandler.setDefaultTargetUrl("/boards");  // 기본 리다이렉트 URL
-        successHandler.setAlwaysUseDefaultTargetUrl(false);  // SavedRequest가 있으면 그곳으로
-        return successHandler;
     }
 
     @Bean

@@ -7,80 +7,21 @@
     <title>인증 필요 - Board Hole</title>
 </head>
 
-<body>
-<main class="container">
-    <article class="error-page">
-        <header >
-            <h1 class="error-code">401</h1>
-            <h2>인증이 필요합니다</h2>
+<main>
+    <article class="contrast">
+        <header>
+            <h1>401 - 인증이 필요합니다</h1>
+            <p>보호된 페이지에 접근하려면 로그인이 필요해요.</p>
         </header>
 
-        <div class="error-content">
-            <p>로그인이 필요한 페이지입니다.</p>
-            
-            <div th:if="${redirectUrl}">
-                <small>요청 페이지: <code th:text="${redirectUrl}"></code></small>
-            </div>
-            
-            <div style="margin-top: 2rem;">
-                <a th:href="@{/auth/login(returnUrl=${redirectUrl})}" 
-                   class="primary" 
-                   role="button">로그인 페이지로 이동</a>
-            </div>
-        </div>
+        <p>계속하려면 아래 버튼을 눌러 로그인하세요.</p>
+        <p th:if="${redirectUrl}">
+            <small>요청 페이지: <code th:text="${redirectUrl}">/secure</code></small>
+        </p>
+
+        <footer>
+            <a th:href="@{/auth/login}" role="button" class="primary">로그인 페이지로 이동</a>
+        </footer>
     </article>
 </main>
-
-<style>
-    .error-page {
-        text-align: center;
-        padding: 2rem;
-        max-width: 600px;
-        margin: 0 auto;
-    }
-    
-    .error-code {
-        font-size: 6rem;
-        font-weight: bold;
-        color: var(--pico-primary);
-        margin: 0;
-        line-height: 1;
-    }
-    
-    .error-page h2 {
-        color: var(--pico-color);
-        margin-bottom: 2rem;
-    }
-    
-    .error-content {
-        margin: 2rem 0;
-        padding: 1.5rem;
-        background-color: var(--pico-card-background-color);
-        border-radius: var(--pico-border-radius);
-        border-left: 4px solid var(--pico-warning);
-    }
-    
-    .error-content code {
-        background-color: var(--pico-code-background-color);
-        padding: 0.2rem 0.4rem;
-        border-radius: 4px;
-        font-size: 0.9rem;
-    }
-    
-    /* 반응형 디자인 */
-    @media (max-width: 768px) {
-        .error-code {
-            font-size: 4rem;
-        }
-        
-        .error-page {
-            padding: 1rem;
-        }
-        
-        .error-content {
-            padding: 1rem;
-        }
-    }
-</style>
-</body>
 </html>

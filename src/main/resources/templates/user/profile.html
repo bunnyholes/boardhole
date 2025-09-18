@@ -6,163 +6,119 @@
 </head>
 
 <main>
-    <div >
-        <h1 class="h3">사용자 프로필</h1>
-        <a href="/users" class="secondary outline">
-            ←
-            사용자 목록
-        </a>
-    </div>
+    <header>
+        <hgroup>
+            <h1>사용자 프로필</h1>
+            <p>회원 세부 정보와 최근 활동을 확인합니다.</p>
+        </hgroup>
+        <p>
+            <a href="/users" role="button" class="secondary outline">← 사용자 목록</a>
+        </p>
+    </header>
 
-    <div >
-        <!-- 사용자 기본 정보 -->
-        <div >
-            <div class="card">
-                <div >
-                    <!-- 사용자 아바타 -->
-                    <div  
-                         style="width: 120px; height: 120px;">
-                        👤
-                    </div>
-                    
-                    <h4  th:text="${user.name}">사용자명</h4>
-                    <p  th:text="${user.email}">email@example.com</p>
-                    
-                    <!-- 가입 정보 -->
-                    <div >
-                        <div >
-                            <div >
-                                <div >
-                                    <div class="fw-semibold text-primary fs-5" th:text="${user.boardCount ?: 0}">0</div>
-                                    <small >게시글</small>
-                                </div>
-                            </div>
-                            <div >
-                                <div >
-                                    <div class="fw-semibold text-success fs-5" th:text="${user.commentCount ?: 0}">0</div>
-                                    <small >댓글</small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div >
-                        <div >
-                            <span>가입일:</span>
-                            <span th:text="${#temporals.format(user.createdAt, 'yy-MM-dd')}">24-01-01</span>
-                        </div>
-                        <div >
-                            <span>최근 로그인:</span>
-                            <span th:text="${user.lastLoginAt ? #temporals.format(user.lastLoginAt, 'MM-dd HH:mm') : '없음'}">없음</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- 활동 내역 -->
-        <div >
-            <!-- 최근 게시글 -->
-            <div >
-                <div class="card-header bg-transparent border-bottom">
-                    <h5 >
-                        📄
-                        최근 게시글
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div th:if="${!#lists.isEmpty(user.recentBoards)}">
-                        <div  th:each="board : ${user.recentBoards}">
-                            <div class="flex-grow-1">
-                                <h6 >
-                                    <a th:href="@{/boards/{id}(id=${board.id})}" 
-                                        th:text="${board.title}">게시글 제목</a>
-                                </h6>
-                                <div >
-                                    <span th:text="${#temporals.format(board.createdAt, 'MM-dd')}">01-01</span>
-                                    <span class="mx-2">·</span>
-                                    조회 <span th:text="${board.viewCount}">0</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div th:if="${#lists.isEmpty(user.recentBoards)}">
-                        📄
-                        <p>작성한 게시글이 없습니다.</p>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- 최근 댓글 -->
-            <div class="card">
-                <div class="card-header bg-transparent border-bottom">
-                    <h5 >
-                        💬
-                        최근 댓글
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div th:if="${!#lists.isEmpty(user.recentComments)}">
-                        <div  th:each="comment : ${user.recentComments}">
-                            <div class="flex-grow-1">
-                                <div  th:text="${comment.content}">댓글 내용</div>
-                                <div >
-                                    <a th:href="@{/boards/{id}(id=${comment.boardId})}" 
-                                        th:text="${comment.boardTitle}">게시글 제목</a>
-                                    <span th:text="${#temporals.format(comment.createdAt, 'MM-dd')}">01-01</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div th:if="${#lists.isEmpty(user.recentComments)}">
-                        💬
-                        <p>작성한 댓글이 없습니다.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <section class="grid">
+        <article class="contrast">
+            <header>
+                <hgroup>
+                    <h2 th:text="${user.name}">사용자명</h2>
+                    <p th:text="${user.email}">email@example.com</p>
+                </hgroup>
+            </header>
 
-    <!-- 활동 통계 -->
-    <div >
-        <div >
-            <div class="card">
-                <div class="card-header bg-transparent border-bottom">
-                    <h5 >
-                        📄
-                        활동 통계
-                    </h5>
+            <dl>
+                <div>
+                    <dt>가입일</dt>
+                    <dd th:text="${#temporals.format(user.createdAt, 'yy-MM-dd')}">24-01-01</dd>
                 </div>
-                <div class="card-body">
-                    <div >
-                        <div >
-                            <div >
-                                <div class="fw-bold text-primary fs-4" th:text="${user.totalBoardViews ?: 0}">0</div>
-                                <small >총 게시글 조회수</small>
-                            </div>
-                        </div>
-                        <div >
-                            <div >
-                                <div class="fw-bold text-success fs-4" th:text="${user.totalComments ?: 0}">0</div>
-                                <small >총 댓글 수</small>
-                            </div>
-                        </div>
-                        <div >
-                            <div >
-                                <div class="fw-bold text-info fs-4" th:text="${user.totalLikes ?: 0}">0</div>
-                                <small >받은 좋아요</small>
-                            </div>
-                        </div>
-                        <div >
-                            <div >
-                                <div class="fw-bold text-warning fs-4" th:text="${#temporals.format(user.createdAt, 'yy.MM')}">24.01</div>
-                                <small >가입 시기</small>
-                            </div>
-                        </div>
-                    </div>
+                <div>
+                    <dt>최근 로그인</dt>
+                    <dd th:text="${user.lastLoginAt ? #temporals.format(user.lastLoginAt, 'MM-dd HH:mm') : '없음'}">없음</dd>
                 </div>
-            </div>
-        </div>
-    </div>
- </main>
+            </dl>
+
+            <dl class="grid">
+                <div>
+                    <dt>게시글</dt>
+                    <dd><mark th:text="${user.boardCount ?: 0}">0</mark></dd>
+                </div>
+                <div>
+                    <dt>댓글</dt>
+                    <dd><mark th:text="${user.commentCount ?: 0}">0</mark></dd>
+                </div>
+            </dl>
+
+            <footer>
+                <small>최근 활동 통계를 아래에서 확인하세요.</small>
+            </footer>
+        </article>
+
+        <article class="grid">
+            <section>
+                <header>
+                    <h2>📄 최근 게시글</h2>
+                </header>
+                <div th:if="${!#lists.isEmpty(user.recentBoards)}">
+                    <ul>
+                        <li th:each="board : ${user.recentBoards}">
+                            <strong>
+                                <a th:href="@{/boards/{id}(id=${board.id})}" th:text="${board.title}">게시글 제목</a>
+                            </strong>
+                            <br>
+                            <small>
+                                <time th:text="${#temporals.format(board.createdAt, 'MM-dd')}">01-01</time>
+                                · 조회 <span th:text="${board.viewCount}">0</span>
+                            </small>
+                        </li>
+                    </ul>
+                </div>
+                <p th:if="${#lists.isEmpty(user.recentBoards)}">작성한 게시글이 없습니다.</p>
+            </section>
+
+            <section>
+                <header>
+                    <h2>💬 최근 댓글</h2>
+                </header>
+                <div th:if="${!#lists.isEmpty(user.recentComments)}">
+                    <ul>
+                        <li th:each="comment : ${user.recentComments}">
+                            <p th:text="${comment.content}">댓글 내용</p>
+                            <small>
+                                <a th:href="@{/boards/{id}(id=${comment.boardId})}" th:text="${comment.boardTitle}">게시글 제목</a>
+                                ·
+                                <time th:text="${#temporals.format(comment.createdAt, 'MM-dd')}">01-01</time>
+                            </small>
+                        </li>
+                    </ul>
+                </div>
+                <p th:if="${#lists.isEmpty(user.recentComments)}">작성한 댓글이 없습니다.</p>
+            </section>
+        </article>
+    </section>
+
+    <section>
+        <article class="contrast">
+            <header>
+                <h2>📊 활동 통계</h2>
+            </header>
+            <dl class="grid">
+                <div>
+                    <dt>총 게시글 조회수</dt>
+                    <dd><strong th:text="${user.totalBoardViews ?: 0}">0</strong></dd>
+                </div>
+                <div>
+                    <dt>총 댓글 수</dt>
+                    <dd><strong th:text="${user.totalComments ?: 0}">0</strong></dd>
+                </div>
+                <div>
+                    <dt>받은 좋아요</dt>
+                    <dd><strong th:text="${user.totalLikes ?: 0}">0</strong></dd>
+                </div>
+                <div>
+                    <dt>가입 시기</dt>
+                    <dd><strong th:text="${#temporals.format(user.createdAt, 'yy.MM')}">24.01</strong></dd>
+                </div>
+            </dl>
+        </article>
+    </section>
+</main>
 </html>

@@ -5,21 +5,6 @@
   navigation: auto; 
 }
 
-::view-transition-old(root) {
-  animation: 90ms cubic-bezier(0.4, 0, 1, 1) both fade-out,
-            300ms cubic-bezier(0.4, 0, 0.2, 1) both scale-down;
-}
-
-::view-transition-new(root) {
-  animation: 210ms cubic-bezier(0, 0, 0.2, 1) 90ms both fade-in,
-            300ms cubic-bezier(0.4, 0, 0.2, 1) both scale-up;
-}
-
-@keyframes fade-in { from { opacity: 0; } }
-@keyframes fade-out { to { opacity: 0; } }
-@keyframes scale-up { from { scale: 0.95; } }
-@keyframes scale-down { to { scale: 0.95; } }
-
 /* ===== CSS 변수 (Pico 변수 재사용) ===== */
 :root {
   /* Pico 변수 활용 */
