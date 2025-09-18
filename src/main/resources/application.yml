@@ -24,21 +24,6 @@ server:
       force: true
 
 # ========================================
-# Actuator (관리 엔드포인트)
-# ========================================
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info
-  endpoint:
-    health:
-      probes:
-        enabled: true
-      show-details: never
-
-
-# ========================================
 # 애플리케이션 도메인 설정
 # ========================================
 boardhole:
