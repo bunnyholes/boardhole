@@ -12,6 +12,11 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
+  
+  # Docker Compose 인프라 설정
+  docker:
+    compose:
+      file: docker-compose.infra.yml
 
 # ========================================
 # 서버 전역 인코딩 설정

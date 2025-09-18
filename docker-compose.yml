@@ -2,8 +2,6 @@ services:
   mysql:
     image: mysql:8.4
     container_name: boardhole-mysql
-    ports:
-      - "3306"
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: boardhole
@@ -12,17 +10,17 @@ services:
     volumes:
       - mysql-data:/var/lib/mysql
     healthcheck:
-      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot" ]
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 30s
-  
+    networks:
+      - boardhole-network
+
   redis:
     image: redis:7-alpine
     container_name: boardhole-redis
-    ports:
-      - "6379"
     command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
     volumes:
       - redis-data:/data
@@ -31,8 +29,44 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
-      start_period: 10s
+    networks:
+      - boardhole-network
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      # BuildKit 활성화로 캐시 마운트 지원
+      args:
+        DOCKER_BUILDKIT: 1
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      #      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/boardhole?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
+      SPRING_DATASOURCE_USERNAME: boardhole
+      SPRING_DATASOURCE_PASSWORD: boardhole123
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      JAVA_OPTS: -Xms512m -Xmx1g -XX:+UseG1GC -Duser.timezone=Asia/Seoul
+      # 애플리케이션 설정
+      BOARDHOLE_CORS_ALLOWED_ORIGINS: http://localhost:3000,http://localhost:8080
+      BOARDHOLE_DEFAULT_USERS_ADMIN_PASSWORD: Admin123!
+
+    ports:
+      - "8081:8080"
+    volumes:
+      - app-logs:/app/logs
+    networks:
+      - boardhole-network
 
 volumes:
-  redis-data:
   mysql-data:
+  redis-data:
+  app-logs:
+
+networks:
+  boardhole-network:

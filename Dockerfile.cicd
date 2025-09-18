@@ -1,0 +1,18 @@
+# CI/CD 전용 Dockerfile - 빌드 스테이지 없이 JAR만 복사
+FROM eclipse-temurin:21-jre-alpine
+
+# 보안을 위한 non-root 유저
+RUN addgroup -g 1000 spring && \
+    adduser -D -u 1000 -G spring spring
+
+WORKDIR /app
+
+# GitHub Actions artifact에서 다운로드된 JAR 복사
+COPY --chown=spring:spring build/libs/*.jar app.jar
+
+USER spring:spring
+
+EXPOSE 8080
+
+# 런타임에 JAVA_OPTS와 SPRING_PROFILES_ACTIVE 환경변수 설정 가능
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
