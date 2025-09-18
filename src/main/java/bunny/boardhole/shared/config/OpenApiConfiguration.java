@@ -2,7 +2,6 @@ package bunny.boardhole.shared.config;
 
 import lombok.RequiredArgsConstructor;
 
-import org.springframework.boot.info.BuildProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -21,7 +20,6 @@ import io.swagger.v3.oas.models.info.License;
 @RequiredArgsConstructor
 public class OpenApiConfiguration {
 
-    private final BuildProperties buildProperties;
     private final ApiProperties apiProperties;
 
     @Bean
@@ -32,8 +30,8 @@ public class OpenApiConfiguration {
         return new OpenAPI()
                 .info(new Info()
                         .title(apiProperties.title())
-                        .version(buildProperties.getVersion())
-                        .description(apiProperties.description() + " (Build: " + buildProperties.getTime() + ")")
+                        .version(apiProperties.version())
+                        .description(apiProperties.description())
                         .termsOfService(apiProperties.termsOfService())
                         .contact(new Contact()
                                 .name(contact.name())

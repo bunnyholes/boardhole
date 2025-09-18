@@ -1,6 +1,7 @@
 package bunny.boardhole.shared.util;
 
 import java.util.Locale;
+import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,7 +27,7 @@ class MessageUtilsTest {
         System.out.println("System default locale: " + Locale.getDefault());
         System.out.println("LocaleContextHolder locale: " + LocaleContextHolder.getLocale());
 
-        String message = MessageUtils.get("error.user.not-found.id", 1L);
+        String message = MessageUtils.get("error.user.not-found.id", UUID.randomUUID());
         System.out.println("Message without setting locale: " + message);
 
         // 영어일 가능성이 높음
@@ -38,10 +39,11 @@ class MessageUtilsTest {
         // LocaleContextHolder를 한국어로 설정
         LocaleContextHolder.setLocale(Locale.KOREAN);
 
-        String message = MessageUtils.get("error.user.not-found.id", 1L);
+        UUID testId = UUID.randomUUID();
+        String message = MessageUtils.get("error.user.not-found.id", testId);
         System.out.println("Message with Korean locale: " + message);
 
-        assertThat(message).isEqualTo("사용자를 찾을 수 없습니다. ID: 1");
+        assertThat(message).isEqualTo("사용자를 찾을 수 없습니다. ID: " + testId);
     }
 
     @Test
@@ -49,9 +51,10 @@ class MessageUtilsTest {
         // LocaleContextHolder를 영어로 설정
         LocaleContextHolder.setLocale(Locale.ENGLISH);
 
-        String message = MessageUtils.get("error.user.not-found.id", 1L);
+        UUID testId = UUID.randomUUID();
+        String message = MessageUtils.get("error.user.not-found.id", testId);
         System.out.println("Message with English locale: " + message);
 
-        assertThat(message).isEqualTo("User not found. ID: 1");
+        assertThat(message).isEqualTo("User not found. ID: " + testId);
     }
 }

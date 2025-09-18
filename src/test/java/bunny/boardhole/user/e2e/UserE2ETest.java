@@ -40,10 +40,15 @@ class UserE2ETest extends E2ETestBase {
         @Test
         @DisplayName("❌ 익명 → 401 Unauthorized")
         void anonymous() {
-            given()
+            var response = given()
                     .when()
-                    .get("/users")
-                    .then()
+                    .get("/api/users");
+            
+            // 디버깅용 출력
+            System.out.println("Status Code: " + response.getStatusCode());
+            System.out.println("Response Body: " + response.getBody().asString());
+            
+            response.then()
                     .statusCode(401)
                     .body("type", equalTo("urn:problem-type:unauthorized"))
                     .body("title", equalTo(MessageUtils.get("exception.title.unauthorized")))
@@ -57,7 +62,7 @@ class UserE2ETest extends E2ETestBase {
             given()
                     .cookie("JSESSIONID", admin)
                     .when()
-                    .get("/users")
+                    .get("/api/users")
                     .then()
                     .statusCode(200)
                     .body("content", notNullValue())
@@ -67,7 +72,7 @@ class UserE2ETest extends E2ETestBase {
         @Test
         @DisplayName("🔍 관리자 검색")
         void adminCanSearch() {
-            given().cookie("JSESSIONID", admin).when().get("/users?search=admin").then().statusCode(200).body("content", notNullValue());
+            given().cookie("JSESSIONID", admin).when().get("/api/users?search=admin").then().statusCode(200).body("content", notNullValue());
         }
 
         @Test
@@ -76,7 +81,7 @@ class UserE2ETest extends E2ETestBase {
             given()
                     .cookie("JSESSIONID", admin)
                     .when()
-                    .get("/users?page=0&size=5")
+                    .get("/api/users?page=0&size=5")
                     .then()
                     .statusCode(200)
                     .body("pageable.pageSize", equalTo(5))
@@ -89,7 +94,7 @@ class UserE2ETest extends E2ETestBase {
             given()
                     .cookie("JSESSIONID", regular)
                     .when()
-                    .get("/users")
+                    .get("/api/users")
                     .then()
                     .statusCode(403)
                     .body("type", equalTo("urn:problem-type:forbidden"))
@@ -102,23 +107,23 @@ class UserE2ETest extends E2ETestBase {
         @DisplayName("🔍 빈 검색어 처리")
         void emptySearchParameter() {
             // 빈 문자열 검색 - 전체 목록 반환
-            given().cookie("JSESSIONID", admin).when().get("/users?search=").then().statusCode(200).body("content", notNullValue());
+            given().cookie("JSESSIONID", admin).when().get("/api/users?search=").then().statusCode(200).body("content", notNullValue());
 
             // 공백만 있는 검색 - 전체 목록 반환
-            given().cookie("JSESSIONID", admin).when().get("/users?search=   ").then().statusCode(200).body("content", notNullValue());
+            given().cookie("JSESSIONID", admin).when().get("/api/users?search=   ").then().statusCode(200).body("content", notNullValue());
         }
 
         @Test
         @DisplayName("🔍 특수문자 검색 처리")
         void specialCharactersInSearch() {
             // SQL 인젝션 시도 방어
-            given().cookie("JSESSIONID", admin).when().get("/users?search=' OR '1'='1").then().statusCode(200);
+            given().cookie("JSESSIONID", admin).when().get("/api/users?search=' OR '1'='1").then().statusCode(200);
 
             // 특수문자 포함 검색
-            given().cookie("JSESSIONID", admin).when().get("/users?search=@#$%^&*()").then().statusCode(200);
+            given().cookie("JSESSIONID", admin).when().get("/api/users?search=@#$%^&*()").then().statusCode(200);
 
             // XSS 시도 방어
-            given().cookie("JSESSIONID", admin).when().get("/users?search=<script>alert('xss')</script>").then().statusCode(200);
+            given().cookie("JSESSIONID", admin).when().get("/api/users?search=<script>alert('xss')</script>").then().statusCode(200);
         }
 
         @Test
@@ -128,22 +133,22 @@ class UserE2ETest extends E2ETestBase {
             given()
                     .cookie("JSESSIONID", admin)
                     .when()
-                    .get("/users?page=-1&size=10")
+                    .get("/api/users?page=-1&size=10")
                     .then()
                     .statusCode(200)
                     .body("pageable.pageNumber", equalTo(0)); // Spring이 0으로 보정
 
             // 음수 페이지 사이즈
-            given().cookie("JSESSIONID", admin).when().get("/users?page=0&size=-10").then().statusCode(200); // Spring이 기본값으로 처리
+            given().cookie("JSESSIONID", admin).when().get("/api/users?page=0&size=-10").then().statusCode(200); // Spring이 기본값으로 처리
 
             // 0 페이지 사이즈
-            given().cookie("JSESSIONID", admin).when().get("/users?page=0&size=0").then().statusCode(200); // Spring이 기본값으로 처리
+            given().cookie("JSESSIONID", admin).when().get("/api/users?page=0&size=0").then().statusCode(200); // Spring이 기본값으로 처리
 
             // 너무 큰 페이지 사이즈 (2000 이상)
             given()
                     .cookie("JSESSIONID", admin)
                     .when()
-                    .get("/users?page=0&size=5000")
+                    .get("/api/users?page=0&size=5000")
                     .then()
                     .statusCode(200)
                     .body("pageable.pageSize", notNullValue()); // Spring이 최대값으로 제한
@@ -156,7 +161,7 @@ class UserE2ETest extends E2ETestBase {
             given()
                     .cookie("JSESSIONID", admin)
                     .when()
-                    .get("/users?page=99999&size=10")
+                    .get("/api/users?page=99999&size=10")
                     .then()
                     .statusCode(200)
                     .body("content", notNullValue())
@@ -167,7 +172,7 @@ class UserE2ETest extends E2ETestBase {
         @DisplayName("🔍 매우 긴 검색어 처리")
         void veryLongSearchString() {
             String longSearch = "A".repeat(1000);
-            given().cookie("JSESSIONID", admin).when().get("/users?search=" + longSearch).then().statusCode(200);
+            given().cookie("JSESSIONID", admin).when().get("/api/users?search=" + longSearch).then().statusCode(200);
         }
     }
 
@@ -179,7 +184,7 @@ class UserE2ETest extends E2ETestBase {
         void anonymous() {
             given()
                     .when()
-                    .get("/users/00000000-0000-0000-0000-000000000001")
+                    .get("/api/users/00000000-0000-0000-0000-000000000001")
                     .then()
                     .statusCode(401)
                     .body("type", equalTo("urn:problem-type:unauthorized"))
@@ -191,13 +196,13 @@ class UserE2ETest extends E2ETestBase {
         @Test
         @DisplayName("✅ 본인 조회 (기본 일반 사용자)")
         void getOwnUser() {
-            Response meRes = given().cookie("JSESSIONID", regular).when().get("/users/me").then().extract().response();
+            Response meRes = given().cookie("JSESSIONID", regular).when().get("/api/users/me").then().extract().response();
             UUID myId = UUID.fromString(meRes.jsonPath().getString("id"));
 
             given()
                     .cookie("JSESSIONID", regular)
                     .when()
-                    .get("/users/" + myId)
+                    .get("/api/users/" + myId)
                     .then()
                     .statusCode(200)
                     .body("id", equalTo(myId.toString()))
@@ -210,7 +215,7 @@ class UserE2ETest extends E2ETestBase {
             given()
                     .cookie("JSESSIONID", admin)
                     .when()
-                    .get("/users/99999999-9999-9999-9999-999999999999")
+                    .get("/api/users/99999999-9999-9999-9999-999999999999")
                     .then()
                     .statusCode(404)
                     .body("type", equalTo("urn:problem-type:not-found"))
@@ -227,13 +232,13 @@ class UserE2ETest extends E2ETestBase {
             String e = u + "@example.com";
             AuthSteps.register(u, p, "ViewerTarget", e);
             String other = AuthSteps.loginAs(u, p);
-            UUID otherId = UUID.fromString(given().cookie("JSESSIONID", other).when().get("/users/me").then().extract().jsonPath().getString("id"));
+            UUID otherId = UUID.fromString(given().cookie("JSESSIONID", other).when().get("/api/users/me").then().extract().jsonPath().getString("id"));
 
             // Regular users cannot view other users' information
             given()
                     .cookie("JSESSIONID", regular)
                     .when()
-                    .get("/users/" + otherId)
+                    .get("/api/users/" + otherId)
                     .then()
                     .statusCode(403)
                     .body("type", equalTo("urn:problem-type:forbidden"));
@@ -242,8 +247,8 @@ class UserE2ETest extends E2ETestBase {
         @Test
         @DisplayName("✅ 관리자 - 기본 일반 사용자 조회")
         void adminCanGetOtherUser() {
-            UUID userId = UUID.fromString(given().cookie("JSESSIONID", regular).when().get("/users/me").then().extract().jsonPath().getString("id"));
-            given().cookie("JSESSIONID", admin).when().get("/users/" + userId).then().statusCode(200).body("username", equalTo("user"));
+            UUID userId = UUID.fromString(given().cookie("JSESSIONID", regular).when().get("/api/users/me").then().extract().jsonPath().getString("id"));
+            given().cookie("JSESSIONID", admin).when().get("/api/users/" + userId).then().statusCode(200).body("username", equalTo("user"));
         }
     }
 
@@ -259,14 +264,14 @@ class UserE2ETest extends E2ETestBase {
             String e = u + "@example.com";
             AuthSteps.register(u, p, "OtherUser", e);
             String other = AuthSteps.loginAs(u, p);
-            UUID otherId = UUID.fromString(given().cookie("JSESSIONID", other).when().get("/users/me").then().extract().jsonPath().getString("id"));
+            UUID otherId = UUID.fromString(given().cookie("JSESSIONID", other).when().get("/api/users/me").then().extract().jsonPath().getString("id"));
 
             given()
                     .cookie("JSESSIONID", regular)
                     .contentType(ContentType.URLENC)
                     .formParam("name", "Hacker")
                     .when()
-                    .put("/users/" + otherId)
+                    .put("/api/users/" + otherId)
                     .then()
                     .statusCode(403)
                     .body("type", equalTo("urn:problem-type:forbidden"))
@@ -284,13 +289,13 @@ class UserE2ETest extends E2ETestBase {
             String e = u + "@example.com";
             AuthSteps.register(u, p, "Updater", e);
             String me = AuthSteps.loginAs(u, p);
-            UUID myId = UUID.fromString(given().cookie("JSESSIONID", me).when().get("/users/me").then().extract().jsonPath().getString("id"));
+            UUID myId = UUID.fromString(given().cookie("JSESSIONID", me).when().get("/api/users/me").then().extract().jsonPath().getString("id"));
             given()
                     .cookie("JSESSIONID", me)
                     .contentType(ContentType.URLENC)
                     .formParam("name", "Updated Name")
                     .when()
-                    .put("/users/" + myId)
+                    .put("/api/users/" + myId)
                     .then()
                     .statusCode(200)
                     .body("name", equalTo("Updated Name"));
@@ -303,7 +308,7 @@ class UserE2ETest extends E2ETestBase {
                     .contentType(ContentType.URLENC)
                     .formParam("name", "Hacked")
                     .when()
-                    .put("/users/00000000-0000-0000-0000-000000000001")
+                    .put("/api/users/00000000-0000-0000-0000-000000000001")
                     .then()
                     .statusCode(401)
                     .body("type", equalTo("urn:problem-type:unauthorized"))
@@ -326,7 +331,7 @@ class UserE2ETest extends E2ETestBase {
                     .contentType(ContentType.URLENC)
                     .formParam("name", "Updated")
                     .when()
-                    .put("/users/99999999-9999-9999-9999-999999999999")
+                    .put("/api/users/99999999-9999-9999-9999-999999999999")
                     .then()
                     .statusCode(403)
                     .body("type", equalTo("urn:problem-type:forbidden"))
@@ -344,13 +349,13 @@ class UserE2ETest extends E2ETestBase {
             String e = u + "@example.com";
             AuthSteps.register(u, p, "Updatable", e);
             String user = AuthSteps.loginAs(u, p);
-            UUID userId = UUID.fromString(given().cookie("JSESSIONID", user).when().get("/users/me").then().extract().jsonPath().getString("id"));
+            UUID userId = UUID.fromString(given().cookie("JSESSIONID", user).when().get("/api/users/me").then().extract().jsonPath().getString("id"));
             given()
                     .cookie("JSESSIONID", admin)
                     .contentType(ContentType.URLENC)
                     .formParam("name", "AdminUpdated")
                     .when()
-                    .put("/users/" + userId)
+                    .put("/api/users/" + userId)
                     .then()
                     .statusCode(200)
                     .body("name", equalTo("AdminUpdated"));
@@ -367,13 +372,13 @@ class UserE2ETest extends E2ETestBase {
         //     String e = u + "@example.com";
         //     AuthSteps.signup(u, p, "EmailTest", e);
         //     SessionCookie me = AuthSteps.login(u, p);
-        //     Long myId = given().cookie(me.name(), me.value()).when().get("/users/me").then().extract().jsonPath().getLong("id");
+        //     Long myId = given().cookie(me.name(), me.value()).when().get("/api/users/me").then().extract().jsonPath().getLong("id");
 
         //     // 잘못된 이메일 형식
         //     given().cookie(me.name(), me.value())
         //         .contentType(ContentType.URLENC)
         //         .formParam("email", "invalid-email")
-        //         .when().put("/users/" + myId)
+        //         .when().put("/api/users/" + myId)
         //         .then().statusCode(400)
         //         .body("type", equalTo("urn:problem-type:validation-error"));
 
@@ -381,7 +386,7 @@ class UserE2ETest extends E2ETestBase {
         //     given().cookie(me.name(), me.value())
         //         .contentType(ContentType.URLENC)
         //         .formParam("email", "test @example.com")
-        //         .when().put("/users/" + myId)
+        //         .when().put("/api/users/" + myId)
         //         .then().statusCode(400)
         //         .body("type", equalTo("urn:problem-type:validation-error"));
         // }
@@ -395,7 +400,7 @@ class UserE2ETest extends E2ETestBase {
             String e = u + "@example.com";
             AuthSteps.register(u, p, "LengthTest", e);
             String me3 = AuthSteps.loginAs(u, p);
-            UUID myId = UUID.fromString(given().cookie("JSESSIONID", me3).when().get("/users/me").then().extract().jsonPath().getString("id"));
+            UUID myId = UUID.fromString(given().cookie("JSESSIONID", me3).when().get("/api/users/me").then().extract().jsonPath().getString("id"));
 
             // 너무 긴 이름 (100자 초과)
             String longName = "A".repeat(101);
@@ -404,7 +409,7 @@ class UserE2ETest extends E2ETestBase {
                     .contentType(ContentType.URLENC)
                     .formParam("name", longName)
                     .when()
-                    .put("/users/" + myId)
+                    .put("/api/users/" + myId)
                     .then()
                     .statusCode(422)
                     .body("type", equalTo("urn:problem-type:validation-error"));
@@ -418,7 +423,7 @@ class UserE2ETest extends E2ETestBase {
                     .contentType(ContentType.URLENC)
                     .formParam("name", "Test")
                     .when()
-                    .put("/users/invalid-id")
+                    .put("/api/users/invalid-id")
                     .then()
                     .statusCode(400);
 
@@ -427,7 +432,7 @@ class UserE2ETest extends E2ETestBase {
                     .contentType(ContentType.URLENC)
                     .formParam("name", "Test")
                     .when()
-                    .put("/users/invalid-uuid-format")
+                    .put("/api/users/invalid-uuid-format")
                     .then()
                     .statusCode(400);
         }
@@ -441,7 +446,7 @@ class UserE2ETest extends E2ETestBase {
             String e = u + "@example.com";
             AuthSteps.register(u, p, "XSSTest", e);
             String me = AuthSteps.loginAs(u, p);
-            UUID myId = UUID.fromString(given().cookie("JSESSIONID", me).when().get("/users/me").then().extract().jsonPath().getString("id"));
+            UUID myId = UUID.fromString(given().cookie("JSESSIONID", me).when().get("/api/users/me").then().extract().jsonPath().getString("id"));
 
             // XSS 시도 - 스크립트 태그
             given()
@@ -449,12 +454,12 @@ class UserE2ETest extends E2ETestBase {
                     .contentType(ContentType.URLENC)
                     .formParam("name", "<script>alert('xss')</script>")
                     .when()
-                    .put("/users/" + myId)
+                    .put("/api/users/" + myId)
                     .then()
                     .statusCode(200);
 
             // 검증: 스크립트가 이스케이프되어 저장됨
-            String savedName = given().cookie("JSESSIONID", me).when().get("/users/" + myId).then().extract().jsonPath().getString("name");
+            String savedName = given().cookie("JSESSIONID", me).when().get("/api/users/" + myId).then().extract().jsonPath().getString("name");
 
             // HTML 태그가 그대로 저장되어도 렌더링시 이스케이프됨
             // 실제 저장된 값 확인
@@ -470,7 +475,7 @@ class UserE2ETest extends E2ETestBase {
             String e = u + "@example.com";
             AuthSteps.register(u, p, "SQLTest", e);
             String me2 = AuthSteps.loginAs(u, p);
-            UUID myId2 = UUID.fromString(given().cookie("JSESSIONID", me2).when().get("/users/me").then().extract().jsonPath().getString("id"));
+            UUID myId2 = UUID.fromString(given().cookie("JSESSIONID", me2).when().get("/api/users/me").then().extract().jsonPath().getString("id"));
 
             // SQL 인젝션 시도
             given()
@@ -478,12 +483,12 @@ class UserE2ETest extends E2ETestBase {
                     .contentType(ContentType.URLENC)
                     .formParam("name", "'; DROP TABLE users; --")
                     .when()
-                    .put("/users/" + myId2)
+                    .put("/api/users/" + myId2)
                     .then()
                     .statusCode(200);
 
             // 시스템이 여전히 정상 작동하는지 확인
-            given().cookie("JSESSIONID", admin).when().get("/users").then().statusCode(200).body("content", notNullValue());
+            given().cookie("JSESSIONID", admin).when().get("/api/users").then().statusCode(200).body("content", notNullValue());
         }
 
         @Test
@@ -495,7 +500,7 @@ class UserE2ETest extends E2ETestBase {
                     .contentType(ContentType.URLENC)
                     .formParam("name", "Test")
                     .when()
-                    .put("/users/../../../etc/passwd")
+                    .put("/api/users/../../../etc/passwd")
                     .then()
                     .statusCode(400);
 
@@ -504,7 +509,7 @@ class UserE2ETest extends E2ETestBase {
                     .contentType(ContentType.URLENC)
                     .formParam("name", "Test")
                     .when()
-                    .put("/users/%2e%2e%2f%2e%2e%2f")
+                    .put("/api/users/%2e%2e%2f%2e%2e%2f")
                     .then()
                     .statusCode(400);
         }
@@ -522,12 +527,12 @@ class UserE2ETest extends E2ETestBase {
             String e = u + "@example.com";
             AuthSteps.register(u, p, "DelOther", e);
             String other = AuthSteps.loginAs(u, p);
-            UUID otherId = UUID.fromString(given().cookie("JSESSIONID", other).when().get("/users/me").then().extract().jsonPath().getString("id"));
+            UUID otherId = UUID.fromString(given().cookie("JSESSIONID", other).when().get("/api/users/me").then().extract().jsonPath().getString("id"));
 
             given()
                     .cookie("JSESSIONID", regular)
                     .when()
-                    .delete("/users/" + otherId)
+                    .delete("/api/users/" + otherId)
                     .then()
                     .statusCode(403)
                     .body("type", equalTo("urn:problem-type:forbidden"))
@@ -545,9 +550,9 @@ class UserE2ETest extends E2ETestBase {
             String e = u + "@example.com";
             AuthSteps.register(u, p, "Deletable", e);
             String me = AuthSteps.loginAs(u, p);
-            UUID myId = UUID.fromString(given().cookie("JSESSIONID", me).when().get("/users/me").then().extract().jsonPath().getString("id"));
-            given().cookie("JSESSIONID", me).when().delete("/users/" + myId).then().statusCode(204);
-            given().cookie("JSESSIONID", admin).when().get("/users/" + myId).then().statusCode(404);
+            UUID myId = UUID.fromString(given().cookie("JSESSIONID", me).when().get("/api/users/me").then().extract().jsonPath().getString("id"));
+            given().cookie("JSESSIONID", me).when().delete("/api/users/" + myId).then().statusCode(204);
+            given().cookie("JSESSIONID", admin).when().get("/api/users/" + myId).then().statusCode(404);
         }
 
         @Test
@@ -555,7 +560,7 @@ class UserE2ETest extends E2ETestBase {
         void deleteUnauthorized() {
             given()
                     .when()
-                    .delete("/users/00000000-0000-0000-0000-000000000001")
+                    .delete("/api/users/00000000-0000-0000-0000-000000000001")
                     .then()
                     .statusCode(401)
                     .body("type", equalTo("urn:problem-type:unauthorized"))
@@ -577,7 +582,7 @@ class UserE2ETest extends E2ETestBase {
             given()
                     .cookie("JSESSIONID", other)
                     .when()
-                    .delete("/users/99999999-9999-9999-9999-999999999999")
+                    .delete("/api/users/99999999-9999-9999-9999-999999999999")
                     .then()
                     .statusCode(403)
                     .body("type", equalTo("urn:problem-type:forbidden"))
@@ -595,11 +600,11 @@ class UserE2ETest extends E2ETestBase {
             String e = u + "@example.com";
             AuthSteps.register(u, p, "DelTarget", e);
             String user = AuthSteps.loginAs(u, p);
-            UUID userId = UUID.fromString(given().cookie("JSESSIONID", user).when().get("/users/me").then().extract().jsonPath().getString("id"));
+            UUID userId = UUID.fromString(given().cookie("JSESSIONID", user).when().get("/api/users/me").then().extract().jsonPath().getString("id"));
 
-            given().cookie("JSESSIONID", admin).when().delete("/users/" + userId).then().statusCode(204);
+            given().cookie("JSESSIONID", admin).when().delete("/api/users/" + userId).then().statusCode(204);
 
-            given().cookie("JSESSIONID", admin).when().get("/users/" + userId).then().statusCode(404);
+            given().cookie("JSESSIONID", admin).when().get("/api/users/" + userId).then().statusCode(404);
         }
     }
 
@@ -612,7 +617,7 @@ class UserE2ETest extends E2ETestBase {
             given()
                     .cookie("JSESSIONID", regular)
                     .when()
-                    .get("/users/me")
+                    .get("/api/users/me")
                     .then()
                     .statusCode(200)
                     .body("username", equalTo("user"))
@@ -624,7 +629,7 @@ class UserE2ETest extends E2ETestBase {
         void meUnauthorized() {
             given()
                     .when()
-                    .get("/users/me")
+                    .get("/api/users/me")
                     .then()
                     .statusCode(401)
                     .body("type", equalTo("urn:problem-type:unauthorized"))
@@ -648,7 +653,7 @@ class UserE2ETest extends E2ETestBase {
 
             AuthSteps.register(u, oldPwd, "PasswordUser", e);
             String user = AuthSteps.loginAs(u, oldPwd);
-            UUID userId = UUID.fromString(given().cookie("JSESSIONID", user).when().get("/users/me").then().extract().jsonPath().getString("id"));
+            UUID userId = UUID.fromString(given().cookie("JSESSIONID", user).when().get("/api/users/me").then().extract().jsonPath().getString("id"));
 
             // 패스워드 변경
             given()
@@ -658,7 +663,7 @@ class UserE2ETest extends E2ETestBase {
                     .formParam("newPassword", newPwd)
                     .formParam("confirmPassword", newPwd)
                     .when()
-                    .patch("/users/" + userId + "/password")
+                    .patch("/api/users/" + userId + "/password")
                     .then()
                     .statusCode(204);
 
@@ -676,7 +681,7 @@ class UserE2ETest extends E2ETestBase {
 
             AuthSteps.register(u, pwd, "MismatchUser", e);
             String user = AuthSteps.loginAs(u, pwd);
-            UUID userId = UUID.fromString(given().cookie("JSESSIONID", user).when().get("/users/me").then().extract().jsonPath().getString("id"));
+            UUID userId = UUID.fromString(given().cookie("JSESSIONID", user).when().get("/api/users/me").then().extract().jsonPath().getString("id"));
 
             given()
                     .cookie("JSESSIONID", user)
@@ -685,7 +690,7 @@ class UserE2ETest extends E2ETestBase {
                     .formParam("newPassword", "NewPass123!")
                     .formParam("confirmPassword", "DifferentPass123!")
                     .when()
-                    .patch("/users/" + userId + "/password")
+                    .patch("/api/users/" + userId + "/password")
                     .then()
                     .statusCode(422)
                     .body("type", equalTo("urn:problem-type:validation-error"))
@@ -703,7 +708,7 @@ class UserE2ETest extends E2ETestBase {
 
             AuthSteps.register(u, pwd, "WrongPwdUser", e);
             String user = AuthSteps.loginAs(u, pwd);
-            UUID userId = UUID.fromString(given().cookie("JSESSIONID", user).when().get("/users/me").then().extract().jsonPath().getString("id"));
+            UUID userId = UUID.fromString(given().cookie("JSESSIONID", user).when().get("/api/users/me").then().extract().jsonPath().getString("id"));
 
             given()
                     .cookie("JSESSIONID", user)
@@ -712,7 +717,7 @@ class UserE2ETest extends E2ETestBase {
                     .formParam("newPassword", "NewPass123!")
                     .formParam("confirmPassword", "NewPass123!")
                     .when()
-                    .patch("/users/" + userId + "/password")
+                    .patch("/api/users/" + userId + "/password")
                     .then()
                     .statusCode(401);
         }
@@ -726,7 +731,7 @@ class UserE2ETest extends E2ETestBase {
                     .formParam("newPassword", "NewPass123!")
                     .formParam("confirmPassword", "NewPass123!")
                     .when()
-                    .patch("/users/00000000-0000-0000-0000-000000000001/password")
+                    .patch("/api/users/00000000-0000-0000-0000-000000000001/password")
                     .then()
                     .statusCode(401)
                     .body("type", equalTo("urn:problem-type:unauthorized"))
@@ -745,7 +750,7 @@ class UserE2ETest extends E2ETestBase {
 
             AuthSteps.register(u, pwd, "OtherUser", e);
             String other = AuthSteps.loginAs(u, pwd);
-            UUID otherId = UUID.fromString(given().cookie("JSESSIONID", other).when().get("/users/me").then().extract().jsonPath().getString("id"));
+            UUID otherId = UUID.fromString(given().cookie("JSESSIONID", other).when().get("/api/users/me").then().extract().jsonPath().getString("id"));
 
             given()
                     .cookie("JSESSIONID", regular)
@@ -754,7 +759,7 @@ class UserE2ETest extends E2ETestBase {
                     .formParam("newPassword", "NewPass123!")
                     .formParam("confirmPassword", "NewPass123!")
                     .when()
-                    .patch("/users/" + otherId + "/password")
+                    .patch("/api/users/" + otherId + "/password")
                     .then()
                     .statusCode(403)
                     .body("type", equalTo("urn:problem-type:forbidden"))
@@ -773,7 +778,7 @@ class UserE2ETest extends E2ETestBase {
                     .formParam("newPassword", "NewPass123!")
                     .formParam("confirmPassword", "NewPass123!")
                     .when()
-                    .patch("/users/99999999-9999-9999-9999-999999999999/password")
+                    .patch("/api/users/99999999-9999-9999-9999-999999999999/password")
                     .then()
                     .statusCode(404)
                     .body("type", equalTo("urn:problem-type:not-found"))
@@ -790,7 +795,7 @@ class UserE2ETest extends E2ETestBase {
 
             AuthSteps.register(u, pwd, "ComplexUser", e);
             String user = AuthSteps.loginAs(u, pwd);
-            UUID userId = UUID.fromString(given().cookie("JSESSIONID", user).when().get("/users/me").then().extract().jsonPath().getString("id"));
+            UUID userId = UUID.fromString(given().cookie("JSESSIONID", user).when().get("/api/users/me").then().extract().jsonPath().getString("id"));
 
             // 특수문자 없음
             given()
@@ -800,7 +805,7 @@ class UserE2ETest extends E2ETestBase {
                     .formParam("newPassword", "Password123")
                     .formParam("confirmPassword", "Password123")
                     .when()
-                    .patch("/users/" + userId + "/password")
+                    .patch("/api/users/" + userId + "/password")
                     .then()
                     .statusCode(422)
                     .body("type", equalTo("urn:problem-type:validation-error"));
@@ -813,7 +818,7 @@ class UserE2ETest extends E2ETestBase {
                     .formParam("newPassword", "Pass1!")
                     .formParam("confirmPassword", "Pass1!")
                     .when()
-                    .patch("/users/" + userId + "/password")
+                    .patch("/api/users/" + userId + "/password")
                     .then()
                     .statusCode(422)
                     .body("type", equalTo("urn:problem-type:validation-error"));

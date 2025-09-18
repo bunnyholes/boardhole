@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/base :: layout(title=${title ?: '게시판'}, content=~{::section})}">
+<head>
+    <title>게시판</title>
+</head>
+<body>
+<section class="board-page">
+    <header class="board-hero">
+        <div class="board-hero-text">
+            <span class="board-kicker">Community boards</span>
+            <hgroup>
+                <h1>게시판</h1>
+                <p class="board-subtitle">전체 게시글을 한곳에서 탐색하고 원하는 글을 바로 찾아보세요.</p>
+            </hgroup>
+        </div>
+
+        <div class="board-toolbar">
+            <form method="get" role="search" class="board-search">
+                <fieldset role="group">
+                    <input type="search" name="search" th:value="${search}"
+                           placeholder="🔍 제목, 내용 검색"
+                           autocomplete="off" spellcheck="false" enterkeyhint="search"
+                           aria-label="게시글 검색">
+                    <input type="submit" value="검색">
+                </fieldset>
+            </form>
+
+            <a href="/boards/write" role="button" class="primary">✍️ 글쓰기</a>
+        </div>
+    </header>
+
+    <article class="board-empty contrast center" th:if="${#lists.isEmpty(boards.content)}">
+        <hgroup>
+            <h2>📭 게시글이 없습니다</h2>
+            <p>첫 번째 게시글을 작성해서 커뮤니티를 시작해보세요!</p>
+        </hgroup>
+        <footer>
+            <a href="/boards/write" role="button" class="primary">✍️ 첫 번째 글 작성하기</a>
+        </footer>
+    </article>
+
+    <section class="board-content" th:unless="${#lists.isEmpty(boards.content)}">
+        <div class="board-list">
+            <article class="board-card contrast" th:each="board : ${boards.content}">
+                <header class="board-card-header">
+                    <div class="board-chip">
+                        👤 <span th:text="${board.authorName}">작성자</span>
+                    </div>
+                    <time class="board-date" th:datetime="${board.createdAt}"
+                          th:text="${#temporals.format(board.createdAt, 'MM-dd HH:mm')}">01-15 14:30</time>
+                </header>
+
+                <h3 class="board-title">
+                    <a th:href="@{/boards/{id}(id=${board.id})}"
+                       th:text="${board.title}"
+                       th:title="${board.title}">
+                        게시글 제목
+                    </a>
+                </h3>
+
+                <p class="board-preview" th:if="${board.content}">
+                    <small th:text="${#strings.abbreviate(#strings.replace(board.content, '\\n', ' '), 120)}">
+                        내용 미리보기...
+                    </small>
+                </p>
+
+                <footer class="board-meta">
+                    <span class="board-views">👁 <span th:text="${board.viewCount}">123</span>회 열람</span>
+                    <span class="board-more">자세히 보기 →</span>
+                </footer>
+            </article>
+        </div>
+
+        <nav class="board-pagination" aria-label="페이지네이션" th:if="${boards.totalPages > 1}">
+            <a th:href="${boards.first ? '#' : '/boards?page=' + (boards.number - 1) + (search ? '&search=' + search : '')}"
+               th:aria-disabled="${boards.first}"
+               aria-label="이전 페이지"
+               th:class="${boards.first ? 'outline secondary' : 'outline'}"
+               role="button">‹ 이전</a>
+
+            <th:block th:with="startPage=${T(java.lang.Math).max(0, boards.number - 2)}, endPage=${T(java.lang.Math).min(boards.totalPages - 1, boards.number + 2)}">
+                <a th:each="pageNum : ${#numbers.sequence(startPage, endPage)}"
+                   th:href="${'/boards?page=' + pageNum + (search ? '&search=' + search : '')}"
+                   th:aria-current="${pageNum == boards.number ? 'page' : null}"
+                   th:text="${pageNum + 1}"
+                   th:aria-label="|${pageNum + 1}페이지|"
+                   th:class="${pageNum == boards.number ? 'contrast' : 'outline secondary'}"
+                   role="button">1</a>
+            </th:block>
+
+            <a th:href="${boards.last ? '#' : '/boards?page=' + (boards.number + 1) + (search ? '&search=' + search : '')}'"
+               th:aria-disabled="${boards.last}"
+               aria-label="다음 페이지"
+               th:class="${boards.last ? 'outline secondary' : 'outline'}"
+               role="button">다음 ›</a>
+        </nav>
+
+        <footer class="board-stats center">
+            <small>
+                📊 총 <strong th:text="${#numbers.formatInteger(boards.totalElements, 3, 'COMMA')}">1,000</strong>개의 게시글 중
+                <strong th:text="${boards.number * boards.size + 1}">1</strong>-<strong th:text="${boards.number * boards.size + boards.numberOfElements}">10</strong>개 표시
+                (<strong th:text="${boards.number + 1}">1</strong>/<strong th:text="${boards.totalPages}">10</strong> 페이지)
+            </small>
+        </footer>
+    </section>
+</section>
+</body>
+</html>

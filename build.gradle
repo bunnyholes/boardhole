@@ -3,16 +3,12 @@ plugins {
     id 'org.springframework.boot' version '3.5.5'
     id 'io.spring.dependency-management' version '1.1.7'
     id 'com.github.ben-manes.versions' version '0.52.0'
-
 }
 
-group = 'bunny'
-// version은 gradle.properties에서 관리
-description = 'board-hole'
-
-springBoot {
-    buildInfo()  // BuildProperties 빈 생성으로 버전 정보를 런타임에 사용 가능
-}
+// 아래 속성들은 gradle.properties에서 자동으로 참조됩니다:
+// - version: 프로젝트 버전
+// - group: 프로젝트 그룹 ID  
+// - description: 프로젝트 설명
 
 java {
     toolchain {
@@ -97,6 +93,9 @@ dependencies {
     // -- Testing utilities --
     testImplementation 'org.awaitility:awaitility:4.2.0'
 
+    // -- Playwright for browser E2E testing --
+    testImplementation 'com.microsoft.playwright:playwright:1.55.0'
+
 }
 
 tasks.named('test') {
@@ -104,8 +103,40 @@ tasks.named('test') {
     maxParallelForks = Runtime.runtime.availableProcessors() ?: 1
 }
 
+// E2E 테스트 태스크 (API 테스트)
+tasks.register('e2eTest', Test) {
+    description = 'Run E2E tests (API tests)'
+    group = 'verification'
+    useJUnitPlatform {
+        includeTags 'e2e'
+        excludeTags 'view'
+    }
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    maxParallelForks = Runtime.runtime.availableProcessors() ?: 1
+}
+
+// View 테스트 태스크 (Playwright 브라우저 테스트)
+tasks.register('viewTest', Test) {
+    description = 'Run View tests (Playwright browser tests)'
+    group = 'verification'
+    useJUnitPlatform {
+        includeTags 'view'
+    }
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    maxParallelForks = 1 // Playwright 테스트는 순차 실행
+    
+    // 타임아웃 설정
+    testLogging {
+        events "passed", "skipped", "failed"
+        showStandardStreams = true
+    }
+}
+
 // Resource filtering for @project.version@ placeholder replacement
 processResources {
+    filteringCharset = 'UTF-8'
     filesMatching('**/*.yml') {
         expand(project.properties)
     }
@@ -115,4 +146,9 @@ processResources {
     filesMatching('**/*.properties') {
         expand(project.properties)
     }
+}
+
+// JAR 파일 이름에 버전 포함
+bootJar {
+    archiveFileName = "${project.name}-${project.version}.jar"
 }

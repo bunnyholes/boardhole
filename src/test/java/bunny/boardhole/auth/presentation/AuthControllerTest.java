@@ -116,7 +116,7 @@ class AuthControllerTest {
         void shouldCreateUserSuccessfully() {
             // given
             UserCreateRequest request = new UserCreateRequest(
-                    "testuser", "Password123!", "Test User", "test@example.com"
+                    "testuser", "Password123!", "Password123!", "Test User", "test@example.com"
             );
             CreateUserCommand command = new CreateUserCommand(
                     "testuser", "Password123!", "Test User", "test@example.com"

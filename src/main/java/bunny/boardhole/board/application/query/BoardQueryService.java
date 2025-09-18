@@ -2,6 +2,7 @@ package bunny.boardhole.board.application.query;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -93,7 +94,7 @@ public class BoardQueryService {
      * 게시글 단일 조회
      */
     @Transactional(readOnly = true)
-    public BoardResult getBoard(Long id) {
+    public BoardResult getBoard(UUID id) {
         return handle(new GetBoardQuery(id));
     }
 
@@ -142,7 +143,7 @@ public class BoardQueryService {
      * @return 사용자의 게시글 수
      */
     @Transactional(readOnly = true)
-    public Long getMyBoardCount(Long authorId) {
+    public Long getMyBoardCount(UUID authorId) {
         return boardRepository.countByAuthorId(authorId);
     }
 }

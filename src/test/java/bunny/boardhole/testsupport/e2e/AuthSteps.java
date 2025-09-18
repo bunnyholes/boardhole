@@ -21,8 +21,13 @@ public final class AuthSteps {
     public static void register(String username, String password, String name, String email) {
         given()
                 .contentType(ContentType.URLENC)
-                .formParams(Map.of("username", username, "password", password, "name", name, "email", email))
-                .when().post("auth/signup")
+                .formParams(Map.of(
+                        "username", username,
+                        "password", password,
+                        "confirmPassword", password,  // confirmPassword 추가
+                        "name", name,
+                        "email", email))
+                .when().post("/api/auth/signup")
                 .then().statusCode(anyOf(is(204), is(409)));
     }
 
@@ -30,7 +35,7 @@ public final class AuthSteps {
         var res = given()
                 .contentType(ContentType.URLENC)
                 .formParams(Map.of("username", username, "password", password))
-                .when().post("auth/login")
+                .when().post("/api/auth/login")
                 .then().statusCode(204)
                 .extract().response();
         return res.getCookie("JSESSIONID");

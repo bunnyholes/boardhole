@@ -224,3 +224,4 @@ Profiles:
 - IntelliJ IDEA inspections
 - RFC 7807 Problem Details for errors
 - GlobalExceptionHandler for centralized error handling
+  

@@ -6,192 +6,97 @@
 </head>
 
 <main>
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 text-gradient">글 수정</h1>
-        <div class="d-flex gap-2">
-            <a th:href="@{/boards/{id}(id=${board.id})}" class="btn btn-modern btn-outline-secondary">
-                <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16" class="me-2">
-                    <path d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"/>
-                    <path fill-rule="evenodd" d="M12.5 1a3 3 0 0 1 2.122 5.122l-.879.879A3.002 3.002 0 0 1 10.5 4.5l.879-.879A3 3 0 0 1 12.5 1zM8.5 6.5l3 3a.5.5 0 0 0 .708-.708l-3-3a.5.5 0 0 0-.708.708zM9 10l-.5.5-.5-.5a.5.5 0 0 0-.708.708l.5.5-.5.5a.5.5 0 0 0 .708.708l.5-.5.5.5a.5.5 0 0 0 .708-.708l-.5-.5.5-.5a.5.5 0 0 0-.708-.708z"/>
-                </svg>
+    <div>
+        <h1 class="h3">글 수정</h1>
+        <div>
+            <a th:href="@{/boards/{id}(id=${board.id})}" class="secondary outline">
+                🔍
                 상세보기
             </a>
-            <a href="/boards" class="btn btn-modern btn-outline-primary">
-                <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16" class="me-2">
-                    <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
-                </svg>
+            <a href="/boards" class="primary outline">
+                ←
                 목록으로
             </a>
         </div>
     </div>
 
-    <div class="card card-modern">
-        <div class="card-body">
-            <form th:action="@{/forms/boards/{id}(id=${board.id})}" method="post" id="boardEditForm">
-                
-                <div class="mb-4">
-                    <label for="title" class="form-label fw-semibold">제목</label>
-                    <input type="text" class="form-control form-control-modern" 
-                           id="title" name="title" th:value="${board.title}"
-                           placeholder="제목을 입력하세요" required maxlength="255">
-                    <div class="invalid-feedback">
-                        제목을 입력해주세요.
-                    </div>
-                </div>
+    <article>
+        <form th:action="@{/forms/boards/{id}(id=${board.id})}" method="post" id="boardEditForm">
+            <label for="title">
+                제목
+                <input type="text"
+                       id="title" 
+                       name="title" 
+                       th:value="${board.title}"
+                       placeholder="제목을 입력하세요" 
+                       required 
+                       maxlength="255">
+            </label>
 
-                <div class="mb-4">
-                    <label for="content" class="form-label fw-semibold">내용</label>
-                    <textarea class="form-control form-control-modern" 
-                              id="content" name="content" rows="15" 
-                              placeholder="내용을 입력하세요" required th:text="${board.content}"></textarea>
-                    <div class="invalid-feedback">
-                        내용을 입력해주세요.
-                    </div>
-                    <div class="form-text">
-                        마크다운 문법을 지원합니다.
-                    </div>
-                </div>
+            <label for="content">
+                내용
+                <textarea id="content" 
+                          name="content" 
+                          rows="15"
+                          placeholder="내용을 입력하세요 (마크다운 지원)" 
+                          required 
+                          th:text="${board.content}"></textarea>
+                <small>마크다운 문법을 지원합니다</small>
+            </label>
 
-                <div class="d-flex justify-content-between align-items-center">
-                    <div class="text-muted">
-                        <small>
-                            <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16" class="me-1">
-                                <path d="M1 3.5a.5.5 0 0 1 .5-.5h13a.5.5 0 0 1 .5.5v9a.5.5 0 0 1-.5.5h-13a.5.5 0 0 1-.5-.5v-9zM1.5 4v8h13V4H1.5z"/>
-                                <path d="M3 5.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zM3 7a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 3 7zm0 1.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5z"/>
-                            </svg>
-                            최종 수정: <span th:text="${#temporals.format(board.modifiedAt, 'yyyy-MM-dd HH:mm')}">수정 시간</span>
-                        </small>
-                    </div>
-                    <div class="d-flex gap-2">
-                        <button type="button" class="btn btn-modern btn-outline-secondary" onclick="history.back()">
-                            취소
-                        </button>
-                        <button type="submit" class="btn btn-modern btn-success" id="updateBtn">
-                            <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16" class="me-2">
-                                <path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425a.247.247 0 0 1 .02-.022Z"/>
-                            </svg>
-                            수정 완료
-                        </button>
-                    </div>
-                </div>
-            </form>
+            <footer>
+                <small>📄 최종 수정: <time th:datetime="${board.modifiedAt}" th:text="${#temporals.format(board.modifiedAt, 'MM-dd HH:mm')}">01-15 15:30</time></small>
+                <nav>
+                    <ul>
+                        <li><a th:href="@{/boards/{id}(id=${board.id})}" role="button" class="secondary outline">취소</a></li>
+                        <li><button type="submit">✅ 수정 완료</button></li>
+                    </ul>
+                </nav>
+            </footer>
+        </form>
+    </article>
+
+    <!-- 글 정보 -->
+    <details>
+        <summary>ℹ️ 글 정보</summary>
+        <dl>
+            <dt>작성자</dt>
+            <dd th:text="${board.authorName}">홍길동</dd>
+            
+            <dt>작성일</dt>
+            <dd><time th:datetime="${board.createdAt}" th:text="${#temporals.format(board.createdAt, 'MM-dd HH:mm')}">01-15 14:30</time></dd>
+            
+            <dt>조회수</dt>
+            <dd th:text="${board.viewCount}">123</dd>
+        </dl>
+    </details>
+
+    <!-- 마크다운 도움말 -->
+    <details>
+        <summary>📝 마크다운 문법 도움말</summary>
+        <dl>
+            <dt><code># 제목</code></dt>
+            <dd>큰 제목</dd>
+            
+            <dt><code>## 소제목</code></dt>
+            <dd>작은 제목</dd>
+            
+            <dt><code>**굵게**</code></dt>
+            <dd>굵은 글씨</dd>
+            
+            <dt><code>`코드`</code></dt>
+            <dd>인라인 코드</dd>
+            
+            <dt><code>- 목록</code></dt>
+            <dd>글머리 기호</dd>
+            
+            <dt><code>```코드블록```</code></dt>
+            <dd>코드 블록</dd>
+        </dl>
+    </details>
         </div>
     </div>
 
-    <!-- 수정 정보 카드 -->
-    <div class="card card-modern mt-4">
-        <div class="card-header bg-transparent border-bottom">
-            <h6 class="card-title mb-0 text-muted">
-                <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16" class="me-2">
-                    <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/>
-                </svg>
-                글 정보
-            </h6>
-        </div>
-        <div class="card-body">
-            <div class="row g-3">
-                <div class="col-md-4">
-                    <small class="text-muted d-block">작성자</small>
-                    <span th:text="${board.authorName}">작성자명</span>
-                </div>
-                <div class="col-md-4">
-                    <small class="text-muted d-block">작성일</small>
-                    <span th:text="${#temporals.format(board.createdAt, 'yyyy-MM-dd HH:mm')}">작성 시간</span>
-                </div>
-                <div class="col-md-4">
-                    <small class="text-muted d-block">조회수</small>
-                    <span th:text="${board.viewCount}">0</span>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- 마크다운 도움말 카드 -->
-    <div class="card card-modern mt-4">
-        <div class="card-header bg-transparent border-bottom">
-            <h6 class="card-title mb-0 text-muted">
-                <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16" class="me-2">
-                    <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/>
-                </svg>
-                마크다운 문법 도움말
-            </h6>
-        </div>
-        <div class="card-body">
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <div class="d-flex align-items-start">
-                        <code class="me-3"># 제목</code>
-                        <small class="text-muted">큰 제목</small>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="d-flex align-items-start">
-                        <code class="me-3">## 소제목</code>
-                        <small class="text-muted">작은 제목</small>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="d-flex align-items-start">
-                        <code class="me-3">**굵게**</code>
-                        <small class="text-muted">굵은 글씨</small>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="d-flex align-items-start">
-                        <code class="me-3">`코드`</code>
-                        <small class="text-muted">인라인 코드</small>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="d-flex align-items-start">
-                        <code class="me-3">- 목록</code>
-                        <small class="text-muted">글머리 기호</small>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="d-flex align-items-start">
-                        <code class="me-3">```코드블록```</code>
-                        <small class="text-muted">코드 블록</small>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <script>
-        document.getElementById('boardEditForm').addEventListener('submit', function(e) {
-            const title = document.getElementById('title');
-            const content = document.getElementById('content');
-            const updateBtn = document.getElementById('updateBtn');
-            
-            // 기본 validation
-            if (!title.value.trim()) {
-                e.preventDefault();
-                title.classList.add('is-invalid');
-                title.focus();
-                return;
-            }
-            
-            if (!content.value.trim()) {
-                e.preventDefault();
-                content.classList.add('is-invalid');
-                content.focus();
-                return;
-            }
-            
-            // 제출 버튼 비활성화 (중복 제출 방지)
-            updateBtn.disabled = true;
-            updateBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>수정 중...';
-        });
-        
-        // 입력 시 invalid 클래스 제거
-        document.getElementById('title').addEventListener('input', function() {
-            this.classList.remove('is-invalid');
-        });
-        
-        document.getElementById('content').addEventListener('input', function() {
-            this.classList.remove('is-invalid');
-        });
-    </script>
-    
 </main>
 </html>

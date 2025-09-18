@@ -18,6 +18,11 @@ public record ApiProperties(
         String description,
 
         /**
+         * API 버전
+         */
+        String version,
+
+        /**
          * 서비스 약관 URL
          */
         String termsOfService,

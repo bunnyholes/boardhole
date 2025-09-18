@@ -11,7 +11,6 @@ import bunny.boardhole.shared.config.log.LoggingProperties;
 @EnableConfigurationProperties(LoggingProperties.class)
 @EnableJpaAuditing
 public class BoardHoleApplication {
-
     public static void main(String[] args) {
         SpringApplication.run(BoardHoleApplication.class, args);
     }

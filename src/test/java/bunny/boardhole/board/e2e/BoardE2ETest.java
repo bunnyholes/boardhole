@@ -47,7 +47,7 @@ class BoardE2ETest extends E2ETestBase {
                     .formParam("title", "NoAuth")
                     .formParam("content", "NoAuth")
                     .when()
-                    .post("boards")
+                    .post("/api/boards")
                     .then()
                     .statusCode(401)
                     .body("type", equalTo("urn:problem-type:unauthorized"))
@@ -79,7 +79,7 @@ class BoardE2ETest extends E2ETestBase {
                     .formParam("title", "")
                     .formParam("content", "Some content")
                     .when()
-                    .post("boards")
+                    .post("/api/boards")
                     .then()
                     .statusCode(422)
                     .body("type", equalTo("urn:problem-type:validation-error"))
@@ -98,7 +98,7 @@ class BoardE2ETest extends E2ETestBase {
                     .formParam("title", "Title")
                     .formParam("content", "")
                     .when()
-                    .post("boards")
+                    .post("/api/boards")
                     .then()
                     .statusCode(422)
                     .body("type", equalTo("urn:problem-type:validation-error"))
@@ -118,7 +118,7 @@ class BoardE2ETest extends E2ETestBase {
                     .formParam("title", longTitle)
                     .formParam("content", "Content")
                     .when()
-                    .post("boards")
+                    .post("/api/boards")
                     .then()
                     .statusCode(422)
                     .body("type", equalTo("urn:problem-type:validation-error"));
@@ -134,7 +134,7 @@ class BoardE2ETest extends E2ETestBase {
                     .formParam("title", "Title")
                     .formParam("content", longContent)
                     .when()
-                    .post("boards")
+                    .post("/api/boards")
                     .then()
                     .statusCode(422)
                     .body("type", equalTo("urn:problem-type:validation-error"));
@@ -148,7 +148,7 @@ class BoardE2ETest extends E2ETestBase {
                     .contentType(ContentType.URLENC)
                     .formParam("content", "Content only")
                     .when()
-                    .post("boards")
+                    .post("/api/boards")
                     .then()
                     .statusCode(422)
                     .body("type", equalTo("urn:problem-type:validation-error"));
@@ -162,7 +162,7 @@ class BoardE2ETest extends E2ETestBase {
                     .contentType(ContentType.URLENC)
                     .formParam("title", "Title only")
                     .when()
-                    .post("boards")
+                    .post("/api/boards")
                     .then()
                     .statusCode(422)
                     .body("type", equalTo("urn:problem-type:validation-error"));
@@ -190,7 +190,7 @@ class BoardE2ETest extends E2ETestBase {
         void anonymous() {
             String uid = UUID.randomUUID().toString().substring(0, 8);
             UUID id = UUID.fromString(BoardSteps.create(regular, "Hello " + uid, "Content " + uid).jsonPath().getString("id"));
-            given().when().get("boards/" + id.toString()).then().statusCode(200).body("title", equalTo("Hello " + uid));
+            given().when().get("/api/boards/" + id.toString()).then().statusCode(200).body("title", equalTo("Hello " + uid));
         }
 
         @Test
@@ -198,7 +198,7 @@ class BoardE2ETest extends E2ETestBase {
         void regular() {
             String uid = UUID.randomUUID().toString().substring(0, 8);
             UUID id = UUID.fromString(BoardSteps.create(regular, "My " + uid, "Mine").jsonPath().getString("id"));
-            given().cookie("JSESSIONID", regular).when().get("boards/" + id.toString()).then().statusCode(200).body("id", equalTo(id.toString()));
+            given().cookie("JSESSIONID", regular).when().get("/api/boards/" + id.toString()).then().statusCode(200).body("id", equalTo(id.toString()));
         }
 
         @Test
@@ -206,7 +206,7 @@ class BoardE2ETest extends E2ETestBase {
         void admin_other() {
             String uid = UUID.randomUUID().toString().substring(0, 8);
             UUID id = UUID.fromString(BoardSteps.create(regular, "Someone " + uid, "C").jsonPath().getString("id"));
-            given().cookie("JSESSIONID", admin).when().get("boards/" + id.toString()).then().statusCode(200);
+            given().cookie("JSESSIONID", admin).when().get("/api/boards/" + id.toString()).then().statusCode(200);
         }
 
         @Test
@@ -216,7 +216,7 @@ class BoardE2ETest extends E2ETestBase {
             String nonExistentId = "00000000-0000-0000-0000-000000000000";
             given()
                     .when()
-                    .get("boards/" + nonExistentId)
+                    .get("/api/boards/" + nonExistentId)
                     .then()
                     .statusCode(404)
                     .body("type", equalTo("urn:problem-type:not-found"))
@@ -231,7 +231,7 @@ class BoardE2ETest extends E2ETestBase {
 
             int v1 = given()
                     .when()
-                    .get("boards/" + id)
+                    .get("/api/boards/" + id)
                     .then()
                     .statusCode(200)
                     .extract()
@@ -245,7 +245,7 @@ class BoardE2ETest extends E2ETestBase {
                     .untilAsserted(() -> {
                         int current = given()
                                 .when()
-                                .get("boards/" + id)
+                                .get("/api/boards/" + id)
                                 .then()
                                 .statusCode(200)
                                 .extract()
@@ -258,21 +258,21 @@ class BoardE2ETest extends E2ETestBase {
         @Test
         @DisplayName("잘못된 ID 형식(문자) → 400")
         void invalid_id_format() {
-            given().when().get("boards/invalid").then().statusCode(400);
+            given().when().get("/api/boards/invalid").then().statusCode(400);
         }
 
         @Test
         @DisplayName("잘못된 UUID 형식 (음수) → 400")
         void negative_id() {
             // Negative numbers are not valid UUIDs
-            given().when().get("boards/-1").then().statusCode(400);
+            given().when().get("/api/boards/-1").then().statusCode(400);
         }
 
         @Test
         @DisplayName("잘못된 UUID 형식 (숫자) → 400")
         void extremely_large_id() {
             // Large numbers are not valid UUIDs
-            given().when().get("boards/9999999999").then().statusCode(400);
+            given().when().get("/api/boards/9999999999").then().statusCode(400);
         }
     }
 
@@ -287,7 +287,7 @@ class BoardE2ETest extends E2ETestBase {
                     .formParam("title", "T")
                     .formParam("content", "C")
                     .when()
-                    .put("boards/1")
+                    .put("/api/boards/1")
                     .then()
                     .statusCode(401)
                     .body("type", equalTo("urn:problem-type:unauthorized"));
@@ -338,7 +338,7 @@ class BoardE2ETest extends E2ETestBase {
                     .formParam("title", "Updated")
                     .formParam("content", "Updated")
                     .when()
-                    .put("boards/00000000-0000-0000-0000-000000000000")
+                    .put("/api/boards/00000000-0000-0000-0000-000000000000")
                     .then()
                     .statusCode(403)
                     .body("type", equalTo("urn:problem-type:forbidden"));
@@ -372,7 +372,7 @@ class BoardE2ETest extends E2ETestBase {
                     .formParam("title", longTitle)
                     .formParam("content", "Updated")
                     .when()
-                    .put("boards/" + id.toString())
+                    .put("/api/boards/" + id.toString())
                     .then()
                     .statusCode(422)
                     .body("type", equalTo("urn:problem-type:validation-error"));
@@ -387,7 +387,7 @@ class BoardE2ETest extends E2ETestBase {
                     .formParam("title", "Title")
                     .formParam("content", "Content")
                     .when()
-                    .put("boards/invalid")
+                    .put("/api/boards/invalid")
                     .then()
                     .statusCode(400);
         }
@@ -399,7 +399,7 @@ class BoardE2ETest extends E2ETestBase {
         @Test
         @DisplayName("익명 → 401")
         void anonymous() {
-            given().when().delete("boards/1").then().statusCode(401).body("type", equalTo("urn:problem-type:unauthorized"));
+            given().when().delete("/api/boards/1").then().statusCode(401).body("type", equalTo("urn:problem-type:unauthorized"));
         }
 
         @Test
@@ -421,7 +421,7 @@ class BoardE2ETest extends E2ETestBase {
         void admin_other() {
             UUID id = UUID.fromString(BoardSteps.create(regular, "TBD", "C").jsonPath().getString("id"));
             BoardSteps.delete(admin, id).then().statusCode(204);
-            given().when().get("boards/" + id.toString()).then().statusCode(404);
+            given().when().get("/api/boards/" + id.toString()).then().statusCode(404);
         }
 
         @Test
@@ -431,7 +431,7 @@ class BoardE2ETest extends E2ETestBase {
             given()
                     .cookie("JSESSIONID", regular)
                     .when()
-                    .delete("boards/00000000-0000-0000-0000-000000000000")
+                    .delete("/api/boards/00000000-0000-0000-0000-000000000000")
                     .then()
                     .statusCode(403)
                     .body("type", equalTo("urn:problem-type:forbidden"));
@@ -440,7 +440,7 @@ class BoardE2ETest extends E2ETestBase {
         @Test
         @DisplayName("잘못된 ID 형식 → 400")
         void invalid_id_format() {
-            given().cookie("JSESSIONID", regular).when().delete("boards/invalid").then().statusCode(400);
+            given().cookie("JSESSIONID", regular).when().delete("/api/boards/invalid").then().statusCode(400);
         }
 
         @Test
@@ -465,44 +465,44 @@ class BoardE2ETest extends E2ETestBase {
 
             given()
                     .when()
-                    .get("boards?page=0&size=2&sort=createdAt,desc")
+                    .get("/api/boards?page=0&size=2&sort=createdAt,desc")
                     .then()
                     .statusCode(200)
                     .body("content.size()", greaterThanOrEqualTo(1))
                     .body("pageable.pageSize", notNullValue());
-            given().when().get("boards?search=" + uid).then().statusCode(200).body("content[0].title", containsString(uid));
+            given().when().get("/api/boards?search=" + uid).then().statusCode(200).body("content[0].title", containsString(uid));
         }
 
         @Test
         @DisplayName("일반 — 200")
         void regular() {
-            given().cookie("JSESSIONID", regular).when().get("boards").then().statusCode(200).body("content", notNullValue());
+            given().cookie("JSESSIONID", regular).when().get("/api/boards").then().statusCode(200).body("content", notNullValue());
         }
 
         @Test
         @DisplayName("관리자 — 200")
         void admin() {
-            given().cookie("JSESSIONID", admin).when().get("boards").then().statusCode(200).body("content", notNullValue());
+            given().cookie("JSESSIONID", admin).when().get("/api/boards").then().statusCode(200).body("content", notNullValue());
         }
 
         @Test
         @DisplayName("페이지 음수 → 기본값(0)")
         void negative_page() {
-            given().when().get("boards?page=-1&size=10").then().statusCode(200).body("pageable.pageNumber", equalTo(0));
+            given().when().get("/api/boards?page=-1&size=10").then().statusCode(200).body("pageable.pageNumber", equalTo(0));
         }
 
         @Test
         @DisplayName("페이지 크기 0 → 400 또는 기본값")
         void zero_size() {
             // Spring Boot may return 400 or use default size
-            given().when().get("boards?page=0&size=0").then().statusCode(200);
+            given().when().get("/api/boards?page=0&size=0").then().statusCode(200);
         }
 
         @Test
         @DisplayName("페이지 크기 초과(>100) → 서버 설정에 따라 허용")
         void excessive_size() {
             // Spring Boot doesn't limit page size by default unless configured
-            given().when().get("boards?page=0&size=500").then().statusCode(200).body("pageable.pageSize", equalTo(500));
+            given().when().get("/api/boards?page=0&size=500").then().statusCode(200).body("pageable.pageSize", equalTo(500));
         }
 
         @Test
@@ -510,7 +510,7 @@ class BoardE2ETest extends E2ETestBase {
         void out_of_bounds_page() {
             given()
                     .when()
-                    .get("boards?page=9999&size=10")
+                    .get("/api/boards?page=9999&size=10")
                     .then()
                     .statusCode(200)
                     .body("content.size()", equalTo(0))
@@ -521,14 +521,14 @@ class BoardE2ETest extends E2ETestBase {
         @DisplayName("SQL 인젝션 시도(검색) → 정상 처리")
         void sql_injection_search() {
             final String sqlInjection = "'; DROP TABLE boards; --";
-            given().when().get("boards?search=" + sqlInjection).then().statusCode(200);
+            given().when().get("/api/boards?search=" + sqlInjection).then().statusCode(200);
         }
 
         @Test
         @DisplayName("XSS 시도(검색) → 정상 처리")
         void xss_search() {
             final String xss = "<script>alert('XSS')</script>";
-            given().when().get("boards?search=" + xss).then().statusCode(200);
+            given().when().get("/api/boards?search=" + xss).then().statusCode(200);
         }
 
         @Test
@@ -536,21 +536,21 @@ class BoardE2ETest extends E2ETestBase {
         void special_chars_search() {
             // URL encode special characters properly
             String special = java.net.URLEncoder.encode("@#$%^&*()[]{}|\\<>?,./", java.nio.charset.StandardCharsets.UTF_8);
-            given().when().get("boards?search=" + special).then().statusCode(200);
+            given().when().get("/api/boards?search=" + special).then().statusCode(200);
         }
 
         @Test
         @DisplayName("매우 긴 검색어 → 정상 처리 또는 400")
         void very_long_search() {
             String longSearch = "A".repeat(1000);
-            given().when().get("boards?search=" + longSearch).then().statusCode(200);
+            given().when().get("/api/boards?search=" + longSearch).then().statusCode(200);
         }
 
         @Test
         @DisplayName("정렬 옵션 잘못된 필드 → 400 (PropertyReferenceException)")
         void invalid_sort_field() {
             // Spring Data JPA throws PropertyReferenceException for invalid sort fields
-            given().when().get("boards?sort=nonexistentField,asc").then().statusCode(400);
+            given().when().get("/api/boards?sort=nonexistentField,asc").then().statusCode(400);
         }
 
         @Test
@@ -558,7 +558,7 @@ class BoardE2ETest extends E2ETestBase {
         void invalid_sort_direction() {
             given()
                     .when()
-                    .get("boards?sort=createdAt,wrongdir")
+                    .get("/api/boards?sort=createdAt,wrongdir")
                     .then()
                     .statusCode(400)
                     .body("type", equalTo("urn:problem-type:invalid-sort"))

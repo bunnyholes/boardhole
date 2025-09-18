@@ -2,6 +2,7 @@ package bunny.boardhole.user.presentation;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.UUID;
 import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;

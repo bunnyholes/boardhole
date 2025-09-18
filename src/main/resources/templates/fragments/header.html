@@ -1,32 +1,25 @@
-<!DOCTYPE html>
-<html lang="ko" 
-      xmlns:th="http://www.thymeleaf.org" 
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<body>
-<!-- 헤더 Fragment -->
-<header th:fragment="header" class="app-header">
-    <div class="d-flex align-items-center">
-        <h1 class="h4 mb-0 me-3">
-            <a href="/" class="text-white text-decoration-none">Board Hole</a>
-        </h1>
-        <button class="btn btn-link text-white d-md-none" type="button"
-                onclick="document.querySelector('.app-sidebar').classList.toggle('d-none')">
-            <svg width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
-                <path fill-rule="evenodd"
-                      d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/>
-            </svg>
-        </button>
-    </div>
-
-    <!-- Popover API 사용자 메뉴 (JavaScript 없이 동작) -->
-    <div sec:authorize="isAuthenticated()">
-        <button class="btn btn-link text-white" popovertarget="user-menu" type="button">
-            <span sec:authentication="name">사용자</span>
-            <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16" class="ms-1">
-                <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
-            </svg>
-        </button>
-    </div>
-</header>
-</body>
-</html>
+<nav class="container-fluid" th:fragment="header">
+    <ul>
+        <li>
+            <button id="menu-toggle" type="button" class="secondary outline" 
+                    commandfor="side-navigation" command="show-modal"
+                    aria-label="메뉴 열기">
+                ☰
+            </button>
+        </li>
+        <li><strong><a th:href="@{/}">Board Hole</a></strong></li>
+    </ul>
+    <ul>
+        <li sec:authorize="!isAuthenticated()">
+            <a th:href="@{/auth/login}" role="button" class="secondary outline">로그인</a>
+        </li>
+        <li sec:authorize="!isAuthenticated()">
+            <a th:href="@{/auth/signup}" role="button" class="primary">회원가입</a>
+        </li>
+        <li sec:authorize="isAuthenticated()">
+            <form th:action="@{/auth/logout}" method="post" class="logout-form">
+                <button type="submit" class="secondary outline">로그아웃</button>
+            </form>
+        </li>
+    </ul>
+</nav>

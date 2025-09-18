@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
@@ -19,10 +20,11 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
+import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
-import org.springframework.core.annotation.Order;
-import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
+import org.springframework.security.web.savedrequest.NullRequestCache;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -33,7 +35,7 @@ import bunny.boardhole.shared.security.ProblemDetailsAuthenticationEntryPoint;
 
 /**
  * Spring Security 설정
- * 인증, 인가, 세션 관리 및 CORS 설정을 담당합니다.
+ * REST API와 View Controller에 각각 최적화된 보안 설정을 제공합니다.
  */
 @Configuration
 @EnableMethodSecurity(securedEnabled = true, jsr250Enabled = true)
@@ -62,54 +64,122 @@ public class SecurityConfig {
     }
 
     /**
-     * 보안 필터 체인 설정
-     *
-     * @param http                      HTTP 보안 설정 객체
-     * @param securityContextRepository 보안 컨텍스트 리포지토리
-     * @return 설정된 보안 필터 체인
+     * REST API 전용 보안 필터 체인 (우선순위 높음)
+     * - /api/** 경로만 처리
+     * - formLogin 비활성화, 세션 기반 인증 사용
+     * - 401 JSON 응답 반환
+     * - RequestCache 비활성화로 불필요한 세션 생성 방지
      */
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http, SecurityContextRepository securityContextRepository, ProblemDetailsAuthenticationEntryPoint authenticationEntryPoint, ProblemDetailsAccessDeniedHandler accessDeniedHandler) throws Exception {
+    @Order(1)
+    public SecurityFilterChain apiFilterChain(
+            HttpSecurity http,
+            ProblemDetailsAuthenticationEntryPoint authenticationEntryPoint,
+            ProblemDetailsAccessDeniedHandler accessDeniedHandler
+    ) throws Exception {
         http
-                .csrf(AbstractHttpConfigurer::disable)
+                .securityMatcher("/api/**")  // /api/** 경로만 이 필터체인 적용
+                .csrf(AbstractHttpConfigurer::disable)  // REST API는 CSRF 비활성화
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(auth -> auth
-                        // Static resources and common locations
-                        .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll() // 현재는 실제 배포 전까지는 항상 유지
-                        // Assets - allow all
-                        .requestMatchers("/assets/**").permitAll() // 현재는 실제 배포 전까지는 항상 유지
-                        // Other static resources
-                        .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**", "/favicon.ico").permitAll() // 현재는 실제 배포 전까지는 항상 유지
-                        // Root and specific HTML files
-                        .requestMatchers("/").permitAll() // 현재는 실제 배포 전까지는 항상 유지
-                        .requestMatchers("/*.html").permitAll() // 현재는 실제 배포 전까지는 항상 유지
-                        .requestMatchers("/admin*.html", "/board*.html", "/user*.html").permitAll() // 현재는 실제 배포 전까지는 항상 유지
-                        .requestMatchers("/login.html", "/signup.html", "/welcome.html", "/my-page.html").permitAll() // 현재는 실제 배포 전까지는 항상 유지
-                        // Swagger UI - explicitly permit
-                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**").permitAll()
-                        // Actuator - expose health/info only
-                        .requestMatchers("/actuator/health", "/actuator/info").permitAll()
-                        // Error page
-                        .requestMatchers("/error").permitAll()
-                        // Public API endpoints - explicit permit only
-                        .requestMatchers(ApiPaths.AUTH + ApiPaths.AUTH_SIGNUP, ApiPaths.AUTH + ApiPaths.AUTH_LOGIN,
+                        // Public API endpoints
+                        .requestMatchers(ApiPaths.AUTH + ApiPaths.AUTH_SIGNUP, 
+                                ApiPaths.AUTH + ApiPaths.AUTH_LOGIN,
                                 ApiPaths.AUTH + ApiPaths.AUTH_PUBLIC_ACCESS).permitAll()
                         .requestMatchers(HttpMethod.GET, ApiPaths.BOARDS, ApiPaths.BOARDS + "/**").permitAll()
-                        // All other requests require authentication by default
+                        // All other API requests require authentication
                         .anyRequest().authenticated())
-                .exceptionHandling(ex -> ex.authenticationEntryPoint(authenticationEntryPoint).accessDeniedHandler(accessDeniedHandler))
-                .formLogin(AbstractHttpConfigurer::disable)
-                .httpBasic(AbstractHttpConfigurer::disable); // HTTP Basic 인증 비활성화
+                .formLogin(AbstractHttpConfigurer::disable)  // formLogin 비활성화
+                .httpBasic(AbstractHttpConfigurer::disable)  // HTTP Basic 비활성화
+                .requestCache(cache -> cache
+                        .requestCache(new NullRequestCache()))  // RequestCache 비활성화 (불필요한 세션 생성 방지)
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))  // 세션 필요 시 생성
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(authenticationEntryPoint)  // 401 JSON 응답
+                        .accessDeniedHandler(accessDeniedHandler));
 
+        return http.build();
+    }
+
+    /**
+     * View Controller 전용 보안 필터 체인 (우선순위 낮음)
+     * - 모든 나머지 경로 처리
+     * - formLogin 활성화, Spring Security 표준 동작
+     * - 로그인 페이지로 자동 리다이렉트
+     */
+    @Bean
+    @Order(2)
+    public SecurityFilterChain webFilterChain(
+            HttpSecurity http,
+            SecurityContextRepository securityContextRepository,
+            LoginUrlAuthenticationEntryPoint loginUrlAuthenticationEntryPoint,
+            SavedRequestAwareAuthenticationSuccessHandler successHandler
+    ) throws Exception {
         http
+                .csrf(Customizer.withDefaults())  // CSRF 기본값 사용
+                .cors(Customizer.withDefaults())
+                .authorizeHttpRequests(auth -> auth
+                        // Static resources
+                        .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
+                        .requestMatchers("/assets/**", "/favicon.ico", "/css/**", "/js/**").permitAll()
+                        // Public pages
+                        .requestMatchers("/", "/auth/login", "/auth/signup", "/welcome").permitAll()
+                        .requestMatchers("/boards", "/boards/*").permitAll()  // 게시글 목록/상세 공개
+                        // Error pages
+                        .requestMatchers("/error", "/error/**").permitAll()
+                        // Swagger UI (개발용)
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**").permitAll()
+                        // Actuator
+                        .requestMatchers("/actuator/health", "/actuator/info").permitAll()
+                        // Authentication required pages
+                        .requestMatchers("/users", "/users/**").authenticated()
+                        .requestMatchers("/mypage", "/mypage/**").authenticated()
+                        .requestMatchers("/boards/write", "/boards/*/edit", "/boards/*/delete").authenticated()
+                        // All other requests require authentication
+                        .anyRequest().authenticated())
+                .formLogin(form -> form
+                        .loginPage("/auth/login")  // 커스텀 로그인 페이지
+                        .loginProcessingUrl("/auth/login")  // POST 처리 URL
+                        .successHandler(successHandler)  // 자동 리다이렉트 핸들러
+                        .permitAll())
+                .logout(logout -> logout
+                        .logoutUrl("/auth/logout")
+                        .logoutSuccessUrl("/")
+                        .deleteCookies("JSESSIONID")
+                        .permitAll())
+                // RequestCache 기본값 사용 (자동으로 원래 페이지로 리다이렉트)
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-                        .sessionFixation()
-                        .migrateSession()
+                        .sessionFixation().migrateSession()
                         .maximumSessions(1)
                         .maxSessionsPreventsLogin(false))
-                .securityContext((securityContext) -> securityContext.securityContextRepository(securityContextRepository));
+                .securityContext(context -> context
+                        .securityContextRepository(securityContextRepository))
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(loginUrlAuthenticationEntryPoint));  // 로그인 페이지로 리다이렉트
+
         return http.build();
+    }
+
+    /**
+     * View Controller용 로그인 페이지 리다이렉트 EntryPoint
+     */
+    @Bean
+    public LoginUrlAuthenticationEntryPoint loginUrlAuthenticationEntryPoint() {
+        return new LoginUrlAuthenticationEntryPoint("/auth/login");
+    }
+
+    /**
+     * View Controller용 성공 핸들러 (SavedRequest 자동 처리)
+     */
+    @Bean
+    public SavedRequestAwareAuthenticationSuccessHandler savedRequestAwareAuthenticationSuccessHandler() {
+        SavedRequestAwareAuthenticationSuccessHandler successHandler = 
+                new SavedRequestAwareAuthenticationSuccessHandler();
+        successHandler.setDefaultTargetUrl("/boards");  // 기본 리다이렉트 URL
+        successHandler.setAlwaysUseDefaultTargetUrl(false);  // SavedRequest가 있으면 그곳으로
+        return successHandler;
     }
 
     @Bean
@@ -125,7 +195,7 @@ public class SecurityConfig {
     }
 
     /**
-     * ProblemDetail 형식의 인증 실패 응답 처리기
+     * ProblemDetail 형식의 인증 실패 응답 처리기 (API 전용)
      *
      * @param objectMapper      JSON 직렬화를 위한 ObjectMapper
      * @param problemProperties 문제 세부사항 설정
@@ -137,7 +207,7 @@ public class SecurityConfig {
     }
 
     /**
-     * ProblemDetail 형식의 접근 거부 응답 처리기
+     * ProblemDetail 형식의 접근 거부 응답 처리기 (API 전용)
      *
      * @param objectMapper      JSON 직렬화를 위한 ObjectMapper
      * @param problemProperties 문제 세부사항 설정

@@ -1,186 +1,62 @@
 <!DOCTYPE html>
-<html lang="ko" 
-      xmlns:th="http://www.thymeleaf.org" 
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
-      th:fragment="layout(title, content)">
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      th:fragment="layout(title, content)"
+      data-theme="auto">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:replace="${title}">Board Hole</title>
+    <meta name="color-scheme" content="light dark">
+    <meta name="view-transition" content="same-origin">
+    <meta name="theme-color" content="#667eea">
+    <title>Board Hole - Spring Boot 게시판</title>
 
-    <!-- Pretendard 폰트 -->
-    <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable.css"
-          rel="stylesheet">
+    <!-- Pico CSS 2.1.1 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2.1.1/css/pico.min.css">
 
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
-          integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <!-- 극한 최적화된 CSS -->
+    <link href="/css/app.css" rel="stylesheet">
 
-    <!-- Modern CSS - 최신 CSS 기능 활용 -->
-    <link href="/css/modern.css" rel="stylesheet">
 
-    <!-- 기본 스타일 -->
-    <style>
-        @layer base, utilities, components;
-
-        @layer base {
-            :root {
-                --bs-body-font-family: 'Pretendard Variable', system-ui, -apple-system, sans-serif;
-                --sidebar-width: 280px;
-                --header-height: 60px;
-                --container-max-width: 1200px;
-            }
-
-            body {
-                font-family: var(--bs-body-font-family);
-                background-color: #f8f9fa;
-            }
-
-            /* CSS Grid 레이아웃 */
-            .main-layout {
-                display: grid;
-                grid-template-areas: 
-                    "header header"
-                    "sidebar main"
-                    "footer footer";
-                grid-template-rows: var(--header-height) 1fr auto;
-                grid-template-columns: var(--sidebar-width) 1fr;
-                min-height: 100vh;
-            }
-
-            @media (max-width: 768px) {
-                .main-layout {
-                    grid-template-areas: 
-                        "header"
-                        "main"
-                        "footer";
-                    grid-template-columns: 1fr;
-                    grid-template-rows: var(--header-height) 1fr auto;
-                }
-            }
-        }
-
-        @layer components {
-            .app-header {
-                grid-area: header;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                color: white;
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                padding: 0 1.5rem;
-                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            }
-
-            .app-sidebar {
-                grid-area: sidebar;
-                background: white;
-                border-right: 1px solid #dee2e6;
-                padding: 1rem;
-                overflow-y: auto;
-            }
-
-            .app-main {
-                grid-area: main;
-                padding: 2rem;
-                overflow-y: auto;
-                max-width: var(--container-max-width);
-                margin: 0 auto;
-            }
-
-            .app-footer {
-                grid-area: footer;
-                background: #343a40;
-                color: white;
-                text-align: center;
-                padding: 1rem;
-            }
-
-            .simple-layout {
-                min-height: 100vh;
-                display: flex;
-                flex-direction: column;
-            }
-
-            .simple-layout .app-main {
-                flex: 1;
-                max-width: 100%;
-                margin: 0;
-            }
-        }
-
-        /* 다크모드 지원 */
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --bs-body-bg: #1a1a1a;
-                --bs-body-color: #ffffff;
-            }
-
-            .app-sidebar {
-                background: #2d2d2d;
-                border-right-color: #404040;
-            }
-
-            .card-modern {
-                background: #2d2d2d;
-                color: #ffffff;
-            }
-        }
-    </style>
+    <!-- Speculation Rules API (선언적 방식, NoJS) -->
+    <script type="speculationrules">
+    {
+      "prefetch": [{
+        "source": "list",
+        "urls": ["/boards", "/boards/write", "/users/mypage", "/auth/login", "/auth/signup"],
+        "requires": ["anonymous-client-ip-when-cross-origin"]
+      }],
+      "prerender": [{
+        "where": {
+          "and": [
+            {"href_matches": "/boards/[0-9]+"},
+            {"not": {"selector_matches": ".no-prerender"}}
+          ]
+        },
+        "eagerness": "conservative"
+      }]
+    }
+    </script>
 </head>
 <body>
-    <!-- 스크롤 진행률 표시 -->
-    <div class="scroll-progress"></div>
+<th:block th:replace="~{fragments/header :: header}"></th:block>
 
-    <!-- 인증된 사용자 레이아웃 -->
-    <div sec:authorize="isAuthenticated()" class="main-layout">
-        <!-- 헤더 -->
-        <header class="app-header" th:replace="~{fragments/header :: header}"></header>
-        
-        <!-- 사이드바 -->
-        <nav class="app-sidebar d-md-block" th:replace="~{fragments/sidebar :: sidebar}"></nav>
-        
-        <!-- 메인 콘텐츠 -->
-        <main class="app-main board-content">
-            <!-- 플래시 메시지 -->
-            <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
-                <span th:text="${success}"></span>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
+<!-- 사이드 네비게이션 다이얼로그 -->
+<th:block th:replace="~{fragments/sidenav :: sidenav}"></th:block>
 
-            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
-                <span th:text="${error}"></span>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-
-            <!-- 페이지 콘텐츠 -->
-            <th:block th:replace="${content}"></th:block>
-        </main>
-
-        <!-- 푸터 -->
-        <footer class="app-footer" th:replace="~{fragments/footer :: footer}"></footer>
+<main class="container">
+    <!-- 메시지 표시 (중복 제거) -->
+    <div th:if="${success}">
+        <ins th:text="${success}"></ins>
+    </div>
+    <div th:if="${error}">
+        <del th:text="${error}"></del>
     </div>
 
-    <!-- 비인증 사용자 레이아웃 -->
-    <div sec:authorize="!isAuthenticated()" class="simple-layout">
-        <header class="app-header">
-            <h1 class="h4 mb-0">
-                <a href="/" class="text-white text-decoration-none">Board Hole</a>
-            </h1>
-        </header>
-        <main class="app-main board-content">
-            <!-- 페이지 콘텐츠 -->
-            <th:block th:replace="${content}"></th:block>
-        </main>
-        <footer class="app-footer" th:replace="~{fragments/footer :: footer}"></footer>
-    </div>
+    <!-- 단순화된 레이아웃 (사이드바 제거) -->
+    <th:block th:replace="${content}"></th:block>
+</main>
 
-    <!-- Popover 컴포넌트 -->
-    <th:block th:replace="~{fragments/popover :: user-menu}"></th:block>
-
-    <!-- Bootstrap JS (JavaScript 기능 최소화) -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
-            integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
-            crossorigin="anonymous"></script>
+<footer class="container" th:insert="~{fragments/footer :: footer}"></footer>
 </body>
 </html>

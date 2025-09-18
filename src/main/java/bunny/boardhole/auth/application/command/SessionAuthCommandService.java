@@ -67,7 +67,6 @@ public class SessionAuthCommandService implements AuthCommandService {
             // }
 
             return authMapper.toAuthResult(user);
-
         } catch (BadCredentialsException e) {
             log.warn(MessageUtils.get("log.auth.login-failed", cmd.username()));
             throw new UnauthorizedException(MessageUtils.get("error.auth.invalid-credentials"));
