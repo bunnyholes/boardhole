@@ -1,0 +1,24 @@
+name: Test
+
+on:
+  push:
+    branches: [develop]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v5
+      
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: gradle
+          
+      - name: Run all tests
+        run: |
+          chmod +x gradlew
+          ./gradlew test --no-daemon

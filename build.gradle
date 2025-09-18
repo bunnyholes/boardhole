@@ -147,3 +147,8 @@ processResources {
         expand(project.properties)
     }
 }
+
+// JAR 파일 이름에 버전 포함
+bootJar {
+    archiveFileName = "${project.name}-${project.version}.jar"
+}
