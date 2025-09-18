@@ -15,6 +15,9 @@
 
 # Build outputs (if building in container)
 build/
+# Allow release workflow to include packaged jars
+!build/libs/
+!build/libs/*.jar
 out/
 bin/
 target/
