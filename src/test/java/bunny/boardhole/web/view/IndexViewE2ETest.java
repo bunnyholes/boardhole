@@ -1,20 +1,12 @@
 package bunny.boardhole.web.view;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-import com.microsoft.playwright.Browser;
-import com.microsoft.playwright.BrowserContext;
-import com.microsoft.playwright.BrowserType;
 import com.microsoft.playwright.Page;
-import com.microsoft.playwright.Playwright;
 
-import bunny.boardhole.testsupport.e2e.E2ETestBase;
+import bunny.boardhole.testsupport.e2e.ViewE2ETestBase;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -30,46 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DisplayName("루트 페이지 E2E 테스트")
 @Tag("e2e")
 @Tag("view")
-class IndexViewE2ETest extends E2ETestBase {
-
-    private static Playwright playwright;
-    private static Browser browser;
-    private BrowserContext context;
-    private Page page;
-
-    @BeforeAll
-    static void setUpBrowser() {
-        playwright = Playwright.create();
-        browser = playwright.chromium().launch(new BrowserType.LaunchOptions()
-                .setHeadless(true)); // CI/CD에서는 headless로 실행
-    }
-
-    @AfterAll
-    static void tearDownBrowser() {
-        if (browser != null)
-            browser.close();
-        if (playwright != null)
-            playwright.close();
-    }
-
-    @BeforeEach
-    void setUp() {
-        context = browser.newContext();
-        page = context.newPage();
-        page.setDefaultTimeout(5000); // 최대 타임아웃 5초
-        // 루트 페이지로 이동
-        page.navigate("http://localhost:" + port + "/");
-        // 페이지 로드 완료 대기
-        page.waitForLoadState();
-    }
-
-    @AfterEach
-    void tearDown() {
-        if (page != null)
-            page.close();
-        if (context != null)
-            context.close();
-    }
+class IndexViewE2ETest extends ViewE2ETestBase {
 
     @Test
     @DisplayName("✅ 루트 페이지 로드 검증")
@@ -83,7 +36,7 @@ class IndexViewE2ETest extends E2ETestBase {
 
         // 게시판 바로가기 버튼이 존재하는지 확인
         assertThat(page.isVisible("a[href='/boards'].primary")).isTrue(); // 게시판 바로가기 버튼
-        
+
         // 헤더에서 로그인과 회원가입 링크 확인  
         assertThat(page.isVisible("nav a[href='/auth/login']")).isTrue(); // 로그인 링크
         assertThat(page.isVisible("nav a[href='/auth/signup']")).isTrue(); // 회원가입 링크
@@ -145,9 +98,9 @@ class IndexViewE2ETest extends E2ETestBase {
                 );
 
         // 만약 로그인 페이지로 리다이렉트된 경우
-        if (currentUrl.contains("/auth/login")) {
+        if (currentUrl.contains("/auth/login"))
             assertThat(page.textContent("h1")).contains("로그인");
-        } else {
+        else {
             // 게시판 페이지에 도달한 경우
             String title = page.title();
             assertThat(title.contains("게시판") || title.contains("Board")).isTrue();

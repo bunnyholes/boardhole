@@ -1,19 +1,9 @@
 package bunny.boardhole.web.view;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.microsoft.playwright.Browser;
-import com.microsoft.playwright.BrowserContext;
-import com.microsoft.playwright.BrowserType;
-import com.microsoft.playwright.Page;
-import com.microsoft.playwright.Playwright;
-
-import bunny.boardhole.testsupport.e2e.E2ETestBase;
+import bunny.boardhole.testsupport.e2e.ViewE2ETestBase;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -21,67 +11,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * sec:authorize 태그와 세션 생성 관계를 명확히 증명하는 테스트
  */
 @DisplayName("sec:authorize와 세션 생성 증명 테스트")
-class SecAuthorizeSessionTest extends E2ETestBase {
-
-    private static Playwright playwright;
-    private static Browser browser;
-    private BrowserContext context;
-    private Page page;
-
-    @BeforeAll
-    static void setUpBrowser() {
-        playwright = Playwright.create();
-        browser = playwright.chromium().launch(new BrowserType.LaunchOptions()
-                .setHeadless(true));
-    }
-
-    @AfterAll
-    static void tearDownBrowser() {
-        if (browser != null) browser.close();
-        if (playwright != null) playwright.close();
-    }
-
-    @BeforeEach
-    void setUp() {
-        context = browser.newContext();
-        page = context.newPage();
-        page.setDefaultTimeout(5000);
-        waitForAppReady();
-    }
-
-    private void waitForAppReady() {
-        final int maxAttempts = 120;
-        int attempts = 0;
-        boolean ready = false;
-
-        while (attempts < maxAttempts && !ready) {
-            try {
-                var response = page.navigate("http://localhost:" + port + "/");
-                if (response != null && response.status() == 200)
-                    ready = true;
-            } catch (Exception e) {
-                // 서버가 아직 준비되지 않음
-            }
-
-            if (!ready) {
-                try {
-                    Thread.sleep(500);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                }
-                attempts++;
-            }
-        }
-
-        if (!ready)
-            throw new RuntimeException("서버가 60초 내에 준비되지 않았습니다");
-    }
-
-    @AfterEach
-    void tearDown() {
-        if (page != null) page.close();
-        if (context != null) context.close();
-    }
+class SecAuthorizeSessionTest extends ViewE2ETestBase {
 
     private boolean hasJSessionId() {
         return context.cookies().stream()

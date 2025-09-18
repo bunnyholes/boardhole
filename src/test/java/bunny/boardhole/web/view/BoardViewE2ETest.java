@@ -1,20 +1,10 @@
 package bunny.boardhole.web.view;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-import com.microsoft.playwright.Browser;
-import com.microsoft.playwright.BrowserContext;
-import com.microsoft.playwright.BrowserType;
-import com.microsoft.playwright.Page;
-import com.microsoft.playwright.Playwright;
-
-import bunny.boardhole.testsupport.e2e.E2ETestBase;
+import bunny.boardhole.testsupport.e2e.ViewE2ETestBase;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -28,43 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DisplayName("게시판 뷰 E2E 테스트")
 @Tag("e2e")
 @Tag("view")
-class BoardViewE2ETest extends E2ETestBase {
-
-    private static Playwright playwright;
-    private static Browser browser;
-    private BrowserContext context;
-    private Page page;
-
-    @BeforeAll
-    static void setUpBrowser() {
-        playwright = Playwright.create();
-        browser = playwright.chromium().launch(new BrowserType.LaunchOptions()
-                .setHeadless(true)); // CI/CD에서는 headless로 실행
-    }
-
-    @AfterAll
-    static void tearDownBrowser() {
-        if (browser != null)
-            browser.close();
-        if (playwright != null)
-            playwright.close();
-    }
-
-    @BeforeEach
-    void setUp() {
-        // 새로운 브라우저 컨텍스트와 페이지 생성 (쿠키 격리)
-        context = browser.newContext();
-        page = context.newPage();
-        page.setDefaultTimeout(5000); // 최대 타임아웃 5초
-    }
-
-    @AfterEach
-    void tearDown() {
-        if (page != null)
-            page.close();
-        if (context != null)
-            context.close();
-    }
+class BoardViewE2ETest extends ViewE2ETestBase {
 
     @Test
     @DisplayName("✅ 홈페이지 로드 검증")
