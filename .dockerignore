@@ -1,0 +1,72 @@
+# Git
+.git
+.gitignore
+.github
+
+# IDE
+.idea
+*.iml
+*.ipr
+*.iws
+.vscode
+.settings
+.project
+.classpath
+
+# Build outputs (if building in container)
+build/
+out/
+bin/
+target/
+
+# Gradle cache
+.gradle/
+gradle/wrapper/*.jar
+
+# Documentation
+*.md
+docs/
+README*
+LICENSE*
+CHANGELOG*
+
+# Test files
+src/test/
+*.test.*
+*Test.java
+
+# Logs
+logs/
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*~
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# CI/CD
+.travis.yml
+.gitlab-ci.yml
+jenkinsfile
+
+# Node modules (if any frontend)
+node_modules/
+
+# Secret files
+*.env
+*.secret
+secrets/
+
+# Misc
+*.bak
+*.orig
