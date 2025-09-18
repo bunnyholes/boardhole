@@ -3,6 +3,13 @@ name: Test
 on:
   push:
     branches: [develop]
+    paths:
+      - 'src/**'
+      - 'build.gradle'
+      - 'gradle.properties'
+      - 'settings.gradle'
+      - 'gradle/**'
+      - '.github/workflows/test.yml'
 
 jobs:
   test:
