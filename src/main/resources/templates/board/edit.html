@@ -8,20 +8,10 @@
 <main>
     <div>
         <h1 class="h3">글 수정</h1>
-        <div>
-            <a class="secondary outline" th:href="@{/boards/{id}(id=${board.id})}">
-                🔍
-                상세보기
-            </a>
-            <a class="primary outline" href="/boards">
-                ←
-                목록으로
-            </a>
-        </div>
     </div>
 
     <article>
-        <form id="boardEditForm" method="post" th:action="@{/forms/boards/{id}(id=${board.id})}">
+        <form id="boardEditForm" method="post" th:action="@{/boards/{id}/edit(id=${board.id})}">
             <label for="title">
                 제목
                 <input id="title"
@@ -45,14 +35,10 @@
             </label>
 
             <footer>
-                <small>📄 최종 수정:
-                    <time th:datetime="${board.modifiedAt}"
-                          th:text="${#temporals.format(board.modifiedAt, 'MM-dd HH:mm')}">01-15 15:30
-                    </time>
-                </small>
                 <nav>
                     <ul>
-                        <li><a class="secondary outline" role="button" th:href="@{/boards/{id}(id=${board.id})}">취소</a>
+                        <li>
+                            <a class="secondary outline" role="button" th:href="@{/boards/{id}(id=${board.id})}">취소</a>
                         </li>
                         <li>
                             <button type="submit">✅ 수정 완료</button>
@@ -105,9 +91,6 @@
             <dd>코드 블록</dd>
         </dl>
     </details>
-    </div>
-    </div>
-
 
 </main>
 </html>

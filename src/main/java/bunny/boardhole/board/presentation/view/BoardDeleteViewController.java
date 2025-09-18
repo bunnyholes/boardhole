@@ -17,12 +17,11 @@ import bunny.boardhole.board.application.command.BoardCommandService;
  * 게시글 삭제 뷰 컨트롤러
  * <p>
  * 게시글 삭제 처리를 담당합니다.
- * 인증된 사용자만 접근할 수 있습니다.
+ * 게시글 작성자 본인 또는 관리자만 삭제할 수 있습니다.
  */
 @Controller
 @RequestMapping("/boards/{id}/delete")
 @RequiredArgsConstructor
-@PreAuthorize("isAuthenticated()")
 public class BoardDeleteViewController {
 
     private final BoardCommandService boardCommandService;
@@ -31,14 +30,17 @@ public class BoardDeleteViewController {
      * 게시글 삭제 처리
      * <p>
      * 지정된 게시글을 삭제하고 게시글 목록으로 리디렉트합니다.
+     * 작성자 본인 또는 관리자만 삭제 가능합니다.
      * 예외 발생 시 ViewControllerAdvice에서 처리됩니다.
      *
      * @param id                 삭제할 게시글 ID
      * @param redirectAttributes 리디렉트 시 전달할 메시지
      * @return 성공 시 게시글 목록으로 리디렉트
      * @throws bunny.boardhole.shared.exception.ResourceNotFoundException 게시글을 찾을 수 없는 경우
+     * @throws org.springframework.security.access.AccessDeniedException 삭제 권한이 없는 경우
      */
     @PostMapping
+    @PreAuthorize("hasPermission(#id, 'BOARD', 'DELETE')")
     public String processDelete(
             @PathVariable UUID id,
             RedirectAttributes redirectAttributes

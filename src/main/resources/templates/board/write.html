@@ -18,7 +18,7 @@
     </nav>
 
     <article>
-        <form id="boardForm" method="post" th:action="@{/forms/boards}">
+        <form id="boardForm" method="post" th:action="@{/boards/write}" th:object="${boardCreateRequest}">
             <label for="title">
                 제목
                 <input aria-required="true"
@@ -27,7 +27,10 @@
                        name="title"
                        placeholder="제목을 입력하세요"
                        required
+                       th:attr="aria-invalid=${#fields.hasErrors('title')} ? 'true' : (${#fields.hasAnyErrors()} ? 'false' : null),aria-describedby=${#fields.hasErrors('title')} ? 'title-help' : null"
+                       th:field="*{title}"
                        type="text">
+                <small id="title-help" th:if="${#fields.hasErrors('title')}" th:errors="*{title}">제목 오류 메시지</small>
             </label>
 
             <label for="content">
@@ -39,7 +42,10 @@
                         name="content"
                         placeholder="내용을 입력하세요 (마크다운 지원)"
                         required
-                        rows="15"></textarea>
+                        rows="15"
+                        th:attr="aria-invalid=${#fields.hasErrors('content')} ? 'true' : (${#fields.hasAnyErrors()} ? 'false' : null),aria-describedby=${#fields.hasErrors('content')} ? 'content-help markdown-help' : 'markdown-help'"
+                        th:field="*{content}"></textarea>
+                <small id="content-help" th:if="${#fields.hasErrors('content')}" th:errors="*{content}">내용 오류 메시지</small>
                 <small id="markdown-help">마크다운 문법을 지원합니다</small>
             </label>
 

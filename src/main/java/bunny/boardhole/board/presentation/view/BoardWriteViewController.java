@@ -15,7 +15,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import bunny.boardhole.board.application.command.BoardCommandService;
-import bunny.boardhole.board.application.command.CreateBoardCommand;
+import bunny.boardhole.board.presentation.dto.BoardCreateRequest;
+import bunny.boardhole.board.presentation.mapper.BoardWebMapper;
 import bunny.boardhole.shared.security.AppUserPrincipal;
 
 /**
@@ -31,16 +32,18 @@ import bunny.boardhole.shared.security.AppUserPrincipal;
 public class BoardWriteViewController {
 
     private final BoardCommandService boardCommandService;
+    private final BoardWebMapper boardWebMapper;
 
     /**
      * 게시글 작성 폼 표시
      * <p>
      * 게시글을 작성할 수 있는 폼 페이지를 표시합니다.
      *
+     * @param boardCreateRequest 빈 게시글 객체 (자동 생성)
      * @return 게시글 작성 폼 템플릿
      */
     @GetMapping
-    public String showWriteForm() {
+    public String showWriteForm(@ModelAttribute BoardCreateRequest boardCreateRequest) {
         return "board/write";
     }
 
@@ -48,46 +51,28 @@ public class BoardWriteViewController {
      * 게시글 작성 처리
      * <p>
      * 작성된 게시글을 저장하고 상세 페이지로 리디렉트합니다.
-     * 유효성 검증 실패나 예외 발생 시 ViewControllerAdvice에서 처리됩니다.
+     * 유효성 검증 실패 시 작성 폼으로 돌아갑니다.
      *
-     * @param request            게시글 작성 요청 데이터
+     * @param boardCreateRequest 게시글 작성 요청 데이터
      * @param bindingResult      유효성 검증 결과
      * @param principal          인증된 사용자 정보
      * @param redirectAttributes 리디렉트 시 전달할 메시지
-     * @return 성공 시 게시글 상세 페이지로 리디렉트
+     * @return 성공 시 게시글 상세 페이지로 리디렉트, 실패 시 작성 폼
      */
     @PostMapping
     public String processWrite(
-            @Valid @ModelAttribute CreateBoardRequest request,
+            @Valid @ModelAttribute BoardCreateRequest boardCreateRequest,
             BindingResult bindingResult,
             @AuthenticationPrincipal AppUserPrincipal principal,
             RedirectAttributes redirectAttributes
     ) {
-        if (bindingResult.hasErrors()) {
-            redirectAttributes.addFlashAttribute("error", "입력 정보를 확인해주세요.");
-            redirectAttributes.addFlashAttribute("org.springframework.validation.BindingResult.createBoardRequest", bindingResult);
-            redirectAttributes.addFlashAttribute("createBoardRequest", request);
-            return "redirect:/boards/write";
-        }
+        if (bindingResult.hasErrors())
+            return "board/write";
 
-        var command = new CreateBoardCommand(principal.user().getId(), request.title(), request.content());
+        var command = boardWebMapper.toCreateCommand(boardCreateRequest, principal.user().getId());
         var result = boardCommandService.create(command);
 
         redirectAttributes.addFlashAttribute("success", "게시글이 성공적으로 작성되었습니다.");
         return "redirect:/boards/" + result.id();
-    }
-
-    /**
-     * 게시글 작성 요청 DTO
-     * <p>
-     * 게시글 작성 시 필요한 데이터를 담는 레코드입니다.
-     *
-     * @param title   게시글 제목
-     * @param content 게시글 내용
-     */
-    public record CreateBoardRequest(
-            String title,
-            String content
-    ) {
     }
 }

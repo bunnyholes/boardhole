@@ -38,14 +38,14 @@
                 </div>
 
                 <!-- 관리 메뉴 (Pico.css dropdown) -->
-                <div sec:authorize="isAuthenticated() and #authentication.principal.user.id == #vars.board.authorId">
+                <div sec:authorize="hasPermission(#vars.board.id, 'BOARD', 'WRITE')">
                     <details class="dropdown">
                         <summary class="secondary outline" role="button">관리 ▼</summary>
                         <ul role="listbox">
                             <li><a th:href="@{/boards/{id}/edit(id=${board.id})}">✏️ 수정</a></li>
                             <li>
                                 <form method="post" style="margin: 0;"
-                                      th:action="@{/forms/boards/{id}/delete(id=${board.id})}">
+                                      th:action="@{/boards/{id}/delete(id=${board.id})}">
                                     <button class="contrast" style="all: unset; cursor: pointer; padding: 0.5rem;"
                                             type="submit">
                                         🗑️ 삭제
@@ -69,11 +69,6 @@
                 <div>
                     <a class="secondary outline" href="/boards" role="button">
                         ← 목록으로
-                    </a>
-                </div>
-                <div>
-                    <a class="primary" href="/boards/write" role="button">
-                        📄 새 글 작성
                     </a>
                 </div>
             </div>

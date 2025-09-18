@@ -1,6 +1,5 @@
 package bunny.boardhole.board.presentation.view;
 
-import java.util.Collections;
 import java.util.UUID;
 
 import lombok.RequiredArgsConstructor;
@@ -15,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import bunny.boardhole.board.application.query.BoardQueryService;
+import bunny.boardhole.shared.exception.ResourceNotFoundException;
 
 /**
  * 게시판 조회 전용 뷰 컨트롤러
@@ -43,11 +43,11 @@ public class BoardViewController {
     @GetMapping
     public String list(
             @RequestParam(required = false) String search,
-            @PageableDefault(size = 10) Pageable pageable,
+            @PageableDefault Pageable pageable,
             Model model
     ) {
         var boards = boardQueryService.getBoards(search, pageable);
-        model.addAttribute("boards", boards != null ? boards : Collections.emptyList());
+        model.addAttribute("boards", boards);
         model.addAttribute("search", search);
         return "boards";
     }
@@ -61,7 +61,7 @@ public class BoardViewController {
      * @param id    게시글 ID
      * @param model 뷰에 전달할 데이터
      * @return 게시글 상세 템플릿
-     * @throws bunny.boardhole.shared.exception.ResourceNotFoundException 게시글을 찾을 수 없는 경우
+     * @throws ResourceNotFoundException 게시글을 찾을 수 없는 경우
      */
     @GetMapping("/{id}")
     public String detail(@PathVariable UUID id, Model model) {
