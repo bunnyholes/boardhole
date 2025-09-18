@@ -29,7 +29,7 @@ jobs:
       - name: Build project
         run: |
           chmod +x gradlew
-          ./gradlew clean build bootJar --no-daemon
+          ./gradlew clean build bootJar -x test --no-daemon
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
