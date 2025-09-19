@@ -11,45 +11,47 @@
             <h2 id="sidenav-title">메뉴</h2>
         </header>
 
-        <nav>
-            <menu>
-                <!-- 일반 메뉴 -->
-                <li>
-                    <a href="/boards"
-                       th:attr="aria-current=${#httpServletRequest != null and #httpServletRequest.requestURI != null and #httpServletRequest.requestURI.startsWith('/boards') ? 'page' : null}">
-                        📋 게시판
-                    </a>
-                </li>
+        <aside>
+            <nav>
+                <menu>
+                    <!-- 일반 메뉴 -->
+                    <li>
+                        <a href="/boards"
+                           th:attr="aria-current=${#httpServletRequest != null and #httpServletRequest.requestURI != null and #httpServletRequest.requestURI.startsWith('/boards') ? 'page' : null}">
+                            📋 게시판
+                        </a>
+                    </li>
 
-                <li sec:authorize="hasRole('USER')">
-                    <a href="/users/mypage"
-                       th:attr="aria-current=${#httpServletRequest != null and #httpServletRequest.requestURI != null and #httpServletRequest.requestURI.startsWith('/users/mypage') ? 'page' : null}">
-                        👤 마이페이지
-                    </a>
-                </li>
+                    <li sec:authorize="hasRole('USER')">
+                        <a href="/users/mypage"
+                           th:attr="aria-current=${#httpServletRequest != null and #httpServletRequest.requestURI != null and #httpServletRequest.requestURI.startsWith('/users/mypage') ? 'page' : null}">
+                            👤 마이페이지
+                        </a>
+                    </li>
 
-                <li sec:authorize="hasRole('USER')">
-                    <a href="/boards/write">✍️ 글쓰기</a>
-                </li>
+                    <li sec:authorize="hasRole('USER')">
+                        <a href="/boards/write">✍️ 글쓰기</a>
+                    </li>
 
-                <!-- 구분선 -->
-                <li>
-                    <hr>
-                </li>
+                    <!-- 구분선 -->
+                    <li sec:authorize="hasRole('ADMIN')">
+                        <hr>
+                    </li>
 
-                <!-- 관리자 기능 -->
-                <li sec:authorize="hasRole('ADMIN')">
-                    <h3>관리자 기능</h3>
-                </li>
+                    <!-- 관리자 기능 -->
+                    <li sec:authorize="hasRole('ADMIN')">
+                        <h3>관리자 기능</h3>
+                    </li>
 
-                <li sec:authorize="hasRole('ADMIN')">
-                    <a href="/users"
-                       th:attr="aria-current=${#httpServletRequest != null and #httpServletRequest.requestURI != null and #httpServletRequest.requestURI.startsWith('/users') ? 'page' : null}">
-                        👥 사용자 관리
-                    </a>
-                </li>
-            </menu>
-        </nav>
+                    <li sec:authorize="hasRole('ADMIN')">
+                        <a href="/users"
+                           th:attr="aria-current=${#httpServletRequest != null and #httpServletRequest.requestURI != null and #httpServletRequest.requestURI.startsWith('/users') ? 'page' : null}">
+                            👥 사용자 관리
+                        </a>
+                    </li>
+                </menu>
+            </nav>
+        </aside>
     </article>
 </dialog>
 
