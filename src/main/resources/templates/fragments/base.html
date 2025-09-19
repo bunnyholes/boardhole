@@ -38,10 +38,10 @@
         </article>
     </dialog>
 
-    <dialog open th:if="${error}">
+    <dialog id="error-alert" open th:if="${error}">
         <article>
             <header>
-                <button aria-label="알림 닫기" command="close" commandfor="alert" rel="prev"></button>
+                <button aria-label="알림 닫기" command="close" commandfor="error-alert" rel="prev"></button>
                 <h2>알림</h2>
             </header>
             <p class="pico-color-pink-500" th:text="${error}"></p>
