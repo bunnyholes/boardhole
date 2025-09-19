@@ -6,37 +6,42 @@
 </head>
 
 <main>
-    <div>
-        <h1 class="h3">글 수정</h1>
-    </div>
+    <hgroup>
+        <h1>✏️ 글 수정</h1>
+        <p>내용을 수정하세요</p>
+    </hgroup>
 
     <article>
-        <form id="boardEditForm" method="post" th:action="@{/boards/{id}/edit(id=${board.id})}">
+        <form id="boardForm" method="post" th:action="@{/boards/{id}/edit(id=${id})}" th:object="${board}" novalidate>
             <label for="title">
                 제목
-                <input id="title"
+                <input aria-required="true"
+                       id="title"
                        maxlength="255"
-                       name="title"
                        placeholder="제목을 입력하세요"
                        required
-                       th:value="${board.title}"
+                       th:attr="aria-invalid=${#fields.hasErrors('title')} ? 'true' : (${#fields.hasAnyErrors()} ? 'false' : null),aria-describedby=${#fields.hasErrors('title')} ? 'title-help' : null"
+                       th:field="*{title}"
                        type="text">
+                <small id="title-help" th:if="${#fields.hasErrors('title')}" th:errors="*{title}">제목 오류 메시지</small>
             </label>
 
             <label for="content">
                 내용
-                <textarea id="content"
-                          name="content"
-                          placeholder="내용을 입력하세요 (마크다운 지원)"
+                <textarea aria-describedby="markdown-help"
+                          aria-required="true"
+                          id="content"
+                          placeholder="내용을 입력하세요"
                           required
                           rows="15"
-                          th:text="${board.content}"></textarea>
-                <small>마크다운 문법을 지원합니다</small>
+                          th:attr="aria-invalid=${#fields.hasErrors('content')} ? 'true' : (${#fields.hasAnyErrors()} ? 'false' : null),aria-describedby=${#fields.hasErrors('content')} ? 'content-help markdown-help' : 'markdown-help'"
+                          th:field="*{content}"></textarea>
+                <small id="content-help" th:if="${#fields.hasErrors('content')}" th:errors="*{content}">내용 오류
+                    메시지</small>
             </label>
 
-            <input type="submit" value="수정 완료"/>
+            <button type="submit">수정 완료</button>
         </form>
     </article>
-
 </main>
 </html>

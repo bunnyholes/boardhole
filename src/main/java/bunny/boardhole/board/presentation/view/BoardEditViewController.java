@@ -19,8 +19,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import bunny.boardhole.board.application.command.BoardCommandService;
 import bunny.boardhole.board.application.query.BoardQueryService;
-import bunny.boardhole.board.application.result.BoardResult;
-import bunny.boardhole.board.presentation.dto.BoardUpdateRequest;
+import bunny.boardhole.board.presentation.dto.BoardFormRequest;
 import bunny.boardhole.board.presentation.mapper.BoardWebMapper;
 
 /**
@@ -54,8 +53,7 @@ public class BoardEditViewController {
     @PreAuthorize("hasPermission(#id, 'BOARD', 'WRITE')")
     public String showEditForm(@PathVariable UUID id, Model model) {
         var board = boardQueryService.getBoard(id);
-
-        model.addAttribute("board", board);  // board 객체 추가
+        model.addAttribute("board", boardWebMapper.toFormRequest(board));
         return "board/edit";
     }
 
@@ -67,10 +65,9 @@ public class BoardEditViewController {
      * 작성자 본인 또는 관리자만 수정 가능합니다.
      *
      * @param id                 수정할 게시글 ID
-     * @param boardUpdateRequest 게시글 수정 요청 데이터
+     * @param formRequest        게시글 수정 요청 데이터
      * @param bindingResult      유효성 검증 결과
      * @param redirectAttributes 리디렉트 시 전달할 메시지
-     * @param model              뷰에 전달할 데이터
      * @return 성공 시 게시글 상세 페이지로 리디렉트, 실패 시 수정 폼
      * @throws org.springframework.security.access.AccessDeniedException 수정 권한이 없는 경우
      */
@@ -78,20 +75,14 @@ public class BoardEditViewController {
     @PreAuthorize("hasPermission(#id, 'BOARD', 'WRITE')")
     public String processEdit(
             @PathVariable UUID id,
-            @Valid @ModelAttribute BoardUpdateRequest boardUpdateRequest,
+            @Valid @ModelAttribute("board") BoardFormRequest formRequest,
             BindingResult bindingResult,
-            RedirectAttributes redirectAttributes,
-            Model model
+            RedirectAttributes redirectAttributes
     ) {
-        if (bindingResult.hasErrors()) {
-            // 오류 발생 시 기존 게시글 정보를 다시 로드
-            BoardResult result = boardQueryService.handle(boardWebMapper.toGetBoardQuery(id));
-            var board = boardWebMapper.toResponse(result);
-            model.addAttribute("board", board);
+        if (bindingResult.hasErrors())
             return "board/edit";
-        }
 
-        var command = boardWebMapper.toUpdateCommand(id, boardUpdateRequest);
+        var command = boardWebMapper.toUpdateCommand(id, formRequest);
         boardCommandService.update(command);
 
         redirectAttributes.addFlashAttribute("success", "게시글이 성공적으로 수정되었습니다.");

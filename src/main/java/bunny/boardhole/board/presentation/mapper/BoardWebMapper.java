@@ -13,6 +13,7 @@ import bunny.boardhole.board.application.result.BoardResult;
 import bunny.boardhole.board.presentation.dto.BoardCreateRequest;
 import bunny.boardhole.board.presentation.dto.BoardResponse;
 import bunny.boardhole.board.presentation.dto.BoardUpdateRequest;
+import bunny.boardhole.board.presentation.dto.BoardFormRequest;
 
 /**
  * 게시글 웹 계층 매퍼
@@ -63,4 +64,15 @@ public interface BoardWebMapper {
      */
     GetBoardQuery toGetBoardQuery(UUID id);
 
+    @Mapping(target = "authorId", source = "authorId")
+    @Mapping(target = "title", source = "formRequest.title")
+    @Mapping(target = "content", source = "formRequest.content")
+    CreateBoardCommand toCreateCommand(BoardFormRequest formRequest, UUID authorId);
+
+    @Mapping(target = "boardId", source = "id")
+    @Mapping(target = "title", source = "formRequest.title")
+    @Mapping(target = "content", source = "formRequest.content")
+    UpdateBoardCommand toUpdateCommand(UUID id, BoardFormRequest formRequest);
+
+    BoardFormRequest toFormRequest(BoardResult board);
 }

@@ -11,14 +11,8 @@
         <p>생각과 경험을 공유하세요</p>
     </hgroup>
 
-    <nav aria-label="페이지 네비게이션">
-        <ul>
-            <li><a href="/boards">← 목록으로</a></li>
-        </ul>
-    </nav>
-
     <article>
-        <form id="boardForm" method="post" th:action="@{/boards/write}" th:object="${boardCreateRequest}">
+        <form id="boardForm" method="post" th:action="@{/boards/write}" th:object="${board}" novalidate>
             <label for="title">
                 제목
                 <input aria-required="true"
@@ -45,46 +39,14 @@
                         rows="15"
                         th:attr="aria-invalid=${#fields.hasErrors('content')} ? 'true' : (${#fields.hasAnyErrors()} ? 'false' : null),aria-describedby=${#fields.hasErrors('content')} ? 'content-help markdown-help' : 'markdown-help'"
                         th:field="*{content}"></textarea>
-                <small id="content-help" th:if="${#fields.hasErrors('content')}" th:errors="*{content}">내용 오류 메시지</small>
+                <small id="content-help" th:if="${#fields.hasErrors('content')}" th:errors="*{content}">내용 오류
+                    메시지</small>
                 <small id="markdown-help">마크다운 문법을 지원합니다</small>
             </label>
 
-            <footer>
-                <small>ℹ️ 작성된 글은 커뮤니티 가이드라인을 준수해야 합니다</small>
-                <nav>
-                    <ul>
-                        <li><a class="secondary outline" href="/boards" role="button">취소</a></li>
-                        <li>
-                            <button type="submit">게시하기</button>
-                        </li>
-                    </ul>
-                </nav>
-            </footer>
+            <button type="submit">게시하기</button>
         </form>
     </article>
 
-    <!-- 마크다운 도움말 -->
-    <details>
-        <summary>📝 마크다운 문법 도움말</summary>
-        <dl>
-            <dt><code># 제목</code></dt>
-            <dd>큰 제목</dd>
-
-            <dt><code>## 소제목</code></dt>
-            <dd>작은 제목</dd>
-
-            <dt><code>**굵게**</code></dt>
-            <dd>굵은 글씨</dd>
-
-            <dt><code>`코드`</code></dt>
-            <dd>인라인 코드</dd>
-
-            <dt><code>- 목록</code></dt>
-            <dd>글머리 기호</dd>
-
-            <dt><code>```코드블록```</code></dt>
-            <dd>코드 블록</dd>
-        </dl>
-    </details>
 </main>
 </html>
