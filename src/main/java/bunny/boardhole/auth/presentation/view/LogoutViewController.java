@@ -11,7 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 
 import bunny.boardhole.auth.application.AuthCommandService;
 import bunny.boardhole.auth.application.mapper.AuthMapper;
@@ -38,7 +38,7 @@ public class LogoutViewController {
      * 사용자 로그아웃을 처리하고 세션을 무효화한 후 홈페이지로 리디렉트합니다.
      * </p>
      */
-    @PostMapping("/auth/logout")
+    @GetMapping("/auth/logout")
     public String processLogout(
             HttpServletRequest request,
             @AuthenticationPrincipal AppUserPrincipal principal

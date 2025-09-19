@@ -271,9 +271,3 @@ dialog:modal,
         display: none !important;
     }
 }
-
-/* ===== 로그아웃 폼 (header) ===== */
-.logout-form {
-    margin: 0;
-    display: inline;
-}

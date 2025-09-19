@@ -17,9 +17,7 @@
             <a class="primary" role="button" th:href="@{/auth/signup}">회원가입</a>
         </li>
         <li sec:authorize="isAuthenticated()">
-            <form class="logout-form" method="post" th:action="@{/auth/logout}">
-                <button class="secondary outline" type="submit">로그아웃</button>
-            </form>
+            <a class="secondary outline" role="button" th:href="@{/auth/logout}">로그아웃</a>
         </li>
     </ul>
 </nav>
