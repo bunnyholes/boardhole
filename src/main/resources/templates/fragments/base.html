@@ -27,15 +27,28 @@
 <th:block th:replace="~{fragments/sidenav :: sidenav}"></th:block>
 
 <main class="container">
-    <!-- 메시지 표시 (중복 제거) -->
-    <div th:if="${success}">
-        <ins th:text="${success}"></ins>
-    </div>
-    <div th:if="${error}">
-        <del th:text="${error}"></del>
-    </div>
+    <!-- 메시지 표시 (Dialog 요소) -->
+    <dialog id="alert" open th:if="${success}">
+        <article>
+            <header>
+                <button aria-label="알림 닫기" command="close" commandfor="alert" rel="prev"></button>
+                <h2>알림</h2>
+            </header>
+            <p class="pico-color-jade-500" th:text="${success}"></p>
+        </article>
+    </dialog>
 
-    <!-- 단순화된 레이아웃 (사이드바 제거) -->
+    <dialog open th:if="${error}">
+        <article>
+            <header>
+                <button aria-label="알림 닫기" command="close" commandfor="alert" rel="prev"></button>
+                <h2>알림</h2>
+            </header>
+            <p class="pico-color-pink-500" th:text="${error}"></p>
+        </article>
+    </dialog>
+
+    <!-- 단순화된 레이아웃 -->
     <th:block th:replace="${content}"></th:block>
 </main>
 
