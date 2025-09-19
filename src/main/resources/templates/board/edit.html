@@ -34,63 +34,9 @@
                 <small>마크다운 문법을 지원합니다</small>
             </label>
 
-            <footer>
-                <nav>
-                    <ul>
-                        <li>
-                            <a class="secondary outline" role="button" th:href="@{/boards/{id}(id=${board.id})}">취소</a>
-                        </li>
-                        <li>
-                            <button type="submit">✅ 수정 완료</button>
-                        </li>
-                    </ul>
-                </nav>
-            </footer>
+            <input type="submit" value="수정 완료"/>
         </form>
     </article>
-
-    <!-- 글 정보 -->
-    <details>
-        <summary>ℹ️ 글 정보</summary>
-        <dl>
-            <dt>작성자</dt>
-            <dd th:text="${board.authorName}">홍길동</dd>
-
-            <dt>작성일</dt>
-            <dd>
-                <time th:datetime="${board.createdAt}" th:text="${#temporals.format(board.createdAt, 'MM-dd HH:mm')}">
-                    01-15 14:30
-                </time>
-            </dd>
-
-            <dt>조회수</dt>
-            <dd th:text="${board.viewCount}">123</dd>
-        </dl>
-    </details>
-
-    <!-- 마크다운 도움말 -->
-    <details>
-        <summary>📝 마크다운 문법 도움말</summary>
-        <dl>
-            <dt><code># 제목</code></dt>
-            <dd>큰 제목</dd>
-
-            <dt><code>## 소제목</code></dt>
-            <dd>작은 제목</dd>
-
-            <dt><code>**굵게**</code></dt>
-            <dd>굵은 글씨</dd>
-
-            <dt><code>`코드`</code></dt>
-            <dd>인라인 코드</dd>
-
-            <dt><code>- 목록</code></dt>
-            <dd>글머리 기호</dd>
-
-            <dt><code>```코드블록```</code></dt>
-            <dd>코드 블록</dd>
-        </dl>
-    </details>
 
 </main>
 </html>
