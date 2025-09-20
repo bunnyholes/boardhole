@@ -75,7 +75,7 @@ class RequestCacheTest extends ViewE2ETestBase {
 
         // 2. 로그인하지 않고 다른 보호된 페이지 접근
         // URL 경로 수정 (실제 경로에 맞게)
-        page.navigate("http://localhost:" + port + "/user/mypage");
+        page.navigate("http://localhost:" + port + "/user/getUserDetailPage");
         page.waitForLoadState();
         assertThat(page.url()).contains("/auth/login");
 
@@ -87,7 +87,7 @@ class RequestCacheTest extends ViewE2ETestBase {
 
         // 4. 마지막으로 요청한 페이지로 리다이렉트되었는지 확인
         // continue 파라미터가 붙을 수 있음
-        assertThat(page.url()).containsAnyOf("/user/mypage", "/mypage");
+        assertThat(page.url()).containsAnyOf("/user/getUserDetailPage", "/getUserDetailPage");
     }
 
     @Test

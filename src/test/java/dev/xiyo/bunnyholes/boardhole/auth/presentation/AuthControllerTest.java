@@ -1,111 +1,95 @@
 package dev.xiyo.bunnyholes.boardhole.auth.presentation;
 
+import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.UUID;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
+import jakarta.persistence.EntityManager;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockedStatic;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.context.SecurityContextRepository;
+import org.mockito.ArgumentCaptor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
+import org.springframework.context.annotation.Import;
+import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
+import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithAnonymousUser;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
 
-import dev.xiyo.bunnyholes.boardhole.auth.application.AuthCommandService;
+import dev.xiyo.bunnyholes.boardhole.auth.application.command.AuthCommandService;
 import dev.xiyo.bunnyholes.boardhole.auth.application.command.LoginCommand;
-import dev.xiyo.bunnyholes.boardhole.auth.application.command.LogoutCommand;
 import dev.xiyo.bunnyholes.boardhole.auth.application.mapper.AuthMapper;
 import dev.xiyo.bunnyholes.boardhole.auth.presentation.dto.LoginRequest;
 import dev.xiyo.bunnyholes.boardhole.auth.presentation.mapper.AuthWebMapper;
-import dev.xiyo.bunnyholes.boardhole.shared.security.AppUserPrincipal;
+import dev.xiyo.bunnyholes.boardhole.shared.config.ApiSecurityConfig;
+import dev.xiyo.bunnyholes.boardhole.shared.config.log.RequestLoggingFilter;
+import dev.xiyo.bunnyholes.boardhole.shared.constants.ApiPaths;
+import dev.xiyo.bunnyholes.boardhole.shared.exception.GlobalExceptionHandler;
+import dev.xiyo.bunnyholes.boardhole.shared.exception.UnauthorizedException;
 import dev.xiyo.bunnyholes.boardhole.user.application.command.CreateUserCommand;
 import dev.xiyo.bunnyholes.boardhole.user.application.command.UserCommandService;
+import dev.xiyo.bunnyholes.boardhole.user.application.result.UserResult;
 import dev.xiyo.bunnyholes.boardhole.user.domain.Role;
-import dev.xiyo.bunnyholes.boardhole.user.domain.User;
 import dev.xiyo.bunnyholes.boardhole.user.presentation.dto.UserCreateRequest;
 import dev.xiyo.bunnyholes.boardhole.user.presentation.mapper.UserWebMapper;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
-import static org.mockito.BDDMockito.willDoNothing;
 import static org.mockito.BDDMockito.willThrow;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.never;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@ExtendWith(MockitoExtension.class)
-@DisplayName("AuthController 단위 테스트")
+@WebMvcTest(
+        value = AuthController.class,
+        excludeFilters = {
+                @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = RequestLoggingFilter.class)
+        }
+)
+@AutoConfigureMockMvc
+@Import({ApiSecurityConfig.class, GlobalExceptionHandler.class})
+@DisplayName("AuthController MockMvc 테스트")
 @Tag("unit")
 @Tag("auth")
 class AuthControllerTest {
 
-    @Mock
+    private static final String SIGNUP_URL = ApiPaths.AUTH + ApiPaths.AUTH_SIGNUP;
+    private static final String LOGIN_URL = ApiPaths.AUTH + ApiPaths.AUTH_LOGIN;
+    private static final String LOGOUT_URL = ApiPaths.AUTH + ApiPaths.AUTH_LOGOUT;
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockitoBean
     private UserCommandService userCommandService;
 
-    @Mock
+    @MockitoBean
     private AuthCommandService authCommandService;
 
-    @Mock
+    @MockitoBean
     private AuthWebMapper authWebMapper;
 
-    @Mock
+    @MockitoBean
     private AuthMapper authMapper;
 
-    @Mock
+    @MockitoBean
     private UserWebMapper userWebMapper;
 
-    @Mock
-    private SecurityContextRepository securityContextRepository;
+    @MockitoBean
+    private JpaMetamodelMappingContext jpaMetamodelMappingContext;
 
-    @Mock
-    private HttpServletRequest request;
-
-    @Mock
-    private HttpServletResponse response;
-
-    @Mock
-    private HttpSession session;
-
-    @Mock
-    private Authentication authentication;
-
-    @Mock
-    private SecurityContext securityContext;
-
-    @InjectMocks
-    private AuthController authController;
-
-    private User testUser;
-    private AppUserPrincipal testPrincipal;
-
-    @BeforeEach
-    void setUp() throws Exception {
-        testUser = User.builder()
-                       .username("testuser")
-                       .password("encoded_password")
-                       .name("Test User")
-                       .email("test@example.com")
-                       .roles(Set.of(Role.USER))
-                       .build();
-
-        // Use reflection to set the UUID ID for testing
-        var idField = User.class.getDeclaredField("id");
-        idField.setAccessible(true);
-        idField.set(testUser, UUID.randomUUID());
-
-        testPrincipal = new AppUserPrincipal(testUser);
-    }
+    @MockitoBean
+    private EntityManager entityManager;
 
     @Nested
     @DisplayName("POST /api/auth/signup - 회원가입")
@@ -113,27 +97,49 @@ class AuthControllerTest {
 
         @Test
         @DisplayName("✅ 유효한 요청으로 회원가입 성공")
-        void shouldCreateUserSuccessfully() {
-            // given
+        void shouldCreateUserSuccessfully() throws Exception {
             UserCreateRequest request = new UserCreateRequest(
                     "testuser", "Password123!", "Password123!", "Test User", "test@example.com"
             );
             CreateUserCommand command = new CreateUserCommand(
-                    "testuser", "Password123!", "Test User", "test@example.com"
+                    request.username(), request.password(), request.name(), request.email()
+            );
+            UUID userId = UUID.randomUUID();
+            UserResult signupResult = new UserResult(
+                    userId,
+                    request.username(),
+                    request.name(),
+                    request.email(),
+                    LocalDateTime.now(),
+                    null,
+                    null,
+                    Set.of(Role.USER)
             );
 
-            given(userWebMapper.toCreateCommand(request)).willReturn(command);
-            given(userCommandService.create(command)).willReturn(new dev.xiyo.bunnyholes.boardhole.user.application.result.UserResult(
-                    UUID.randomUUID(), "testuser", "Test User", "test@example.com",
-                    java.time.LocalDateTime.now(), null, null, Set.of(dev.xiyo.bunnyholes.boardhole.user.domain.Role.USER)
-            ));
+            given(userWebMapper.toCreateCommand(any(UserCreateRequest.class))).willReturn(command);
+            given(userCommandService.create(command)).willReturn(signupResult);
 
-            // when
-            authController.signup(request);
+            mockMvc.perform(post(AuthControllerTest.SIGNUP_URL)
+                           .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                           .param("username", request.username())
+                           .param("password", request.password())
+                           .param("confirmPassword", request.confirmPassword())
+                           .param("name", request.name())
+                           .param("email", request.email())
+                   )
+                   .andExpect(status().isNoContent());
 
-            // then
-            then(userWebMapper).should().toCreateCommand(request);
+            ArgumentCaptor<UserCreateRequest> requestCaptor = ArgumentCaptor.forClass(UserCreateRequest.class);
+            then(userWebMapper).should().toCreateCommand(requestCaptor.capture());
+            UserCreateRequest captured = requestCaptor.getValue();
+            assertThat(captured.username()).isEqualTo(request.username());
+            assertThat(captured.password()).isEqualTo(request.password());
+            assertThat(captured.confirmPassword()).isEqualTo(request.confirmPassword());
+            assertThat(captured.name()).isEqualTo(request.name());
+            assertThat(captured.email()).isEqualTo(request.email());
+
             then(userCommandService).should().create(command);
+            then(authCommandService).should().login(userId);
         }
     }
 
@@ -142,98 +148,51 @@ class AuthControllerTest {
     class Login {
 
         @Test
-        @DisplayName("✅ 유효한 자격증명으로 로그인 성공 - SecurityContext 저장")
-        void shouldLoginSuccessfullyWithSecurityContext() {
-            // given
+        @DisplayName("✅ 유효한 자격증명으로 로그인 성공")
+        void shouldLoginSuccessfully() throws Exception {
             LoginRequest loginRequest = new LoginRequest("testuser", "Password123!");
             LoginCommand loginCommand = new LoginCommand("testuser", "Password123!");
 
-            given(authWebMapper.toLoginCommand(loginRequest)).willReturn(loginCommand);
-            given(authCommandService.login(loginCommand)).willReturn(new dev.xiyo.bunnyholes.boardhole.auth.application.result.AuthResult(
-                    UUID.randomUUID(), "testuser", "test@example.com", "Test User", "USER", true
-            ));
+            given(authWebMapper.toLoginCommand(any(LoginRequest.class))).willReturn(loginCommand);
 
-            try (MockedStatic<SecurityContextHolder> mockedSecurityContextHolder = mockStatic(SecurityContextHolder.class)) {
-                mockedSecurityContextHolder.when(SecurityContextHolder::getContext)
-                                           .thenReturn(securityContext);
-                given(securityContext.getAuthentication()).willReturn(authentication);
-                given(authentication.getPrincipal()).willReturn(testPrincipal);
-                willDoNothing().given(securityContextRepository).saveContext(securityContext,
-                        request, response);
-                willDoNothing().given(userCommandService).updateLastLogin(testUser.getId());
+            mockMvc.perform(post(AuthControllerTest.LOGIN_URL)
+                           .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                           .param("username", loginRequest.username())
+                           .param("password", loginRequest.password())
+                   )
+                   .andExpect(status().isNoContent());
 
-                // when
-                authController.login(loginRequest, request, response);
+            ArgumentCaptor<LoginRequest> requestCaptor = ArgumentCaptor.forClass(LoginRequest.class);
+            then(authWebMapper).should().toLoginCommand(requestCaptor.capture());
+            LoginRequest captured = requestCaptor.getValue();
+            assertThat(captured.username()).isEqualTo(loginRequest.username());
+            assertThat(captured.password()).isEqualTo(loginRequest.password());
 
-                // then
-                then(authWebMapper).should().toLoginCommand(loginRequest);
-                then(authCommandService).should().login(loginCommand);
-                then(securityContextRepository).should().saveContext(securityContext,
-                        request, response);
-                then(userCommandService).should().updateLastLogin(testUser.getId());
-            }
+            then(authCommandService).should().login(loginCommand);
+            then(userCommandService).shouldHaveNoInteractions();
         }
 
         @Test
-        @DisplayName("✅ 인증 없이 로그인 - SecurityContext 저장 안함")
-        void shouldLoginWithoutAuthentication() {
-            // given
-            LoginRequest loginRequest = new LoginRequest("testuser", "Password123!");
-            LoginCommand loginCommand = new LoginCommand("testuser", "Password123!");
+        @DisplayName("❌ 로그인 실패 시 401 ProblemDetail 응답")
+        void shouldReturnUnauthorizedOnLoginFailure() throws Exception {
+            LoginRequest loginRequest = new LoginRequest("testuser", "WrongPassword!");
+            LoginCommand loginCommand = new LoginCommand("testuser", "WrongPassword!");
 
-            given(authWebMapper.toLoginCommand(loginRequest)).willReturn(loginCommand);
-            given(authCommandService.login(loginCommand)).willReturn(new dev.xiyo.bunnyholes.boardhole.auth.application.result.AuthResult(
-                    UUID.randomUUID(), "testuser", "test@example.com", "Test User", "USER", true
-            ));
+            given(authWebMapper.toLoginCommand(any(LoginRequest.class))).willReturn(loginCommand);
+            willThrow(new UnauthorizedException("Invalid credentials"))
+                    .given(authCommandService)
+                    .login(loginCommand);
 
-            try (MockedStatic<SecurityContextHolder> mockedSecurityContextHolder = mockStatic(SecurityContextHolder.class)) {
-                mockedSecurityContextHolder.when(SecurityContextHolder::getContext)
-                                           .thenReturn(securityContext);
-                given(securityContext.getAuthentication()).willReturn(null);
+            mockMvc.perform(post(AuthControllerTest.LOGIN_URL)
+                           .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                           .param("username", loginRequest.username())
+                           .param("password", loginRequest.password())
+                   )
+                   .andExpect(status().isUnauthorized())
+                   .andExpect(jsonPath("$.status").value(401));
 
-                // when
-                authController.login(loginRequest, request, response);
-
-                // then
-                then(authWebMapper).should().toLoginCommand(loginRequest);
-                then(authCommandService).should().login(loginCommand);
-                then(securityContextRepository).should(never()).saveContext(any(), any(), any());
-                then(userCommandService).should(never()).updateLastLogin(any(UUID.class));
-            }
-        }
-
-        @Test
-        @DisplayName("✅ updateLastLogin 예외 발생 시 로그인 성공 유지")
-        void shouldContinueLoginWhenUpdateLastLoginFails() {
-            // given
-            LoginRequest loginRequest = new LoginRequest("testuser", "Password123!");
-            LoginCommand loginCommand = new LoginCommand("testuser", "Password123!");
-
-            given(authWebMapper.toLoginCommand(loginRequest)).willReturn(loginCommand);
-            given(authCommandService.login(loginCommand)).willReturn(new dev.xiyo.bunnyholes.boardhole.auth.application.result.AuthResult(
-                    UUID.randomUUID(), "testuser", "test@example.com", "Test User", "USER", true
-            ));
-
-            try (MockedStatic<SecurityContextHolder> mockedSecurityContextHolder = mockStatic(SecurityContextHolder.class)) {
-                mockedSecurityContextHolder.when(SecurityContextHolder::getContext)
-                                           .thenReturn(securityContext);
-                given(securityContext.getAuthentication()).willReturn(authentication);
-                given(authentication.getPrincipal()).willReturn(testPrincipal);
-                willDoNothing().given(securityContextRepository).saveContext(securityContext,
-                        request, response);
-                willThrow(new UnsupportedOperationException("Test exception"))
-                        .given(userCommandService).updateLastLogin(testUser.getId());
-
-                // when
-                authController.login(loginRequest, request, response);
-
-                // then
-                then(authWebMapper).should().toLoginCommand(loginRequest);
-                then(authCommandService).should().login(loginCommand);
-                then(securityContextRepository).should().saveContext(securityContext,
-                        request, response);
-                then(userCommandService).should().updateLastLogin(testUser.getId());
-            }
+            then(authCommandService).should().login(loginCommand);
+            then(userCommandService).shouldHaveNoInteractions();
         }
     }
 
@@ -242,109 +201,27 @@ class AuthControllerTest {
     class Logout {
 
         @Test
-        @DisplayName("✅ 인증된 사용자 로그아웃 성공")
-        void shouldLogoutAuthenticatedUser() {
-            // given
-            LogoutCommand logoutCommand = new LogoutCommand(testUser.getId());
+        @WithMockUser(username = "testuser", roles = "USER")
+        @DisplayName("✅ 인증된 사용자가 로그아웃하면 서비스 호출")
+        void shouldLogoutWithPrincipal() throws Exception {
+            mockMvc.perform(post(AuthControllerTest.LOGOUT_URL))
+                   .andExpect(status().isNoContent());
 
-            given(authMapper.toLogoutCommand(testUser.getId())).willReturn(logoutCommand);
-            willDoNothing().given(authCommandService).logout(logoutCommand);
-            given(request.getSession(false)).willReturn(session);
-            willDoNothing().given(session).invalidate();
-
-            try (MockedStatic<SecurityContextHolder> mockedSecurityContextHolder = mockStatic(SecurityContextHolder.class)) {
-                mockedSecurityContextHolder.when(SecurityContextHolder::clearContext).then(invocation -> null);
-                mockedSecurityContextHolder.when(SecurityContextHolder::createEmptyContext).thenReturn(securityContext);
-                willDoNothing().given(securityContextRepository).saveContext(securityContext,
-                        request, response);
-
-                // when
-                authController.logout(request, response,
-                        testPrincipal);
-
-                // then
-                then(authMapper).should().toLogoutCommand(testUser.getId());
-                then(authCommandService).should().logout(logoutCommand);
-                then(session).should().invalidate();
-                then(securityContextRepository).should().saveContext(securityContext,
-                        request, response);
-            }
+            then(authCommandService).should().logout();
+            then(authMapper).shouldHaveNoInteractions();
         }
 
         @Test
-        @DisplayName("✅ 세션이 없는 상태에서 로그아웃")
-        void shouldLogoutWithoutSession() {
-            // given
-            LogoutCommand logoutCommand = new LogoutCommand(testUser.getId());
+        @WithAnonymousUser
+        @DisplayName("❌ 인증 정보 없이 로그아웃 시 403 응답")
+        void shouldNotLogoutWithoutPrincipal() throws Exception {
+            mockMvc.perform(post(AuthControllerTest.LOGOUT_URL))
+                   .andExpect(status().isForbidden())
+                   .andExpect(jsonPath("$.status").value(403));
 
-            given(authMapper.toLogoutCommand(testUser.getId())).willReturn(logoutCommand);
-            willDoNothing().given(authCommandService).logout(logoutCommand);
-            given(request.getSession(false)).willReturn(null);
-
-            try (MockedStatic<SecurityContextHolder> mockedSecurityContextHolder = mockStatic(SecurityContextHolder.class)) {
-                mockedSecurityContextHolder.when(SecurityContextHolder::clearContext).then(invocation -> null);
-                mockedSecurityContextHolder.when(SecurityContextHolder::createEmptyContext).thenReturn(securityContext);
-                willDoNothing().given(securityContextRepository).saveContext(securityContext,
-                        request, response);
-
-                // when
-                authController.logout(request, response,
-                        testPrincipal);
-
-                // then
-                then(authMapper).should().toLogoutCommand(testUser.getId());
-                then(authCommandService).should().logout(logoutCommand);
-                then(securityContextRepository).should().saveContext(securityContext,
-                        request, response);
-            }
+            then(authCommandService).shouldHaveNoInteractions();
+            then(authMapper).shouldHaveNoInteractions();
         }
     }
 
-    @Nested
-    @DisplayName("권한 제어 엔드포인트")
-    class AccessControl {
-
-        @Test
-        @DisplayName("✅ 관리자 전용 엔드포인트 호출")
-        void shouldCallAdminOnlyEndpoint() throws Exception {
-            // given
-            User adminUser = User.builder()
-                                 .username("admin")
-                                 .password("password")
-                                 .name("Admin User")
-                                 .email("admin@example.com")
-                                 .roles(Set.of(Role.ADMIN))
-                                 .build();
-
-            // Use reflection to set the UUID ID for testing
-            var idField = User.class.getDeclaredField("id");
-            idField.setAccessible(true);
-            idField.set(adminUser, UUID.randomUUID());
-
-            AppUserPrincipal adminPrincipal = new AppUserPrincipal(adminUser);
-
-            // when
-            authController.adminOnly(adminPrincipal);
-
-            // then - 예외 없이 정상 실행됨을 검증 (로깅만 수행하므로 별도 검증 없음)
-        }
-
-        @Test
-        @DisplayName("✅ 일반 사용자 접근 엔드포인트 호출")
-        void shouldCallUserAccessEndpoint() {
-            // when
-            authController.userAccess(testPrincipal);
-
-            // then - 예외 없이 정상 실행됨을 검증 (로깅만 수행하므로 별도 검증 없음)
-        }
-
-        @Test
-        @DisplayName("✅ 공개 엔드포인트 호출")
-        void shouldCallPublicAccessEndpoint() {
-            // when
-            authController.publicAccess();
-
-            // then - 예외 없이 정상 실행됨을 검증 (로깅만 수행하므로 별도 검증 없음)
-        }
-    }
 }

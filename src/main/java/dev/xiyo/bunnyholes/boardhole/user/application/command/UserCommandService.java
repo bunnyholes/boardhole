@@ -50,6 +50,11 @@ public class UserCommandService {
      */
     @Transactional
     public UserResult create(@Valid CreateUserCommand cmd) {
+        User saved = createUser(cmd);
+        return userMapper.toResult(saved);
+    }
+
+    private User createUser(CreateUserCommand cmd) {
         if (userRepository.existsByUsername(cmd.username()))
             throw new DuplicateUsernameException(MessageUtils.get("error.user.username.already-exists"));
         if (userRepository.existsByEmail(cmd.email()))
@@ -62,12 +67,7 @@ public class UserCommandService {
                 .email(cmd.email())
                 .roles(Set.of(Role.USER))
                 .build();
-        User saved = userRepository.save(user);
-
-        // 사용자 생성 이벤트 발행 (필요시 향후 사용)
-        // eventPublisher.publishEvent(userMapper.toUserCreatedEvent(saved));
-
-        return userMapper.toResult(saved);
+        return userRepository.save(user);
     }
 
     // 조회 관련(get/list)는 UserQueryService에서 담당

@@ -1,11 +1,6 @@
 package dev.xiyo.bunnyholes.boardhole.auth.presentation;
 
-import java.util.UUID;
-
 import jakarta.annotation.security.PermitAll;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,11 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -26,13 +17,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import dev.xiyo.bunnyholes.boardhole.auth.application.AuthCommandService;
+import dev.xiyo.bunnyholes.boardhole.auth.application.command.AuthCommandService;
 import dev.xiyo.bunnyholes.boardhole.auth.application.mapper.AuthMapper;
 import dev.xiyo.bunnyholes.boardhole.auth.presentation.dto.LoginRequest;
 import dev.xiyo.bunnyholes.boardhole.auth.presentation.mapper.AuthWebMapper;
 import dev.xiyo.bunnyholes.boardhole.shared.constants.ApiPaths;
 import dev.xiyo.bunnyholes.boardhole.shared.security.AppUserPrincipal;
 import dev.xiyo.bunnyholes.boardhole.user.application.command.UserCommandService;
+import dev.xiyo.bunnyholes.boardhole.user.application.result.UserResult;
 import dev.xiyo.bunnyholes.boardhole.user.presentation.dto.UserCreateRequest;
 import dev.xiyo.bunnyholes.boardhole.user.presentation.mapper.UserWebMapper;
 import io.swagger.v3.oas.annotations.Operation;
@@ -55,7 +47,6 @@ public class AuthController {
     private final AuthWebMapper authWebMapper;
     private final AuthMapper authMapper;
     private final UserWebMapper userWebMapper;
-    private final SecurityContextRepository securityContextRepository;
 
     @PostMapping(value = ApiPaths.AUTH_SIGNUP, consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -65,9 +56,9 @@ public class AuthController {
     @ApiResponse(responseCode = "422", description = "유효성 검증 실패 (필수 필드 누락, 패스워드 패턴 불일치 등)")
     @ApiResponse(responseCode = "409", description = "중복된 사용자명 또는 이메일")
     public void signup(@Validated @ModelAttribute UserCreateRequest req) {
-        // Map request to command; keep repository returning entities in service
-        var cmd = userWebMapper.toCreateCommand(req);
-        userCommandService.create(cmd);
+        var command = userWebMapper.toCreateCommand(req);
+        UserResult signupResult = userCommandService.create(command);
+        authCommandService.login(signupResult.id());
     }
 
     @PostMapping(value = ApiPaths.AUTH_LOGIN, consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
@@ -76,51 +67,19 @@ public class AuthController {
     @Operation(summary = "로그인", description = "[PUBLIC] 사용자의 인증 정보를 확인하고 세션을 생성합니다.", requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content = @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE, schema = @Schema(implementation = LoginRequest.class))))
     @ApiResponse(responseCode = "204", description = "로그인 성공")
     @ApiResponse(responseCode = "401", description = "잘못된 인증 정보")
-    public void login(@Validated @ModelAttribute LoginRequest req, HttpServletRequest request, HttpServletResponse response) {
-        // CQRS 패턴을 통한 로그인 처리
+    public void login(@Validated @ModelAttribute LoginRequest req) {
         var loginCommand = authWebMapper.toLoginCommand(req);
         authCommandService.login(loginCommand);
-
-        // HTTP 세션 처리는 Controller에서 담당
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null) {
-            SecurityContext context = SecurityContextHolder.getContext();
-            securityContextRepository.saveContext(context, request, response);
-        }
-
-        // 마지막 로그인 시간 업데이트 (기존 로직 유지)
-        try {
-            if (authentication != null && authentication.getPrincipal() instanceof AppUserPrincipal(
-                    dev.xiyo.bunnyholes.boardhole.user.domain.User user
-            ))
-                userCommandService.updateLastLogin(user.getId());
-        } catch (UnsupportedOperationException ignored) {
-            // 일부 테스트/환경에서 보조 로직 미구현으로 인한 예외는 로그인 성공 흐름에 영향 주지 않도록 무시
-        }
     }
 
     @PostMapping(ApiPaths.AUTH_LOGOUT)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "로그아웃", description = "[AUTH] 현재 사용자의 세션을 종료하고 로그아웃합니다."
-
-    )
+    @Operation(summary = "로그아웃", description = "[AUTH] 현재 사용자의 세션을 종료하고 로그아웃합니다.")
     @ApiResponse(responseCode = "204", description = "로그아웃 성공")
     @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
-    public void logout(HttpServletRequest request, HttpServletResponse response, @AuthenticationPrincipal AppUserPrincipal principal) {
-        // CQRS 패턴을 통한 로그아웃 처리
-        UUID userId = principal.user().getId();
-        var logoutCommand = authMapper.toLogoutCommand(userId);
-        authCommandService.logout(logoutCommand);
-
-        // HTTP 세션 처리는 Controller에서 담당
-        SecurityContextHolder.clearContext();
-        HttpSession session = request.getSession(false);
-        if (session != null)
-            session.invalidate();
-
-        // SecurityContext 저장소에서도 제거
-        securityContextRepository.saveContext(SecurityContextHolder.createEmptyContext(), request, response);
+    public void logout() {
+        authCommandService.logout();
     }
 
     @GetMapping(ApiPaths.AUTH_ADMIN_ONLY)

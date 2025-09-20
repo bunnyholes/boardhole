@@ -78,12 +78,23 @@ public class Board extends BaseEntity implements Serializable {
         this.author = author;
     }
 
-    public void changeTitle(String title) {
+    public void setTitle(String title) {
         this.title = title;
     }
 
-    public void changeContent(String content) {
+    public void setContent(String content) {
         this.content = content;
+    }
+    
+    // 기존 change 메서드는 하위 호환성을 위해 유지 (deprecated 처리 가능)
+    @Deprecated
+    public void changeTitle(String title) {
+        setTitle(title);
+    }
+
+    @Deprecated
+    public void changeContent(String content) {
+        setContent(content);
     }
 
     public void increaseViewCount() {

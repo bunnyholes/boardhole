@@ -1,19 +1,18 @@
 package dev.xiyo.bunnyholes.boardhole.auth.presentation.view;
 
-import java.util.UUID;
-
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
-import dev.xiyo.bunnyholes.boardhole.auth.application.AuthCommandService;
+import dev.xiyo.bunnyholes.boardhole.auth.application.command.AuthCommandService;
 import dev.xiyo.bunnyholes.boardhole.auth.application.mapper.AuthMapper;
 import dev.xiyo.bunnyholes.boardhole.shared.security.AppUserPrincipal;
 
@@ -39,18 +38,13 @@ public class LogoutViewController {
      * </p>
      */
     @GetMapping("/auth/logout")
+    @PreAuthorize("isAuthenticated()")
     public String processLogout(
             HttpServletRequest request,
             @AuthenticationPrincipal AppUserPrincipal principal
     ) {
-        if (principal != null) {
-            // CQRS 패턴을 통한 로그아웃 처리
-            UUID userId = principal.user().getId();
-            var logoutCommand = authMapper.toLogoutCommand(userId);
-            authCommandService.logout(logoutCommand);
-
-            log.info("로그아웃 성공: username={}", principal.user().getUsername());
-        }
+        authCommandService.logout();
+        log.info("로그아웃 성공: username={}", principal.user().getUsername());
 
         // HTTP 세션 처리
         SecurityContextHolder.clearContext();

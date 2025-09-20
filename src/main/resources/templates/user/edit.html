@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ko" th:replace="~{fragments/base :: layout(title='프로필 수정', content=~{::main}, contextMenu=~{})}"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>프로필 수정</title>
+</head>
+
+<main>
+    <hgroup>
+        <h1>✏️ 프로필 수정</h1>
+        <p>프로필 정보를 수정하세요</p>
+    </hgroup>
+
+    <article>
+        <form id="userForm" method="post" th:action="@{/users/me/edit}" th:object="${user}" novalidate>
+            <label for="name">
+                이름
+                <input aria-required="true"
+                       id="name"
+                       maxlength="100"
+                       placeholder="이름을 입력하세요"
+                       required
+                       th:attr="aria-invalid=${#fields.hasErrors('name')} ? 'true' : (${#fields.hasAnyErrors()} ? 'false' : null),aria-describedby=${#fields.hasErrors('name')} ? 'name-help' : null"
+                       th:field="*{name}"
+                       type="text">
+                <small id="name-help" th:if="${#fields.hasErrors('name')}" th:errors="*{name}">이름 오류 메시지</small>
+            </label>
+
+            <label for="email">
+                이메일
+                <input aria-required="true"
+                       id="email"
+                       maxlength="255"
+                       placeholder="이메일을 입력하세요"
+                       required
+                       th:attr="aria-invalid=${#fields.hasErrors('email')} ? 'true' : (${#fields.hasAnyErrors()} ? 'false' : null),aria-describedby=${#fields.hasErrors('email')} ? 'email-help' : null"
+                       th:field="*{email}"
+                       type="email">
+                <small id="email-help" th:if="${#fields.hasErrors('email')}" th:errors="*{email}">이메일 오류 메시지</small>
+            </label>
+
+            <button type="submit">수정 완료</button>
+        </form>
+    </article>
+</main>
+</html>

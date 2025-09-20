@@ -9,6 +9,7 @@ import java.lang.annotation.Target;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 import dev.xiyo.bunnyholes.boardhole.user.domain.validation.UserValidationConstants;
@@ -23,6 +24,7 @@ import dev.xiyo.bunnyholes.boardhole.user.domain.validation.UserValidationConsta
 @Documented
 @NotBlank(message = "{validation.user.username.required}")
 @Size(min = UserValidationConstants.USER_USERNAME_MIN_LENGTH, max = UserValidationConstants.USER_USERNAME_MAX_LENGTH, message = "{validation.user.username.size}")
+@Pattern(regexp = UserValidationConstants.USER_USERNAME_PATTERN, message = "{validation.user.username.pattern}")
 @Constraint(validatedBy = {})
 public @interface ValidUsername {
     String message() default "{validation.user.username.invalid}";

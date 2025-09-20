@@ -71,9 +71,8 @@ public class BoardCommandService {
         Board board = boardRepository
                 .findById(id).orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.board.not-found.id", id)));
 
-        // Optional을 사용한 선택적 필드 업데이트
-        Optional.ofNullable(cmd.title()).ifPresent(board::changeTitle);
-        Optional.ofNullable(cmd.content()).ifPresent(board::changeContent);
+        // MapStruct를 사용한 선택적 필드 업데이트 (null 값 무시)
+        boardMapper.updateBoardFromCommand(cmd, board);
 
         // @DynamicUpdate가 변경된 필드만 업데이트, @PreUpdate가 updatedAt 자동 설정
         Board saved = boardRepository.save(board);

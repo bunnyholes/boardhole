@@ -5,9 +5,8 @@ import java.util.UUID;
 import jakarta.validation.constraints.NotNull;
 
 /**
- * 로그아웃 명령
- * CQRS 패턴의 Command 객체로 로그아웃 요청을 나타냅니다.
+ * 로그아웃 명령.
  */
-public record LogoutCommand(
-        @NotNull(message = "{validation.user.userId.required}") UUID userId) {
+public record LogoutCommand(@NotNull UUID userId) {
 }
+

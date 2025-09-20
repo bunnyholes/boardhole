@@ -12,7 +12,8 @@
     </hgroup>
 
     <article>
-        <form id="boardForm" method="post" th:action="@{/boards/{id}/edit(id=${id})}" th:object="${board}" novalidate>
+        <form id="boardForm" method="post" th:action="@{/boards/{id}(id=${id})}" th:object="${board}" novalidate>
+            <input type="hidden" name="_method" value="put"/>
             <label for="title">
                 제목
                 <input aria-required="true"

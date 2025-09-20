@@ -46,7 +46,7 @@ public class UserViewController {
     ) {
         var users = userQueryService.getUsers(pageable);
         model.addAttribute("users", users != null ? users : Collections.emptyList());
-        return "user/list";
+        return "user/users";
     }
 
     /**
@@ -64,6 +64,6 @@ public class UserViewController {
     public String userProfile(@PathVariable UUID id, Model model) {
         var user = userQueryService.getUser(id);
         model.addAttribute("user", user != null ? user : new Object());
-        return "user/profile";
+        return "user/detail";
     }
 }

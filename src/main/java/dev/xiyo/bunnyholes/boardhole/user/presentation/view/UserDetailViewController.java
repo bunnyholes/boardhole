@@ -31,7 +31,7 @@ import dev.xiyo.bunnyholes.boardhole.user.application.query.UserQueryService;
 @RequestMapping("/users/me")
 @RequiredArgsConstructor
 @PreAuthorize("isAuthenticated()")
-public class MyPageViewController {
+public class UserDetailViewController {
 
     private final UserQueryService userQueryService;
     private final UserCommandService userCommandService;
@@ -46,40 +46,55 @@ public class MyPageViewController {
      * @return 마이페이지 템플릿
      */
     @GetMapping
-    public String mypage(@AuthenticationPrincipal AppUserPrincipal principal, Model model) {
+    public String getUserDetailPage(@AuthenticationPrincipal AppUserPrincipal principal, Model model) {
+        var user = userQueryService.getUser(principal.user().getId());
+        model.addAttribute("user", user != null ? user : new Object());
+        return "user/detail";
+    }
+
+    /**
+     * 프로필 수정 페이지 표시
+     * <p>
+     * 현재 로그인한 사용자의 프로필 수정 폼을 표시합니다.
+     *
+     * @param principal 인증된 사용자 정보
+     * @param model     뷰에 전달할 데이터
+     * @return 프로필 수정 템플릿
+     */
+    @GetMapping("/edit")
+    public String showEditForm(@AuthenticationPrincipal AppUserPrincipal principal, Model model) {
         if (principal == null)
-            model.addAttribute("user", new Object());
+            model.addAttribute("user", new UpdateUserRequest(""));
         else {
-            var user = userQueryService.getUser(principal.user().getId());
-            model.addAttribute("user", user != null ? user : new Object());
+            var userResult = userQueryService.getUser(principal.user().getId());
+            model.addAttribute("user", new UpdateUserRequest(userResult.name()));
         }
-        return "user/mypage";
+        return "user/edit";
     }
 
     /**
      * 프로필 수정 처리
      * <p>
      * 사용자의 프로필 정보를 수정하고 마이페이지로 리디렉트합니다.
-     * 유효성 검증 실패나 예외 발생 시 ViewControllerAdvice에서 처리됩니다.
      *
      * @param request            프로필 수정 요청 데이터
      * @param bindingResult      유효성 검증 결과
      * @param principal          인증된 사용자 정보
      * @param redirectAttributes 리디렉트 시 전달할 메시지
-     * @return 성공 시 마이페이지로 리디렉트
+     * @return 성공 시 마이페이지로 리디렉트, 실패 시 수정 페이지로 리디렉트
      */
-    @PostMapping("/profile")
+    @PostMapping("/edit")
     public String updateProfile(
             @Valid @ModelAttribute UpdateUserRequest request,
             BindingResult bindingResult,
             @AuthenticationPrincipal AppUserPrincipal principal,
+            Model model,
             RedirectAttributes redirectAttributes
     ) {
         if (bindingResult.hasErrors()) {
-            redirectAttributes.addFlashAttribute("error", "입력 정보를 확인해주세요.");
-            redirectAttributes.addFlashAttribute("org.springframework.validation.BindingResult.updateUserRequest", bindingResult);
-            redirectAttributes.addFlashAttribute("updateUserRequest", request);
-            return "redirect:/users/me";
+            model.addAttribute("error", "입력 정보를 확인해주세요.");
+            model.addAttribute("user", request);
+            return "user/edit";
         }
 
         var command = new UpdateUserCommand(principal.user().getId(), request.name());

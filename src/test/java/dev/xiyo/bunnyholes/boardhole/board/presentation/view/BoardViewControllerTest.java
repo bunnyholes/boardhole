@@ -9,6 +9,7 @@ import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -27,8 +28,10 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import dev.xiyo.bunnyholes.boardhole.board.application.command.BoardCommandService;
 import dev.xiyo.bunnyholes.boardhole.board.application.query.BoardQueryService;
 import dev.xiyo.bunnyholes.boardhole.board.application.result.BoardResult;
+import dev.xiyo.bunnyholes.boardhole.shared.config.ViewSecurityConfig;
 import dev.xiyo.bunnyholes.boardhole.shared.config.log.RequestLoggingFilter;
 import dev.xiyo.bunnyholes.boardhole.shared.exception.GlobalExceptionHandler;
 
@@ -59,8 +62,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
                 @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = GlobalExceptionHandler.class)
         }
 )
-@AutoConfigureMockMvc(addFilters = false)
-@Import(dev.xiyo.bunnyholes.boardhole.board.presentation.view.TestSecurityConfig.class) // 테스트용 보안 설정
+@Import(ViewSecurityConfig.class) // 테스트용 보안 설정
+@Tag("unit")
+@Tag("view")
 @DisplayName("BoardViewController 뷰 테스트")
 class BoardViewControllerTest {
 
@@ -72,6 +76,9 @@ class BoardViewControllerTest {
 
     @MockitoBean
     private BoardQueryService boardQueryService;
+
+    @MockitoBean
+    private BoardCommandService boardCommandService;
 
     @MockitoBean
     private EntityManager entityManager;
