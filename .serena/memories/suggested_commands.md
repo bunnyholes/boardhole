@@ -1,4 +1,4 @@
-# Board Hole - 주요 개발 명령어
+# Boardholes - 주요 개발 명령어
 
 ## 빌드 및 실행
 ```bash

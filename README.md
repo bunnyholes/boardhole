@@ -1,4 +1,4 @@
-# Board Hole - Spring Boot 게시판 애플리케이션
+# Boardholes - Spring Boot 게시판 애플리케이션
 
 ## 🚀 빠른 시작 (아무것도 설정할 필요 없음!)
 
