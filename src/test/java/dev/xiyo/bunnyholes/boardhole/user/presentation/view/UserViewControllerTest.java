@@ -13,7 +13,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
@@ -29,10 +28,10 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import dev.xiyo.bunnyholes.boardhole.shared.config.ViewSecurityConfig;
 import dev.xiyo.bunnyholes.boardhole.shared.config.log.RequestLoggingFilter;
-import dev.xiyo.bunnyholes.boardhole.shared.exception.ResourceNotFoundException;
 import dev.xiyo.bunnyholes.boardhole.user.application.query.UserQueryService;
 import dev.xiyo.bunnyholes.boardhole.user.application.result.UserResult;
 import dev.xiyo.bunnyholes.boardhole.user.domain.Role;
+import dev.xiyo.bunnyholes.boardhole.user.presentation.mapper.UserWebMapper;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
@@ -40,6 +39,7 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
@@ -75,6 +75,9 @@ class UserViewControllerTest {
 
     @MockitoBean
     private PermissionEvaluator permissionEvaluator;
+
+    @MockitoBean
+    private UserWebMapper userWebMapper;
 
     @BeforeEach
     void setUp() {
@@ -132,58 +135,8 @@ class UserViewControllerTest {
     @WithMockUser(authorities = {"ROLE_USER"})
     void userList_WithoutAdminRole_ShouldDenyAccess() throws Exception {
         mockMvc.perform(get("/users"))
-               .andExpect(status().isForbidden());
-    }
-
-    @Test
-    @DisplayName("관리자는 사용자 상세 페이지를 정상적으로 조회할 수 있다")
-    @WithMockUser(authorities = {"ROLE_ADMIN"})
-    void userProfile_WithAdminRole_ShouldRenderUserProfilePage() throws Exception {
-        // given
-        var userId = UUID.randomUUID();
-        var userDetail = createUserResult(
-                userId,
-                "profileuser",
-                "프로필 사용자",
-                "profile@example.com",
-                LocalDateTime.of(2024, 1, 1, 10, 0),
-                LocalDateTime.of(2024, 9, 20, 14, 30),
-                LocalDateTime.of(2024, 9, 20, 15, 0),
-                Set.of(Role.USER, Role.ADMIN)
-        );
-
-        when(userQueryService.getUser(userId)).thenReturn(userDetail);
-
-        // when & then - Test controller logic only, skip template rendering validation for now
-        mockMvc.perform(get("/users/{id}", userId))
-               .andExpect(status().isOk())
-               .andExpect(view().name("user/detail"))
-               .andExpect(model().attributeExists("user"))
-               .andExpect(model().attribute("user", userDetail));
-    }
-
-    @Test
-    @DisplayName("관리자 권한이 없으면 사용자 상세 페이지에 접근할 수 없다")
-    @WithMockUser(authorities = {"ROLE_USER"})
-    void userProfile_WithoutAdminRole_ShouldDenyAccess() throws Exception {
-        var userId = UUID.randomUUID();
-
-        mockMvc.perform(get("/users/{id}", userId))
-               .andExpect(status().isForbidden());
-    }
-
-    @Test
-    @DisplayName("존재하지 않는 사용자 조회 시 예외가 발생한다")
-    @WithMockUser(authorities = {"ROLE_ADMIN"})
-    void userProfile_UserNotFound_ShouldThrowException() throws Exception {
-        // given
-        var nonExistentUserId = UUID.randomUUID();
-        when(userQueryService.getUser(nonExistentUserId))
-                .thenThrow(new ResourceNotFoundException("사용자를 찾을 수 없습니다."));
-
-        // when & then
-        mockMvc.perform(get("/users/{id}", nonExistentUserId))
-               .andExpect(status().isNotFound());
+               .andExpect(status().is3xxRedirection())
+               .andExpect(redirectedUrl("/error/403"));
     }
 
     @Test

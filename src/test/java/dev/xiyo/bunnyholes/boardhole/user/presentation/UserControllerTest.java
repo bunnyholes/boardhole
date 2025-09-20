@@ -19,7 +19,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
-import dev.xiyo.bunnyholes.boardhole.shared.security.AppUserPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import dev.xiyo.bunnyholes.boardhole.user.application.command.UpdatePasswordCommand;
 import dev.xiyo.bunnyholes.boardhole.user.application.command.UpdateUserCommand;
 import dev.xiyo.bunnyholes.boardhole.user.application.command.UserCommandService;
@@ -56,7 +56,7 @@ class UserControllerTest {
     private UserController userController;
 
     private User testUser;
-    private AppUserPrincipal testPrincipal;
+    private UserDetails testPrincipal;
     private UserResult testUserResult;
     private UserResponse testUserResponse;
     private Pageable pageable;
@@ -70,7 +70,10 @@ class UserControllerTest {
                        .email("test@example.com")
                        .roles(Set.of(Role.USER))
                        .build();
-        testPrincipal = new AppUserPrincipal(testUser);
+        testPrincipal = org.springframework.security.core.userdetails.User.withUsername(testUser.getUsername())
+                                                                         .password(testUser.getPassword())
+                                                                         .authorities("ROLE_USER")
+                                                                         .build();
 
         testUserResult = new UserResult(
                 UUID.randomUUID(), "testuser", "Test User", "test@example.com",
@@ -155,104 +158,102 @@ class UserControllerTest {
     }
 
     @Nested
-    @DisplayName("GET /api/users/{id} - 사용자 단일 조회")
+    @DisplayName("GET /api/users/{username} - 사용자 단일 조회")
     class GetUser {
 
         @Test
-        @DisplayName("✅ 사용자 ID로 조회 성공")
-        void shouldGetUserById() {
+        @DisplayName("✅ 사용자명으로 조회 성공")
+        void shouldGetUserByUsername() {
             // given
-            UUID userId = UUID.randomUUID();
-            given(userQueryService.get(userId)).willReturn(testUserResult);
+            String username = testUser.getUsername();
+            given(userQueryService.get(username)).willReturn(testUserResult);
             given(userWebMapper.toResponse(testUserResult)).willReturn(
                     testUserResponse);
 
             // when
-            UserResponse result = userController.get(userId);
+            UserResponse result = userController.get(username);
 
             // then
             assertThat(result).isEqualTo(testUserResponse);
-            then(userQueryService).should().get(userId);
+            then(userQueryService).should().get(username);
             then(userWebMapper).should().toResponse(testUserResult);
         }
     }
 
     @Nested
-    @DisplayName("PUT /api/users/{id} - 사용자 정보 수정")
+    @DisplayName("PUT /api/users/{username} - 사용자 정보 수정")
     class UpdateUser {
 
         @Test
         @DisplayName("✅ 사용자 정보 수정 성공")
         void shouldUpdateUserSuccessfully() {
             // given
-            UUID userId = UUID.randomUUID();
             UserUpdateRequest request = new UserUpdateRequest("Updated Name");
-            UpdateUserCommand command = new UpdateUserCommand(userId, "Updated Name");
+            UpdateUserCommand command = new UpdateUserCommand(testUser.getUsername(), "Updated Name");
             UserResult updatedResult = new UserResult(
-                    userId, "testuser", "Updated Name", "updated@example.com",
+                    UUID.randomUUID(), "testuser", "Updated Name", "updated@example.com",
                     LocalDateTime.now(), null, null, Set.of(Role.USER)
             );
             UserResponse updatedResponse = new UserResponse(
-                    userId, "testuser", "Updated Name", "updated@example.com",
+                    UUID.randomUUID(), "testuser", "Updated Name", "updated@example.com",
                     LocalDateTime.now(), null, Set.of(Role.USER)
             );
 
-            given(userWebMapper.toUpdateCommand(userId, request)).willReturn(command);
+            given(userWebMapper.toUpdateCommand(testUser.getUsername(), request)).willReturn(command);
             given(userCommandService.update(command)).willReturn(updatedResult);
             given(userWebMapper.toResponse(updatedResult)).willReturn(updatedResponse);
 
             // when
-            UserResponse result = userController.update(userId, request);
+            UserResponse result = userController.update(testUser.getUsername(), request);
 
             // then
             assertThat(result).isEqualTo(updatedResponse);
-            then(userWebMapper).should().toUpdateCommand(userId, request);
+            then(userWebMapper).should().toUpdateCommand(testUser.getUsername(), request);
             then(userCommandService).should().update(command);
             then(userWebMapper).should().toResponse(updatedResult);
         }
     }
 
     @Nested
-    @DisplayName("DELETE /api/users/{id} - 사용자 삭제")
+    @DisplayName("DELETE /api/users/{username} - 사용자 삭제")
     class DeleteUser {
 
         @Test
         @DisplayName("✅ 사용자 삭제 성공")
         void shouldDeleteUserSuccessfully() {
             // given
-            UUID userId = UUID.randomUUID();
-            willDoNothing().given(userCommandService).delete(userId);
+            String username = testUser.getUsername();
+            willDoNothing().given(userCommandService).delete(username);
 
             // when
-            userController.delete(userId);
+            userController.delete(username);
 
             // then
-            then(userCommandService).should().delete(userId);
+            then(userCommandService).should().delete(username);
         }
     }
 
     @Nested
-    @DisplayName("PATCH /api/users/{id}/password - 패스워드 변경")
+    @DisplayName("PATCH /api/users/{username}/password - 패스워드 변경")
     class UpdatePassword {
 
         @Test
         @DisplayName("✅ 패스워드 변경 성공")
         void shouldUpdatePasswordSuccessfully() {
             // given
-            UUID userId = UUID.randomUUID();
             PasswordUpdateRequest request = new PasswordUpdateRequest(
                     "currentPassword", "newPassword123!", "newPassword123!"
             );
-            UpdatePasswordCommand command = new UpdatePasswordCommand(userId, "currentPassword", "newPassword123!", "newPassword123!");
+            UpdatePasswordCommand command = new UpdatePasswordCommand(testUser.getUsername(), "currentPassword", "newPassword123!", "newPassword123!");
 
-            given(userWebMapper.toUpdatePasswordCommand(userId, request)).willReturn(command);
+            given(userWebMapper.toUpdatePasswordCommand(testUser.getUsername(), request)).willReturn(command);
             willDoNothing().given(userCommandService).updatePassword(command);
 
             // when
-            userController.updatePassword(userId, request);
+            userController.updatePassword(testUser.getUsername(), request);
 
             // then
-            then(userWebMapper).should().toUpdatePasswordCommand(userId, request);
+            then(userWebMapper).should().toUpdatePasswordCommand(testUser.getUsername(), request);
             then(userCommandService).should().updatePassword(command);
         }
 
@@ -284,7 +285,7 @@ class UserControllerTest {
         @DisplayName("✅ 현재 로그인한 사용자 정보 조회")
         void shouldGetCurrentUserInfo() {
             // given
-            given(userQueryService.get(testUser.getId())).willReturn(
+            given(userQueryService.get(testUser.getUsername())).willReturn(
                     testUserResult);
             given(userWebMapper.toResponse(testUserResult)).willReturn(
                     testUserResponse);
@@ -294,7 +295,7 @@ class UserControllerTest {
 
             // then
             assertThat(result).isEqualTo(testUserResponse);
-            then(userQueryService).should().get(testUser.getId());
+            then(userQueryService).should().get(testUser.getUsername());
             then(userWebMapper).should().toResponse(testUserResult);
         }
     }

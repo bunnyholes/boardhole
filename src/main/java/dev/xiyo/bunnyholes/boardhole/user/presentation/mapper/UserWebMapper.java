@@ -1,7 +1,5 @@
 package dev.xiyo.bunnyholes.boardhole.user.presentation.mapper;
 
-import java.util.UUID;
-
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
@@ -50,9 +48,9 @@ public interface UserWebMapper {
      * @param req 사용자 수정 요청 DTO
      * @return 사용자 수정 명령
      */
-    @Mapping(target = "userId", source = "id")
+    @Mapping(target = "username", source = "username")
     @Mapping(target = "name", source = "req.name")
-    UpdateUserCommand toUpdateCommand(UUID id, UserUpdateRequest req);
+    UpdateUserCommand toUpdateCommand(String username, UserUpdateRequest req);
 
     /**
      * 패스워드 변경 요청을 명령으로 변환
@@ -61,10 +59,10 @@ public interface UserWebMapper {
      * @param req 패스워드 변경 요청 DTO
      * @return 패스워드 변경 명령
      */
-    @Mapping(target = "userId", source = "id")
+    @Mapping(target = "username", source = "username")
     @Mapping(target = "currentPassword", source = "req.currentPassword")
     @Mapping(target = "newPassword", source = "req.newPassword")
     @Mapping(target = "confirmPassword", source = "req.confirmPassword")
-    UpdatePasswordCommand toUpdatePasswordCommand(UUID id, PasswordUpdateRequest req);
+    UpdatePasswordCommand toUpdatePasswordCommand(String username, PasswordUpdateRequest req);
 
 }

@@ -25,6 +25,7 @@ import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -33,7 +34,6 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import dev.xiyo.bunnyholes.boardhole.shared.exception.UnauthorizedException;
-import dev.xiyo.bunnyholes.boardhole.shared.security.AppUserPrincipal;
 import dev.xiyo.bunnyholes.boardhole.shared.test.MessageSourceTestConfig;
 import dev.xiyo.bunnyholes.boardhole.shared.test.ValidationEnabledTestConfig;
 import dev.xiyo.bunnyholes.boardhole.shared.util.MessageUtils;
@@ -76,7 +76,7 @@ class AuthCommandServiceTest {
     private AuthCommandService service;
 
     private User user;
-    private AppUserPrincipal principal;
+    private UserDetails principal;
 
     @BeforeEach
     void setUp() {
@@ -93,7 +93,10 @@ class AuthCommandServiceTest {
         user.verifyEmail();
         ReflectionTestUtils.setField(user, "id", UUID.randomUUID());
 
-        principal = new AppUserPrincipal(user);
+        principal = org.springframework.security.core.userdetails.User.withUsername(user.getUsername())
+                                                                       .password(user.getPassword())
+                                                                       .authorities("ROLE_USER")
+                                                                       .build();
     }
 
     @AfterEach
@@ -121,8 +124,8 @@ class AuthCommandServiceTest {
             assertThat(context.getAuthentication().getPrincipal()).isEqualTo(principal);
 
             verify(authenticationManager).authenticate(any(Authentication.class));
-            verify(userCommandService).updateLastLogin(user.getId());
-            verify(userRepository, never()).findById(any());
+            verify(userCommandService).updateLastLogin(user.getUsername());
+            verify(userRepository, never()).findByUsername(any());
             verify(securityContextRepository).saveContext(eq(context), any(HttpServletRequest.class), any(HttpServletResponse.class));
         }
 
@@ -163,29 +166,27 @@ class AuthCommandServiceTest {
     }
 
     @Nested
-    @DisplayName("login(UUID)")
-    class LoginWithUserId {
+    @DisplayName("login(username)")
+    class LoginWithUsername {
 
         @Test
-        @DisplayName("사용자 ID로 자동 로그인")
-        void loginByUserId() {
-            UUID userId = user.getId();
-            given(userRepository.findById(userId)).willReturn(java.util.Optional.of(user));
+        @DisplayName("사용자명으로 자동 로그인")
+        void loginByUsername() {
+            given(userRepository.findByUsername(user.getUsername())).willReturn(java.util.Optional.of(user));
 
-            service.login(userId);
+            service.login(user.getUsername());
 
             SecurityContext context = SecurityContextHolder.getContext();
             assertThat(context.getAuthentication()).isNotNull();
-            verify(userRepository).findById(userId);
+            verify(userRepository).findByUsername(user.getUsername());
             verify(securityContextRepository).saveContext(eq(context), any(HttpServletRequest.class), any(HttpServletResponse.class));
         }
 
         @Test
         @DisplayName("존재하지 않는 사용자면 IllegalStateException")
         void userNotFound() {
-            UUID userId = UUID.randomUUID();
-            given(userRepository.findById(userId)).willReturn(java.util.Optional.empty());
-            assertThatThrownBy(() -> service.login(userId)).isInstanceOf(IllegalStateException.class);
+            given(userRepository.findByUsername(user.getUsername())).willReturn(java.util.Optional.empty());
+            assertThatThrownBy(() -> service.login(user.getUsername())).isInstanceOf(IllegalStateException.class);
         }
     }
 

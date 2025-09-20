@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -13,9 +14,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import dev.xiyo.bunnyholes.boardhole.shared.security.AppUserPrincipal;
+import jakarta.validation.constraints.NotBlank;
+
 import dev.xiyo.bunnyholes.boardhole.user.application.command.UpdatePasswordCommand;
 import dev.xiyo.bunnyholes.boardhole.user.application.command.UserCommandService;
+import dev.xiyo.bunnyholes.boardhole.user.domain.validation.required.ValidPassword;
 
 /**
  * 비밀번호 변경 뷰 컨트롤러
@@ -48,7 +51,7 @@ public class PasswordViewController {
     public String updatePassword(
             @Valid @ModelAttribute UpdatePasswordRequest request,
             BindingResult bindingResult,
-            @AuthenticationPrincipal AppUserPrincipal principal,
+            @AuthenticationPrincipal UserDetails principal,
             RedirectAttributes redirectAttributes
     ) {
         if (bindingResult.hasErrors()) {
@@ -63,7 +66,7 @@ public class PasswordViewController {
         }
 
         var command = new UpdatePasswordCommand(
-                principal.user().getId(),
+                principal.getUsername(),
                 request.currentPassword(),
                 request.newPassword(),
                 request.confirmPassword()
@@ -84,9 +87,11 @@ public class PasswordViewController {
      * @param confirmPassword 새 비밀번호 확인
      */
     public record UpdatePasswordRequest(
-            String currentPassword,
-            String newPassword,
-            String confirmPassword
+            @NotBlank(message = "{validation.user.password.current.required}") String currentPassword,
+
+            @ValidPassword String newPassword,
+
+            @NotBlank(message = "{validation.user.password.confirm.required}") String confirmPassword
     ) {
     }
 }

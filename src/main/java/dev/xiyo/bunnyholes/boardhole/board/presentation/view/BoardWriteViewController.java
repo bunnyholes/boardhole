@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -18,7 +19,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import dev.xiyo.bunnyholes.boardhole.board.application.command.BoardCommandService;
 import dev.xiyo.bunnyholes.boardhole.board.presentation.dto.BoardFormRequest;
 import dev.xiyo.bunnyholes.boardhole.board.presentation.mapper.BoardWebMapper;
-import dev.xiyo.bunnyholes.boardhole.shared.security.AppUserPrincipal;
 
 /**
  * 게시글 작성 뷰 컨트롤러
@@ -64,13 +64,13 @@ public class BoardWriteViewController {
     public String processWrite(
             @Valid @ModelAttribute("board") BoardFormRequest formRequest,
             BindingResult bindingResult,
-            @AuthenticationPrincipal AppUserPrincipal principal,
+            @AuthenticationPrincipal UserDetails principal,
             RedirectAttributes redirectAttributes
     ) {
         if (bindingResult.hasErrors())
             return "board/write";
 
-        var command = boardWebMapper.toCreateCommand(formRequest, principal.user().getId());
+        var command = boardWebMapper.toCreateCommand(formRequest, principal.getUsername());
         var result = boardCommandService.create(command);
 
         redirectAttributes.addFlashAttribute("success", "게시글이 성공적으로 작성되었습니다.");

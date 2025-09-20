@@ -1,7 +1,5 @@
 package dev.xiyo.bunnyholes.boardhole.auth.presentation.view;
 
-import java.util.UUID;
-
 import jakarta.persistence.EntityManager;
 
 import org.junit.jupiter.api.AfterEach;
@@ -24,8 +22,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import dev.xiyo.bunnyholes.boardhole.auth.application.command.AuthCommandService;
-import dev.xiyo.bunnyholes.boardhole.auth.application.command.LogoutCommand;
-import dev.xiyo.bunnyholes.boardhole.auth.application.mapper.AuthMapper;
 import dev.xiyo.bunnyholes.boardhole.shared.config.ViewSecurityConfig;
 import dev.xiyo.bunnyholes.boardhole.shared.config.log.RequestLoggingFilter;
 import dev.xiyo.bunnyholes.boardhole.shared.exception.GlobalExceptionHandler;
@@ -60,17 +56,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DisplayName("LogoutViewController 뷰 테스트")
 class LogoutViewControllerTest {
 
-    private static final String USER_ID_STRING = "11111111-1111-1111-1111-111111111111";
-    private static final UUID USER_ID = UUID.fromString(USER_ID_STRING);
+    private static final String USERNAME = "testuser";
 
     @Autowired
     private MockMvc mockMvc;
 
     @MockitoBean
     private AuthCommandService authCommandService;
-
-    @MockitoBean
-    private AuthMapper authMapper;
 
     @MockitoBean
     private EntityManager entityManager;
@@ -88,24 +80,19 @@ class LogoutViewControllerTest {
 
     @AfterEach
     void tearDown() {
-        reset(authCommandService, authMapper, permissionEvaluator);
+        reset(authCommandService, permissionEvaluator);
     }
 
     @Test
     @DisplayName("인증된 사용자가 로그아웃하면 서비스 호출 후 홈페이지로 리디렉트된다")
-    @WithMockUser(username = USER_ID_STRING, authorities = {"ROLE_USER"})
+    @WithMockUser(username = USERNAME, authorities = {"ROLE_USER"})
     void processLogout_AuthenticatedUser_ShouldCallServiceAndRedirect() throws Exception {
-        // given
-        LogoutCommand logoutCommand = new LogoutCommand(USER_ID);
-        when(authMapper.toLogoutCommand(eq(USER_ID))).thenReturn(logoutCommand);
-
         // when & then
         mockMvc.perform(get("/auth/logout"))
                .andExpect(status().is3xxRedirection())
                .andExpect(redirectedUrl("/"));
 
         // 로그아웃 서비스가 호출되었는지 검증
-        verify(authMapper).toLogoutCommand(eq(USER_ID));
         verify(authCommandService).logout();
     }
 
@@ -116,21 +103,18 @@ class LogoutViewControllerTest {
         // when & then
         mockMvc.perform(get("/auth/logout"))
                .andExpect(status().is3xxRedirection())
-               .andExpect(redirectedUrl("/"));
+               .andExpect(redirectedUrl("/auth/login"));
 
         // 익명 사용자의 경우 로그아웃 서비스가 호출되지 않아야 함
-        verify(authMapper, never()).toLogoutCommand(any());
         verify(authCommandService, never()).logout();
     }
 
     @Test
     @DisplayName("로그아웃 시 HTTP 세션이 있으면 세션이 무효화된다")
-    @WithMockUser(username = USER_ID_STRING, authorities = {"ROLE_USER"})
+    @WithMockUser(username = USERNAME, authorities = {"ROLE_USER"})
     void processLogout_WithSession_ShouldInvalidateSession() throws Exception {
         // given
         MockHttpSession session = new MockHttpSession();
-        LogoutCommand logoutCommand = new LogoutCommand(USER_ID);
-        when(authMapper.toLogoutCommand(eq(USER_ID))).thenReturn(logoutCommand);
 
         // when & then
         mockMvc.perform(get("/auth/logout").session(session))
@@ -139,24 +123,19 @@ class LogoutViewControllerTest {
 
         // 세션이 무효화되었는지 확인 (MockHttpSession의 경우 invalidate() 호출 여부 확인은 어려우므로 
         // 실제로는 컨트롤러 로직이 정상 실행되는지만 확인)
-        verify(authMapper).toLogoutCommand(eq(USER_ID));
         verify(authCommandService).logout();
     }
 
     @Test
     @DisplayName("로그아웃 시 세션이 없어도 정상적으로 처리된다")
-    @WithMockUser(username = USER_ID_STRING, authorities = {"ROLE_USER"})
+    @WithMockUser(username = USERNAME, authorities = {"ROLE_USER"})
     void processLogout_WithoutSession_ShouldHandleGracefully() throws Exception {
-        // given
-        LogoutCommand logoutCommand = new LogoutCommand(USER_ID);
-        when(authMapper.toLogoutCommand(eq(USER_ID))).thenReturn(logoutCommand);
 
         // when & then
         mockMvc.perform(get("/auth/logout"))
                .andExpect(status().is3xxRedirection())
                .andExpect(redirectedUrl("/"));
 
-        verify(authMapper).toLogoutCommand(eq(USER_ID));
         verify(authCommandService).logout();
     }
 }

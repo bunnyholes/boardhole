@@ -136,14 +136,15 @@ class BoardRepositoryTest extends EntityTestBase {
         }
 
         @Test
-        @DisplayName("작성자 ID 조회")
-        void findAuthorIdById_ExistingBoard_ReturnsAuthorId() {
+        @DisplayName("작성자 username 조회")
+        void findAuthorUsernameById_ExistingBoard_ReturnsAuthorUsername() {
             // When
-            Optional<UUID> authorId = boardRepository.findAuthorIdById(testBoard.getId());
+            Optional<String> authorUsername = boardRepository.findAuthorUsernameById(
+                    testBoard.getId());
 
             // Then
-            assertThat(authorId).isPresent();
-            assertThat(authorId.get()).isEqualTo(author.getId());
+            assertThat(authorUsername).isPresent();
+            assertThat(authorUsername.get()).isEqualTo(author.getUsername());
         }
 
         @Test
@@ -170,8 +171,8 @@ class BoardRepositoryTest extends EntityTestBase {
         @DisplayName("게시글 제목 및 내용 수정")
         void save_ExistingBoard_UpdatesSuccessfully() {
             // Given
-            testBoard.changeTitle("Updated Title");
-            testBoard.changeContent("Updated Content");
+            testBoard.setTitle("Updated Title");
+            testBoard.setContent("Updated Content");
 
             // When
             Board updated = boardRepository.save(testBoard);
@@ -429,7 +430,7 @@ class BoardRepositoryTest extends EntityTestBase {
         void update_ExistingEntity_UpdatesAuditFields() {
             // Given
             var createdAt = testBoard.getCreatedAt();
-            testBoard.changeTitle("Modified");
+            testBoard.setTitle("Modified");
 
             // When
             Board updated = boardRepository.save(testBoard);

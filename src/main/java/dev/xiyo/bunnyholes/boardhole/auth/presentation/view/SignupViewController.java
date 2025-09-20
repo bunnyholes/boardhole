@@ -64,7 +64,7 @@ public class SignupViewController {
 
         try {
             UserResult signupResult = userCommandService.create(command);
-            authCommandService.login(signupResult.id());
+            authCommandService.login(signupResult.username());
 
             // boards 페이지로 리디렉트
             return "redirect:/boards";

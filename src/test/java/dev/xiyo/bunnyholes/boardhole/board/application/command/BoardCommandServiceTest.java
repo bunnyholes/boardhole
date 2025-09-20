@@ -92,7 +92,7 @@ class BoardCommandServiceTest {
         void create_ValidCommand_CreatesBoardSuccessfully() {
             // Given
             CreateBoardCommand cmd = new CreateBoardCommand(
-                    mockUser.getId(),
+                    mockUser.getUsername(),
                     "Valid Title",
                     "Valid Content"
             );
@@ -107,7 +107,7 @@ class BoardCommandServiceTest {
                     mockBoard.getUpdatedAt()
             );
 
-            when(userRepository.findById(mockUser.getId())).thenReturn(Optional.of(
+            when(userRepository.findByUsername(mockUser.getUsername())).thenReturn(Optional.of(
                     mockUser));
             when(boardRepository.save(any(Board.class))).thenReturn(mockBoard);
             when(boardMapper.toResult(mockBoard)).thenReturn(expectedResult);
@@ -119,7 +119,7 @@ class BoardCommandServiceTest {
             assertThat(result).isNotNull();
             assertThat(result.title()).isEqualTo("Valid Title");
             assertThat(result.content()).isEqualTo("Valid Content");
-            verify(userRepository).findById(mockUser.getId());
+            verify(userRepository).findByUsername(mockUser.getUsername());
             verify(boardRepository).save(any(Board.class));
             verify(boardMapper).toResult(mockBoard);
         }
@@ -129,18 +129,18 @@ class BoardCommandServiceTest {
         void create_UserNotFound_ThrowsResourceNotFoundException() {
             // Given
             CreateBoardCommand cmd = new CreateBoardCommand(
-                    UUID.randomUUID(),
+                    "missing-user",
                     "Valid Title",
                     "Valid Content"
             );
 
-            when(userRepository.findById(cmd.authorId())).thenReturn(Optional.empty());
+            when(userRepository.findByUsername(cmd.authorUsername())).thenReturn(Optional.empty());
 
             // When & Then
             assertThatThrownBy(() -> boardCommandService.create(cmd))
                     .isInstanceOf(ResourceNotFoundException.class);
 
-            verify(userRepository).findById(cmd.authorId());
+            verify(userRepository).findByUsername(cmd.authorUsername());
             verifyNoInteractions(boardRepository, boardMapper);
         }
 
@@ -150,7 +150,7 @@ class BoardCommandServiceTest {
         void create_EmptyTitle_ThrowsConstraintViolationException() {
             // Given
             CreateBoardCommand cmd = new CreateBoardCommand(
-                    mockUser.getId(),
+                    mockUser.getUsername(),
                     "",
                     "Valid Content"
             );
@@ -165,7 +165,7 @@ class BoardCommandServiceTest {
         void create_BlankTitle_ThrowsConstraintViolationException() {
             // Given
             CreateBoardCommand cmd = new CreateBoardCommand(
-                    mockUser.getId(),
+                    mockUser.getUsername(),
                     "   ",
                     "Valid Content"
             );
@@ -181,13 +181,13 @@ class BoardCommandServiceTest {
             // Given
             String longTitle = "a".repeat(BoardValidationConstants.BOARD_TITLE_MAX_LENGTH + 1); // 상수 + 1
             CreateBoardCommand cmd = new CreateBoardCommand(
-                    mockUser.getId(),
+                    mockUser.getUsername(),
                     longTitle,
                     "Valid Content"
             );
 
             // Mock 설정 (validation 전에 비즈니스 로직이 실행될 수 있으므로)
-            when(userRepository.findById(mockUser.getId())).thenReturn(Optional.of(
+            when(userRepository.findByUsername(mockUser.getUsername())).thenReturn(Optional.of(
                     mockUser));
 
             // When & Then
@@ -200,7 +200,7 @@ class BoardCommandServiceTest {
         void create_EmptyContent_ThrowsConstraintViolationException() {
             // Given
             CreateBoardCommand cmd = new CreateBoardCommand(
-                    mockUser.getId(),
+                    mockUser.getUsername(),
                     "Valid Title",
                     ""
             );
@@ -215,7 +215,7 @@ class BoardCommandServiceTest {
         void create_BlankContent_ThrowsConstraintViolationException() {
             // Given
             CreateBoardCommand cmd = new CreateBoardCommand(
-                    mockUser.getId(),
+                    mockUser.getUsername(),
                     "Valid Title",
                     "   "
             );
@@ -231,13 +231,13 @@ class BoardCommandServiceTest {
             // Given
             String longContent = "a".repeat(BoardValidationConstants.BOARD_CONTENT_MAX_LENGTH + 1); // 상수 + 1
             CreateBoardCommand cmd = new CreateBoardCommand(
-                    mockUser.getId(),
+                    mockUser.getUsername(),
                     "Valid Title",
                     longContent
             );
 
             // Mock 설정 (validation 전에 비즈니스 로직이 실행될 수 있으므로)
-            when(userRepository.findById(mockUser.getId())).thenReturn(Optional.of(
+            when(userRepository.findByUsername(mockUser.getUsername())).thenReturn(Optional.of(
                     mockUser));
 
             // When & Then

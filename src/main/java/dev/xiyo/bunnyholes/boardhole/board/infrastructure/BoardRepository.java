@@ -40,14 +40,14 @@ public interface BoardRepository extends JpaRepository<Board, UUID> {
     Page<Board> searchByKeyword(@Param("keyword") String keyword, Pageable pageable);
 
     /**
-     * 게시글 작성자 ID만 조회 (권한 체크용 최적화 쿼리)
-     * N+1 문제 해결: 전체 엔티티 대신 작성자 ID만 조회하여 성능 최적화
+     * 게시글 작성자 사용자명만 조회 (권한 체크용 최적화 쿼리)
+     * 전체 엔티티 대신 작성자 username만 조회하여 성능 최적화
      *
      * @param boardId 게시글 ID
-     * @return 작성자 ID (Optional)
+     * @return 작성자 username (Optional)
      */
-    @Query("SELECT b.author.id FROM Board b WHERE b.id = :boardId")
-    Optional<UUID> findAuthorIdById(@Param("boardId") UUID boardId);
+    @Query("SELECT b.author.username FROM Board b WHERE b.id = :boardId")
+    Optional<String> findAuthorUsernameById(@Param("boardId") UUID boardId);
 
     /**
      * 삭제된 게시글 포함 전체 조회 (Native Query)

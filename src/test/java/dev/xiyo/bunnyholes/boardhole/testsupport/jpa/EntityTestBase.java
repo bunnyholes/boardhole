@@ -41,7 +41,8 @@ public abstract class EntityTestBase {
     }
 
     protected static String createUniqueUsername() {
-        return TEST_USERNAME + "_" + UUID.randomUUID().toString().substring(0, 8);
+        String randomSuffix = UUID.randomUUID().toString().replace("-", "").substring(0, 8);
+        return TEST_USERNAME + randomSuffix;
     }
 
     protected static User createTestUser() {

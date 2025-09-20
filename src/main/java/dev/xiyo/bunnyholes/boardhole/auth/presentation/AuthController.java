@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -18,11 +19,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import dev.xiyo.bunnyholes.boardhole.auth.application.command.AuthCommandService;
-import dev.xiyo.bunnyholes.boardhole.auth.application.mapper.AuthMapper;
 import dev.xiyo.bunnyholes.boardhole.auth.presentation.dto.LoginRequest;
 import dev.xiyo.bunnyholes.boardhole.auth.presentation.mapper.AuthWebMapper;
 import dev.xiyo.bunnyholes.boardhole.shared.constants.ApiPaths;
-import dev.xiyo.bunnyholes.boardhole.shared.security.AppUserPrincipal;
 import dev.xiyo.bunnyholes.boardhole.user.application.command.UserCommandService;
 import dev.xiyo.bunnyholes.boardhole.user.application.result.UserResult;
 import dev.xiyo.bunnyholes.boardhole.user.presentation.dto.UserCreateRequest;
@@ -45,7 +44,6 @@ public class AuthController {
     private final UserCommandService userCommandService;
     private final AuthCommandService authCommandService;
     private final AuthWebMapper authWebMapper;
-    private final AuthMapper authMapper;
     private final UserWebMapper userWebMapper;
 
     @PostMapping(value = ApiPaths.AUTH_SIGNUP, consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
@@ -58,7 +56,7 @@ public class AuthController {
     public void signup(@Validated @ModelAttribute UserCreateRequest req) {
         var command = userWebMapper.toCreateCommand(req);
         UserResult signupResult = userCommandService.create(command);
-        authCommandService.login(signupResult.id());
+        authCommandService.login(signupResult.username());
     }
 
     @PostMapping(value = ApiPaths.AUTH_LOGIN, consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
@@ -89,9 +87,9 @@ public class AuthController {
     @ApiResponse(responseCode = "204", description = "관리자 접근 성공")
     @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
     @ApiResponse(responseCode = "403", description = "관리자 권한 없음")
-    public void adminOnly(@AuthenticationPrincipal AppUserPrincipal principal) {
+    public void adminOnly(@AuthenticationPrincipal UserDetails principal) {
         // Validate admin access and log the request
-        log.info("Admin-only endpoint accessed by user: {}", principal.user().getUsername());
+        log.info("Admin-only endpoint accessed by user: {}", principal.getUsername());
     }
 
     @GetMapping(ApiPaths.AUTH_USER_ACCESS)
@@ -101,9 +99,9 @@ public class AuthController {
     @ApiResponse(responseCode = "204", description = "사용자 접근 성공")
     @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
     @ApiResponse(responseCode = "403", description = "사용자 권한 없음")
-    public void userAccess(@AuthenticationPrincipal AppUserPrincipal principal) {
+    public void userAccess(@AuthenticationPrincipal UserDetails principal) {
         // Validate user access and log the request
-        log.info("User access endpoint accessed by user: {} with roles: {}", principal.user().getUsername(), principal.getAuthorities());
+        log.info("User access endpoint accessed by user: {} with roles: {}", principal.getUsername(), principal.getAuthorities());
     }
 
     @GetMapping(ApiPaths.AUTH_PUBLIC_ACCESS)

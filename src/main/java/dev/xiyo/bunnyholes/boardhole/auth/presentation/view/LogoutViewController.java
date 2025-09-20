@@ -8,13 +8,12 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
 import dev.xiyo.bunnyholes.boardhole.auth.application.command.AuthCommandService;
-import dev.xiyo.bunnyholes.boardhole.auth.application.mapper.AuthMapper;
-import dev.xiyo.bunnyholes.boardhole.shared.security.AppUserPrincipal;
 
 /**
  * 로그아웃 뷰 컨트롤러
@@ -29,7 +28,6 @@ import dev.xiyo.bunnyholes.boardhole.shared.security.AppUserPrincipal;
 public class LogoutViewController {
 
     private final AuthCommandService authCommandService;
-    private final AuthMapper authMapper;
 
     /**
      * 로그아웃 처리
@@ -41,10 +39,10 @@ public class LogoutViewController {
     @PreAuthorize("isAuthenticated()")
     public String processLogout(
             HttpServletRequest request,
-            @AuthenticationPrincipal AppUserPrincipal principal
+            @AuthenticationPrincipal UserDetails principal
     ) {
         authCommandService.logout();
-        log.info("로그아웃 성공: username={}", principal.user().getUsername());
+        log.info("로그아웃 성공: username={}", principal.getUsername());
 
         // HTTP 세션 처리
         SecurityContextHolder.clearContext();

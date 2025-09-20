@@ -107,9 +107,97 @@ tasks.named('test') {
 
 // E2E 테스트 전용 태스크
 tasks.register('e2eTest', Test) {
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+
     useJUnitPlatform {
         includeTags 'e2e'
     }
+    maxParallelForks = Runtime.runtime.availableProcessors() ?: 1
+}
+
+// Domain entity 테스트만 실행하는 태스크
+tasks.register('entityTest', Test) {
+    group = 'verification'
+    description = 'Runs only domain entity-focused tests.'
+
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+
+    useJUnitPlatform()
+
+    include '**/*EntityTest.class'
+    include '**/EntityTestBaseSmokeTest.class'
+
+    filter {
+        failOnNoMatchingTests = false
+    }
+
+    maxParallelForks = Runtime.runtime.availableProcessors() ?: 1
+}
+
+// View 레이어 테스트만 실행하는 태스크 (E2E는 제외)
+tasks.register('viewTest', Test) {
+    group = 'verification'
+    description = 'Runs only tests tagged with @Tag("view"), excluding E2E suites.'
+
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+
+    useJUnitPlatform {
+        includeTags 'view'
+        excludeTags 'e2e'
+    }
+
+    filter {
+        failOnNoMatchingTests = false
+    }
+
+    maxParallelForks = Runtime.runtime.availableProcessors() ?: 1
+}
+
+// Repository 테스트만 실행하는 태스크
+tasks.register('repositoryTest', Test) {
+    group = 'verification'
+    description = 'Runs only repository tests (*RepositoryTest classes).'
+
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+
+    useJUnitPlatform {
+        excludeTags 'e2e'
+    }
+
+    include '**/*RepositoryTest.class'
+
+    filter {
+        failOnNoMatchingTests = false
+    }
+
+    maxParallelForks = Runtime.runtime.availableProcessors() ?: 1
+}
+
+// REST API 컨트롤러 테스트만 실행하는 태스크 (View 컨트롤러 제외)
+tasks.register('restTest', Test) {
+    group = 'verification'
+    description = 'Runs REST controller tests while excluding view-layer controllers and E2E suites.'
+
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+
+    useJUnitPlatform {
+        excludeTags 'e2e'
+        excludeTags 'view'
+    }
+
+    include '**/*ControllerTest.class'
+    exclude '**/view/**'
+    exclude '**/*ViewControllerTest.class'
+
+    filter {
+        failOnNoMatchingTests = false
+    }
+
     maxParallelForks = Runtime.runtime.availableProcessors() ?: 1
 }
 

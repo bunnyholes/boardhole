@@ -17,6 +17,7 @@ import org.springframework.http.MediaType;
 import org.springframework.lang.Nullable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -37,8 +38,6 @@ import dev.xiyo.bunnyholes.boardhole.board.presentation.dto.BoardResponse;
 import dev.xiyo.bunnyholes.boardhole.board.presentation.dto.BoardUpdateRequest;
 import dev.xiyo.bunnyholes.boardhole.board.presentation.mapper.BoardWebMapper;
 import dev.xiyo.bunnyholes.boardhole.shared.constants.ApiPaths;
-import dev.xiyo.bunnyholes.boardhole.shared.security.AppUserPrincipal;
-import dev.xiyo.bunnyholes.boardhole.user.domain.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -65,9 +64,8 @@ public class BoardController {
     @ApiResponse(responseCode = "422", description = "유효성 검증 실패")
     @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
     @ResponseStatus(HttpStatus.CREATED)
-    public BoardResponse create(@Validated @ModelAttribute BoardCreateRequest req, @AuthenticationPrincipal AppUserPrincipal principal) {
-        User current = principal.user();
-        var cmd = boardWebMapper.toCreateCommand(req, current.getId());
+    public BoardResponse create(@Validated @ModelAttribute BoardCreateRequest req, @AuthenticationPrincipal UserDetails principal) {
+        var cmd = boardWebMapper.toCreateCommand(req, principal.getUsername());
         var result = boardCommandService.create(cmd);
         return boardWebMapper.toResponse(result);
     }
@@ -104,7 +102,7 @@ public class BoardController {
     @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
     @ApiResponse(responseCode = "403", description = "수정 권한 없음 (작성자가 아님)")
     @ApiResponse(responseCode = "404", description = "게시글을 찾을 수 없음")
-    public BoardResponse update(@Parameter(description = "수정할 게시글 ID") @PathVariable UUID id, @Validated @ModelAttribute BoardUpdateRequest req, @AuthenticationPrincipal AppUserPrincipal principal) {
+    public BoardResponse update(@Parameter(description = "수정할 게시글 ID") @PathVariable UUID id, @Validated @ModelAttribute BoardUpdateRequest req) {
         // 권한 검증은 서비스 @PreAuthorize가 처리, owner 확인은 PermissionEvaluator가 수행
         var cmd = boardWebMapper.toUpdateCommand(id, req);
         var updated = boardCommandService.update(cmd);

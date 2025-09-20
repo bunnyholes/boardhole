@@ -48,6 +48,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
 /**
@@ -69,8 +70,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DisplayName("SignupViewController 뷰 테스트")
 class SignupViewControllerTest {
 
-    private static final String TEST_USER_ID_STRING = "11111111-1111-1111-1111-111111111111";
-    private static final UUID TEST_USER_ID = UUID.fromString(TEST_USER_ID_STRING);
+    private static final UUID TEST_USER_ID = UUID.fromString("11111111-1111-1111-1111-111111111111");
 
     @Autowired
     private MockMvc mockMvc;
@@ -141,6 +141,7 @@ class SignupViewControllerTest {
 
         // when & then
         mockMvc.perform(post("/auth/signup")
+                       .with(csrf())
                        .param("username", "testuser")
                        .param("password", "Password123!")
                        .param("confirmPassword", "Password123!")
@@ -149,7 +150,7 @@ class SignupViewControllerTest {
                .andExpect(status().is3xxRedirection())
                .andExpect(redirectedUrl("/boards"));
 
-        verify(authCommandService).login(TEST_USER_ID);
+        verify(authCommandService).login("testuser");
     }
 
     @Test
@@ -166,6 +167,7 @@ class SignupViewControllerTest {
 
         // when & then
         mockMvc.perform(post("/auth/signup")
+                       .with(csrf())
                        .param("username", "existinguser")
                        .param("password", "Password123!")
                        .param("confirmPassword", "Password123!")
@@ -193,6 +195,7 @@ class SignupViewControllerTest {
 
         // when & then
         mockMvc.perform(post("/auth/signup")
+                       .with(csrf())
                        .param("username", "testuser")
                        .param("password", "Password123!")
                        .param("confirmPassword", "Password123!")
@@ -212,6 +215,7 @@ class SignupViewControllerTest {
     void processSignup_ValidationErrors_ShouldReturnToForm() throws Exception {
         // when & then - 빈 필드들로 검증 실패 유발
         mockMvc.perform(post("/auth/signup")
+                       .with(csrf())
                        .param("username", "")
                        .param("password", "")
                        .param("confirmPassword", "")
@@ -231,6 +235,7 @@ class SignupViewControllerTest {
     void processSignup_PasswordMismatch_ShouldReturnToForm() throws Exception {
         // when & then
         mockMvc.perform(post("/auth/signup")
+                       .with(csrf())
                        .param("username", "testuser")
                        .param("password", "Password123!")
                        .param("confirmPassword", "DifferentPassword!")
@@ -250,6 +255,7 @@ class SignupViewControllerTest {
     void processSignup_InvalidUsername_ShouldReturnToForm() throws Exception {
         // when & then - 특수문자 포함 사용자명으로 검증 실패 유발
         mockMvc.perform(post("/auth/signup")
+                       .with(csrf())
                        .param("username", "test@user")
                        .param("password", "Password123!")
                        .param("confirmPassword", "Password123!")
@@ -274,6 +280,7 @@ class SignupViewControllerTest {
     void processSignup_InvalidEmail_ShouldReturnToForm() throws Exception {
         // when & then - 잘못된 이메일 형식으로 검증 실패 유발
         mockMvc.perform(post("/auth/signup")
+                       .with(csrf())
                        .param("username", "testuser")
                        .param("password", "Password123!")
                        .param("confirmPassword", "Password123!")
@@ -293,6 +300,7 @@ class SignupViewControllerTest {
     void processSignup_WeakPassword_ShouldReturnToForm() throws Exception {
         // when & then - 복잡성이 부족한 비밀번호로 검증 실패 유발
         mockMvc.perform(post("/auth/signup")
+                       .with(csrf())
                        .param("username", "testuser")
                        .param("password", "weak")
                        .param("confirmPassword", "weak")

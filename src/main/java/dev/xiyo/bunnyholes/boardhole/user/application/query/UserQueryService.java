@@ -1,7 +1,5 @@
 package dev.xiyo.bunnyholes.boardhole.user.application.query;
 
-import java.util.UUID;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -37,12 +35,12 @@ public class UserQueryService {
      * @throws ResourceNotFoundException 사용자를 찾을 수 없는 경우
      */
     @Transactional(readOnly = true)
-    @PreAuthorize("hasPermission(#id, 'USER', 'READ')")
-    public UserResult get(UUID id) {
+    @PreAuthorize("hasRole('ADMIN') or #username.equalsIgnoreCase(authentication.name)")
+    public UserResult get(String username) {
         return userRepository
-                .findById(id)
+                .findByUsername(username)
                 .map(userMapper::toResult)
-                .orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.user.not-found.id", id)));
+                .orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.user.not-found.username", username)));
     }
 
     /**
@@ -84,10 +82,10 @@ public class UserQueryService {
      * 사용자 단일 조회 (권한 체크 없는 버전)
      */
     @Transactional(readOnly = true)
-    public UserResult getUser(UUID id) {
-        return userRepository.findById(id)
+    public UserResult getUser(String username) {
+        return userRepository.findByUsername(username)
                              .map(userMapper::toResult)
-                             .orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.user.not-found.id", id)));
+                             .orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.user.not-found.username", username)));
     }
 
     // 대시보드용 메서드들

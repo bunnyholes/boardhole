@@ -155,7 +155,7 @@ class BoardEntityTest extends EntityTestBase {
             LocalDateTime originalUpdatedAt = board.getUpdatedAt();
 
             // when
-            board.changeTitle("새로운 제목");
+            board.setTitle("새로운 제목");
             entityManager.flush();
 
             // then
@@ -169,23 +169,23 @@ class BoardEntityTest extends EntityTestBase {
     class BusinessMethods {
 
         @Test
-        @DisplayName("✅ changeTitle 테스트 - 정상적인 제목 변경")
-        void changeTitle_WithValidTitle_Success() {
+        @DisplayName("✅ setTitle 테스트 - 정상적인 제목 변경")
+        void setTitle_WithValidTitle_Success() {
             // given
             User author = createAndPersistUser();
             Board board = Board.builder().title(EntityTestBase.TEST_BOARD_TITLE).content(EntityTestBase.TEST_BOARD_CONTENT).author(author).build();
             final String newTitle = "새로운 제목";
 
             // when
-            board.changeTitle(newTitle);
+            board.setTitle(newTitle);
 
             // then
             assertThat(board.getTitle()).isEqualTo(newTitle);
         }
 
         @Test
-        @DisplayName("❌ changeTitle 테스트 - 빈 제목으로 변경 시 예외 발생")
-        void changeTitle_WithEmptyTitle_ThrowsException() {
+        @DisplayName("❌ setTitle 테스트 - 빈 제목으로 변경 시 예외 발생")
+        void setTitle_WithEmptyTitle_ThrowsException() {
             // given
             User author = createAndPersistUser();
             Board board = Board.builder().title(EntityTestBase.TEST_BOARD_TITLE).content(EntityTestBase.TEST_BOARD_CONTENT).author(author).build();
@@ -193,29 +193,29 @@ class BoardEntityTest extends EntityTestBase {
 
             // when & then
             assertThatThrownBy(() -> {
-                board.changeTitle("");
+                board.setTitle("");
                 entityManager.persistAndFlush(board);
             }).isInstanceOf(ConstraintViolationException.class);
         }
 
         @Test
-        @DisplayName("✅ changeContent 테스트 - 정상적인 내용 변경")
-        void changeContent_WithValidContent_Success() {
+        @DisplayName("✅ setContent 테스트 - 정상적인 내용 변경")
+        void setContent_WithValidContent_Success() {
             // given
             User author = createAndPersistUser();
             Board board = Board.builder().title(EntityTestBase.TEST_BOARD_TITLE).content(EntityTestBase.TEST_BOARD_CONTENT).author(author).build();
             final String newContent = "새로운 내용";
 
             // when
-            board.changeContent(newContent);
+            board.setContent(newContent);
 
             // then
             assertThat(board.getContent()).isEqualTo(newContent);
         }
 
         @Test
-        @DisplayName("❌ changeContent 테스트 - 빈 내용으로 변경 시 예외 발생")
-        void changeContent_WithEmptyContent_ThrowsException() {
+        @DisplayName("❌ setContent 테스트 - 빈 내용으로 변경 시 예외 발생")
+        void setContent_WithEmptyContent_ThrowsException() {
             // given
             User author = createAndPersistUser();
             Board board = Board.builder().title(EntityTestBase.TEST_BOARD_TITLE).content(EntityTestBase.TEST_BOARD_CONTENT).author(author).build();
@@ -223,7 +223,7 @@ class BoardEntityTest extends EntityTestBase {
 
             // when & then
             assertThatThrownBy(() -> {
-                board.changeContent("");
+                board.setContent("");
                 entityManager.persistAndFlush(board);
             }).isInstanceOf(ConstraintViolationException.class);
         }
@@ -287,7 +287,7 @@ class BoardEntityTest extends EntityTestBase {
             Long originalVersion = board.getVersion();
 
             // when
-            board.changeTitle("새로운 제목");
+            board.setTitle("새로운 제목");
             entityManager.flush();
 
             // then

@@ -30,14 +30,10 @@
 </div>
 
 <!-- 활동 통계 Fragment -->
-<div class="activity-stats" th:fragment="activity-stats(boardCount, commentCount, showLabels)">
+<div class="activity-stats" th:fragment="activity-stats(showLabels)">
     <div class="stat-item">
-        <div class="stat-value" th:text="${boardCount ?: 0}">0</div>
+        <div class="stat-value">0</div>
         <small th:text="${showLabels ? '게시글' : '글'}">글</small>
-    </div>
-    <div class="stat-item">
-        <div class="stat-value" th:text="${commentCount ?: 0}">0</div>
-        <small th:text="${showLabels ? '댓글' : '댓글'}">댓글</small>
     </div>
 </div>
 

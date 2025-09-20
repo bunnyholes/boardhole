@@ -21,6 +21,7 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.ToString;
 
 import org.hibernate.annotations.DynamicUpdate;
@@ -51,10 +52,12 @@ public class Board extends BaseEntity implements Serializable {
     @EqualsAndHashCode.Include
     private UUID id;
 
+    @Setter
     @ValidBoardTitle
     @Column(nullable = false, length = BoardValidationConstants.BOARD_TITLE_MAX_LENGTH)
     private String title;
 
+    @Setter
     @ValidBoardContent
     @Column(nullable = false, length = BoardValidationConstants.BOARD_CONTENT_MAX_LENGTH)
     private String content;
@@ -70,31 +73,11 @@ public class Board extends BaseEntity implements Serializable {
     @Version
     private Long version;
 
-    // 필요한 필드만 받는 생성자에 @Builder 적용
     @Builder
-    public Board(String title, String content, User author) {
+    protected Board(String title, String content, User author) {
         this.title = title;
         this.content = content;
         this.author = author;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
-    
-    // 기존 change 메서드는 하위 호환성을 위해 유지 (deprecated 처리 가능)
-    @Deprecated
-    public void changeTitle(String title) {
-        setTitle(title);
-    }
-
-    @Deprecated
-    public void changeContent(String content) {
-        setContent(content);
     }
 
     public void increaseViewCount() {

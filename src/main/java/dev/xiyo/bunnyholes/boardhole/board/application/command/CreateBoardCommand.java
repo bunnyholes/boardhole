@@ -1,14 +1,12 @@
 package dev.xiyo.bunnyholes.boardhole.board.application.command;
 
-import java.util.UUID;
-
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 
 import dev.xiyo.bunnyholes.boardhole.board.domain.validation.required.ValidBoardContent;
 import dev.xiyo.bunnyholes.boardhole.board.domain.validation.required.ValidBoardTitle;
 
 public record CreateBoardCommand(
-        @NotNull(message = "{validation.board.authorId.required}") UUID authorId,
+        @NotBlank(message = "{validation.board.authorUsername.required}") String authorUsername,
 
         @ValidBoardTitle String title,
 

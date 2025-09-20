@@ -3,6 +3,7 @@ package dev.xiyo.bunnyholes.boardhole.shared.exception;
 import java.time.Instant;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -25,10 +26,10 @@ import dev.xiyo.bunnyholes.boardhole.shared.util.MessageUtils;
  */
 @Slf4j
 @ControllerAdvice(basePackages = {
-        "bunny.boardhole.auth.presentation.view",
-        "bunny.boardhole.board.presentation.view",
-        "bunny.boardhole.user.presentation.view",
-        "bunny.boardhole.web.view"
+        "dev.xiyo.bunnyholes.boardhole.auth.presentation.view",
+        "dev.xiyo.bunnyholes.boardhole.board.presentation.view",
+        "dev.xiyo.bunnyholes.boardhole.user.presentation.view",
+        "dev.xiyo.bunnyholes.boardhole.web.view"
 })
 public class ViewControllerAdvice {
 
@@ -46,7 +47,8 @@ public class ViewControllerAdvice {
     public String handleNotFound(
             Exception ex,
             Model model,
-            HttpServletRequest request
+            HttpServletRequest request,
+            HttpServletResponse response
     ) {
         log.warn("🔍 404 error in view: path={}, message={}",
                 request.getRequestURI(), ex.getMessage());
@@ -54,6 +56,8 @@ public class ViewControllerAdvice {
         model.addAttribute("error", ex.getMessage());
         model.addAttribute("path", request.getRequestURI());
         model.addAttribute("timestamp", Instant.now());
+
+        response.setStatus(HttpServletResponse.SC_NOT_FOUND);
 
         // forward로 404 에러 페이지 표시 (URL 변경 없음)
         return "error/404";
@@ -95,14 +99,12 @@ public class ViewControllerAdvice {
             return "redirect:/auth/login";
         }
 
-        // 인증은 되었지만 권한이 없는 경우 403 페이지로 포워드
-        log.debug("🚫 Authenticated but forbidden, showing 403 page");
-        model.addAttribute("error", MessageUtils.get("error.access.denied"));
-        model.addAttribute("path", request.getRequestURI());
-        model.addAttribute("timestamp", Instant.now());
-
-        // forward로 403 에러 페이지 표시 (URL 변경 없음)
-        return "error/403";
+        // 인증은 되었지만 권한이 없는 경우 전용 에러 페이지로 리디렉트
+        log.debug("🚫 Authenticated but forbidden, redirecting to /error/403");
+        redirectAttributes.addFlashAttribute("error", MessageUtils.get("error.access.denied"));
+        redirectAttributes.addFlashAttribute("path", request.getRequestURI());
+        redirectAttributes.addFlashAttribute("timestamp", Instant.now());
+        return "redirect:/error/403";
     }
 
     /**
@@ -143,13 +145,16 @@ public class ViewControllerAdvice {
     public String handleInternalServerError(
             Exception ex,
             Model model,
-            HttpServletRequest request
+            HttpServletRequest request,
+            HttpServletResponse response
     ) {
         log.error("💥 500 error in view: path={}", request.getRequestURI(), ex);
 
         model.addAttribute("error", MessageUtils.get("error.general"));
         model.addAttribute("path", request.getRequestURI());
         model.addAttribute("timestamp", Instant.now());
+
+        response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 
         // forward로 500 에러 페이지 표시 (URL 변경 없음)
         return "error/500";

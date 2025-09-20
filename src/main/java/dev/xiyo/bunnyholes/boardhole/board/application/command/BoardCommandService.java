@@ -44,10 +44,10 @@ public class BoardCommandService {
      */
     @Transactional
     public BoardResult create(@Valid CreateBoardCommand cmd) {
-        UUID authorId = cmd.authorId();
+        String authorUsername = cmd.authorUsername();
         User author = userRepository
-                .findById(authorId)
-                .orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.user.not-found.id", authorId)));
+                .findByUsername(authorUsername)
+                .orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.user.not-found.username", authorUsername)));
 
         Board board = Board.builder().title(cmd.title()).content(cmd.content()).author(author).build();
         Board saved = boardRepository.save(board);

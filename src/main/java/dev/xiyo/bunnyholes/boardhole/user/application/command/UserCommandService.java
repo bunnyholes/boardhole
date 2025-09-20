@@ -1,10 +1,9 @@
 package dev.xiyo.bunnyholes.boardhole.user.application.command;
 
 import java.util.Set;
-import java.util.UUID;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -80,13 +79,13 @@ public class UserCommandService {
      * @throws ResourceNotFoundException 사용자를 찾을 수 없는 경우
      */
     @Transactional
-    @PreAuthorize("hasPermission(#cmd.userId, 'USER', 'WRITE')")
+    @PreAuthorize("hasRole('ADMIN') or #cmd.username().equalsIgnoreCase(authentication.name)")
     public UserResult update(@Valid UpdateUserCommand cmd) {
-        UUID id = cmd.userId();
+        String username = cmd.username();
         User user = userRepository
-                .findById(id).orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.user.not-found.id", id)));
+                .findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.user.not-found.username", username)));
 
-        // MapStruct가 null이 아닌 필드만 업데이트 (@DynamicUpdate가 변경된 필드만 SQL 업데이트)
         userMapper.updateUserFromCommand(cmd, user);
 
         User saved = userRepository.save(user);
@@ -97,14 +96,15 @@ public class UserCommandService {
     /**
      * 사용자 삭제
      *
-     * @param id 삭제할 사용자 ID (UUID)
+     * @param username 삭제할 사용자명
      * @throws ResourceNotFoundException 사용자를 찾을 수 없는 경우
      */
     @Transactional
-    @PreAuthorize("hasPermission(#id, 'USER', 'DELETE')")
-    public void delete(@NotNull UUID id) {
+    @PreAuthorize("hasRole('ADMIN') or #username.equalsIgnoreCase(authentication.name)")
+    public void delete(@NotBlank String username) {
         User existing = userRepository
-                .findById(id).orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.user.not-found.id", id)));
+                .findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.user.not-found.username", username)));
 
         userRepository.delete(existing);
     }
@@ -116,10 +116,10 @@ public class UserCommandService {
      * @throws ResourceNotFoundException 사용자를 찾을 수 없는 경우
      */
     @Transactional
-    public void updateLastLogin(@NotNull UUID userId) {
+    public void updateLastLogin(@NotBlank String username) {
         User user = userRepository
-                .findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.user.not-found.id", userId)));
+                .findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.user.not-found.username", username)));
         user.recordLastLogin();
         userRepository.save(user);
     }
@@ -132,15 +132,15 @@ public class UserCommandService {
      * @throws UnauthorizedException     현재 패스워드가 일치하지 않는 경우
      */
     @Transactional
-    @PreAuthorize("hasPermission(#cmd.userId, 'USER', 'WRITE')")
+    @PreAuthorize("hasRole('ADMIN') or #cmd.username().equalsIgnoreCase(authentication.name)")
     public void updatePassword(@Valid UpdatePasswordCommand cmd) {
         User user = userRepository
-                .findById(cmd.userId())
-                .orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.user.not-found.id", cmd.userId())));
+                .findByUsername(cmd.username())
+                .orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.user.not-found.username", cmd.username())));
 
         // 현재 패스워드 확인
         if (!passwordEncoder.matches(cmd.currentPassword(), user.getPassword())) {
-            log.warn(MessageUtils.get("log.user.password.change.failed", cmd.userId()));
+            log.warn(MessageUtils.get("log.user.password.change.failed", cmd.username()));
             throw new UnauthorizedException(MessageUtils.get("error.user.password.current.mismatch"));
         }
 

@@ -12,6 +12,9 @@ import org.mockito.Mockito;
 import org.springframework.aop.aspectj.annotation.AspectJProxyFactory;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import ch.qos.logback.classic.Logger;
@@ -84,7 +87,7 @@ class BusinessLogAspectTest {
         User author = User.builder().username("writer").password("pw").name("Writer").email("writer@example.com").roles(Set.of(Role.USER)).build();
         UUID authorId = UUID.randomUUID();
         ReflectionTestUtils.setField(author, "id", authorId);
-        given(boardUserRepository.findById(authorId)).willReturn(Optional.of(author));
+        given(boardUserRepository.findByUsername(author.getUsername())).willReturn(Optional.of(author));
         Board board = Board.builder().title("title").content("secret content").author(author).build();
         UUID boardId = UUID.randomUUID();
         ReflectionTestUtils.setField(board, "id", boardId);
@@ -94,7 +97,7 @@ class BusinessLogAspectTest {
                 null);
         given(boardMapper.toResult(board)).willReturn(boardResult);
 
-        boardService.create(new CreateBoardCommand(authorId, "title", "secret content"));
+        boardService.create(new CreateBoardCommand(author.getUsername(), "title", "secret content"));
 
         List<ILoggingEvent> events = appender.list;
         String expected = MessageUtils.get("log.board.created", boardId, "title", "writer");
@@ -111,10 +114,10 @@ class BusinessLogAspectTest {
         User author = User.builder().username("writer").password("pw").name("Writer").email("writer@example.com").roles(Set.of(Role.USER)).build();
         UUID authorId = UUID.randomUUID();
         ReflectionTestUtils.setField(author, "id", authorId);
-        given(boardUserRepository.findById(authorId)).willReturn(Optional.of(author));
+        given(boardUserRepository.findByUsername(author.getUsername())).willReturn(Optional.of(author));
         given(boardRepository.save(any(Board.class))).willThrow(new RuntimeException("db error"));
 
-        assertThrows(RuntimeException.class, () -> boardService.create(new CreateBoardCommand(authorId, "t", "c")));
+        assertThrows(RuntimeException.class, () -> boardService.create(new CreateBoardCommand(author.getUsername(), "t", "c")));
         assertThat(appender.list
                 .stream()
                 .anyMatch(e -> e.getFormattedMessage().contains("Method failed") || e.getFormattedMessage().contains("메소드 실패"))).isTrue();
@@ -132,13 +135,19 @@ class BusinessLogAspectTest {
         given(existing.getUsername()).willReturn("user");
         UUID userId = UUID.randomUUID();
         ReflectionTestUtils.setField(existing, "id", userId);
-        given(userRepository.findById(userId)).willReturn(Optional.of(existing));
+        given(userRepository.findByUsername("user")).willReturn(Optional.of(existing));
 
-        userService.delete(userId);
+        var adminAuth = new UsernamePasswordAuthenticationToken("admin", "pw",
+                List.of(new SimpleGrantedAuthority("ROLE_ADMIN")));
+        SecurityContextHolder.getContext().setAuthentication(adminAuth);
+
+        userService.delete("user");
 
         // 로그에서 사용자 삭제 메시지 확인
         assertThat(appender.list
                 .stream()
                 .anyMatch(e -> e.getFormattedMessage().contains("User deleted") || e.getFormattedMessage().contains("사용자 삭제"))).isTrue();
+
+        SecurityContextHolder.clearContext();
     }
 }

@@ -37,28 +37,13 @@
                 </hgroup>
             </header>
 
-            <dl class="grid">
-                <div>
-                    <dt>게시글</dt>
-                    <dd>
-                        <mark th:text="${user.boardCount ?: 0}">0</mark>
-                    </dd>
-                </div>
-                <div>
-                    <dt>댓글</dt>
-                    <dd>
-                        <mark th:text="${user.commentCount ?: 0}">0</mark>
-                    </dd>
-                </div>
-            </dl>
-
             <p>
                 가입일
                 <time th:text="${#temporals.format(user.createdAt, 'yy-MM-dd')}">24-01-01</time>
             </p>
 
             <footer>
-                <a class="secondary outline" role="button" th:href="@{/users/{id}(id=${user.id})}">상세보기</a>
+                <a class="secondary outline" role="button" th:href="@{/users/{username}(username=${user.username})}">상세보기</a>
             </footer>
         </article>
     </section>
@@ -75,7 +60,7 @@
             <li th:each="pageNum : ${#numbers.sequence(0, users.totalPages - 1)}"
                 th:if="${pageNum >= users.number - 2 and pageNum <= users.number + 2}">
                 <a th:aria-current="${pageNum == users.number} ? 'page'"
-                   th:class="${pageNum == users.number} ? 'contrast' : 'secondary outline'}"
+                   th:class="${pageNum == users.number} ? 'contrast' : 'secondary outline'"
                    th:href="@{/users(page=${pageNum})}"
                    th:text="${pageNum + 1}">1</a>
             </li>

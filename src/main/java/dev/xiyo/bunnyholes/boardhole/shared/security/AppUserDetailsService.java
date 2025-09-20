@@ -6,7 +6,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import org.springframework.validation.annotation.Validated;
 
 import dev.xiyo.bunnyholes.boardhole.shared.util.MessageUtils;
 import dev.xiyo.bunnyholes.boardhole.user.domain.User;
@@ -17,7 +16,6 @@ import dev.xiyo.bunnyholes.boardhole.user.infrastructure.UserRepository;
  * Spring Security UserDetailsService 구현체로 사용자명 기반 인증을 담당합니다.
  */
 @Service
-@Validated
 @RequiredArgsConstructor
 public class AppUserDetailsService implements UserDetailsService {
     private final UserRepository userRepository;
@@ -27,6 +25,13 @@ public class AppUserDetailsService implements UserDetailsService {
         User user = userRepository
                 .findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException(MessageUtils.get("error.user.not-found.username", username)));
-        return new AppUserPrincipal(user);
+        String[] authorities = user.getRoles().stream().map(role -> "ROLE_" + role.name()).toArray(String[]::new);
+        return org.springframework.security.core.userdetails.User
+                .withUsername(user.getUsername())
+                .password(user.getPassword())
+                .authorities(authorities)
+                .accountLocked(false)
+                .disabled(false)
+                .build();
     }
 }

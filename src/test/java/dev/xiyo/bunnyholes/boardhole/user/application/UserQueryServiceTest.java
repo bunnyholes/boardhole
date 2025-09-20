@@ -102,40 +102,40 @@ class UserQueryServiceTest {
     class GetUser {
 
         @Test
-        @DisplayName("✅ ID로 사용자 조회 성공")
-        void shouldGetUserById() {
+        @DisplayName("✅ 사용자명으로 사용자 조회 성공")
+        void shouldGetUserByUsername() {
             // given
             User user = UserQueryServiceTest.user();
             ReflectionTestUtils.setField(user, "id", UserQueryServiceTest.USER_ID);
 
-            when(userRepository.findById(UserQueryServiceTest.USER_ID)).thenReturn(Optional.of(user));
+            when(userRepository.findByUsername(UserQueryServiceTest.USERNAME)).thenReturn(Optional.of(user));
             UserResult expected = UserQueryServiceTest.userResult();
             when(userMapper.toResult(user)).thenReturn(expected);
 
             // when
-            UserResult result = userQueryService.get(UserQueryServiceTest.USER_ID);
+            UserResult result = userQueryService.get(UserQueryServiceTest.USERNAME);
 
             // then
             assertThat(result).isEqualTo(expected);
-            verify(userRepository).findById(UserQueryServiceTest.USER_ID);
+            verify(userRepository).findByUsername(UserQueryServiceTest.USERNAME);
         }
 
         @Test
         @DisplayName("❌ 사용자 미존재 → ResourceNotFoundException with 국제화 메시지")
         void shouldThrowWhenUserNotFound() {
             // given
-            when(userRepository.findById(UserQueryServiceTest.USER_ID)).thenReturn(Optional.empty());
+            when(userRepository.findByUsername(UserQueryServiceTest.USERNAME)).thenReturn(Optional.empty());
 
             // 실제 메시지 로드
-            String expectedMessage = MessageUtils.get("error.user.not-found.id", UserQueryServiceTest.USER_ID);
+            String expectedMessage = MessageUtils.get("error.user.not-found.username", UserQueryServiceTest.USERNAME);
 
             // when & then
-            assertThatThrownBy(() -> userQueryService.get(UserQueryServiceTest.USER_ID))
+            assertThatThrownBy(() -> userQueryService.get(UserQueryServiceTest.USERNAME))
                     .isInstanceOf(ResourceNotFoundException.class)
                     .hasMessage(expectedMessage);
 
             // 메시지 내용 확인
-            assertThat(expectedMessage).contains("사용자를 찾을 수 없습니다. ID:");
+            assertThat(expectedMessage).contains("사용자를 찾을 수 없습니다");
         }
 
         @Test
@@ -143,7 +143,8 @@ class UserQueryServiceTest {
         void shouldReturnCorrectMessageByLocale() {
             // given
             UUID userId = UUID.randomUUID();
-            when(userRepository.findById(userId)).thenReturn(Optional.empty());
+            String missingUsername = "missing";
+            when(userRepository.findByUsername(missingUsername)).thenReturn(Optional.empty());
 
             // 한국어 테스트
             LocaleContextHolder.setLocale(Locale.KOREAN);
@@ -152,10 +153,10 @@ class UserQueryServiceTest {
             ms.setDefaultEncoding("UTF-8");
             ReflectionTestUtils.setField(MessageUtils.class, "messageSource", ms);
 
-            String koreanMessage = MessageUtils.get("error.user.not-found.id", userId);
-            assertThat(koreanMessage).contains("사용자를 찾을 수 없습니다. ID:");
+            String koreanMessage = MessageUtils.get("error.user.not-found.username", missingUsername);
+            assertThat(koreanMessage).contains("사용자를 찾을 수 없습니다");
 
-            assertThatThrownBy(() -> userQueryService.get(userId))
+            assertThatThrownBy(() -> userQueryService.get(missingUsername))
                     .isInstanceOf(ResourceNotFoundException.class)
                     .hasMessage(koreanMessage);
 
@@ -166,10 +167,10 @@ class UserQueryServiceTest {
             ms.setDefaultEncoding("UTF-8");
             ReflectionTestUtils.setField(MessageUtils.class, "messageSource", ms);
 
-            String englishMessage = MessageUtils.get("error.user.not-found.id", userId);
-            assertThat(englishMessage).contains("User not found. ID:");
+            String englishMessage = MessageUtils.get("error.user.not-found.username", missingUsername);
+            assertThat(englishMessage).contains("User not found");
 
-            assertThatThrownBy(() -> userQueryService.get(userId))
+            assertThatThrownBy(() -> userQueryService.get(missingUsername))
                     .isInstanceOf(ResourceNotFoundException.class)
                     .hasMessage(englishMessage);
         }

@@ -1,7 +1,6 @@
 package dev.xiyo.bunnyholes.boardhole.user.presentation.view;
 
 import java.util.Collections;
-import java.util.UUID;
 
 import lombok.RequiredArgsConstructor;
 
@@ -11,7 +10,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import dev.xiyo.bunnyholes.boardhole.user.application.query.UserQueryService;
@@ -49,21 +47,4 @@ public class UserViewController {
         return "user/users";
     }
 
-    /**
-     * 사용자 프로필 페이지 (관리자 전용)
-     * <p>
-     * 관리자가 특정 사용자의 프로필 정보를 조회하여 표시합니다.
-     *
-     * @param id    사용자 ID
-     * @param model 뷰에 전달할 데이터
-     * @return 사용자 프로필 템플릿
-     * @throws dev.xiyo.bunnyholes.boardhole.shared.exception.ResourceNotFoundException 사용자를 찾을 수 없는 경우
-     */
-    @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public String userProfile(@PathVariable UUID id, Model model) {
-        var user = userQueryService.getUser(id);
-        model.addAttribute("user", user != null ? user : new Object());
-        return "user/detail";
-    }
 }

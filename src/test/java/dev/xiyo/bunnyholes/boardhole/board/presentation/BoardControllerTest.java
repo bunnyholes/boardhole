@@ -30,7 +30,7 @@ import dev.xiyo.bunnyholes.boardhole.board.presentation.dto.BoardCreateRequest;
 import dev.xiyo.bunnyholes.boardhole.board.presentation.dto.BoardResponse;
 import dev.xiyo.bunnyholes.boardhole.board.presentation.dto.BoardUpdateRequest;
 import dev.xiyo.bunnyholes.boardhole.board.presentation.mapper.BoardWebMapper;
-import dev.xiyo.bunnyholes.boardhole.shared.security.AppUserPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import dev.xiyo.bunnyholes.boardhole.user.domain.Role;
 import dev.xiyo.bunnyholes.boardhole.user.domain.User;
 
@@ -58,7 +58,7 @@ class BoardControllerTest {
     private BoardController boardController;
 
     private User testUser;
-    private AppUserPrincipal testPrincipal;
+    private UserDetails testPrincipal;
     private BoardResult testBoardResult;
     private BoardResponse testBoardResponse;
     private Pageable pageable;
@@ -72,7 +72,10 @@ class BoardControllerTest {
                        .email("test@example.com")
                        .roles(Set.of(Role.USER))
                        .build();
-        testPrincipal = new AppUserPrincipal(testUser);
+        testPrincipal = org.springframework.security.core.userdetails.User.withUsername(testUser.getUsername())
+                                                                         .password(testUser.getPassword())
+                                                                         .authorities("ROLE_USER")
+                                                                         .build();
 
         testBoardResult = new BoardResult(
                 UUID.randomUUID(), "Test Title", "Test Content", UUID.randomUUID(),
@@ -96,9 +99,9 @@ class BoardControllerTest {
         void shouldCreateBoardSuccessfully() {
             // given
             BoardCreateRequest request = new BoardCreateRequest("Test Title", "Test Content");
-            CreateBoardCommand command = new CreateBoardCommand(testUser.getId(), "Test Title", "Test Content");
+            CreateBoardCommand command = new CreateBoardCommand(testUser.getUsername(), "Test Title", "Test Content");
 
-            given(boardWebMapper.toCreateCommand(request, testUser.getId())).willReturn(command);
+            given(boardWebMapper.toCreateCommand(request, testUser.getUsername())).willReturn(command);
             given(boardCommandService.create(command)).willReturn(testBoardResult);
             given(boardWebMapper.toResponse(testBoardResult)).willReturn(
                     testBoardResponse);
@@ -108,7 +111,7 @@ class BoardControllerTest {
 
             // then
             assertThat(result).isEqualTo(testBoardResponse);
-            then(boardWebMapper).should().toCreateCommand(request, testUser.getId());
+            then(boardWebMapper).should().toCreateCommand(request, testUser.getUsername());
             then(boardCommandService).should().create(command);
             then(boardWebMapper).should().toResponse(testBoardResult);
         }
@@ -216,7 +219,7 @@ class BoardControllerTest {
             given(boardWebMapper.toResponse(updatedResult)).willReturn(updatedResponse);
 
             // when
-            BoardResponse result = boardController.update(boardId, request, testPrincipal);
+            BoardResponse result = boardController.update(boardId, request);
 
             // then
             assertThat(result).isEqualTo(updatedResponse);

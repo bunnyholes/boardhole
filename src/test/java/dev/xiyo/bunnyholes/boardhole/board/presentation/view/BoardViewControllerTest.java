@@ -68,8 +68,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DisplayName("BoardViewController 뷰 테스트")
 class BoardViewControllerTest {
 
-    private static final String OWNER_ID_STRING = "11111111-1111-1111-1111-111111111111";
-    private static final UUID OWNER_ID = UUID.fromString(OWNER_ID_STRING);
+    private static final UUID OWNER_ID = UUID.fromString("11111111-1111-1111-1111-111111111111");
+    private static final String OWNER_USERNAME = "owner";
 
     @Autowired
     private MockMvc mockMvc;
@@ -213,7 +213,7 @@ class BoardViewControllerTest {
 
     @Test
     @DisplayName("게시글 상세 페이지에서 수정 권한이 있으면 컨텍스트 메뉴가 표시된다")
-    @WithMockUser(username = OWNER_ID_STRING, authorities = {"ROLE_USER"})
+    @WithMockUser(username = OWNER_USERNAME, authorities = {"ROLE_USER"})
     void detail_WithEditPermission_ShouldShowContextMenu() throws Exception {
         // given
         var boardId = UUID.randomUUID();
@@ -230,7 +230,7 @@ class BoardViewControllerTest {
 
         when(boardQueryService.getBoard(boardId)).thenReturn(boardDetail);
         when(permissionEvaluator.hasPermission(any(Authentication.class), eq(boardId), eq("BOARD"), eq("WRITE")))
-                .thenAnswer(invocation -> OWNER_ID_STRING.equals(((Authentication) invocation.getArgument(0)).getName()));
+                .thenAnswer(invocation -> OWNER_USERNAME.equalsIgnoreCase(((Authentication) invocation.getArgument(0)).getName()));
 
         // when & then
         mockMvc.perform(get("/boards/{id}", boardId))

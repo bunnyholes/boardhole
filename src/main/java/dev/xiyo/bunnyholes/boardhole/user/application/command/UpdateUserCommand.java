@@ -1,15 +1,13 @@
 package dev.xiyo.bunnyholes.boardhole.user.application.command;
 
-import java.util.UUID;
-
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 
 import org.springframework.lang.Nullable;
 
 import dev.xiyo.bunnyholes.boardhole.user.domain.validation.optional.OptionalName;
 
 public record UpdateUserCommand(
-        @NotNull(message = "{validation.user.userId.required}") UUID userId,
+        @NotBlank(message = "{validation.user.username.required}") String username,
 
         @OptionalName @Nullable String name) {
 }

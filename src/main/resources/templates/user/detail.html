@@ -2,269 +2,42 @@
 <html lang="ko" th:replace="~{fragments/base :: layout(title='마이페이지', content=~{::main}, contextMenu=~{})}"
       xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>마이페이지 - boardholes</title>
+    <title>마이페이지</title>
 </head>
 
 <main>
-    <hgroup>
-        <h1>마이페이지</h1>
-        <p>내 활동과 프로필을 관리합니다</p>
-    </hgroup>
+    <article class="contrast">
+        <header>
+            <hgroup>
+                <h1 th:text="${!#strings.isEmpty(user.name)} ? ${user.name} : ${user.username}">사용자 이름</h1>
+                <p th:text="${user.email}">email@example.com</p>
+            </hgroup>
+        </header>
 
-    <nav aria-label="프로필 액션">
-        <ul>
-            <li>
-                <button class="secondary outline" popovertarget="edit-profile" type="button">✏️ 프로필 수정</button>
-            </li>
-            <li>
-                <button class="secondary outline" popovertarget="change-password" type="button">🔒 비밀번호 변경</button>
-            </li>
-        </ul>
-    </nav>
-
-    <section class="grid">
-        <!-- 프로필 정보 -->
-        <aside>
-            <article>
-                <header>
-                    <figure>
-                        <div aria-label="사용자 아바타">👤</div>
-                        <figcaption>
-                            <strong th:text="${user.name}">사용자명</strong>
-                            <br>
-                            <small th:text="${user.email}">email@example.com</small>
-                        </figcaption>
-                    </figure>
-                </header>
-
-                <!-- 활동 통계 -->
-                <dl class="grid">
-                    <div>
-                        <dt>내 게시글</dt>
-                        <dd>
-                            <mark th:text="${user.boardCount ?: 0}">0</mark>
-                        </dd>
-                    </div>
-                    <div>
-                        <dt>내 댓글</dt>
-                        <dd>
-                            <mark th:text="${user.commentCount ?: 0}">0</mark>
-                        </dd>
-                    </div>
-                </dl>
-
-                <footer>
-                    <dl>
-                        <dt>가입일</dt>
-                        <dd th:text="${#temporals.format(user.createdAt, 'yy-MM-dd')}">24-01-01</dd>
-                        <dt>최근 활동</dt>
-                        <dd th:text="${user.lastLoginAt ? #temporals.format(user.lastLoginAt, 'MM-dd HH:mm') : '없음'}">
-                            없음
-                        </dd>
-                    </dl>
-                </footer>
-            </article>
-
-            <!-- 빠른 액션 -->
-            <nav aria-label="빠른 액션">
-                <a href="/boards/write" role="button">✍️ 새 글 작성</a>
-                <a class="contrast outline" href="/boards" role="button">📋 게시판 보기</a>
-            </nav>
-        </aside>
-
-        <!-- 활동 내역 -->
         <section>
-            <!-- 내 최근 게시글 -->
-            <article>
-                <header>
-                    <hgroup>
-                        <h2>📄 내 최근 게시글</h2>
-                        <p><a href="/boards?author=me">전체 보기 →</a></p>
-                    </hgroup>
-                </header>
-
-                <div th:if="${!#lists.isEmpty(user.recentBoards)}">
-                    <details class="board-item" th:each="board : ${user.recentBoards}">
-                        <summary>
-                            <strong th:text="${board.title}">게시글 제목</strong>
-                            <small>
-                                <time th:datetime="${board.createdAt}"
-                                      th:text="${#temporals.format(board.createdAt, 'MM-dd')}">작성일
-                                </time>
-                                · 조회 <span th:text="${board.viewCount}">0</span>
-                            </small>
-                        </summary>
-                        <nav>
-                            <ul>
-                                <li><a th:href="@{/boards/{id}(id=${board.id})}">보기</a></li>
-                                <li><a th:href="@{/boards/{id}/edit(id=${board.id})}">수정</a></li>
-                                <li>
-                                    <button class="contrast"
-                                            command="show-modal"
-                                            th:commandfor="|delete-board-${board.id}|"
-                                            type="button">삭제
-                                    </button>
-                                </li>
-                            </ul>
-                        </nav>
-
-                        <!-- 삭제 확인 다이얼로그 -->
-                        <dialog th:id="|delete-board-${board.id}|">
-                            <article>
-                                <header>
-                                    <button aria-label="닫기" command="close"
-                                            rel="prev"
-                                            th:commandfor="|delete-board-${board.id}|">×
-                                    </button>
-                                    <h3>게시글 삭제</h3>
-                                </header>
-                                <p>정말로 이 게시글을 삭제하시겠습니까?</p>
-                                <p><strong th:text="${board.title}">게시글 제목</strong></p>
-                                <footer>
-                                    <form method="post" th:action="@{/forms/boards/{id}/delete(id=${board.id})}">
-                                        <button class="secondary"
-                                                command="close"
-                                                th:commandfor="|delete-board-${board.id}|"
-                                                type="button">취소
-                                        </button>
-                                        <button type="submit">삭제</button>
-                                    </form>
-                                </footer>
-                            </article>
-                        </dialog>
-                    </details>
+            <dl class="grid">
+                <div>
+                    <dt>사용자명</dt>
+                    <dd th:text="${user.username}">testuser</dd>
                 </div>
-
-                <div th:if="${#lists.isEmpty(user.recentBoards)}">
-                    <p>작성한 게시글이 없습니다.</p>
-                    <a href="/boards/write" role="button">첫 번째 글 작성하기</a>
+                <div>
+                    <dt>역할</dt>
+                    <dd th:text="${user.roles == null or #lists.isEmpty(user.roles)} ? '권한 없음' : ${#strings.listJoin(user.roles, ', ')}">USER</dd>
                 </div>
-            </article>
-
-            <!-- 내 최근 댓글 -->
-            <article>
-                <header>
-                    <hgroup>
-                        <h2>💬 내 최근 댓글</h2>
-                        <p><a href="/comments?author=me">전체 보기 →</a></p>
-                    </hgroup>
-                </header>
-
-                <div th:if="${!#lists.isEmpty(user.recentComments)}">
-                    <details class="comment-item" th:each="comment : ${user.recentComments}">
-                        <summary>
-                            <span th:text="${#strings.abbreviate(comment.content, 50)}">댓글 내용</span>
-                        </summary>
-                        <nav>
-                            <ul>
-                                <li>
-                                    <a th:href="@{/boards/{id}(id=${comment.boardId})}"
-                                       th:text="${comment.boardTitle}">게시글 제목</a>
-                                </li>
-                                <li>
-                                    <time th:datetime="${comment.createdAt}"
-                                          th:text="${#temporals.format(comment.createdAt, 'MM-dd')}">작성일
-                                    </time>
-                                </li>
-                                <li>
-                                    <button class="contrast"
-                                            command="show-modal"
-                                            th:commandfor="|delete-comment-${comment.id}|"
-                                            type="button">삭제
-                                    </button>
-                                </li>
-                            </ul>
-                        </nav>
-
-                        <!-- 삭제 확인 다이얼로그 -->
-                        <dialog th:id="|delete-comment-${comment.id}|">
-                            <article>
-                                <header>
-                                    <button aria-label="닫기" command="close"
-                                            rel="prev"
-                                            th:commandfor="|delete-comment-${comment.id}|">×
-                                    </button>
-                                    <h3>댓글 삭제</h3>
-                                </header>
-                                <p>정말로 이 댓글을 삭제하시겠습니까?</p>
-                                <p><em th:text="${#strings.abbreviate(comment.content, 30)}">댓글 내용</em></p>
-                                <footer>
-                                    <form method="post" th:action="@{/forms/comments/{id}/delete(id=${comment.id})}">
-                                        <button class="secondary"
-                                                command="close"
-                                                th:commandfor="|delete-comment-${comment.id}|"
-                                                type="button">취소
-                                        </button>
-                                        <button type="submit">삭제</button>
-                                    </form>
-                                </footer>
-                            </article>
-                        </dialog>
-                    </details>
+                <div>
+                    <dt>가입일</dt>
+                    <dd th:text="${user.createdAt != null ? #temporals.format(user.createdAt, 'yyyy-MM-dd') : '알 수 없음'}">2024-01-01</dd>
                 </div>
-
-                <div th:if="${#lists.isEmpty(user.recentComments)}">
-                    <p>작성한 댓글이 없습니다.</p>
+                <div>
+                    <dt>최근 로그인</dt>
+                    <dd th:text="${user.lastLogin != null ? #temporals.format(user.lastLogin, 'yyyy-MM-dd HH:mm') : '기록 없음'}">2024-01-02 12:00</dd>
                 </div>
-            </article>
+            </dl>
         </section>
-    </section>
 
-    <!-- 프로필 수정 팝오버 -->
-    <div id="edit-profile" popover>
-        <article>
-            <header>
-                <h3>프로필 수정</h3>
-                <button aria-label="닫기" popovertarget="edit-profile" popovertargetaction="hide">×</button>
-            </header>
-            <form method="post" th:action="@{/api/users/profile}">
-                <label>
-                    이름
-                    <input name="name" required th:value="${user.name}" type="text">
-                </label>
-                <label>
-                    이메일
-                    <input name="email" required th:value="${user.email}" type="email">
-                </label>
-                <footer>
-                    <button class="secondary" popovertarget="edit-profile" type="button">취소</button>
-                    <button type="submit">저장</button>
-                </footer>
-            </form>
-        </article>
-    </div>
-
-    <!-- 비밀번호 변경 팝오버 -->
-    <div id="change-password" popover>
-        <article>
-            <header>
-                <h3>비밀번호 변경</h3>
-                <button aria-label="닫기" popovertarget="change-password" popovertargetaction="hide">×</button>
-            </header>
-            <form method="post" th:action="@{/api/users/change-password}">
-                <label>
-                    현재 비밀번호
-                    <input name="currentPassword" required type="password">
-                </label>
-                <label>
-                    새 비밀번호
-                    <input aria-describedby="password-help"
-                           name="newPassword"
-                           pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,100}$"
-                           required
-                           type="password">
-                    <small id="password-help">8자 이상, 대소문자, 숫자, 특수문자 포함</small>
-                </label>
-                <label>
-                    새 비밀번호 확인
-                    <input name="confirmPassword" required type="password">
-                </label>
-                <footer>
-                    <button class="secondary" popovertarget="change-password" type="button">취소</button>
-                    <button type="submit">변경</button>
-                </footer>
-            </form>
-        </article>
-    </div>
+        <footer class="grid">
+            <a class="primary" th:href="@{/users/me/edit}" role="button">프로필 수정</a>
+        </footer>
+    </article>
 </main>
 </html>

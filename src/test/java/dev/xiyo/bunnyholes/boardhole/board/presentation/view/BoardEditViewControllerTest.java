@@ -146,7 +146,8 @@ class BoardEditViewControllerTest {
 
         // when & then
         mockMvc.perform(get("/boards/{id}/edit", BOARD_ID))
-               .andExpect(status().isForbidden());
+               .andExpect(status().is3xxRedirection())
+               .andExpect(redirectedUrl("/error/403"));
     }
 
     @Test
@@ -235,7 +236,8 @@ class BoardEditViewControllerTest {
                        .with(csrf())
                        .param("title", "수정된 제목")
                        .param("content", "수정된 내용"))
-               .andExpect(status().isForbidden());
+               .andExpect(status().is3xxRedirection())
+               .andExpect(redirectedUrl("/error/403"));
     }
 
     @Test

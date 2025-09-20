@@ -13,7 +13,8 @@ public final class UserValidationConstants {
     public static final int USER_USERNAME_MAX_LENGTH = 20;
     public static final int USER_PASSWORD_MIN_LENGTH = 8;
     public static final int USER_PASSWORD_MAX_LENGTH = 100;
-    public static final String USER_USERNAME_PATTERN = "^[a-zA-Z0-9]{3,20}$";
+    // 허용 문자: 영문 대소문자, 숫자, 밑줄. 요구사항 맞춰 하이픈/마침표 등은 제외.
+    public static final String USER_USERNAME_PATTERN = "^[a-zA-Z0-9_]{3,20}$";
     public static final String PASSWORD_PATTERN = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$";
     public static final String ENCODED_PASSWORD_BCRYPT_PATTERN = "^\\$2[aby]\\$\\d{2}\\$[./A-Za-z0-9]{53}$";
     public static final int USER_EMAIL_MAX_LENGTH = 255;

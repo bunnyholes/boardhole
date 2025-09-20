@@ -33,7 +33,7 @@ import dev.xiyo.bunnyholes.boardhole.board.presentation.mapper.BoardWebMapper;
 import dev.xiyo.bunnyholes.boardhole.shared.config.ViewSecurityConfig;
 import dev.xiyo.bunnyholes.boardhole.shared.config.log.RequestLoggingFilter;
 import dev.xiyo.bunnyholes.boardhole.shared.exception.GlobalExceptionHandler;
-import dev.xiyo.bunnyholes.boardhole.shared.security.AppUserPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import dev.xiyo.bunnyholes.boardhole.user.domain.Role;
 import dev.xiyo.bunnyholes.boardhole.user.domain.User;
 
@@ -72,8 +72,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DisplayName("BoardWriteViewController 뷰 테스트")
 class BoardWriteViewControllerTest {
 
-    private static final String USER_ID_STRING = "11111111-1111-1111-1111-111111111111";
-    private static final UUID USER_ID = UUID.fromString(USER_ID_STRING);
+    private static final String USERNAME = "testuser";
+    private static final UUID USER_ID = UUID.fromString("11111111-1111-1111-1111-111111111111");
 
     @Autowired
     private MockMvc mockMvc;
@@ -105,7 +105,7 @@ class BoardWriteViewControllerTest {
 
     private static User createMockUser() {
         var user = User.builder()
-                       .username("testuser")
+                       .username(USERNAME)
                        .password("password123")
                        .name("Test User")
                        .email("test@example.com")
@@ -129,12 +129,13 @@ class BoardWriteViewControllerTest {
     @WithAnonymousUser
     void showWriteForm_Anonymous_ShouldRedirectToLogin() throws Exception {
         mockMvc.perform(get("/boards/write"))
-               .andExpect(status().isForbidden());
+               .andExpect(status().is3xxRedirection())
+               .andExpect(redirectedUrl("/auth/login"));
     }
 
     @Test
     @DisplayName("인증된 사용자는 글쓰기 폼을 볼 수 있다")
-    @WithMockUser(username = USER_ID_STRING, authorities = {"ROLE_USER"})
+    @WithMockUser(username = USERNAME, authorities = {"ROLE_USER"})
     void showWriteForm_Authenticated_ShouldRenderWriteForm() throws Exception {
         mockMvc.perform(get("/boards/write"))
                .andExpect(status().isOk())
@@ -155,7 +156,8 @@ class BoardWriteViewControllerTest {
                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                        .param("title", "테스트 제목")
                        .param("content", "테스트 내용"))
-               .andExpect(status().isForbidden());
+               .andExpect(status().is3xxRedirection())
+               .andExpect(redirectedUrl("/auth/login"));
     }
 
     @Test
@@ -174,10 +176,13 @@ class BoardWriteViewControllerTest {
                 null
         );
         var mockUser = createMockUser();
-        var mockPrincipal = new AppUserPrincipal(mockUser);
-        var mockCommand = new CreateBoardCommand(USER_ID, "테스트 제목", "테스트 내용");
+        UserDetails mockPrincipal = org.springframework.security.core.userdetails.User.withUsername(USERNAME)
+                                            .password(mockUser.getPassword())
+                                            .authorities("ROLE_USER")
+                                            .build();
+        var mockCommand = new CreateBoardCommand(USERNAME, "테스트 제목", "테스트 내용");
 
-        when(boardWebMapper.toCreateCommand(any(BoardFormRequest.class), eq(USER_ID))).thenReturn(mockCommand);
+        when(boardWebMapper.toCreateCommand(any(BoardFormRequest.class), eq(USERNAME))).thenReturn(mockCommand);
         when(boardCommandService.create(mockCommand)).thenReturn(expectedResult);
 
         // when & then
@@ -196,7 +201,10 @@ class BoardWriteViewControllerTest {
     void processWrite_EmptyTitle_ShouldReturnToForm() throws Exception {
         // given
         var mockUser = createMockUser();
-        var mockPrincipal = new AppUserPrincipal(mockUser);
+        UserDetails mockPrincipal = org.springframework.security.core.userdetails.User.withUsername(USERNAME)
+                                            .password(mockUser.getPassword())
+                                            .authorities("ROLE_USER")
+                                            .build();
 
         // when & then
         mockMvc.perform(post("/boards/write")
@@ -215,7 +223,10 @@ class BoardWriteViewControllerTest {
     void processWrite_EmptyContent_ShouldReturnToForm() throws Exception {
         // given
         var mockUser = createMockUser();
-        var mockPrincipal = new AppUserPrincipal(mockUser);
+        UserDetails mockPrincipal = org.springframework.security.core.userdetails.User.withUsername(USERNAME)
+                                            .password(mockUser.getPassword())
+                                            .authorities("ROLE_USER")
+                                            .build();
 
         // when & then
         mockMvc.perform(post("/boards/write")
@@ -234,7 +245,10 @@ class BoardWriteViewControllerTest {
     void processWrite_EmptyTitleAndContent_ShouldReturnToFormWithErrors() throws Exception {
         // given
         var mockUser = createMockUser();
-        var mockPrincipal = new AppUserPrincipal(mockUser);
+        UserDetails mockPrincipal = org.springframework.security.core.userdetails.User.withUsername(USERNAME)
+                                            .password(mockUser.getPassword())
+                                            .authorities("ROLE_USER")
+                                            .build();
 
         // when & then
         mockMvc.perform(post("/boards/write")

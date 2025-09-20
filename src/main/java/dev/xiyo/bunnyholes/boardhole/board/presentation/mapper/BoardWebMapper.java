@@ -38,10 +38,10 @@ public interface BoardWebMapper {
      * @param authorId 작성자 ID
      * @return 게시글 생성 명령
      */
-    @Mapping(target = "authorId", source = "authorId")
+    @Mapping(target = "authorUsername", source = "authorUsername")
     @Mapping(target = "title", source = "req.title")
     @Mapping(target = "content", source = "req.content")
-    CreateBoardCommand toCreateCommand(BoardCreateRequest req, UUID authorId);
+    CreateBoardCommand toCreateCommand(BoardCreateRequest req, String authorUsername);
 
     /**
      * 게시글 수정 요청을 명령으로 변환
@@ -64,10 +64,10 @@ public interface BoardWebMapper {
      */
     GetBoardQuery toGetBoardQuery(UUID id);
 
-    @Mapping(target = "authorId", source = "authorId")
+    @Mapping(target = "authorUsername", source = "authorUsername")
     @Mapping(target = "title", source = "formRequest.title")
     @Mapping(target = "content", source = "formRequest.content")
-    CreateBoardCommand toCreateCommand(BoardFormRequest formRequest, UUID authorId);
+    CreateBoardCommand toCreateCommand(BoardFormRequest formRequest, String authorUsername);
 
     @Mapping(target = "boardId", source = "id")
     @Mapping(target = "title", source = "formRequest.title")

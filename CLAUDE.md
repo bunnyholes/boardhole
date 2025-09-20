@@ -173,6 +173,9 @@ bunny.boardhole.[domain]/
 - **Testcontainers**: 실제 DB/Redis 사용한 통합 테스트
 - **ArchUnit**: 아키텍처 계층 준수 검증
 - **병렬 실행**: `maxParallelForks` 설정으로 성능 최적화
+- **Mock 사용**: Spring Boot 3.5+ 에서는 `@MockitoBean` 사용 (Spring Boot 3.4부터 도입된 새로운 어노테이션)
+  - 기존 `@MockBean` 대신 `@MockitoBean` 사용 필수
+  - `import org.springframework.test.context.bean.override.mockito.MockitoBean;`
 
 ## Code Conventions
 

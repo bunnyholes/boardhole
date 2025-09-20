@@ -14,7 +14,9 @@
     </header>
 
     <form method="post" novalidate th:action="@{/auth/login}">
-        <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden">
+        <input th:if="${_csrf != null}"
+               th:attr="name=${_csrf.parameterName}, value=${_csrf.token}"
+               type="hidden">
 
         <fieldset>
             <label for="username">

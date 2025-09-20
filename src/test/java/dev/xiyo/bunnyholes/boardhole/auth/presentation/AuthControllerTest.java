@@ -26,7 +26,6 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import dev.xiyo.bunnyholes.boardhole.auth.application.command.AuthCommandService;
 import dev.xiyo.bunnyholes.boardhole.auth.application.command.LoginCommand;
-import dev.xiyo.bunnyholes.boardhole.auth.application.mapper.AuthMapper;
 import dev.xiyo.bunnyholes.boardhole.auth.presentation.dto.LoginRequest;
 import dev.xiyo.bunnyholes.boardhole.auth.presentation.mapper.AuthWebMapper;
 import dev.xiyo.bunnyholes.boardhole.shared.config.ApiSecurityConfig;
@@ -78,9 +77,6 @@ class AuthControllerTest {
 
     @MockitoBean
     private AuthWebMapper authWebMapper;
-
-    @MockitoBean
-    private AuthMapper authMapper;
 
     @MockitoBean
     private UserWebMapper userWebMapper;
@@ -139,7 +135,7 @@ class AuthControllerTest {
             assertThat(captured.email()).isEqualTo(request.email());
 
             then(userCommandService).should().create(command);
-            then(authCommandService).should().login(userId);
+            then(authCommandService).should().login(request.username());
         }
     }
 
@@ -208,7 +204,6 @@ class AuthControllerTest {
                    .andExpect(status().isNoContent());
 
             then(authCommandService).should().logout();
-            then(authMapper).shouldHaveNoInteractions();
         }
 
         @Test
@@ -220,7 +215,6 @@ class AuthControllerTest {
                    .andExpect(jsonPath("$.status").value(403));
 
             then(authCommandService).shouldHaveNoInteractions();
-            then(authMapper).shouldHaveNoInteractions();
         }
     }
 

@@ -1,7 +1,5 @@
 package dev.xiyo.bunnyholes.boardhole.auth.application.command;
 
-import java.util.UUID;
-
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -13,6 +11,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.context.SecurityContextRepository;
@@ -23,7 +22,6 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import dev.xiyo.bunnyholes.boardhole.shared.exception.UnauthorizedException;
-import dev.xiyo.bunnyholes.boardhole.shared.security.AppUserPrincipal;
 import dev.xiyo.bunnyholes.boardhole.shared.util.MessageUtils;
 import dev.xiyo.bunnyholes.boardhole.user.application.command.UserCommandService;
 import dev.xiyo.bunnyholes.boardhole.user.infrastructure.UserRepository;
@@ -46,9 +44,9 @@ public class AuthCommandService {
     @Transactional(readOnly = true)
     public void login(@Valid LoginCommand cmd) {
         try {
-            AppUserPrincipal principal = authenticate(cmd);
+            UserDetails principal = authenticate(cmd);
             storeAuthentication(principal);
-            userCommandService.updateLastLogin(principal.user().getId());
+            userCommandService.updateLastLogin(principal.getUsername());
         } catch (BadCredentialsException e) {
             log.warn(MessageUtils.get("log.auth.login-failed", cmd.username()));
             throw new UnauthorizedException(MessageUtils.get("error.auth.invalid-credentials"));
@@ -56,8 +54,8 @@ public class AuthCommandService {
     }
 
     @Transactional(readOnly = true)
-    public void login(UUID userId) {
-        AppUserPrincipal principal = loadPrincipal(userId);
+    public void login(String username) {
+        UserDetails principal = loadPrincipal(username);
         storeAuthentication(principal);
     }
 
@@ -66,19 +64,24 @@ public class AuthCommandService {
         persistContext(SecurityContextHolder.createEmptyContext());
     }
 
-    private AppUserPrincipal authenticate(LoginCommand cmd) {
+    private UserDetails authenticate(LoginCommand cmd) {
         Authentication authRequest = UsernamePasswordAuthenticationToken.unauthenticated(cmd.username(), cmd.password());
         Authentication authResult = authenticationManager.authenticate(authRequest);
-        return (AppUserPrincipal) authResult.getPrincipal();
+        return (UserDetails) authResult.getPrincipal();
     }
 
-    private AppUserPrincipal loadPrincipal(UUID userId) {
-        return userRepository.findById(userId)
-                             .map(AppUserPrincipal::new)
-                             .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다: " + userId));
+    private UserDetails loadPrincipal(String username) {
+        return userRepository.findByUsername(username)
+                             .map(user -> org.springframework.security.core.userdetails.User.withUsername(user.getUsername())
+                                                                                              .password(user.getPassword())
+                                                                                              .authorities(user.getRoles().stream()
+                                                                                                                .map(role -> "ROLE_" + role.name())
+                                                                                                                .toArray(String[]::new))
+                                                                                              .build())
+                             .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다: " + username));
     }
 
-    private void storeAuthentication(AppUserPrincipal principal) {
+    private void storeAuthentication(UserDetails principal) {
         UsernamePasswordAuthenticationToken authentication =
                 UsernamePasswordAuthenticationToken.authenticated(principal, null, principal.getAuthorities());
 
@@ -101,4 +104,3 @@ public class AuthCommandService {
             securityContextRepository.saveContext(context, request, response);
     }
 }
-
