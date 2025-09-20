@@ -1,7 +1,5 @@
 package bunny.boardhole.shared.exception;
 
-import java.net.URI;
-import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -28,7 +26,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.lang.Nullable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
@@ -58,25 +55,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 public class GlobalExceptionHandler {
 
     private final EntityManager entityManager;
-
-    private static void addCommon(ProblemDetail pd, @Nullable HttpServletRequest request) {
-        // Optional을 사용한 null 체크 제거
-        Optional
-                .ofNullable(MDC.get(RequestLoggingFilter.TRACE_ID))
-                .filter(traceId -> !traceId.isBlank())
-                .ifPresent(traceId -> pd.setProperty("traceId", traceId));
-
-        Optional.ofNullable(request).ifPresent(req -> {
-            pd.setProperty("path", req.getRequestURI());
-            pd.setProperty("method", req.getMethod());
-            try {
-                pd.setInstance(URI.create(req.getRequestURI()));
-            } catch (IllegalArgumentException ignored) {
-            }
-        });
-
-        pd.setProperty("timestamp", Instant.now().toString());
-    }
 
     private static boolean isSortDirectionError(IllegalArgumentException ex, HttpServletRequest request) {
         if (request == null)
@@ -118,9 +96,8 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleNoResourceFound(NoResourceFoundException ex, HttpServletRequest request) {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, MessageUtils.get("error.resource.not-found"));
         pd.setTitle(MessageUtils.get("exception.title.not-found"));
-        pd.setProperty("code", ErrorCode.NOT_FOUND.getCode());
         pd.setType(ProblemDetailsHelper.buildType("not-found"));
-        addCommon(pd, request);
+        ProblemDetailsHelper.addCommonProperties(pd, request, ErrorCode.NOT_FOUND.getCode());
         return pd;
     }
 
@@ -129,7 +106,7 @@ public class GlobalExceptionHandler {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
         pd.setTitle(MessageUtils.get("exception.title.not-found"));
         pd.setType(ProblemDetailsHelper.buildType("not-found"));
-        addCommon(pd, request);
+        ProblemDetailsHelper.addCommonProperties(pd, request, ErrorCode.NOT_FOUND.getCode());
         return pd;
     }
 
@@ -138,9 +115,8 @@ public class GlobalExceptionHandler {
         log.warn("Conflict exception: {}", ex.getMessage());
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
         pd.setTitle(MessageUtils.get("exception.title.conflict"));
-        pd.setProperty("code", ErrorCode.CONFLICT.getCode());
         pd.setType(ProblemDetailsHelper.buildType("conflict"));
-        addCommon(pd, request);
+        ProblemDetailsHelper.addCommonProperties(pd, request, ErrorCode.CONFLICT.getCode());
         return pd;
     }
 
@@ -154,9 +130,8 @@ public class GlobalExceptionHandler {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT,
                 MessageUtils.get("error.conflict"));
         pd.setTitle(MessageUtils.get("exception.title.conflict"));
-        pd.setProperty("code", ErrorCode.CONFLICT.getCode());
         pd.setType(ProblemDetailsHelper.buildType("conflict"));
-        addCommon(pd, request);
+        ProblemDetailsHelper.addCommonProperties(pd, request, ErrorCode.CONFLICT.getCode());
         return pd;
     }
 
@@ -165,9 +140,8 @@ public class GlobalExceptionHandler {
         log.warn("Duplicate username attempt: {}", ex.getMessage());
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
         pd.setTitle(MessageUtils.get("exception.title.duplicate-username"));
-        pd.setProperty("code", ErrorCode.USER_DUPLICATE_USERNAME.getCode());
         pd.setType(ProblemDetailsHelper.buildType("duplicate-username"));
-        addCommon(pd, request);
+        ProblemDetailsHelper.addCommonProperties(pd, request, ErrorCode.USER_DUPLICATE_USERNAME.getCode());
         return pd;
     }
 
@@ -176,9 +150,8 @@ public class GlobalExceptionHandler {
         log.warn("Duplicate email attempt: {}", ex.getMessage());
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
         pd.setTitle(MessageUtils.get("exception.title.duplicate-email"));
-        pd.setProperty("code", ErrorCode.USER_DUPLICATE_EMAIL.getCode());
         pd.setType(ProblemDetailsHelper.buildType("duplicate-email"));
-        addCommon(pd, request);
+        ProblemDetailsHelper.addCommonProperties(pd, request, ErrorCode.USER_DUPLICATE_EMAIL.getCode());
         return pd;
     }
 
@@ -188,9 +161,8 @@ public class GlobalExceptionHandler {
         // 인증 실패는 401(Unauthorized)이 적합
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, ex.getMessage());
         pd.setTitle(MessageUtils.get("exception.title.unauthorized"));
-        pd.setProperty("code", ErrorCode.UNAUTHORIZED.getCode());
         pd.setType(ProblemDetailsHelper.buildType("unauthorized"));
-        addCommon(pd, request);
+        ProblemDetailsHelper.addCommonProperties(pd, request, ErrorCode.UNAUTHORIZED.getCode());
         return pd;
     }
 
@@ -199,21 +171,20 @@ public class GlobalExceptionHandler {
         log.warn("Access denied: path={}, message={}", request.getRequestURI(), ex.getMessage());
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, ex.getMessage());
         pd.setTitle(MessageUtils.get("exception.title.access-denied"));
-        pd.setProperty("code", ErrorCode.FORBIDDEN.getCode());
         pd.setType(ProblemDetailsHelper.buildType("forbidden"));
-        addCommon(pd, request);
+        ProblemDetailsHelper.addCommonProperties(pd, request, ErrorCode.FORBIDDEN.getCode());
         return pd;
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
-    public ResponseEntity<ProblemDetail> handleInvalid(MethodArgumentNotValidException ex, HttpServletRequest request) {
+    public static ResponseEntity<ProblemDetail> handleInvalid(MethodArgumentNotValidException ex, HttpServletRequest request) {
         return handleValidationException(ex.getBindingResult(), request);
     }
 
     @ExceptionHandler(BindException.class)
     @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
-    public ResponseEntity<ProblemDetail> handleBindException(BindException ex, HttpServletRequest request) {
+    public static ResponseEntity<ProblemDetail> handleBindException(BindException ex, HttpServletRequest request) {
         return handleValidationException(ex.getBindingResult(), request);
     }
 
@@ -222,9 +193,8 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleValidationException(ValidationException ex, HttpServletRequest request) {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_ENTITY, ex.getMessage());
         pd.setTitle(MessageUtils.get("exception.title.validation-failed"));
-        pd.setProperty("code", ErrorCode.VALIDATION_ERROR.getCode());
         pd.setType(ProblemDetailsHelper.buildType("validation-error"));
-        addCommon(pd, request);
+        ProblemDetailsHelper.addCommonProperties(pd, request, ErrorCode.VALIDATION_ERROR.getCode());
         return pd;
     }
 
@@ -233,9 +203,8 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleBadRequest(ConstraintViolationException ex, HttpServletRequest request) {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_ENTITY, ex.getMessage());
         pd.setTitle(MessageUtils.get("exception.title.validation-failed"));
-        pd.setProperty("code", ErrorCode.VALIDATION_ERROR.getCode());
         pd.setType(ProblemDetailsHelper.buildType("validation-error"));
-        addCommon(pd, request);
+        ProblemDetailsHelper.addCommonProperties(pd, request, ErrorCode.VALIDATION_ERROR.getCode());
         return pd;
     }
 
@@ -246,21 +215,19 @@ public class GlobalExceptionHandler {
             ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST,
                     MessageUtils.get("error.invalid-sort-direction", extractDirectionFromSort(request)));
             pd.setTitle(MessageUtils.get("exception.title.bad-request"));
-            pd.setProperty("code", ErrorCode.BAD_REQUEST.getCode());
             String[] sortParams = Optional.ofNullable(request.getParameterValues("sort")).orElse(new String[]{});
             if (sortParams.length > 0)
                 pd.setProperty("sort", sortParams);
             pd.setType(ProblemDetailsHelper.buildType("invalid-sort"));
-            addCommon(pd, request);
+            ProblemDetailsHelper.addCommonProperties(pd, request, ErrorCode.BAD_REQUEST.getCode());
             return pd;
         }
 
         // 그 외 IllegalArgumentException은 기존 정책(422) 유지
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_ENTITY, ex.getMessage());
         pd.setTitle(MessageUtils.get("exception.title.validation-failed"));
-        pd.setProperty("code", ErrorCode.VALIDATION_ERROR.getCode());
         pd.setType(ProblemDetailsHelper.buildType("validation-error"));
-        addCommon(pd, request);
+        ProblemDetailsHelper.addCommonProperties(pd, request, ErrorCode.VALIDATION_ERROR.getCode());
         return pd;
     }
 
@@ -268,9 +235,8 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleMessageNotReadable(HttpMessageNotReadableException ex, HttpServletRequest request) {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, MessageUtils.get("error.invalid-json"));
         pd.setTitle(MessageUtils.get("exception.title.bad-request"));
-        pd.setProperty("code", ErrorCode.INVALID_JSON.getCode());
         pd.setType(ProblemDetailsHelper.buildType("invalid-json"));
-        addCommon(pd, request);
+        ProblemDetailsHelper.addCommonProperties(pd, request, ErrorCode.INVALID_JSON.getCode());
         return pd;
     }
 
@@ -286,7 +252,6 @@ public class GlobalExceptionHandler {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST,
                 MessageUtils.get("error.invalid-sort-field", invalidField));
         pd.setTitle(MessageUtils.get("exception.title.bad-request"));
-        pd.setProperty("code", ErrorCode.BAD_REQUEST.getCode());
         pd.setProperty("invalidField", invalidField);
         if (domainType != null)
             pd.setProperty("entity", domainType.getSimpleName());
@@ -296,7 +261,7 @@ public class GlobalExceptionHandler {
         if (sortParams.length > 0)
             pd.setProperty("sort", sortParams);
         pd.setType(ProblemDetailsHelper.buildType("invalid-sort"));
-        addCommon(pd, request);
+        ProblemDetailsHelper.addCommonProperties(pd, request, ErrorCode.BAD_REQUEST.getCode());
         return pd;
     }
 
@@ -321,10 +286,9 @@ public class GlobalExceptionHandler {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.METHOD_NOT_ALLOWED,
                 MessageUtils.get("error.method-not-allowed.detail", supportedMethods));
         pd.setTitle(MessageUtils.get("exception.title.method-not-allowed"));
-        pd.setProperty("code", ErrorCode.METHOD_NOT_ALLOWED.getCode());
         pd.setProperty("supportedMethods", ex.getSupportedMethods());
         pd.setType(ProblemDetailsHelper.buildType("method-not-allowed"));
-        addCommon(pd, request);
+        ProblemDetailsHelper.addCommonProperties(pd, request, ErrorCode.METHOD_NOT_ALLOWED.getCode());
         return pd;
     }
 
@@ -332,9 +296,8 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleMediaTypeNotSupported(HttpMediaTypeNotSupportedException ex, HttpServletRequest request) {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.UNSUPPORTED_MEDIA_TYPE, MessageUtils.get("error.unsupported-media-type"));
         pd.setTitle(MessageUtils.get("exception.title.unsupported-media-type"));
-        pd.setProperty("code", ErrorCode.UNSUPPORTED_MEDIA_TYPE.getCode());
         pd.setType(ProblemDetailsHelper.buildType("unsupported-media-type"));
-        addCommon(pd, request);
+        ProblemDetailsHelper.addCommonProperties(pd, request, ErrorCode.UNSUPPORTED_MEDIA_TYPE.getCode());
         return pd;
     }
 
@@ -343,11 +306,10 @@ public class GlobalExceptionHandler {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST,
                 MessageUtils.get("error.missing-parameter.detail", ex.getParameterName()));
         pd.setTitle(MessageUtils.get("exception.title.missing-parameter"));
-        pd.setProperty("code", ErrorCode.MISSING_PARAMETER.getCode());
         pd.setProperty("parameter", ex.getParameterName());
         pd.setProperty("parameterType", ex.getParameterType());
         pd.setType(ProblemDetailsHelper.buildType("missing-parameter"));
-        addCommon(pd, request);
+        ProblemDetailsHelper.addCommonProperties(pd, request, ErrorCode.MISSING_PARAMETER.getCode());
         return pd;
     }
 
@@ -356,11 +318,10 @@ public class GlobalExceptionHandler {
         String propertyName = ex.getPropertyName() != null ? ex.getPropertyName() : "unknown";
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, MessageUtils.get("error.type-mismatch.detail", propertyName));
         pd.setTitle(MessageUtils.get("exception.title.type-mismatch"));
-        pd.setProperty("code", ErrorCode.TYPE_MISMATCH.getCode());
         pd.setProperty("property", propertyName);
         Optional.ofNullable(ex.getRequiredType()).map(Class::getSimpleName).ifPresent(type -> pd.setProperty("requiredType", type));
         pd.setType(ProblemDetailsHelper.buildType("type-mismatch"));
-        addCommon(pd, request);
+        ProblemDetailsHelper.addCommonProperties(pd, request, ErrorCode.TYPE_MISMATCH.getCode());
         return pd;
     }
 
@@ -370,9 +331,8 @@ public class GlobalExceptionHandler {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND,
                 ex.getMessage() != null ? ex.getMessage() : MessageUtils.get("error.resource.not-found"));
         pd.setTitle(MessageUtils.get("exception.title.not-found"));
-        pd.setProperty("code", ErrorCode.NOT_FOUND.getCode());
         pd.setType(ProblemDetailsHelper.buildType("not-found"));
-        addCommon(pd, request);
+        ProblemDetailsHelper.addCommonProperties(pd, request, ErrorCode.NOT_FOUND.getCode());
         return pd;
     }
 
@@ -382,10 +342,9 @@ public class GlobalExceptionHandler {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT,
                 MessageUtils.get("error.locking.conflict"));
         pd.setTitle(MessageUtils.get("exception.title.conflict"));
-        pd.setProperty("code", ErrorCode.CONFLICT.getCode());
         pd.setProperty("lockType", ex instanceof OptimisticLockException ? "optimistic" : "pessimistic");
         pd.setType(ProblemDetailsHelper.buildType("locking-conflict"));
-        addCommon(pd, request);
+        ProblemDetailsHelper.addCommonProperties(pd, request, ErrorCode.CONFLICT.getCode());
         return pd;
     }
 
@@ -395,10 +354,9 @@ public class GlobalExceptionHandler {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.PAYLOAD_TOO_LARGE,
                 MessageUtils.get("error.upload.size-exceeded", ex.getMaxUploadSize()));
         pd.setTitle(MessageUtils.get("exception.title.payload-too-large"));
-        pd.setProperty("code", ErrorCode.PAYLOAD_TOO_LARGE.getCode());
         pd.setProperty("maxSize", ex.getMaxUploadSize());
         pd.setType(ProblemDetailsHelper.buildType("upload-size-exceeded"));
-        addCommon(pd, request);
+        ProblemDetailsHelper.addCommonProperties(pd, request, ErrorCode.PAYLOAD_TOO_LARGE.getCode());
         return pd;
     }
 
@@ -408,9 +366,8 @@ public class GlobalExceptionHandler {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.SERVICE_UNAVAILABLE,
                 MessageUtils.get("error.request.timeout"));
         pd.setTitle(MessageUtils.get("exception.title.service-unavailable"));
-        pd.setProperty("code", ErrorCode.SERVICE_UNAVAILABLE.getCode());
         pd.setType(ProblemDetailsHelper.buildType("request-timeout"));
-        addCommon(pd, request);
+        ProblemDetailsHelper.addCommonProperties(pd, request, ErrorCode.SERVICE_UNAVAILABLE.getCode());
         return pd;
     }
 
@@ -424,12 +381,11 @@ public class GlobalExceptionHandler {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, MessageUtils.get("error.internal"));
         pd.setTitle(MessageUtils.get("exception.title.internal-error"));
         pd.setType(ProblemDetailsHelper.buildType("internal-error"));
-        pd.setProperty("code", ErrorCode.INTERNAL_ERROR.getCode());
-        addCommon(pd, request);
+        ProblemDetailsHelper.addCommonProperties(pd, request, ErrorCode.INTERNAL_ERROR.getCode());
         return pd;
     }
 
-    private ResponseEntity<ProblemDetail> handleValidationException(BindingResult bindingResult, HttpServletRequest request) {
+    private static ResponseEntity<ProblemDetail> handleValidationException(BindingResult bindingResult, HttpServletRequest request) {
         log.warn("Validation failed: {} errors on path={}", bindingResult.getErrorCount(), request.getRequestURI());
         ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.UNPROCESSABLE_ENTITY);
         pd.setTitle(MessageUtils.get("exception.title.validation-failed"));
@@ -441,9 +397,8 @@ public class GlobalExceptionHandler {
                         "rejectedValue", Optional.ofNullable(fe.getRejectedValue()).orElse("")))
                 .collect(Collectors.toList());
         pd.setProperty("errors", errors);
-        pd.setProperty("code", ErrorCode.VALIDATION_ERROR.getCode());
         pd.setType(ProblemDetailsHelper.buildType("validation-error"));
-        addCommon(pd, request);
+        ProblemDetailsHelper.addCommonProperties(pd, request, ErrorCode.VALIDATION_ERROR.getCode());
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(pd);
     }
 }

@@ -6,8 +6,8 @@ import java.util.Optional;
 
 import jakarta.servlet.http.HttpServletRequest;
 
-import lombok.extern.slf4j.Slf4j;
 import lombok.experimental.UtilityClass;
+import lombok.extern.slf4j.Slf4j;
 
 import org.slf4j.MDC;
 import org.springframework.http.ProblemDetail;
@@ -24,20 +24,21 @@ public class ProblemDetailsHelper {
     /**
      * ProblemDetail에 공통 속성들을 추가합니다.
      */
-    void addCommonProperties(ProblemDetail pd, HttpServletRequest request, String errorCode) {
+    public void addCommonProperties(ProblemDetail pd, HttpServletRequest request, String errorCode) {
         try {
             pd.setInstance(URI.create(request.getRequestURI()));
         } catch (IllegalArgumentException e) {
             log.warn("Invalid request URI: {}", request.getRequestURI(), e);
         }
 
+        pd.setProperty("path", request.getRequestURI());
+        pd.setProperty("method", request.getMethod());
+
         Optional
                 .ofNullable(MDC.get(RequestLoggingFilter.TRACE_ID))
                 .filter(traceId -> !traceId.isBlank())
                 .ifPresent(traceId -> pd.setProperty("traceId", traceId));
 
-        pd.setProperty("path", request.getRequestURI());
-        pd.setProperty("method", request.getMethod());
         pd.setProperty("timestamp", Instant.now().toString());
         pd.setProperty("code", errorCode);
     }

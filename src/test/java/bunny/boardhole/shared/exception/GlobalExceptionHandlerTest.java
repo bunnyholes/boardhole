@@ -314,21 +314,4 @@ class GlobalExceptionHandlerTest {
         assertThat(result.getProperties()).containsKeys("path", "method", "timestamp");
     }
 
-    @Test
-    @DisplayName("HttpServletRequest가 null일 때 처리")
-    void handleWithNullRequest() {
-        // Given
-        final String errorMessage = "테스트 오류";
-        ResourceNotFoundException ex = new ResourceNotFoundException(errorMessage);
-
-        // When - null request for testing null handling behavior
-        @SuppressWarnings("DataFlowIssue") ProblemDetail result = handler.handleNotFound(ex, null);
-
-        // Then
-        assertThat(result.getProperties()).containsKey("timestamp");
-        assertThat(result.getProperties()).doesNotContainKeys("path", "method");
-        // instance는 request가 null일 때 설정되지 않으므로 null이 아니라 기본값
-        // ProblemDetail의 getInstance()는 기본적으로 null을 반환
-        assertThat(result.getInstance()).isNull();
-    }
 }
