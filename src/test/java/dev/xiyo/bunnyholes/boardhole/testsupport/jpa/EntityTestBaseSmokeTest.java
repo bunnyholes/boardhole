@@ -7,13 +7,13 @@ import dev.xiyo.bunnyholes.boardhole.user.domain.User;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-class EntityTestBaseSmokeTest extends dev.xiyo.bunnyholes.boardhole.testsupport.jpa.EntityTestBase {
+class EntityTestBaseSmokeTest extends EntityTestBase {
 
     @Test
     @DisplayName("EntityTestBase 컨테이너 연결 및 JPA 작동 스모크 테스트")
     void canPersistUserViaEntityManager() {
         // given
-        User user = dev.xiyo.bunnyholes.boardhole.testsupport.jpa.EntityTestBase.createTestUser();
+        User user = EntityTestBase.createTestUser();
 
         // when
         User saved = entityManager.persistAndFlush(user);
