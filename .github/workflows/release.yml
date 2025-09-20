@@ -119,7 +119,7 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           port: ${{ secrets.SSH_PORT }}
           username: ${{ secrets.SSH_USER }}
-          password: ${{ secrets.SSH_PASSWORD }}
+          key: ${{ secrets.SSH_KEY }}
           script: |
             cd ~/Projects && docker compose up -d --pull always boardhole
             echo "✅ Deployment completed at $(date)"
