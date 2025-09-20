@@ -127,6 +127,30 @@ docker-compose down
 docker-compose down -v
 ```
 
+## 🚢 릴리스 & Docker 배포 자동화
+
+릴리스 파이프라인은 [JReleaser](https://jreleaser.org) + GitHub Actions 조합으로 구성되어 있습니다. 릴리스 워크플로우는 다음 단계를 자동으로 수행합니다.
+
+1. `./gradlew clean build`로 애플리케이션을 빌드/테스트
+2. `./gradlew jreleaserFullRelease` 실행으로 버전 확정, CHANGELOG 생성, Git 태그 및 GitHub Release 작성
+3. 동일한 CHANGELOG를 OCI 레이블에 포함한 채 멀티 아키텍처 Docker 이미지를 빌드하여 GHCR(`ghcr.io/Bunnyholes/Boardhole`)에 푸시
+
+### 준비 사항
+
+별도의 시크릿을 등록할 필요는 없습니다. GitHub Actions가 제공하는 기본 `GITHUB_TOKEN`으로
+릴리스 작성과 GHCR 푸시를 모두 처리합니다. (워크플로 권한은 `contents: write`, `packages: write`로 설정됨)
+
+### 릴리스 실행
+
+1. GitHub Actions에서 **`Release` 워크플로우**를 선택합니다.
+2. `Run workflow` 버튼을 눌러 릴리스 버전(ex: `1.6.0`)을 입력하고 실행합니다.
+3. 워크플로우가 종료되면 다음 결과물을 확인할 수 있습니다.
+    - Git 태그 및 Release 페이지 (CHANGELOG 자동 포함)
+    - `ghcr.io/bunnyholes/board-hole:<version>` 및 `latest` Docker 이미지
+    - 릴리스 노트 전문을 담은 워크플로우 아티팩트 (`RELEASE_NOTES.md`)
+
+> **참고**: 릴리스 워크플로우는 워킹 트리를 수정하거나 `CHANGELOG.md`를 커밋하지 않습니다. 버전/CHANGELOG 파일을 수동으로 관리하고 싶다면 별도 커밋을 추가하세요.
+
 ## 📄 라이선스
 
 MIT License

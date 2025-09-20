@@ -3,12 +3,11 @@ plugins {
     id 'org.springframework.boot' version '3.5.5'
     id 'io.spring.dependency-management' version '1.1.7'
     id 'com.github.ben-manes.versions' version '0.52.0'
+    id 'org.jreleaser' version '1.20.0'
 }
 
-// 아래 속성들은 gradle.properties에서 자동으로 참조됩니다:
-// - version: 프로젝트 버전
-// - group: 프로젝트 그룹 ID  
-// - description: 프로젝트 설명
+import org.jreleaser.model.Active
+import org.jreleaser.model.Distribution
 
 java {
     toolchain {
@@ -111,6 +110,68 @@ tasks.register('e2eTest', Test) {
         includeTags 'e2e'
     }
     maxParallelForks = Runtime.runtime.availableProcessors() ?: 1
+}
+
+// JReleaser가 실행되기 전에 부트 JAR을 생성하도록 보장
+['jreleaserAssemble', 'jreleaserRelease', 'jreleaserFullRelease'].each { taskName ->
+    tasks.named(taskName) { dependsOn tasks.named('bootJar') }
+}
+
+def jreleaserOwner = providers.environmentVariable('GITHUB_REPOSITORY_OWNER')
+        .orElse(providers.gradleProperty('jreleaser.owner'))
+
+def jreleaserRepo = providers.environmentVariable('GITHUB_REPOSITORY')
+        .map { repo -> repo.substring(repo.indexOf('/') + 1) }
+        .orElse(providers.gradleProperty('jreleaser.repo'))
+
+def repositoryUrl = providers.gradleProperty('githubUrl')
+
+jreleaser {
+    project { proj ->
+        proj.name = project.name
+        proj.description = providers.gradleProperty('description').get()
+        proj.version = project.version.toString()
+        proj.authors = [providers.gradleProperty('projectGroup').get()]
+        proj.license = providers.gradleProperty('apiLicenseName').get()
+
+        proj.links { links ->
+            links.homepage = repositoryUrl.get()
+        }
+    }
+
+    release {
+        github { gh ->
+            gh.repoOwner = jreleaserOwner.get()
+            gh.name = jreleaserRepo.get()
+            gh.tagName = 'v{{projectVersion}}'
+            gh.releaseName = 'v{{projectVersion}}'
+            gh.overwrite = true
+
+            gh.changelog { cl ->
+                cl.preset = providers.gradleProperty('jreleaser.changelogPreset').get()
+                cl.skipMergeCommits = true
+                cl.hide { hide -> hide.uncategorized = true }
+            }
+        }
+    }
+
+    distributions {
+        register('app') { dist ->
+            dist.type = Distribution.DistributionType.JAVA_BINARY
+            dist.artifact { art ->
+                art.path = file("build/libs/${project.name}-${project.version}.jar")
+            }
+            dist.java { javaCfg ->
+                javaCfg.mainClass = 'bunny.boardhole.BoardHoleApplication'
+            }
+        }
+    }
+
+    packagers {
+        docker { dk ->
+            dk.active = Active.NEVER
+        }
+    }
 }
 
 // Resource filtering for @project.version@ placeholder replacement
