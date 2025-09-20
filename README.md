@@ -1,4 +1,4 @@
-# Boardholes - Spring Boot 게시판 애플리케이션
+# boardholes - Spring Boot 게시판 애플리케이션
 
 ## 🚀 빠른 시작 (아무것도 설정할 필요 없음!)
 
@@ -133,7 +133,7 @@ docker-compose down -v
 
 1. `./gradlew clean build`로 애플리케이션을 빌드/테스트
 2. `./gradlew jreleaserFullRelease` 실행으로 버전 확정, CHANGELOG 생성, Git 태그 및 GitHub Release 작성
-3. 동일한 CHANGELOG를 OCI 레이블에 포함한 채 멀티 아키텍처 Docker 이미지를 빌드하여 GHCR(`ghcr.io/Bunnyholes/Boardhole`)에 푸시
+3. 동일한 CHANGELOG를 OCI 레이블에 포함한 채 멀티 아키텍처 Docker 이미지를 빌드하여 GHCR(`ghcr.io/bunnyholes/boardholes`)에 푸시
 
 ### 준비 사항
 
@@ -146,7 +146,7 @@ docker-compose down -v
 2. `Run workflow` 버튼을 눌러 릴리스 버전(ex: `1.6.0`)을 입력하고 실행합니다.
 3. 워크플로우가 종료되면 다음 결과물을 확인할 수 있습니다.
     - Git 태그 및 Release 페이지 (CHANGELOG 자동 포함)
-    - `ghcr.io/bunnyholes/board-hole:<version>` 및 `latest` Docker 이미지
+    - `ghcr.io/bunnyholes/boardhole:<version>` 및 `latest` Docker 이미지
     - 릴리스 노트 전문을 담은 워크플로우 아티팩트 (`RELEASE_NOTES.md`)
 
 > **참고**: 릴리스 워크플로우는 워킹 트리를 수정하거나 `CHANGELOG.md`를 커밋하지 않습니다. 버전/CHANGELOG 파일을 수동으로 관리하고 싶다면 별도 커밋을 추가하세요.

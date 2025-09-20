@@ -243,7 +243,7 @@ class BoardEditViewE2ETest extends ViewE2ETestBase {
 
         // then - 수정 페이지가 정상적으로 표시되는지 확인
         assertThat(page.url()).contains("/boards/" + boardId + "/edit");
-        assertThat(page.title()).contains("Boardholes");
+        assertThat(page.title()).contains("boardholes");
 
         // 수정 폼이 표시되는지 확인
         assertThat(page.locator("#title").isVisible()).isTrue();

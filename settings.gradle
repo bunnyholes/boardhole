@@ -5,7 +5,7 @@ pluginManagement {
     }
 }
 
-rootProject.name = 'board-hole'
+rootProject.name = 'boardhole'
 
 // Load local properties if exists
 def localPropertiesFile = file('gradle-local.properties')

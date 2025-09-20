@@ -28,7 +28,7 @@ class BoardViewE2ETest extends ViewE2ETestBase {
         page.waitForLoadState();
 
         // 페이지 제목 확인
-        assertThat(page.title()).contains("Boardholes");
+        assertThat(page.title()).contains("boardholes");
 
         // 페이지가 제대로 로드되었는지 확인
         assertThat(page.url()).contains("localhost:" + port);

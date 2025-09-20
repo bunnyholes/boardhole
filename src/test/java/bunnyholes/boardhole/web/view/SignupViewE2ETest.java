@@ -28,7 +28,7 @@ class SignupViewE2ETest extends ViewE2ETestBase {
         page.waitForLoadState();
 
         // 페이지 제목 확인
-        assertThat(page.title()).contains("Boardholes");
+        assertThat(page.title()).contains("boardholes");
 
         // Pico CSS 카드 구조 확인 (article > header/main/footer)
         assertThat(page.locator("article").count()).isGreaterThan(0);
@@ -37,7 +37,7 @@ class SignupViewE2ETest extends ViewE2ETestBase {
 
         // 헤더 영역 확인
         assertThat(page.textContent("article header h1")).contains("회원가입");
-        assertThat(page.textContent("article header p")).contains("Boardholes");
+        assertThat(page.textContent("article header p")).contains("boardholes");
 
         // 폼 필드 요소들 확인
         assertThat(page.locator("input[name='email']").count()).isGreaterThan(0);

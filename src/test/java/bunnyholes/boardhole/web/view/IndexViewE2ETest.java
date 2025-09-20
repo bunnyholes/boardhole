@@ -28,10 +28,10 @@ class IndexViewE2ETest extends ViewE2ETestBase {
     @DisplayName("✅ 루트 페이지 로드 검증")
     void shouldLoadIndexPage() {
         // 페이지 제목 확인
-        assertThat(page.title()).contains("Boardholes");
+        assertThat(page.title()).contains("boardholes");
 
         // 메인 콘텐츠 확인
-        assertThat(page.textContent("h1.hero-title")).contains("Boardholes");
+        assertThat(page.textContent("h1.hero-title")).contains("boardholes");
         assertThat(page.textContent("p.hero-subtitle")).contains("실무형 게시판");
 
         // 게시판 바로가기 버튼이 존재하는지 확인
@@ -110,7 +110,7 @@ class IndexViewE2ETest extends ViewE2ETestBase {
     @Test
     @DisplayName("✅ 네비게이션 검증 - 모든 링크가 올바르게 작동")
     void shouldHaveWorkingNavigation() {
-        // 헤더의 Boardholes 로고 클릭으로 홈으로 돌아가기
+        // 헤더의 boardholes 로고 클릭으로 홈으로 돌아가기
         page.click("a[href='/']");
         page.waitForURL("**/", new Page.WaitForURLOptions().setTimeout(5000));
         assertThat(page.url()).endsWith("/");

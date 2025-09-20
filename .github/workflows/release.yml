@@ -60,8 +60,8 @@ jobs:
           docker buildx build \
             --platform linux/amd64,linux/arm64 \
             -f Dockerfile.cicd \
-            -t ghcr.io/bunnyholes/board-hole:${VERSION} \
-            -t ghcr.io/bunnyholes/board-hole:latest \
+            -t ghcr.io/bunnyholes/boardhole:${VERSION} \
+            -t ghcr.io/bunnyholes/boardhole:latest \
             --label org.opencontainers.image.version=${VERSION} \
             --label org.opencontainers.image.description="${SUMMARY}" \
             --push .

@@ -6,7 +6,7 @@
 spring:
   # 애플리케이션 기본 정보
   application:
-    name: board-hole
+    name: boardholes
   
   # JPA 공통 설정
   jpa:

@@ -8,6 +8,7 @@ plugins {
 
 import org.jreleaser.model.Active
 import org.jreleaser.model.Distribution
+import java.time.Year
 
 java {
     toolchain {
@@ -117,38 +118,36 @@ tasks.register('e2eTest', Test) {
     tasks.named(taskName) { dependsOn tasks.named('bootJar') }
 }
 
-def jreleaserOwner = providers.environmentVariable('GITHUB_REPOSITORY_OWNER')
-        .orElse(providers.gradleProperty('jreleaser.owner'))
-
-def jreleaserRepo = providers.environmentVariable('GITHUB_REPOSITORY')
-        .map { repo -> repo.substring(repo.indexOf('/') + 1) }
-        .orElse(providers.gradleProperty('jreleaser.repo'))
-
-def repositoryUrl = providers.gradleProperty('githubUrl')
+def jreleaserOwner = System.getenv('GITHUB_REPOSITORY_OWNER') ?: (project.findProperty('jreleaser.owner') as String)
+def jreleaserRepo = (System.getenv('GITHUB_REPOSITORY')?.substringAfter('/')) ?: (project.findProperty('jreleaser.repo') as String)
+def repositoryUrl = project.findProperty('githubUrl') as String
+def gradleProject = project
+def dockerTemplateDir = layout.projectDirectory.dir('src/jreleaser/distributions/app/docker').asFile.absolutePath
 
 jreleaser {
     project { proj ->
-        proj.name = project.name
-        proj.description = providers.gradleProperty('description').get()
-        proj.version = project.version.toString()
-        proj.authors = [providers.gradleProperty('projectGroup').get()]
-        proj.license = providers.gradleProperty('apiLicenseName').get()
+        proj.name = gradleProject.name
+        proj.description = gradleProject.description
+        proj.version = gradleProject.version.toString()
+        proj.authors = [gradleProject.findProperty('projectGroup') as String]
+        proj.license = gradleProject.findProperty('apiLicenseName') as String
+        proj.copyright = "${Year.now().value} ${gradleProject.findProperty('projectGroup')}"
 
         proj.links { links ->
-            links.homepage = repositoryUrl.get()
+            links.homepage = repositoryUrl
         }
     }
 
     release {
         github { gh ->
-            gh.repoOwner = jreleaserOwner.get()
-            gh.name = jreleaserRepo.get()
+            gh.repoOwner = jreleaserOwner
+            gh.name = jreleaserRepo
             gh.tagName = 'v{{projectVersion}}'
             gh.releaseName = 'v{{projectVersion}}'
             gh.overwrite = true
 
             gh.changelog { cl ->
-                cl.preset = providers.gradleProperty('jreleaser.changelogPreset').get()
+                cl.preset = gradleProject.findProperty('jreleaser.changelogPreset') as String
                 cl.skipMergeCommits = true
                 cl.hide { hide -> hide.uncategorized = true }
             }
@@ -157,9 +156,9 @@ jreleaser {
 
     distributions {
         register('app') { dist ->
-            dist.type = Distribution.DistributionType.JAVA_BINARY
+            dist.distributionType = Distribution.DistributionType.JAVA_BINARY
             dist.artifact { art ->
-                art.path = file("build/libs/${project.name}-${project.version}.jar")
+                art.path = file("build/libs/${gradleProject.name}-${gradleProject.version}.jar")
             }
             dist.java { javaCfg ->
                 javaCfg.mainClass = 'bunny.boardhole.BoardHoleApplication'
@@ -169,9 +168,25 @@ jreleaser {
 
     packagers {
         docker { dk ->
-            dk.active = Active.NEVER
+            dk.active = Active.RELEASE
+            dk.templateDirectory = dockerTemplateDir
+            dk.buildx.enabled = true
+            dk.buildx.platforms = ['linux/amd64', 'linux/arm64']
+            dk.imageNames.addAll([
+                    'ghcr.io/bunnyholes/boardhole:{{tagName}}',
+                    'ghcr.io/bunnyholes/boardhole:latest'
+            ])
+            dk.labels.put('org.opencontainers.image.version', '{{projectVersion}}')
+            dk.labels.put('org.opencontainers.image.description', '{{changelogSummary}}')
+            dk.repository.active = Active.NEVER
+
+            dk.registries.register('ghcr') { reg ->
+                reg.server = 'ghcr.io'
+                reg.repositoryName = 'bunnyholes/boardhole'
+            }
         }
     }
+
 }
 
 // Resource filtering for @project.version@ placeholder replacement

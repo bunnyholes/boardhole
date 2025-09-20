@@ -60,7 +60,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         }
 )
 @AutoConfigureMockMvc(addFilters = false)
-@Import(TestSecurityConfig.class) // 테스트용 보안 설정
+@Import(dev.xiyo.bunnyholes.boardhole.board.presentation.view.TestSecurityConfig.class) // 테스트용 보안 설정
 @DisplayName("BoardViewController 뷰 테스트")
 class BoardViewControllerTest {
 
@@ -192,7 +192,7 @@ class BoardViewControllerTest {
                .andExpect(model().attributeExists("board"))
                .andExpect(model().attribute("board", boardDetail))
                // 타이틀이 게시글 제목으로 설정되는지 검증
-               .andExpect(xpath("//title").string("Spring Boot 테스트 게시글 - Boardholes"))
+               .andExpect(xpath("//title").string("Spring Boot 테스트 게시글 - boardholes"))
                // 헤더의 메타 정보 검증 (이모지 제거 확인)
                .andExpect(xpath("//h1").string("Spring Boot 테스트 게시글"))
                .andExpect(content().string(containsString("테스트작성자")))

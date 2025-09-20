@@ -1,4 +1,4 @@
-# Boardholes - 프로젝트 개요
+# boardholes - 프로젝트 개요
 
 ## 프로젝트 목적
 - Spring Boot 3.5.5 기반의 웹 게시판 애플리케이션

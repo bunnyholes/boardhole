@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-@Schema(name = "LoginRequest", description = "로그인 요청 - Boardholes 시스템 접근을 위한 인증")
+@Schema(name = "LoginRequest", description = "로그인 요청 - boardholes 시스템 접근을 위한 인증")
 public record LoginRequest(
         @NotBlank(message = "{validation.user.username.required}") @Schema(description = "사용자명 (이메일 형식)", example = "", requiredMode = Schema.RequiredMode.REQUIRED) String username,
 
