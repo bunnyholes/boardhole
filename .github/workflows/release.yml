@@ -121,5 +121,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            cd ~/Projects && docker compose up -d --pull always boardhole
+            cd ~/Projects
+            docker compose pull boardhole  # 변경된 레이어만 다운로드
+            docker compose up -d boardhole
             echo "✅ Deployment completed at $(date)"
