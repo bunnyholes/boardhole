@@ -3,12 +3,12 @@ plugins {
     id 'org.springframework.boot' version '3.5.5'
     id 'io.spring.dependency-management' version '1.1.7'
     id 'com.github.ben-manes.versions' version '0.52.0'
-    id 'org.jreleaser' version '1.20.0'
 }
 
-import org.jreleaser.model.Active
-import org.jreleaser.model.Distribution
-import java.time.Year
+// 아래 속성들은 gradle.properties에서 자동으로 참조됩니다:
+// - version: 프로젝트 버전
+// - group: 프로젝트 그룹 ID  
+// - description: 프로젝트 설명
 
 java {
     toolchain {
@@ -111,82 +111,6 @@ tasks.register('e2eTest', Test) {
         includeTags 'e2e'
     }
     maxParallelForks = Runtime.runtime.availableProcessors() ?: 1
-}
-
-// JReleaser가 실행되기 전에 부트 JAR을 생성하도록 보장
-['jreleaserAssemble', 'jreleaserRelease', 'jreleaserFullRelease'].each { taskName ->
-    tasks.named(taskName) { dependsOn tasks.named('bootJar') }
-}
-
-def jreleaserOwner = System.getenv('GITHUB_REPOSITORY_OWNER') ?: (project.findProperty('jreleaser.owner') as String)
-def jreleaserRepo = (System.getenv('GITHUB_REPOSITORY')?.substringAfter('/')) ?: (project.findProperty('jreleaser.repo') as String)
-def repositoryUrl = project.findProperty('githubUrl') as String
-def gradleProject = project
-def dockerTemplateDir = layout.projectDirectory.dir('src/jreleaser/distributions/app/docker').asFile.absolutePath
-
-jreleaser {
-    project { proj ->
-        proj.name = gradleProject.name
-        proj.description = gradleProject.description
-        proj.version = gradleProject.version.toString()
-        proj.authors = [gradleProject.findProperty('projectGroup') as String]
-        proj.license = gradleProject.findProperty('apiLicenseName') as String
-        proj.copyright = "${Year.now().value} ${gradleProject.findProperty('projectGroup')}"
-
-        proj.links { links ->
-            links.homepage = repositoryUrl
-        }
-    }
-
-    release {
-        github { gh ->
-            gh.repoOwner = jreleaserOwner
-            gh.name = jreleaserRepo
-            gh.tagName = 'v{{projectVersion}}'
-            gh.releaseName = 'v{{projectVersion}}'
-            gh.overwrite = true
-
-            gh.changelog { cl ->
-                cl.preset = gradleProject.findProperty('jreleaser.changelogPreset') as String
-                cl.skipMergeCommits = true
-                cl.hide { hide -> hide.uncategorized = true }
-            }
-        }
-    }
-
-    distributions {
-        register('app') { dist ->
-            dist.distributionType = Distribution.DistributionType.JAVA_BINARY
-            dist.artifact { art ->
-                art.path = file("build/libs/${gradleProject.name}-${gradleProject.version}.jar")
-            }
-            dist.java { javaCfg ->
-                javaCfg.mainClass = 'bunny.boardhole.BoardHoleApplication'
-            }
-        }
-    }
-
-    packagers {
-        docker { dk ->
-            dk.active = Active.RELEASE
-            dk.templateDirectory = dockerTemplateDir
-            dk.buildx.enabled = true
-            dk.buildx.platforms = ['linux/amd64', 'linux/arm64']
-            dk.imageNames.addAll([
-                    'ghcr.io/bunnyholes/boardhole:{{tagName}}',
-                    'ghcr.io/bunnyholes/boardhole:latest'
-            ])
-            dk.labels.put('org.opencontainers.image.version', '{{projectVersion}}')
-            dk.labels.put('org.opencontainers.image.description', '{{changelogSummary}}')
-            dk.repository.active = Active.NEVER
-
-            dk.registries.register('ghcr') { reg ->
-                reg.server = 'ghcr.io'
-                reg.repositoryName = 'bunnyholes/boardhole'
-            }
-        }
-    }
-
 }
 
 // Resource filtering for @project.version@ placeholder replacement
