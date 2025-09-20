@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html data-theme="dark"
       lang="ko"
-      th:fragment="layout(title, content)"
+      th:fragment="layout(title, content, contextMenu)"
       xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
@@ -21,7 +21,7 @@
     <link href="/css/app.css" rel="stylesheet">
 </head>
 <body>
-<th:block th:replace="~{fragments/header :: header}"></th:block>
+<th:block th:replace="~{fragments/header :: header(${contextMenu})}"></th:block>
 
 <!-- 사이드 네비게이션 다이얼로그 -->
 <th:block th:replace="~{fragments/sidenav :: sidenav}"></th:block>

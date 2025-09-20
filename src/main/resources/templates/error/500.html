@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html data-theme="auto"
       lang="ko"
-      th:replace="~{fragments/base :: layout(~{::title}, ~{::main})}"
+      th:replace="~{fragments/base :: layout(title='서버 오류', content=~{::main}, contextMenu=~{})}"
       xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>서버 오류 - Board Hole</title>

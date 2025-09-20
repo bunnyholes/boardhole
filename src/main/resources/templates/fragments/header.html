@@ -1,4 +1,4 @@
-<nav class="container-fluid" th:fragment="header">
+<nav class="container-fluid" th:fragment="header(contextMenu)">
     <!-- 왼쪽 섹션: 햄버거 메뉴 -->
     <ul>
         <li>
@@ -21,16 +21,20 @@
         <li><strong><a th:href="@{/}">Board Hole</a></strong></li>
     </ul>
 
-    <!-- 오른쪽 섹션: 인증 관련 -->
+    <!-- 오른쪽 섹션: 컨텍스트 메뉴 + 인증 관련 -->
     <ul>
+        <!-- 페이지별 컨텍스트 메뉴 -->
+        <th:block th:if="${contextMenu}" th:replace="${contextMenu}"></th:block>
+
+        <!-- 인증 관련 버튼들 -->
         <li sec:authorize="!isAuthenticated()">
-            <a class="secondary outline" role="button" th:href="@{/auth/login}">로그인</a>
+            <a class="secondary" th:href="@{/auth/login}">로그인</a>
         </li>
         <li sec:authorize="!isAuthenticated()">
-            <a class="primary" role="button" th:href="@{/auth/signup}">회원가입</a>
+            <a class="primary" th:href="@{/auth/signup}">회원가입</a>
         </li>
         <li sec:authorize="isAuthenticated()">
-            <a class="secondary outline" role="button" th:href="@{/auth/logout}">로그아웃</a>
+            <a class="secondary" th:href="@{/auth/logout}">로그아웃</a>
         </li>
     </ul>
 </nav>

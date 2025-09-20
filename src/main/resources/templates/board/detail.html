@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko" th:replace="~{fragments/base :: layout(null, ~{::main})}"
+<html lang="ko" th:replace="~{fragments/base :: layout(title='게시글 상세', content=~{::main}, contextMenu=~{})}"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
       xmlns:th="http://www.thymeleaf.org">
 <head>
