@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="ko"
       th:replace="~{fragments/base :: layout(title='게시판', content=~{::section}, contextMenu=~{::contextMenu})}"
+      xmlns="http://www.w3.org/1999/xhtml"
       xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>게시판</title>
@@ -146,8 +147,8 @@
                     <input aria-label="게시글 검색" autocomplete="off" enterkeyhint="search"
                            name="search"
                            placeholder="🔍 제목, 내용 검색" spellcheck="false" th:value="${search}"
-                           type="search">
-                    <input type="submit" value="검색">
+                           type="search" />
+                    <input type="submit" value="검색" />
                 </fieldset>
             </form>
         </article>

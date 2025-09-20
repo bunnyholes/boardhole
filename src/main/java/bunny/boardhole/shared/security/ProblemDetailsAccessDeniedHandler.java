@@ -17,7 +17,6 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import bunny.boardhole.shared.constants.ErrorCode;
-import bunny.boardhole.shared.properties.ProblemProperties;
 import bunny.boardhole.shared.util.MessageUtils;
 
 /**
@@ -29,14 +28,12 @@ import bunny.boardhole.shared.util.MessageUtils;
 public class ProblemDetailsAccessDeniedHandler implements AccessDeniedHandler {
 
     private final ObjectMapper objectMapper;
-    private final ProblemProperties problemProperties;
-
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException {
         ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.FORBIDDEN);
         pd.setTitle(MessageUtils.get("exception.title.access-denied"));
         pd.setDetail(MessageUtils.get("error.auth.access-denied"));
-        pd.setType(ProblemDetailsHelper.buildType(problemProperties.baseUri(), "forbidden"));
+        pd.setType(ProblemDetailsHelper.buildType("forbidden"));
         ProblemDetailsHelper.addCommonProperties(pd, request, ErrorCode.FORBIDDEN.getCode());
 
         response.setStatus(HttpStatus.FORBIDDEN.value());

@@ -99,7 +99,17 @@ dependencies {
 }
 
 tasks.named('test') {
-    useJUnitPlatform()
+    useJUnitPlatform {
+        excludeTags 'e2e'
+    }
+    maxParallelForks = Runtime.runtime.availableProcessors() ?: 1
+}
+
+// E2E 테스트 전용 태스크
+tasks.register('e2eTest', Test) {
+    useJUnitPlatform {
+        includeTags 'e2e'
+    }
     maxParallelForks = Runtime.runtime.availableProcessors() ?: 1
 }
 

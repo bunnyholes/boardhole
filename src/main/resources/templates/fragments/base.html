@@ -2,23 +2,24 @@
 <html data-theme="dark"
       lang="ko"
       th:fragment="layout(title, content, contextMenu)"
+      xmlns="http://www.w3.org/1999/xhtml"
       xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <meta content="light dark" name="color-scheme">
-    <meta content="same-origin" name="view-transition">
-    <meta content="#667eea" name="theme-color">
-    <title>Board Hole - Spring Boot 게시판</title>
+    <meta charset="UTF-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <meta content="light dark" name="color-scheme" />
+    <meta content="same-origin" name="view-transition" />
+    <meta content="#667eea" name="theme-color" />
+    <title th:text="${title} + ' - Board Hole'">Board Hole - Spring Boot 게시판</title>
 
     <!-- Pico CSS 2.1.1 Cyan theme -->
-    <link href="https://cdn.jsdelivr.net/npm/@picocss/pico@2.1.1/css/pico.cyan.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@picocss/pico@2.1.1/css/pico.cyan.min.css" rel="stylesheet" />
 
     <!-- Pico color utilities -->
-    <link href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.colors.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.colors.min.css" rel="stylesheet" />
 
     <!-- 극한 최적화된 CSS -->
-    <link href="/css/app.css" rel="stylesheet">
+    <link href="/css/app.css" rel="stylesheet" />
 </head>
 <body>
 <th:block th:replace="~{fragments/header :: header(${contextMenu})}"></th:block>

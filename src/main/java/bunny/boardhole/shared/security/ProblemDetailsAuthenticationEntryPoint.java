@@ -17,7 +17,6 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import bunny.boardhole.shared.constants.ErrorCode;
-import bunny.boardhole.shared.properties.ProblemProperties;
 import bunny.boardhole.shared.util.MessageUtils;
 
 /**
@@ -30,15 +29,13 @@ import bunny.boardhole.shared.util.MessageUtils;
 public class ProblemDetailsAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
     private final ObjectMapper objectMapper;
-    private final ProblemProperties problemProperties;
-
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException {
         // API 전용 - 항상 JSON 응답 반환
         ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.UNAUTHORIZED);
         pd.setTitle(MessageUtils.get("exception.title.unauthorized"));
         pd.setDetail(MessageUtils.get("error.auth.not-logged-in"));
-        pd.setType(ProblemDetailsHelper.buildType(problemProperties.baseUri(), "unauthorized"));
+        pd.setType(ProblemDetailsHelper.buildType("unauthorized"));
         ProblemDetailsHelper.addCommonProperties(pd, request, ErrorCode.UNAUTHORIZED.getCode());
 
         log.debug("🔒 Unauthorized API request: {} - returning 401 JSON response", request.getRequestURI());

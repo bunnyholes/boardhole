@@ -28,7 +28,6 @@ import org.springframework.security.web.savedrequest.NullRequestCache;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import bunny.boardhole.shared.constants.ApiPaths;
-import bunny.boardhole.shared.properties.ProblemProperties;
 import bunny.boardhole.shared.security.ProblemDetailsAccessDeniedHandler;
 import bunny.boardhole.shared.security.ProblemDetailsAuthenticationEntryPoint;
 
@@ -189,8 +188,8 @@ public class SecurityConfig {
      * @return 인증 실패 진입점 핸들러
      */
     @Bean
-    public ProblemDetailsAuthenticationEntryPoint problemDetailsAuthenticationEntryPoint(ObjectMapper objectMapper, ProblemProperties problemProperties) {
-        return new ProblemDetailsAuthenticationEntryPoint(objectMapper, problemProperties);
+    public ProblemDetailsAuthenticationEntryPoint problemDetailsAuthenticationEntryPoint(ObjectMapper objectMapper) {
+        return new ProblemDetailsAuthenticationEntryPoint(objectMapper);
     }
 
     /**
@@ -201,7 +200,7 @@ public class SecurityConfig {
      * @return 접근 거부 핸들러
      */
     @Bean
-    public ProblemDetailsAccessDeniedHandler problemDetailsAccessDeniedHandler(ObjectMapper objectMapper, ProblemProperties problemProperties) {
-        return new ProblemDetailsAccessDeniedHandler(objectMapper, problemProperties);
+    public ProblemDetailsAccessDeniedHandler problemDetailsAccessDeniedHandler(ObjectMapper objectMapper) {
+        return new ProblemDetailsAccessDeniedHandler(objectMapper);
     }
 }

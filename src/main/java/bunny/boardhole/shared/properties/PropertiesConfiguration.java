@@ -9,7 +9,6 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 @EnableConfigurationProperties({
-        ProblemProperties.class,
         CorsProperties.class,
         ApiProperties.class,
         DefaultUsersProperties.class

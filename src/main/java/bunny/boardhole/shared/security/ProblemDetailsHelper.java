@@ -6,8 +6,8 @@ import java.util.Optional;
 
 import jakarta.servlet.http.HttpServletRequest;
 
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import lombok.experimental.UtilityClass;
 
 import org.slf4j.MDC;
 import org.springframework.http.ProblemDetail;
@@ -18,13 +18,13 @@ import bunny.boardhole.shared.config.log.RequestLoggingFilter;
  * ProblemDetail 생성을 위한 공통 헬퍼 클래스
  */
 @Slf4j
-@NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
-final class ProblemDetailsHelper {
+@UtilityClass
+public class ProblemDetailsHelper {
 
     /**
      * ProblemDetail에 공통 속성들을 추가합니다.
      */
-    static void addCommonProperties(ProblemDetail pd, HttpServletRequest request, String errorCode) {
+    void addCommonProperties(ProblemDetail pd, HttpServletRequest request, String errorCode) {
         try {
             pd.setInstance(URI.create(request.getRequestURI()));
         } catch (IllegalArgumentException e) {
@@ -45,14 +45,12 @@ final class ProblemDetailsHelper {
     /**
      * Problem Type URI를 생성합니다.
      */
-    static URI buildType(String problemBaseUri, String slug) {
-        return Optional.ofNullable(problemBaseUri).filter(base -> !base.isBlank()).map(base -> base.endsWith("/") ? base : base + "/").map(base -> {
-            try {
-                return URI.create(base + slug);
-            } catch (IllegalArgumentException e) {
-                log.warn("Invalid problem type URI: {}{}", base, slug, e);
-                return null;
-            }
-        }).orElse(URI.create("urn:problem-type:" + slug));
+    public URI buildType(String slug) {
+        try {
+            return URI.create("urn:problem-type:" + slug);
+        } catch (IllegalArgumentException e) {
+            log.warn("Invalid problem type slug: {}", slug, e);
+            return URI.create("urn:problem-type:unknown");
+        }
     }
 }
