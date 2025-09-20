@@ -18,6 +18,7 @@ import dev.xiyo.bunnyholes.boardhole.testsupport.jpa.EntityTestBase;
 import dev.xiyo.bunnyholes.boardhole.user.domain.User;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 @DisplayName("Board 엔티티 테스트")
 @TestMethodOrder(MethodOrderer.DisplayName.class)
@@ -36,8 +37,8 @@ class BoardEntityTest extends EntityTestBase {
         void createBoard_WithBuilder_Success() {
             // given
             User author = createAndPersistUser();
-            String title = TEST_BOARD_TITLE;
-            String content = TEST_BOARD_CONTENT;
+            final String title = EntityTestBase.TEST_BOARD_TITLE;
+            final String content = EntityTestBase.TEST_BOARD_CONTENT;
 
             // when
             Board board = Board.builder().title(title).content(content).author(author).build();
@@ -66,7 +67,7 @@ class BoardEntityTest extends EntityTestBase {
 
             // when & then
             assertThatThrownBy(() -> {
-                Board board = Board.builder().title("").content(TEST_BOARD_CONTENT).author(author).build();
+                Board board = Board.builder().title("").content(EntityTestBase.TEST_BOARD_CONTENT).author(author).build();
                 entityManager.persistAndFlush(board);
             }).isInstanceOf(ConstraintViolationException.class);
         }
@@ -80,7 +81,7 @@ class BoardEntityTest extends EntityTestBase {
 
             // when & then
             assertThatThrownBy(() -> {
-                Board board = Board.builder().title(TEST_BOARD_TITLE).content("").author(author).build();
+                Board board = Board.builder().title(EntityTestBase.TEST_BOARD_TITLE).content("").author(author).build();
                 entityManager.persistAndFlush(board);
             }).isInstanceOf(ConstraintViolationException.class);
         }
@@ -102,7 +103,7 @@ class BoardEntityTest extends EntityTestBase {
 
             // when & then
             assertThatThrownBy(() -> {
-                Board board = Board.builder().title(longTitle).content(TEST_BOARD_CONTENT).author(author).build();
+                Board board = Board.builder().title(longTitle).content(EntityTestBase.TEST_BOARD_CONTENT).author(author).build();
                 entityManager.persistAndFlush(board);
             }).isInstanceOf(ConstraintViolationException.class);
         }
@@ -117,7 +118,7 @@ class BoardEntityTest extends EntityTestBase {
 
             // when & then
             assertThatThrownBy(() -> {
-                Board board = Board.builder().title(TEST_BOARD_TITLE).content(longContent).author(author).build();
+                Board board = Board.builder().title(EntityTestBase.TEST_BOARD_TITLE).content(longContent).author(author).build();
                 entityManager.persistAndFlush(board);
             }).isInstanceOf(ConstraintViolationException.class);
         }
@@ -133,7 +134,7 @@ class BoardEntityTest extends EntityTestBase {
         void prePersist_SetsTimestampsAndDefaultValues() {
             // given
             User author = createAndPersistUser();
-            Board board = Board.builder().title(TEST_BOARD_TITLE).content(TEST_BOARD_CONTENT).author(author).build();
+            Board board = Board.builder().title(EntityTestBase.TEST_BOARD_TITLE).content(EntityTestBase.TEST_BOARD_CONTENT).author(author).build();
 
             // when
             entityManager.persistAndFlush(board);
@@ -149,7 +150,7 @@ class BoardEntityTest extends EntityTestBase {
         void preUpdate_UpdatesTimestamp() {
             // given
             User author = createAndPersistUser();
-            Board board = Board.builder().title(TEST_BOARD_TITLE).content(TEST_BOARD_CONTENT).author(author).build();
+            Board board = Board.builder().title(EntityTestBase.TEST_BOARD_TITLE).content(EntityTestBase.TEST_BOARD_CONTENT).author(author).build();
             entityManager.persistAndFlush(board);
             LocalDateTime originalUpdatedAt = board.getUpdatedAt();
 
@@ -172,7 +173,7 @@ class BoardEntityTest extends EntityTestBase {
         void changeTitle_WithValidTitle_Success() {
             // given
             User author = createAndPersistUser();
-            Board board = Board.builder().title(TEST_BOARD_TITLE).content(TEST_BOARD_CONTENT).author(author).build();
+            Board board = Board.builder().title(EntityTestBase.TEST_BOARD_TITLE).content(EntityTestBase.TEST_BOARD_CONTENT).author(author).build();
             final String newTitle = "새로운 제목";
 
             // when
@@ -187,7 +188,7 @@ class BoardEntityTest extends EntityTestBase {
         void changeTitle_WithEmptyTitle_ThrowsException() {
             // given
             User author = createAndPersistUser();
-            Board board = Board.builder().title(TEST_BOARD_TITLE).content(TEST_BOARD_CONTENT).author(author).build();
+            Board board = Board.builder().title(EntityTestBase.TEST_BOARD_TITLE).content(EntityTestBase.TEST_BOARD_CONTENT).author(author).build();
             String expectedMessage = MessageUtils.get("validation.board.title.required");
 
             // when & then
@@ -202,7 +203,7 @@ class BoardEntityTest extends EntityTestBase {
         void changeContent_WithValidContent_Success() {
             // given
             User author = createAndPersistUser();
-            Board board = Board.builder().title(TEST_BOARD_TITLE).content(TEST_BOARD_CONTENT).author(author).build();
+            Board board = Board.builder().title(EntityTestBase.TEST_BOARD_TITLE).content(EntityTestBase.TEST_BOARD_CONTENT).author(author).build();
             final String newContent = "새로운 내용";
 
             // when
@@ -217,7 +218,7 @@ class BoardEntityTest extends EntityTestBase {
         void changeContent_WithEmptyContent_ThrowsException() {
             // given
             User author = createAndPersistUser();
-            Board board = Board.builder().title(TEST_BOARD_TITLE).content(TEST_BOARD_CONTENT).author(author).build();
+            Board board = Board.builder().title(EntityTestBase.TEST_BOARD_TITLE).content(EntityTestBase.TEST_BOARD_CONTENT).author(author).build();
             String expectedMessage = MessageUtils.get("validation.board.content.required");
 
             // when & then
@@ -232,7 +233,7 @@ class BoardEntityTest extends EntityTestBase {
         void increaseViewCount_IncrementsCorrectly() {
             // given
             User author = createAndPersistUser();
-            Board board = Board.builder().title(TEST_BOARD_TITLE).content(TEST_BOARD_CONTENT).author(author).build();
+            Board board = Board.builder().title(EntityTestBase.TEST_BOARD_TITLE).content(EntityTestBase.TEST_BOARD_CONTENT).author(author).build();
             entityManager.persistAndFlush(board);
 
             // when
@@ -259,7 +260,7 @@ class BoardEntityTest extends EntityTestBase {
         void saveAndFind_PersistsCorrectly() {
             // given
             User author = createAndPersistUser();
-            Board board = Board.builder().title(TEST_BOARD_TITLE).content(TEST_BOARD_CONTENT).author(author).build();
+            Board board = Board.builder().title(EntityTestBase.TEST_BOARD_TITLE).content(EntityTestBase.TEST_BOARD_CONTENT).author(author).build();
 
             // when
             entityManager.persistAndFlush(board);
@@ -268,8 +269,8 @@ class BoardEntityTest extends EntityTestBase {
 
             // then
             assertThat(foundBoard).isNotNull();
-            assertThat(foundBoard.getTitle()).isEqualTo(TEST_BOARD_TITLE);
-            assertThat(foundBoard.getContent()).isEqualTo(TEST_BOARD_CONTENT);
+            assertThat(foundBoard.getTitle()).isEqualTo(EntityTestBase.TEST_BOARD_TITLE);
+            assertThat(foundBoard.getContent()).isEqualTo(EntityTestBase.TEST_BOARD_CONTENT);
             assertThat(foundBoard.getAuthor().getId()).isEqualTo(author.getId());
             assertThat(foundBoard.getViewCount()).isEqualTo(0);
             assertThat(foundBoard.getCreatedAt()).isNotNull();
@@ -281,7 +282,7 @@ class BoardEntityTest extends EntityTestBase {
         void version_OptimisticLocking_WorksCorrectly() {
             // given
             User author = createAndPersistUser();
-            Board board = Board.builder().title(TEST_BOARD_TITLE).content(TEST_BOARD_CONTENT).author(author).build();
+            Board board = Board.builder().title(EntityTestBase.TEST_BOARD_TITLE).content(EntityTestBase.TEST_BOARD_CONTENT).author(author).build();
             entityManager.persistAndFlush(board);
             Long originalVersion = board.getVersion();
 

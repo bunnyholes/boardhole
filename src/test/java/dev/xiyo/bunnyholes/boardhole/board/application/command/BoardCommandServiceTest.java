@@ -32,6 +32,7 @@ import dev.xiyo.bunnyholes.boardhole.user.domain.User;
 import dev.xiyo.bunnyholes.boardhole.user.infrastructure.UserRepository;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
