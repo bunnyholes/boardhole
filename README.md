@@ -8,7 +8,7 @@
 # 1. Docker 데몬이 실행 중인지 확인 (Docker Desktop 실행)
 docker --version  # Docker가 실행 중이면 버전이 표시됨
 
-# 2. 애플리케이션 실행 (MySQL + Redis 자동으로 시작됨)
+# 2. 애플리케이션 실행 (PostgreSQL 17 + Redis 자동으로 시작됨)
 ./gradlew bootRun
 
 # 3. 브라우저에서 접속
@@ -19,7 +19,7 @@ http://localhost:8080
 
 Docker Compose가 자동으로 처리하는 것들:
 
-- ✅ MySQL 이미지 자동 다운로드 및 실행 (동적 포트)
+- ✅ PostgreSQL 17 이미지 자동 다운로드 및 실행 (동적 포트)
 - ✅ Redis 이미지 자동 다운로드 및 실행 (동적 포트)
 - ✅ 데이터베이스 스키마 자동 생성
 - ✅ 모든 환경 변수 자동 설정
@@ -27,7 +27,7 @@ Docker Compose가 자동으로 처리하는 것들:
 
 **별도로 설치할 필요 없는 것들:**
 
-- ❌ MySQL 설치 불필요
+- ❌ PostgreSQL 설치 불필요
 - ❌ Redis 설치 불필요
 - ❌ Docker 이미지 수동 다운로드 불필요
 - ❌ 데이터베이스 생성 불필요
@@ -87,7 +87,7 @@ export BOARDHOLE_DEFAULT_USERS_REGULAR_PASSWORD='CHANGE_ME_STRONG!'
 ## 🏗️ 기술 스택
 
 - **Backend**: Spring Boot 3.5.5, Java 21
-- **Database**: MySQL 8.4 (Docker)
+- **Database**: PostgreSQL 17 (Docker)
 - **Session**: Redis (Docker)
 - **Build**: Gradle 8.14
 - **Testing**: JUnit 5, Testcontainers, RestAssured

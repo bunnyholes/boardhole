@@ -9,7 +9,7 @@ spring:
     url:   # 필수 환경변수
     username:   # 필수 환경변수
     password:   # 필수 환경변수
-    driver-class-name: com.mysql.cj.jdbc.Driver # MySQL 만 지원 강제
+    driver-class-name: org.postgresql.Driver
 
   # JPA 운영 설정
   jpa:

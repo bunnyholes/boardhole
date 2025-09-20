@@ -11,7 +11,7 @@
 ## Build, Test, Run
 
 - Build JAR + run tests: `./gradlew clean build`
-- Run locally (auto-starts MySQL/Redis via Spring Boot Docker Compose if Docker is running):
+- Run locally (auto-starts PostgreSQL/Redis via Spring Boot Docker Compose if Docker is running):
     - `./gradlew bootRun` → http://localhost:8080
 - Unit/E2E tests:
     - All tests: `./gradlew test`
@@ -29,7 +29,7 @@
 
 ## Testing Guidelines
 
-- Frameworks: JUnit 5, Spring Boot Test, Testcontainers (MySQL), RestAssured for E2E.
+- Frameworks: JUnit 5, Spring Boot Test, Testcontainers (PostgreSQL), RestAssured for E2E.
 - No local DB needed for tests; containers start automatically.
 - Name tests by unit under test and behavior, e.g., `BoardControllerTest`, `UserE2ETest`.
 - Run locally before pushing: `./gradlew test`.

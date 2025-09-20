@@ -24,7 +24,6 @@ target/
 
 # Gradle cache
 .gradle/
-gradle/wrapper/*.jar
 
 # Documentation
 *.md

@@ -1,18 +1,17 @@
 services:
-  mysql:
-    image: mysql:8.4
-    container_name: boardhole-mysql
+  postgres:
+    image: postgres:17-alpine
+    container_name: boardhole-postgres
     ports:
-      - "3306"
+      - "5432"
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: boardhole
-      MYSQL_USER: boardhole
-      MYSQL_PASSWORD: boardhole123
+      POSTGRES_USER: boardhole
+      POSTGRES_PASSWORD: boardhole123
+      POSTGRES_DB: boardhole
     volumes:
-      - mysql-data:/var/lib/mysql
+      - postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot" ]
+      test: [ "CMD-SHELL", "pg_isready -U boardhole -d boardhole" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -35,4 +34,4 @@ services:
 
 volumes:
   redis-data:
-  mysql-data:
+  postgres-data:

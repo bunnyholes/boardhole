@@ -1,16 +1,15 @@
 services:
-  mysql:
-    image: mysql:8.4
-    container_name: boardhole-mysql
+  postgres:
+    image: postgres:17-alpine
+    container_name: boardhole-postgres
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: boardhole
-      MYSQL_USER: boardhole
-      MYSQL_PASSWORD: boardhole123
+      POSTGRES_USER: boardhole
+      POSTGRES_PASSWORD: boardhole123
+      POSTGRES_DB: boardhole
     volumes:
-      - mysql-data:/var/lib/mysql
+      - postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      test: [ "CMD-SHELL", "pg_isready -U boardhole -d boardhole" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -40,13 +39,13 @@ services:
       args:
         DOCKER_BUILDKIT: 1
     depends_on:
-      mysql:
+      postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
     environment:
       #      SPRING_PROFILES_ACTIVE: dev
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/boardhole?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/boardhole
       SPRING_DATASOURCE_USERNAME: boardhole
       SPRING_DATASOURCE_PASSWORD: boardhole123
       SPRING_DATA_REDIS_HOST: redis
@@ -64,7 +63,7 @@ services:
       - boardhole-network
 
 volumes:
-  mysql-data:
+  postgres-data:
   redis-data:
   app-logs:
 

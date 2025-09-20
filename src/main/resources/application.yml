@@ -121,7 +121,7 @@ boardhole:
       ### 프로파일별 활성화 기능
 
       #### dev 프로파일(기본값)
-      - Docker Compose: MySQL + Redis 동적 포트로 자동 실행
+      - Docker Compose: PostgreSQL + Redis 동적 포트로 자동 실행
       - 이메일 기능: 현재 비활성화됨 (향후 JWT 기반 인증으로 대체 예정)
       - 개발 도구: SQL 로깅, DDL 자동 업데이트, 디버그 로깅
       - 컬러 로깅: 콘솔에서 색상 출력으로 가독성 향상
@@ -142,7 +142,7 @@ boardhole:
 
       ```
       Framework:  Spring Boot 3.5.5 + Java 21
-      Database:   MySQL 8.4 + Redis 7.x
+      Database:   PostgreSQL 17 + Redis 7.x
       Security:   Spring Security + Session
       ORM:        Spring Data JPA + Hibernate
       Mapping:    MapStruct 1.6.3

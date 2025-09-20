@@ -4,7 +4,7 @@ Technical specifications for Claude Code AI assistant when working with this Spr
 
 ## Project Overview
 
-Spring Boot 3.5.5 board application with Java 21, MySQL 8.4, Redis session storage, domain-driven architecture, and
+Spring Boot 3.5.5 board application with Java 21, PostgreSQL 17, Redis session storage, domain-driven architecture, and
 comprehensive quality tooling.
 
 ## Build Commands
@@ -201,7 +201,7 @@ All REST APIs under `/api/*`:
 
 Docker services (Spring Boot Docker Compose auto-start):
 
-- MySQL: Dynamic port mapping
+- PostgreSQL: Dynamic port mapping
 - Redis: Dynamic port mapping
 
 Profiles:
