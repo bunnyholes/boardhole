@@ -34,6 +34,14 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     boolean existsByEmail(String email);
 
     /**
+     * 이름으로 사용자 존재 여부 확인
+     *
+     * @param name 확인할 이름
+     * @return 존재하면 true, 없으면 false
+     */
+    boolean existsByName(String name);
+
+    /**
      * 사용자명으로 사용자 조회 (권한 정보 포함)
      *
      * @param username 조회할 사용자명

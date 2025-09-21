@@ -30,11 +30,14 @@ import dev.xiyo.bunnyholes.boardhole.user.domain.Role;
 import dev.xiyo.bunnyholes.boardhole.user.presentation.dto.UserResponse;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -107,7 +110,7 @@ class UserDetailViewControllerTest {
         // when & then
         mockMvc.perform(get("/users/me"))
                .andExpect(status().isOk())
-               .andExpect(view().name("user/detail"))
+               .andExpect(view().name("users/detail"))
                .andExpect(model().attributeExists("user"));
 
         verify(userQueryService).getUser(USERNAME);
@@ -124,7 +127,7 @@ class UserDetailViewControllerTest {
         // when & then
         mockMvc.perform(get("/users/me"))
                .andExpect(status().isOk())
-               .andExpect(view().name("user/detail"))
+               .andExpect(view().name("users/detail"))
                .andExpect(model().attributeExists("user"));
 
         verify(userQueryService).getUser(USERNAME);
@@ -141,7 +144,7 @@ class UserDetailViewControllerTest {
         when(userWebMapper.toResponse(userResult)).thenReturn(toResponse(userResult));
 
         // when & then
-        mockMvc.perform(patch("/users/me")
+        mockMvc.perform(put("/users/me")
                        .with(csrf())
                        .param("name", newName))
                .andExpect(status().is3xxRedirection())
@@ -151,37 +154,9 @@ class UserDetailViewControllerTest {
     }
 
     @Test
-    @DisplayName("인증된 사용자는 프로필 수정 폼에 접근할 수 있다")
-    @WithMockUser(username = USERNAME, authorities = {"ROLE_USER"})
-    void editProfile_Authenticated_ShouldRenderEditForm() throws Exception {
-        // given
-        var userResult = createUserResult(USER_ID, USERNAME, NAME, EMAIL, Set.of(Role.USER));
-
-        when(userQueryService.getUser(USERNAME)).thenReturn(userResult);
-        when(userWebMapper.toResponse(userResult)).thenReturn(toResponse(userResult));
-
-        // when & then
-        mockMvc.perform(get("/users/me/edit"))
-               .andExpect(status().isOk())
-               .andExpect(view().name("user/edit"))
-               .andExpect(model().attributeExists("user"))
-               .andExpect(model().attributeExists("updateUserRequest"));
-
-        verify(userQueryService).getUser(USERNAME);
-    }
-
-    @Test
-    @DisplayName("비인증 사용자는 프로필 수정 폼에 접근할 수 없다")
-    void editProfile_Anonymous_ShouldRedirectToLogin() throws Exception {
-        mockMvc.perform(get("/users/me/edit"))
-               .andExpect(status().is3xxRedirection())
-               .andExpect(redirectedUrl("/auth/login"));
-    }
-
-    @Test
     @DisplayName("비인증 사용자는 프로필 수정을 할 수 없다")
     void updateProfile_Anonymous_ShouldRedirectToLogin() throws Exception {
-        mockMvc.perform(patch("/users/me")
+        mockMvc.perform(put("/users/me")
                        .with(csrf())
                        .param("name", "새이름"))
                .andExpect(status().is3xxRedirection())
@@ -197,11 +172,13 @@ class UserDetailViewControllerTest {
         when(userWebMapper.toResponse(userResult)).thenReturn(toResponse(userResult));
 
         // when & then - 빈 이름으로 요청
-        mockMvc.perform(patch("/users/me")
+        mockMvc.perform(put("/users/me")
                        .with(csrf())
                        .param("name", ""))
                .andExpect(status().isOk())
-               .andExpect(view().name("user/edit"));
+               .andExpect(view().name("users/detail"))
+               .andExpect(model().hasErrors())
+               .andExpect(model().attributeExists("user"));
     }
 
     @Test
@@ -209,7 +186,7 @@ class UserDetailViewControllerTest {
     @WithMockUser(username = ADMIN_USERNAME, authorities = {"ROLE_ADMIN"})
     void userProfile_AdminRole_ShouldRenderDetailPage() throws Exception {
         // given
-        String targetUsername = "profileuser";
+        final String targetUsername = "profileuser";
         var adminResult = createUserResult(UUID.randomUUID(), ADMIN_USERNAME, "관리자", "admin@example.com", Set.of(Role.ADMIN));
         var targetResult = createUserResult(UUID.randomUUID(), targetUsername, "프로필 사용자", "profile@example.com", Set.of(Role.USER));
 
@@ -221,7 +198,7 @@ class UserDetailViewControllerTest {
         // when & then
         mockMvc.perform(get("/users/{username}", targetUsername))
                .andExpect(status().isOk())
-               .andExpect(view().name("user/detail"))
+               .andExpect(view().name("users/detail"))
                .andExpect(model().attributeExists("user"));
     }
 
@@ -241,6 +218,34 @@ class UserDetailViewControllerTest {
     }
 
     @Test
+    @DisplayName("중복된 이름으로 프로필 수정 시 에러 메시지가 표시된다")
+    @WithMockUser(username = USERNAME, authorities = {"ROLE_USER"})
+    void updateProfile_DuplicateName_ShouldReturnToFormWithError() throws Exception {
+        // given
+        String duplicateName = "기존사용자";
+        var userResult = createUserResult(USER_ID, USERNAME, NAME, EMAIL, Set.of(Role.USER));
+        var userResponse = toResponse(userResult);
+        
+        when(userQueryService.isNameDuplicated(duplicateName, USERNAME)).thenReturn(true);
+        when(userQueryService.getUser(USERNAME)).thenReturn(userResult);
+        when(userWebMapper.toResponse(userResult)).thenReturn(userResponse);
+
+        // when & then
+        mockMvc.perform(put("/users/me")
+                .with(csrf())
+                .param("name", duplicateName))
+            .andExpect(status().isOk())
+            .andExpect(view().name("users/detail"))
+            .andExpect(model().hasErrors())
+            .andExpect(model().attributeHasFieldErrors("updateRequest", "name"))
+            .andExpect(model().attribute("user", userResponse));
+
+        verify(userQueryService).isNameDuplicated(duplicateName, USERNAME);
+        verify(userQueryService, times(2)).getUser(USERNAME); // @ModelAttribute와 updateProfile에서 각각 호출
+        verify(userCommandService, never()).update(any());
+    }
+
+    @Test
     @DisplayName("관리자 권한을 가진 사용자도 마이페이지에 접근할 수 있다")
     @WithMockUser(username = ADMIN_USERNAME, authorities = {"ROLE_ADMIN"})
     void mypage_AdminUser_ShouldRenderMyPage() throws Exception {
@@ -253,7 +258,7 @@ class UserDetailViewControllerTest {
         // when & then
         mockMvc.perform(get("/users/me"))
                .andExpect(status().isOk())
-               .andExpect(view().name("user/detail"))
+               .andExpect(view().name("users/detail"))
                .andExpect(model().attributeExists("user"));
 
         verify(userQueryService).getUser(ADMIN_USERNAME);
@@ -267,6 +272,7 @@ class UserDetailViewControllerTest {
     }
 
     private static UserResponse toResponse(UserResult result) {
-        return new UserResponse(result.id(), result.username(), result.name(), result.email(), result.createdAt(), result.lastLogin(), result.roles());
+        return new UserResponse(result.id(), result.username(), result.name(), result.email(), result.createdAt(), result.lastLogin(),
+                result.roles());
     }
 }

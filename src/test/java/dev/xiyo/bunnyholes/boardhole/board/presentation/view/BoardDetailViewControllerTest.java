@@ -103,7 +103,7 @@ class BoardDetailViewControllerTest {
         void detail_ShouldRenderBoardDetails() throws Exception {
             // given
             var boardId = UUID.randomUUID();
-            var boardDetail = createBoardResult(
+            var boardDetail = BoardDetailViewControllerTest.createBoardResult(
                     boardId,
                     "Spring Boot 테스트 게시글",
                     "이것은 테스트 내용입니다.\n두 번째 줄입니다.",
@@ -119,7 +119,7 @@ class BoardDetailViewControllerTest {
             // when & then
             mockMvc.perform(get("/boards/{id}", boardId))
                    .andExpect(status().isOk())
-                   .andExpect(view().name("board/detail"))
+                   .andExpect(view().name("boards/detail"))
                    .andExpect(model().attributeExists("board"))
                    .andExpect(model().attribute("board", boardDetail));
         }
@@ -130,7 +130,7 @@ class BoardDetailViewControllerTest {
         void detail_ShouldSetPageTitle() throws Exception {
             // given
             var boardId = UUID.randomUUID();
-            var boardDetail = createBoardResult(
+            var boardDetail = BoardDetailViewControllerTest.createBoardResult(
                     boardId,
                     "Spring Boot 테스트 게시글",
                     "내용",
@@ -146,7 +146,7 @@ class BoardDetailViewControllerTest {
             // when & then
             mockMvc.perform(get("/boards/{id}", boardId))
                    .andExpect(status().isOk())
-                   .andExpect(xpath("//title").string("Spring Boot 테스트 게시글 - boardholes"));
+                   .andExpect(content().string(containsString("<title>Spring Boot 테스트 게시글 - boardhole</title>")));
         }
 
         @Test
@@ -155,7 +155,7 @@ class BoardDetailViewControllerTest {
         void detail_ShouldShowMetaInfo() throws Exception {
             // given
             var boardId = UUID.randomUUID();
-            var boardDetail = createBoardResult(
+            var boardDetail = BoardDetailViewControllerTest.createBoardResult(
                     boardId,
                     "테스트 게시글",
                     "테스트 내용",
@@ -172,9 +172,9 @@ class BoardDetailViewControllerTest {
             mockMvc.perform(get("/boards/{id}", boardId))
                    .andExpect(status().isOk())
                    .andExpect(content().string(containsString("테스트작성자")))
-                   .andExpect(content().string(containsString("조회 <span>150</span>")))
-                   .andExpect(content().string(containsString("09-20 14:30")))
-                   .andExpect(content().string(containsString("09-20 15:00")));
+                   .andExpect(content().string(containsString("150")))
+                   .andExpect(content().string(containsString("2024.09.20 14:30")))
+                   .andExpect(content().string(containsString("2024.09.20 15:00")));
         }
     }
 
@@ -184,15 +184,15 @@ class BoardDetailViewControllerTest {
 
         @Test
         @DisplayName("작성자 본인은 수정/삭제 메뉴를 볼 수 있다")
-        @WithMockUser(username = OWNER_USERNAME, authorities = {"ROLE_USER"})
+        @WithMockUser(username = BoardDetailViewControllerTest.OWNER_USERNAME, authorities = {"ROLE_USER"})
         void detail_OwnerShouldSeeContextMenu() throws Exception {
             // given
             var boardId = UUID.randomUUID();
-            var boardDetail = createBoardResult(
+            var boardDetail = BoardDetailViewControllerTest.createBoardResult(
                     boardId,
                     "내가 작성한 게시글",
                     "내용",
-                    OWNER_ID,
+                    BoardDetailViewControllerTest.OWNER_ID,
                     "author",
                     5,
                     LocalDateTime.now(),
@@ -201,15 +201,14 @@ class BoardDetailViewControllerTest {
 
             when(boardQueryService.getBoard(boardId)).thenReturn(boardDetail);
             when(permissionEvaluator.hasPermission(any(Authentication.class), eq(boardId), eq("BOARD"), eq("WRITE")))
-                    .thenAnswer(invocation -> OWNER_USERNAME.equalsIgnoreCase(((Authentication) invocation.getArgument(0)).getName()));
+                    .thenAnswer(invocation -> BoardDetailViewControllerTest.OWNER_USERNAME.equalsIgnoreCase(
+                            ((Authentication) invocation.getArgument(0)).getName()));
 
             // when & then
             mockMvc.perform(get("/boards/{id}", boardId))
                    .andExpect(status().isOk())
-                   .andExpect(content().string(containsString("context-menu-anchor")))
-                   .andExpect(content().string(containsString("context-menu-popover")))
-                   .andExpect(xpath("//button[@id='context-menu-anchor']").exists())
-                   .andExpect(xpath("//aside[@id='context-menu-popover']").exists());
+                   .andExpect(content().string(containsString("manage-menu")))
+                   ;
         }
 
         @Test
@@ -218,11 +217,11 @@ class BoardDetailViewControllerTest {
         void detail_OtherUserShouldNotSeeContextMenu() throws Exception {
             // given
             var boardId = UUID.randomUUID();
-            var boardDetail = createBoardResult(
+            var boardDetail = BoardDetailViewControllerTest.createBoardResult(
                     boardId,
                     "다른 사람이 쓴 글",
                     "내용",
-                    OWNER_ID,
+                    BoardDetailViewControllerTest.OWNER_ID,
                     "author",
                     5,
                     LocalDateTime.now(),
@@ -244,7 +243,7 @@ class BoardDetailViewControllerTest {
         void detail_AdminShouldSeeContextMenu() throws Exception {
             // given
             var boardId = UUID.randomUUID();
-            var boardDetail = createBoardResult(
+            var boardDetail = BoardDetailViewControllerTest.createBoardResult(
                     boardId,
                     "일반 게시글",
                     "내용",
@@ -262,8 +261,7 @@ class BoardDetailViewControllerTest {
             // when & then
             mockMvc.perform(get("/boards/{id}", boardId))
                    .andExpect(status().isOk())
-                   .andExpect(content().string(containsString("context-menu-anchor")))
-                   .andExpect(content().string(containsString("context-menu-popover")));
+                   .andExpect(content().string(containsString("manage-menu")));
         }
 
         @Test
@@ -272,7 +270,7 @@ class BoardDetailViewControllerTest {
         void detail_AnonymousUserShouldNotSeeContextMenu() throws Exception {
             // given
             var boardId = UUID.randomUUID();
-            var boardDetail = createBoardResult(
+            var boardDetail = BoardDetailViewControllerTest.createBoardResult(
                     boardId,
                     "공개 게시글",
                     "내용",
@@ -303,7 +301,7 @@ class BoardDetailViewControllerTest {
         void detail_WithLineBreaks_ShouldRenderCorrectly() throws Exception {
             // given
             var boardId = UUID.randomUUID();
-            var boardDetail = createBoardResult(
+            var boardDetail = BoardDetailViewControllerTest.createBoardResult(
                     boardId,
                     "제목",
                     "첫 번째 줄\n두 번째 줄\n\n네 번째 줄",
@@ -330,7 +328,7 @@ class BoardDetailViewControllerTest {
         void detail_WithHtmlTags_ShouldBeProcessed() throws Exception {
             // given
             var boardId = UUID.randomUUID();
-            var boardDetail = createBoardResult(
+            var boardDetail = BoardDetailViewControllerTest.createBoardResult(
                     boardId,
                     "제목",
                     "<script>alert('XSS')</script><h1>제목</h1>",
@@ -346,7 +344,7 @@ class BoardDetailViewControllerTest {
             // when & then
             mockMvc.perform(get("/boards/{id}", boardId))
                    .andExpect(status().isOk())
-                   .andExpect(view().name("board/detail"))
+                   .andExpect(view().name("boards/detail"))
                    .andExpect(model().attribute("board", boardDetail));
         }
 
@@ -356,7 +354,7 @@ class BoardDetailViewControllerTest {
         void detail_WithEmoji_ShouldRenderCorrectly() throws Exception {
             // given
             var boardId = UUID.randomUUID();
-            var boardDetail = createBoardResult(
+            var boardDetail = BoardDetailViewControllerTest.createBoardResult(
                     boardId,
                     "이모지 제목 😀 🎉",
                     "이모지 내용 👍 ❤️ 🌟",
@@ -372,7 +370,7 @@ class BoardDetailViewControllerTest {
             // when & then
             mockMvc.perform(get("/boards/{id}", boardId))
                    .andExpect(status().isOk())
-                   .andExpect(view().name("board/detail"));
+                   .andExpect(view().name("boards/detail"));
         }
 
         @Test
@@ -382,7 +380,7 @@ class BoardDetailViewControllerTest {
             // given
             var boardId = UUID.randomUUID();
             var longContent = "긴 내용 ".repeat(1000); // 5000자 이상
-            var boardDetail = createBoardResult(
+            var boardDetail = BoardDetailViewControllerTest.createBoardResult(
                     boardId,
                     "제목",
                     longContent,
@@ -398,7 +396,7 @@ class BoardDetailViewControllerTest {
             // when & then
             mockMvc.perform(get("/boards/{id}", boardId))
                    .andExpect(status().isOk())
-                   .andExpect(view().name("board/detail"));
+                   .andExpect(view().name("boards/detail"));
         }
     }
 

@@ -12,8 +12,8 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -21,6 +21,7 @@ import dev.xiyo.bunnyholes.boardhole.user.application.command.UpdateUserCommand;
 import dev.xiyo.bunnyholes.boardhole.user.application.command.UserCommandService;
 import dev.xiyo.bunnyholes.boardhole.user.application.query.UserQueryService;
 import dev.xiyo.bunnyholes.boardhole.user.presentation.dto.UserResponse;
+import dev.xiyo.bunnyholes.boardhole.user.presentation.dto.UserUpdateRequest;
 import dev.xiyo.bunnyholes.boardhole.user.presentation.mapper.UserWebMapper;
 
 @Controller
@@ -55,33 +56,36 @@ public class UserDetailViewController {
         var result = userQueryService.getUser(username);
         UserResponse userResponse = userWebMapper.toResponse(result);
         model.addAttribute("user", userResponse);
-        return "user/detail";
+        return "users/detail";
     }
 
     @GetMapping("/me")
     @PreAuthorize("isAuthenticated()")
     public String getUserDetailPage() {
-        return "user/detail";
+        return "users/detail";
     }
 
-    @GetMapping("/me/edit")
-    @PreAuthorize("isAuthenticated()")
-    public String showEditForm(Model model) {
-        var user = (UserResponse) model.getAttribute("user");
-        model.addAttribute("updateUserRequest", new UpdateUserRequest(user.name()));
-        return "user/edit";
-    }
-
-    @PatchMapping("/me")
+    @PutMapping("/me")
     @PreAuthorize("isAuthenticated()")
     public String updateProfile(
-            @Valid @ModelAttribute("updateUserRequest") UpdateUserRequest request,
+            @Valid @ModelAttribute("updateRequest") UserUpdateRequest request,
             BindingResult bindingResult,
             @AuthenticationPrincipal UserDetails principal,
+            Model model,
             RedirectAttributes redirectAttributes
     ) {
-        if (bindingResult.hasErrors())
-            return "user/edit";
+        // 이름 중복 체크
+        if (!bindingResult.hasErrors() && userQueryService.isNameDuplicated(request.name(), principal.getUsername()))
+            bindingResult.rejectValue("name", "error.user.name.already-exists", "이미 사용 중인 이름입니다.");
+
+        if (bindingResult.hasErrors()) {
+            // 유효성 검증 실패 시 현재 사용자 정보를 다시 로드
+            var userResult = userQueryService.getUser(principal.getUsername());
+            var userResponse = userWebMapper.toResponse(userResult);
+            model.addAttribute("user", userResponse);
+            model.addAttribute("updateRequest", request); // 사용자 입력값 유지
+            return "users/detail";
+        }
 
         var command = new UpdateUserCommand(principal.getUsername(), request.name());
         userCommandService.update(command);

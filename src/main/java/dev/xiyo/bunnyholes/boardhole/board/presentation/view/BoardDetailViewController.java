@@ -41,6 +41,6 @@ public class BoardDetailViewController {
     public String detail(@PathVariable UUID id, Model model) {
         var board = boardQueryService.getBoard(id);
         model.addAttribute("board", board);
-        return "board/detail";
+        return "boards/detail";
     }
 }

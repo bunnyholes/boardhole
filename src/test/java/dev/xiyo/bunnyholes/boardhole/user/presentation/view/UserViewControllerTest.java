@@ -126,7 +126,7 @@ class UserViewControllerTest {
         // when & then
         mockMvc.perform(get("/users"))
                .andExpect(status().isOk())
-               .andExpect(view().name("user/users"))
+               .andExpect(view().name("users"))
                .andExpect(model().attribute("users", userPage));
     }
 
@@ -162,7 +162,7 @@ class UserViewControllerTest {
         // when & then
         mockMvc.perform(get("/users").param("page", "1"))
                .andExpect(status().isOk())
-               .andExpect(view().name("user/users"))
+               .andExpect(view().name("users"))
                .andExpect(model().attribute("users", pagedResults));
     }
 
@@ -182,7 +182,7 @@ class UserViewControllerTest {
         // when & then
         mockMvc.perform(get("/users"))
                .andExpect(status().isOk())
-               .andExpect(view().name("user/users"))
+               .andExpect(view().name("users"))
                .andExpect(model().attribute("users", emptyPage));
     }
 

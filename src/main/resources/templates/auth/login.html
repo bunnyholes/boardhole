@@ -3,8 +3,13 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <title>로그인 - boardholes</title>
+    <title>login - boardhole</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @view-transition {
+            navigation: auto;
+        }
+    </style>
 </head>
 <body class="bg-slate-50 text-slate-900">
 <div class="flex min-h-screen items-center justify-center px-4 py-12">
@@ -51,23 +56,24 @@
                     </p>
                 </div>
 
-                <button class="mt-8 w-full rounded-full bg-slate-900 px-6 py-3 text-base font-semibold text-white transition hover:bg-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/70 focus-visible:ring-offset-2" 
-                        type="submit">로그인</button>
+                <button class="mt-8 w-full rounded-full bg-slate-900 px-6 py-3 text-base font-semibold text-white transition hover:bg-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/70 focus-visible:ring-offset-2"
+                        type="submit">로그인
+                </button>
             </form>
 
             <div class="mt-8 text-center">
                 <p class="text-sm text-slate-500">
-                    계정이 없으신가요? 
-                    <a th:href="@{/auth/signup}" href="./signup.html" 
+                    계정이 없으신가요?
+                    <a th:href="@{/auth/signup}" href="./signup.html"
                        class="font-semibold text-slate-900 transition hover:text-slate-600">
                         회원가입
                     </a>
                 </p>
             </div>
         </div>
-        
+
         <div class="mt-6 text-center">
-            <a th:href="@{/}" href="../index.html" 
+            <a th:href="@{/}" href="../index.html"
                class="inline-flex items-center text-sm text-slate-500 transition hover:text-slate-700">
                 <svg aria-hidden="true" viewBox="0 0 24 24" class="mr-2 h-4 w-4" fill="none"
                      stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">

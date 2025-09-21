@@ -12,7 +12,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
@@ -20,6 +19,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.PermissionEvaluator;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -33,7 +33,6 @@ import dev.xiyo.bunnyholes.boardhole.board.presentation.mapper.BoardWebMapper;
 import dev.xiyo.bunnyholes.boardhole.shared.config.ViewSecurityConfig;
 import dev.xiyo.bunnyholes.boardhole.shared.config.log.RequestLoggingFilter;
 import dev.xiyo.bunnyholes.boardhole.shared.exception.GlobalExceptionHandler;
-import org.springframework.security.core.userdetails.UserDetails;
 import dev.xiyo.bunnyholes.boardhole.user.domain.Role;
 import dev.xiyo.bunnyholes.boardhole.user.domain.User;
 
@@ -139,10 +138,10 @@ class BoardWriteViewControllerTest {
     void showWriteForm_Authenticated_ShouldRenderWriteForm() throws Exception {
         mockMvc.perform(get("/boards/write"))
                .andExpect(status().isOk())
-               .andExpect(view().name("board/write"))
+               .andExpect(view().name("boards/write"))
                .andExpect(model().attributeExists("board"))
                .andExpect(model().attribute("board", BoardFormRequest.empty()))
-               .andExpect(content().string(containsString("글쓰기")))
+               .andExpect(content().string(containsString("게시글 작성하기")))
                .andExpect(content().string(containsString("제목")))
                .andExpect(content().string(containsString("내용")));
     }
@@ -177,9 +176,9 @@ class BoardWriteViewControllerTest {
         );
         var mockUser = createMockUser();
         UserDetails mockPrincipal = org.springframework.security.core.userdetails.User.withUsername(USERNAME)
-                                            .password(mockUser.getPassword())
-                                            .authorities("ROLE_USER")
-                                            .build();
+                                                                                      .password(mockUser.getPassword())
+                                                                                      .authorities("ROLE_USER")
+                                                                                      .build();
         var mockCommand = new CreateBoardCommand(USERNAME, "테스트 제목", "테스트 내용");
 
         when(boardWebMapper.toCreateCommand(any(BoardFormRequest.class), eq(USERNAME))).thenReturn(mockCommand);
@@ -202,9 +201,9 @@ class BoardWriteViewControllerTest {
         // given
         var mockUser = createMockUser();
         UserDetails mockPrincipal = org.springframework.security.core.userdetails.User.withUsername(USERNAME)
-                                            .password(mockUser.getPassword())
-                                            .authorities("ROLE_USER")
-                                            .build();
+                                                                                      .password(mockUser.getPassword())
+                                                                                      .authorities("ROLE_USER")
+                                                                                      .build();
 
         // when & then
         mockMvc.perform(post("/boards/write")
@@ -214,7 +213,7 @@ class BoardWriteViewControllerTest {
                        .param("title", "")
                        .param("content", "테스트 내용"))
                .andExpect(status().isOk())
-               .andExpect(view().name("board/write"))
+               .andExpect(view().name("boards/write"))
                .andExpect(model().attributeHasFieldErrors("board", "title"));
     }
 
@@ -224,9 +223,9 @@ class BoardWriteViewControllerTest {
         // given
         var mockUser = createMockUser();
         UserDetails mockPrincipal = org.springframework.security.core.userdetails.User.withUsername(USERNAME)
-                                            .password(mockUser.getPassword())
-                                            .authorities("ROLE_USER")
-                                            .build();
+                                                                                      .password(mockUser.getPassword())
+                                                                                      .authorities("ROLE_USER")
+                                                                                      .build();
 
         // when & then
         mockMvc.perform(post("/boards/write")
@@ -236,7 +235,7 @@ class BoardWriteViewControllerTest {
                        .param("title", "테스트 제목")
                        .param("content", ""))
                .andExpect(status().isOk())
-               .andExpect(view().name("board/write"))
+               .andExpect(view().name("boards/write"))
                .andExpect(model().attributeHasFieldErrors("board", "content"));
     }
 
@@ -246,9 +245,9 @@ class BoardWriteViewControllerTest {
         // given
         var mockUser = createMockUser();
         UserDetails mockPrincipal = org.springframework.security.core.userdetails.User.withUsername(USERNAME)
-                                            .password(mockUser.getPassword())
-                                            .authorities("ROLE_USER")
-                                            .build();
+                                                                                      .password(mockUser.getPassword())
+                                                                                      .authorities("ROLE_USER")
+                                                                                      .build();
 
         // when & then
         mockMvc.perform(post("/boards/write")
@@ -258,7 +257,7 @@ class BoardWriteViewControllerTest {
                        .param("title", "")
                        .param("content", ""))
                .andExpect(status().isOk())
-               .andExpect(view().name("board/write"))
+               .andExpect(view().name("boards/write"))
                .andExpect(model().attributeHasFieldErrors("board", "title"))
                .andExpect(model().attributeHasFieldErrors("board", "content"));
     }

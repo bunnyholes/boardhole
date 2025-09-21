@@ -45,7 +45,7 @@ public class BoardWriteViewController {
     @GetMapping
     public String showWriteForm(Model model) {
         model.addAttribute("board", BoardFormRequest.empty());
-        return "board/write";
+        return "boards/write";
     }
 
     /**
@@ -68,7 +68,7 @@ public class BoardWriteViewController {
             RedirectAttributes redirectAttributes
     ) {
         if (bindingResult.hasErrors())
-            return "board/write";
+            return "boards/write";
 
         var command = boardWebMapper.toCreateCommand(formRequest, principal.getUsername());
         var result = boardCommandService.create(command);

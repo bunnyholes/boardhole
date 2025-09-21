@@ -44,7 +44,7 @@ public class UserViewController {
     ) {
         var users = userQueryService.getUsers(pageable);
         model.addAttribute("users", users != null ? users : Collections.emptyList());
-        return "user/users";
+        return "users";
     }
 
 }

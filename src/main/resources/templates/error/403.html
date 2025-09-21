@@ -3,71 +3,79 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <title>접근 권한 없음 - boardholes</title>
+    <title>403 forbidden - boardhole</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @view-transition {
+            navigation: auto;
+        }
+    </style>
 </head>
 <body class="bg-slate-50 text-slate-900">
-    <!-- 메인 콘텐츠 -->
-    <main class=" min-h-screen flex items-center justify-center p-8">
-        <div class="max-w-2xl w-full">
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-12 text-center">
-                <!-- 에러 아이콘 -->
-                <div class="mb-8 flex justify-center">
-                    <div class="h-24 w-24 rounded-full bg-red-50 flex items-center justify-center">
-                        <svg class="h-12 w-12 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
-                        </svg>
-                    </div>
-                </div>
-
-                <!-- 에러 코드 -->
-                <div class="mb-4">
-                    <span class="text-6xl font-bold bg-gradient-to-r from-red-500 to-red-700 bg-clip-text text-transparent">403</span>
-                </div>
-
-                <!-- 에러 제목 -->
-                <h1 class="text-2xl font-bold text-slate-900 mb-3">접근 권한이 없습니다</h1>
-                
-                <!-- 에러 설명 -->
-                <p class="text-slate-600 mb-8">
-                    <span th:if="${error}" th:text="${error}">이 페이지에 접근할 권한이 없습니다.</span>
-                    <span th:unless="${error}">해당 리소스에 대한 접근 권한이 부족합니다.</span>
-                </p>
-
-                <!-- 추가 정보 -->
-                <div class="space-y-2 mb-8">
-                    <div th:if="${path}" class="text-sm text-slate-500">
-                        요청 경로: <code class="px-2 py-1 bg-slate-100 rounded text-slate-700" th:text="${path}">/unknown</code>
-                    </div>
-                    <div th:if="${timestamp}" class="text-sm text-slate-500">
-                        발생 시간: 
-                        <time th:text="${timestamp instanceof T(java.time.temporal.TemporalAccessor) ? #temporals.format(timestamp, 'yyyy-MM-dd HH:mm:ss') : (timestamp instanceof T(java.util.Date) ? #dates.format(timestamp, 'yyyy-MM-dd HH:mm:ss') : timestamp)}">
-                            2025-01-01 00:00:00
-                        </time>
-                    </div>
-                </div>
-
-                <!-- 액션 버튼들 -->
-                <div class="flex justify-center">
-                    <a th:href="@{/}" href="/"
-                       class="inline-flex items-center justify-center px-6 py-3 rounded-xl bg-blue-600 text-white font-medium transition-all duration-150 hover:bg-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
-                        <svg class="mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                        </svg>
-                        홈으로 돌아가기
-                    </a>
+<!-- 메인 콘텐츠 -->
+<main class=" min-h-screen flex items-center justify-center p-8">
+    <div class="max-w-2xl w-full">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-12 text-center">
+            <!-- 에러 아이콘 -->
+            <div class="mb-8 flex justify-center">
+                <div class="h-24 w-24 rounded-full bg-red-50 flex items-center justify-center">
+                    <svg class="h-12 w-12 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                         stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+                    </svg>
                 </div>
             </div>
 
-            <!-- 도움말 -->
-            <div class="mt-8 text-center">
-                <p class="text-sm text-slate-500">
-                    계속해서 문제가 발생하시면 
-                    <a href="mailto:support@xiyo.dev" class="text-blue-600 hover:underline">support@xiyo.dev</a>로 
-                    문의해주세요.
-                </p>
+            <!-- 에러 코드 -->
+            <div class="mb-4">
+                <span class="text-6xl font-bold bg-gradient-to-r from-red-500 to-red-700 bg-clip-text text-transparent">403</span>
+            </div>
+
+            <!-- 에러 제목 -->
+            <h1 class="text-2xl font-bold text-slate-900 mb-3">접근 권한이 없습니다</h1>
+
+            <!-- 에러 설명 -->
+            <p class="text-slate-600 mb-8">
+                <span th:if="${error}" th:text="${error}">이 페이지에 접근할 권한이 없습니다.</span>
+                <span th:unless="${error}">해당 리소스에 대한 접근 권한이 부족합니다.</span>
+            </p>
+
+            <!-- 추가 정보 -->
+            <div class="space-y-2 mb-8">
+                <div th:if="${path}" class="text-sm text-slate-500">
+                    요청 경로: <code class="px-2 py-1 bg-slate-100 rounded text-slate-700" th:text="${path}">/unknown</code>
+                </div>
+                <div th:if="${timestamp}" class="text-sm text-slate-500">
+                    발생 시간:
+                    <time th:text="${timestamp instanceof T(java.time.temporal.TemporalAccessor) ? #temporals.format(timestamp, 'yyyy-MM-dd HH:mm:ss') : (timestamp instanceof T(java.util.Date) ? #dates.format(timestamp, 'yyyy-MM-dd HH:mm:ss') : timestamp)}">
+                        2025-01-01 00:00:00
+                    </time>
+                </div>
+            </div>
+
+            <!-- 액션 버튼들 -->
+            <div class="flex justify-center">
+                <a th:href="@{/}" href="/"
+                   class="inline-flex items-center justify-center px-6 py-3 rounded-xl bg-blue-600 text-white font-medium transition-all duration-150 hover:bg-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
+                    <svg class="mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                    </svg>
+                    홈으로 돌아가기
+                </a>
             </div>
         </div>
-    </main>
+
+        <!-- 도움말 -->
+        <div class="mt-8 text-center">
+            <p class="text-sm text-slate-500">
+                계속해서 문제가 발생하시면
+                <a href="mailto:support@xiyo.dev" class="text-blue-600 hover:underline">support@xiyo.dev</a>로
+                문의해주세요.
+            </p>
+        </div>
+    </div>
+</main>
 </body>
 </html>

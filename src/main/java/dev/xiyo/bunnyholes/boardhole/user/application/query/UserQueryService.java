@@ -13,6 +13,7 @@ import dev.xiyo.bunnyholes.boardhole.shared.exception.ResourceNotFoundException;
 import dev.xiyo.bunnyholes.boardhole.shared.util.MessageUtils;
 import dev.xiyo.bunnyholes.boardhole.user.application.mapper.UserMapper;
 import dev.xiyo.bunnyholes.boardhole.user.application.result.UserResult;
+import dev.xiyo.bunnyholes.boardhole.user.domain.User;
 import dev.xiyo.bunnyholes.boardhole.user.infrastructure.UserRepository;
 
 /**
@@ -99,6 +100,25 @@ public class UserQueryService {
     @Transactional(readOnly = true)
     public Long getActiveUserCount() {
         return userRepository.count();
+    }
+
+    /**
+     * 이름 중복 체크
+     *
+     * @param name 확인할 이름
+     * @param excludeUsername 제외할 사용자명 (자기 자신 제외)
+     * @return 중복되면 true, 사용 가능하면 false
+     */
+    @Transactional(readOnly = true)
+    public boolean isNameDuplicated(String name, String excludeUsername) {
+        // 현재 사용자와 같은 이름인지 확인
+        User currentUser = userRepository.findByUsername(excludeUsername).orElse(null);
+        if (currentUser != null && currentUser.getName().equals(name)) {
+            return false; // 자기 자신의 현재 이름과 같으면 중복이 아님
+        }
+        
+        // 다른 사용자가 이 이름을 사용하는지 확인
+        return userRepository.existsByName(name);
     }
 
 }

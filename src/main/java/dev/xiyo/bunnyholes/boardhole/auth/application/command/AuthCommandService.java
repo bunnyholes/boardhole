@@ -41,7 +41,7 @@ public class AuthCommandService {
     private final SecurityContextRepository securityContextRepository;
     private final UserCommandService userCommandService;
 
-    @Transactional(readOnly = true)
+    @Transactional
     public void login(@Valid LoginCommand cmd) {
         try {
             UserDetails principal = authenticate(cmd);
@@ -53,7 +53,7 @@ public class AuthCommandService {
         }
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public void login(String username) {
         UserDetails principal = loadPrincipal(username);
         storeAuthentication(principal);

@@ -54,7 +54,7 @@ public class BoardEditViewController {
     public String showEditForm(@PathVariable UUID id, Model model) {
         var board = boardQueryService.getBoard(id);
         model.addAttribute("board", boardWebMapper.toFormRequest(board));
-        return "board/edit";
+        return "boards/edit";
     }
 
     /**
@@ -81,7 +81,7 @@ public class BoardEditViewController {
             RedirectAttributes redirectAttributes
     ) {
         if (bindingResult.hasErrors())
-            return "board/edit";
+            return "boards/edit";
 
         var command = boardWebMapper.toUpdateCommand(id, formRequest);
         boardCommandService.update(command);

@@ -11,7 +11,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
@@ -131,7 +130,7 @@ class BoardEditViewControllerTest {
         // when & then
         mockMvc.perform(get("/boards/{id}/edit", BOARD_ID))
                .andExpect(status().isOk())
-               .andExpect(view().name("board/edit"))
+               .andExpect(view().name("boards/edit"))
                .andExpect(model().attributeExists("board"))
                .andExpect(model().attribute("board", formRequest));
     }
@@ -218,7 +217,7 @@ class BoardEditViewControllerTest {
                        .param("title", "") // 빈 제목
                        .param("content", "수정된 내용"))
                .andExpect(status().isOk())
-               .andExpect(view().name("board/edit"))
+               .andExpect(view().name("boards/edit"))
                .andExpect(model().hasErrors());
     }
 
@@ -323,7 +322,7 @@ class BoardEditViewControllerTest {
                        .param("title", tooLongTitle)
                        .param("content", "정상 내용"))
                .andExpect(status().isOk())
-               .andExpect(view().name("board/edit"))
+               .andExpect(view().name("boards/edit"))
                .andExpect(model().hasErrors());
     }
 
@@ -342,7 +341,7 @@ class BoardEditViewControllerTest {
                        .param("title", "   ")  // 공백만
                        .param("content", "정상 내용"))
                .andExpect(status().isOk())
-               .andExpect(view().name("board/edit"))
+               .andExpect(view().name("boards/edit"))
                .andExpect(model().hasErrors());
     }
 
@@ -383,7 +382,7 @@ class BoardEditViewControllerTest {
                        .param("title", "정상 제목")
                        .param("content", tooLongContent))
                .andExpect(status().isOk())
-               .andExpect(view().name("board/edit"))
+               .andExpect(view().name("boards/edit"))
                .andExpect(model().hasErrors());
     }
 
@@ -402,7 +401,7 @@ class BoardEditViewControllerTest {
                        .param("title", "정상 제목")
                        .param("content", "   "))  // 공백만
                .andExpect(status().isOk())
-               .andExpect(view().name("board/edit"))
+               .andExpect(view().name("boards/edit"))
                .andExpect(model().hasErrors());
     }
 

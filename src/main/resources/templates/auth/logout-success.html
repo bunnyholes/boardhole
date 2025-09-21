@@ -3,8 +3,13 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <title>로그아웃 완료 - boardholes</title>
+    <title>logout success - boardhole</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @view-transition {
+            navigation: auto;
+        }
+    </style>
 </head>
 <body class="bg-slate-50 text-slate-900">
 <div class="flex min-h-screen items-center justify-center px-4 py-12">
@@ -20,7 +25,7 @@
                 <h1 class="text-3xl font-semibold text-slate-900">로그아웃 완료</h1>
                 <p class="mt-2 text-base text-slate-500">다시 방문하실 때까지 기다릴게요.</p>
             </div>
-            
+
             <a th:href="@{/}" href="../index.html"
                class="block w-full rounded-full bg-slate-900 px-6 py-3 text-base font-semibold text-white transition hover:bg-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/70 focus-visible:ring-offset-2">
                 홈으로 이동

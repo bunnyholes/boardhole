@@ -27,6 +27,7 @@ import org.springframework.security.web.savedrequest.NullRequestCache;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import dev.xiyo.bunnyholes.boardhole.auth.infrastructure.security.CustomAuthenticationSuccessHandler;
 import dev.xiyo.bunnyholes.boardhole.shared.constants.ApiPaths;
 import dev.xiyo.bunnyholes.boardhole.shared.security.ProblemDetailsAccessDeniedHandler;
 import dev.xiyo.bunnyholes.boardhole.shared.security.ProblemDetailsAuthenticationEntryPoint;
@@ -111,7 +112,8 @@ public class SecurityConfig {
     public SecurityFilterChain webFilterChain(
             HttpSecurity http,
             SecurityContextRepository securityContextRepository,
-            LoginUrlAuthenticationEntryPoint loginUrlAuthenticationEntryPoint
+            LoginUrlAuthenticationEntryPoint loginUrlAuthenticationEntryPoint,
+            CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler
     ) throws Exception {
         http
                 .csrf(Customizer.withDefaults())  // CSRF 기본값 사용
@@ -138,6 +140,7 @@ public class SecurityConfig {
                 .formLogin(form -> form
                         .loginPage("/auth/login")
                         .loginProcessingUrl("/auth/login")
+                        .successHandler(customAuthenticationSuccessHandler)  // 커스텀 성공 핸들러 추가
                         .failureUrl("/auth/login?error")
                         .defaultSuccessUrl("/boards")
                         .permitAll())
