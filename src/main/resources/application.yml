@@ -23,6 +23,16 @@ spring:
     hiddenmethod:
       filter:
         enabled: true  # HTML 폼에서 PUT, DELETE 등의 HTTP 메서드 사용 가능
+  
+  # Thymeleaf 설정 (개발 편의성 향상)
+  thymeleaf:
+    cache: false  # 개발 시 템플릿 캐시 비활성화 (hot reload 활성화)
+    prefix: classpath:/templates/  # 템플릿 위치
+    suffix: .html  # 템플릿 확장자
+    mode: HTML  # HTML5 모드
+    encoding: UTF-8
+    servlet:
+      content-type: text/html
 
 # ========================================
 # 서버 전역 인코딩 설정

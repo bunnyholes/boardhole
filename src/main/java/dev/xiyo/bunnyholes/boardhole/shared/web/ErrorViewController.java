@@ -15,6 +15,20 @@ import dev.xiyo.bunnyholes.boardhole.shared.util.MessageUtils;
 @RequestMapping("/error")
 public class ErrorViewController {
 
+    @GetMapping("/400")
+    public String badRequest(Model model, HttpServletRequest request) {
+        if (!model.containsAttribute("error")) {
+            model.addAttribute("error", MessageUtils.get("error.bad-request"));
+        }
+        if (!model.containsAttribute("path")) {
+            model.addAttribute("path", request.getRequestURI());
+        }
+        if (!model.containsAttribute("timestamp")) {
+            model.addAttribute("timestamp", Instant.now());
+        }
+        return "error/400";
+    }
+
     @GetMapping("/403")
     public String forbidden(Model model, HttpServletRequest request) {
         if (!model.containsAttribute("error")) {

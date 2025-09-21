@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html data-theme="auto"
+      lang="ko"
+      th:replace="~{fragments/base :: layout(title='잘못된 요청', content=~{::main}, contextMenu=~{})}"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>잘못된 요청 - boardholes</title>
+</head>
+
+<main>
+    <article class="contrast">
+        <header>
+            <h1>400 - 잘못된 요청</h1>
+            <p>요청 형식이 올바르지 않습니다.</p>
+        </header>
+
+        <p>
+            <span th:if="${error}" th:text="${error}">잘못된 요청 형식입니다.</span>
+            <span th:unless="${error}">서버가 요청을 이해할 수 없습니다.</span>
+        </p>
+
+        <p th:if="${path}">
+            <small>요청 경로: <code th:text="${path}">/invalid</code></small>
+        </p>
+
+        <section>
+            <h2>가능한 원인</h2>
+            <ul>
+                <li>URL의 형식이 올바르지 않을 수 있습니다.</li>
+                <li>필수 파라미터가 누락되었을 수 있습니다.</li>
+                <li>잘못된 데이터 타입이 전달되었을 수 있습니다.</li>
+                <li>URL을 직접 입력한 경우 다시 확인해주세요.</li>
+            </ul>
+        </section>
+
+        <footer>
+            <nav>
+                <ul>
+                    <li><a class="secondary" href="/boards" role="button">게시판으로</a></li>
+                    <li><a href="/" role="button">홈으로 돌아가기</a></li>
+                </ul>
+            </nav>
+        </footer>
+    </article>
+</main>
+</html>

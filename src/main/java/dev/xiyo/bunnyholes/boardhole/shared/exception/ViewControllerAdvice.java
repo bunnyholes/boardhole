@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.beans.TypeMismatchException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.ui.Model;
@@ -105,6 +106,33 @@ public class ViewControllerAdvice {
         redirectAttributes.addFlashAttribute("path", request.getRequestURI());
         redirectAttributes.addFlashAttribute("timestamp", Instant.now());
         return "redirect:/error/403";
+    }
+
+    /**
+     * 타입 불일치 처리 (400 에러)
+     * <p>
+     * 잘못된 타입의 파라미터나 경로 변수 전달 시 400 에러 페이지로 리디렉트합니다.
+     * 주로 UUID 형식 오류 등에서 발생합니다.
+     *
+     * @param ex                 발생한 예외
+     * @param redirectAttributes 플래시 메시지 전달용
+     * @param request            HTTP 요청 정보
+     * @return 400 에러 페이지 리디렉트 URL
+     */
+    @ExceptionHandler(TypeMismatchException.class)
+    public String handleTypeMismatch(
+            TypeMismatchException ex,
+            RedirectAttributes redirectAttributes,
+            HttpServletRequest request
+    ) {
+        log.warn("🚨 400 error in view: path={}, type={}, value={}",
+                request.getRequestURI(), ex.getRequiredType(), ex.getValue());
+
+        redirectAttributes.addFlashAttribute("error", MessageUtils.get("error.bad-request"));
+        redirectAttributes.addFlashAttribute("path", request.getRequestURI());
+        redirectAttributes.addFlashAttribute("timestamp", Instant.now());
+
+        return "redirect:/error/400";
     }
 
     /**
