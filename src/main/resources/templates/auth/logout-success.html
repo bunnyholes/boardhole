@@ -1,24 +1,32 @@
 <!DOCTYPE html>
-<html lang="ko" th:replace="~{fragments/base :: layout(title='로그아웃 완료', content=~{::article}, contextMenu=~{})}"
-      xmlns:th="http://www.thymeleaf.org">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>로그아웃 완료</title>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>로그아웃 완료 - boardholes</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-<article>
-    <header>
-        <hgroup>
-            <h1>로그아웃 완료</h1>
-            <p>다시 방문하실 때까지 기다릴게요.</p>
-        </hgroup>
-    </header>
-
-    <p class="pico-color-cyan-700" role="status">정상적으로 로그아웃되었습니다.</p>
-
-    <footer>
-        <a class="primary" role="button" th:href="@{/auth/login}">다시 로그인하기</a>
-        <a class="secondary" role="button" th:href="@{/}">홈으로 이동</a>
-    </footer>
-</article>
+<body class="bg-slate-50 text-slate-900">
+<div class="flex min-h-screen items-center justify-center px-4 py-12">
+    <div class="w-full max-w-md text-center">
+        <div class="rounded-3xl bg-white p-10 shadow-2xl">
+            <div class="mb-8">
+                <div class="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-green-100">
+                    <svg aria-hidden="true" viewBox="0 0 24 24" class="h-10 w-10 text-green-600" fill="none"
+                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                </div>
+                <h1 class="text-3xl font-semibold text-slate-900">로그아웃 완료</h1>
+                <p class="mt-2 text-base text-slate-500">다시 방문하실 때까지 기다릴게요.</p>
+            </div>
+            
+            <a th:href="@{/}" href="../index.html"
+               class="block w-full rounded-full bg-slate-900 px-6 py-3 text-base font-semibold text-white transition hover:bg-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/70 focus-visible:ring-offset-2">
+                홈으로 이동
+            </a>
+        </div>
+    </div>
+</div>
 </body>
 </html>

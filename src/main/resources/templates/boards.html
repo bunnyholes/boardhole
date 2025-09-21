@@ -1,159 +1,366 @@
 <!DOCTYPE html>
-<html lang="ko"
-      th:replace="~{fragments/base :: layout(title='게시판', content=~{::section}, contextMenu=~{::contextMenu})}"
-      xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:th="http://www.thymeleaf.org">
+<html lang="ko">
 <head>
-    <title>게시판</title>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Boards Layout Preview</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-<!-- 컨텍스트 메뉴 Fragment (헤더에 주입될 부분) -->
-<th:block th:fragment="contextMenu">
-    <li>
-        <button id="context-menu-anchor" popovertarget="context-menu-popover"
-                class="secondary outline"
-                aria-label="메뉴" title="메뉴">
-            ⚙️
-        </button>
-    </li>
-</th:block>
-
-<section class="board-page">
-    <header>
-        <hgroup>
-            <h1>게시판</h1>
-            <p class="board-subtitle">전체 게시글을 한곳에서 탐색하고 원하는 글을 바로 찾아보세요.</p>
-        </hgroup>
+<body class="bg-slate-50 text-slate-900">
+<aside class="fixed left-0 top-0 flex h-screen w-20 flex-col items-center gap-6 border-r border-slate-200 bg-white pb-8">
+    <header class="w-full h-20 border-b border-slate-200 bg-white/80">
+        <a class=" w-full h-full block text-center content-center font-medium text-slate-700 transition hover:bg-slate-100"
+           th:href="@{/}" href="./index.html">
+            BH
+        </a>
     </header>
 
-    <section class="board-content" th:unless="${#lists.isEmpty(boards.content)}">
-        <table class="striped">
-            <thead>
-            <tr>
-                <th scope="col">번호</th>
-                <th scope="col">제목</th>
-                <th scope="col">작성자</th>
-                <th scope="col">작성일</th>
-                <th scope="col">조회</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="board, iterStat : ${boards.content}">
-                <td th:text="${boards.totalElements - (boards.number * boards.size) - iterStat.index}">1</td>
-                <td>
-                    <a th:href="@{/boards/{id}(id=${board.id})}"
-                       th:text="${board.title}"
-                       th:title="${board.title}">
-                        게시글 제목
-                    </a>
-                </td>
-                <td th:text="${board.authorName}">작성자</td>
-                <td>
-                    <time th:datetime="${board.createdAt}"
-                          th:text="${#temporals.format(board.createdAt, 'MM-dd HH:mm')}">01-15 14:30
-                    </time>
-                </td>
-                <td th:text="${board.viewCount}">123</td>
-            </tr>
-            </tbody>
-        </table>
-
-        <nav aria-label="페이지네이션">
-            <!-- 페이지 그룹 계산 (10개 단위) -->
-            <th:block th:with="currentGroup=${boards.number / 10},
-                               startPage=${currentGroup * 10},
-                               endPage=${T(java.lang.Math).min(startPage + 9, T(java.lang.Math).max(0, boards.totalPages - 1))},
-                               displayTotalPages=${T(java.lang.Math).max(1, boards.totalPages)}">
-
-                <!-- 이전 페이지 버튼 (항상 표시) -->
-                <a th:href="@{/boards(page=${boards.number - 1}, search=${search})}"
-                   th:class="${(boards.first or displayTotalPages <= 1) ? 'outline secondary' : 'outline'}"
-                   th:aria-disabled="${boards.first or displayTotalPages <= 1}"
-                   th:style="${(boards.first or displayTotalPages <= 1) ? 'pointer-events: none; opacity: 0.5;' : ''}"
-                   role="button"
-                   aria-label="이전 페이지">
-                    ← 이전
-                </a>
-
-                <!-- 페이지 번호들 (10개 단위 그룹) -->
-                <div style="text-align: center; display: inline-block;">
-                    <!-- 데이터가 없을 때도 최소 1페이지 표시 -->
-                    <th:block th:if="${displayTotalPages == 1 and boards.totalPages == 0}">
-                        <a class="contrast"
-                           role="button"
-                           style="display: inline-block; margin: 0 0.25rem; pointer-events: none;">
-                            1
-                        </a>
-                    </th:block>
-
-                    <!-- 실제 페이지들 표시 -->
-                    <th:block th:if="${boards.totalPages > 0}">
-                        <a th:each="pageNum : ${#numbers.sequence(startPage, endPage)}"
-                           th:href="@{/boards(page=${pageNum}, search=${search})}"
-                           th:aria-current="${pageNum == boards.number ? 'page' : null}"
-                           th:aria-label="|${pageNum + 1}페이지|"
-                           th:class="${pageNum == boards.number ? 'contrast' : 'outline secondary'}"
-                           th:text="${pageNum + 1}"
-                           role="button"
-                           style="display: inline-block; margin: 0 0.25rem;">
-                            1
-                        </a>
-                    </th:block>
-                </div>
-
-                <!-- 다음 페이지 버튼 (항상 표시) -->
-                <a th:href="@{/boards(page=${boards.number + 1}, search=${search})}"
-                   th:class="${(boards.last or displayTotalPages <= 1) ? 'outline secondary' : 'outline'}"
-                   th:aria-disabled="${boards.last or displayTotalPages <= 1}"
-                   th:style="${(boards.last or displayTotalPages <= 1) ? 'pointer-events: none; opacity: 0.5;' : ''}"
-                   role="button"
-                   aria-label="다음 페이지">
-                    다음 →
-                </a>
-            </th:block>
-        </nav>
-
-    </section>
-
-    <!-- 컨텍스트 메뉴 Popover -->
-    <aside class="pico-background-zinc-500" id="context-menu-popover" popover="auto">
-        <nav>
-            <ul>
-                <li>
-                    <button
-                            command="show-modal" commandfor="search-dialog">
-                        🔍 검색
+    <div class="tip-wrapper relative inline-flex group/tip">
+        <a class="tip-anchor flex h-10 w-10 items-center justify-center rounded-full border border-transparent transition-all duration-150 hover:border-slate-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:color-mix(in_srgb,white_60%,#2563eb)] [anchor-name:--tip-profile]"
+           th:href="@{/users/me}" href="./users/detail.html"
+           aria-label="Profile" aria-describedby="tip-profile">
+            <img class="h-10 w-10 rounded-full object-cover"
+                 src="https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=160&q=60"
+                 alt="Profile"/>
+        </a>
+        <div id="tip-profile" role="tooltip"
+             class="tip-tooltip pointer-events-none absolute z-10 overflow-hidden rounded-xl bg-slate-900/90 px-3 py-2 text-xs font-medium text-white opacity-0 invisible delay-150 [transition-property:opacity,visibility] duration-150 [transition-behavior:allow-discrete] [position-anchor:--tip-profile] [top:anchor(center)] [left:calc(anchor(end)+12px)] [translate:0_-50%] whitespace-nowrap text-left leading-5 text-ellipsis [max-inline-size:clamp(8rem,30vw,12rem)] group-hover/tip:delay-0 group-hover/tip:opacity-100 group-hover/tip:visible group-focus-visible/tip:delay-0 group-focus-visible/tip:opacity-100 group-focus-visible/tip:visible">
+            Profile
+        </div>
+    </div>
+    <nav class="flex w-full flex-col items-center gap-6 text-slate-500">
+        <div class="flex w-full flex-col items-center gap-4">
+            <div class="flex w-full justify-center">
+                <div class="tip-wrapper relative inline-flex group/tip">
+                    <button popovertarget="searchPopover" popovertargetaction="toggle"
+                            class="tip-anchor flex h-10 w-10 items-center justify-center rounded-xl border border-transparent text-slate-400 transition-all duration-150 hover:border-slate-200 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:color-mix(in_srgb,white_60%,#2563eb)] [anchor-name:--tip-search]"
+                            aria-label="검색 열기" aria-describedby="tip-search">
+                        <svg aria-hidden="true" viewBox="0 0 24 24" class="h-5 w-5" fill="none"
+                             stroke="currentColor" stroke-width="1.75" stroke-linecap="round"
+                             stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="6"/>
+                            <line x1="16.5" y1="16.5" x2="20" y2="20"/>
+                        </svg>
                     </button>
-                </li>
-                <li>
-                    <a sec:authorize="isAuthenticated()" href="/boards/write" role="button">
-                        ✍️ 새 글 작성
+                    <div id="tip-search" role="tooltip"
+                         class="tip-tooltip pointer-events-none absolute z-10 overflow-hidden rounded-xl bg-slate-900/90 px-3 py-2 text-xs font-medium text-white opacity-0 invisible delay-150 [transition-property:opacity,visibility] duration-150 [transition-behavior:allow-discrete] [position-anchor:--tip-search] [top:anchor(center)] [left:calc(anchor(end)+12px)] [translate:0_-50%] whitespace-nowrap text-left leading-5 text-ellipsis [max-inline-size:clamp(8rem,30vw,12rem)] group-hover/tip:delay-0 group-hover/tip:opacity-100 group-hover/tip:visible group-focus-visible/tip:delay-0 group-focus-visible/tip:opacity-100 group-focus-visible/tip:visible">
+                        검색
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="h-px w-10 rounded-full bg-slate-200"></div>
+        <div class="flex w-full flex-col items-center gap-4">
+            <div class="flex w-full justify-center">
+                <div class="tip-wrapper relative inline-flex group/tip">
+                    <a class="tip-anchor flex h-10 w-10 items-center justify-center rounded-xl border border-transparent text-slate-400 transition-all duration-150 hover:border-slate-200 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:color-mix(in_srgb,white_60%,#2563eb)] [anchor-name:--tip-board]"
+                       th:href="@{/boards}" href="./boards.html"
+                       aria-label="게시판" aria-describedby="tip-board">
+                        <svg aria-hidden="true" viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor"
+                             stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="4" y="3" width="14" height="18" rx="2"/>
+                            <line x1="8" y1="3" x2="8" y2="21"/>
+                            <line x1="11.5" y1="8" x2="16" y2="8"/>
+                            <line x1="11.5" y1="12" x2="16" y2="12"/>
+                        </svg>
                     </a>
+                    <div id="tip-board" role="tooltip"
+                         class="tip-tooltip pointer-events-none absolute z-10 overflow-hidden rounded-xl bg-slate-900/90 px-3 py-2 text-xs font-medium text-white opacity-0 invisible delay-150 [transition-property:opacity,visibility] duration-150 [transition-behavior:allow-discrete] [position-anchor:--tip-board] [top:anchor(center)] [left:calc(anchor(end)+12px)] [translate:0_-50%] whitespace-nowrap text-left leading-5 text-ellipsis [max-inline-size:clamp(8rem,30vw,12rem)] group-hover/tip:delay-0 group-hover/tip:opacity-100 group-hover/tip:visible group-focus-visible/tip:delay-0 group-focus-visible/tip:opacity-100 group-focus-visible/tip:visible">
+                        게시판
+                    </div>
+                </div>
+            </div>
+            <div class="flex w-full justify-center"
+                 th:if="${#authorization.expression('hasRole(''ADMIN'')')}">
+                <div class="tip-wrapper relative inline-flex group/tip">
+                    <a class="tip-anchor flex h-10 w-10 items-center justify-center rounded-xl border border-transparent text-slate-400 transition-all duration-150 hover:border-slate-200 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:color-mix(in_srgb,white_60%,#2563eb)] [anchor-name:--tip-users]"
+                       th:href="@{/users}" href="./users.html"
+                       aria-label="사용자 관리" aria-describedby="boards-tip-users">
+                        <svg aria-hidden="true" viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor"
+                             stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                            <circle cx="8.5" cy="7" r="4"/>
+                            <path d="M20 8v6"/>
+                            <path d="M23 11h-6"/>
+                        </svg>
+                    </a>
+                    <div id="boards-tip-users" role="tooltip"
+                         class="tip-tooltip pointer-events-none absolute z-10 overflow-hidden rounded-xl bg-slate-900/90 px-3 py-2 text-xs font-medium text-white opacity-0 invisible delay-150 [transition-property:opacity,visibility] duration-150 [transition-behavior:allow-discrete] [position-anchor:--tip-users] [top:anchor(center)] [left:calc(anchor(end)+12px)] [translate:0_-50%] whitespace-nowrap text-left leading-5 text-ellipsis [max-inline-size:clamp(8rem,30vw,12rem)] group-hover/tip:delay-0 group-hover/tip:opacity-100 group-hover/tip:visible group-focus-visible/tip:delay-0 group-focus-visible/tip:opacity-100 group-focus-visible/tip:visible">
+                        사용자 관리
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <div class="mt-auto flex flex-col items-center gap-6 text-slate-400">
+        <div class="tip-wrapper relative inline-flex group/tip">
+            <button class="tip-anchor flex h-10 w-10 items-center justify-center rounded-xl border border-transparent text-slate-400 transition-all duration-150 hover:border-amber-300 hover:text-amber-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:color-mix(in_srgb,white_60%,#2563eb)] [anchor-name:--tip-notification]"
+                    aria-label="알림" aria-describedby="tip-notification">
+                <svg aria-hidden="true" viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor"
+                     stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M6 10a6 6 0 0112 0v4.5l1.5 1.5H4.5L6 14.5z"/>
+                    <path d="M9.5 19a2.5 2.5 0 005 0"/>
+                </svg>
+            </button>
+            <div id="tip-notification" role="tooltip"
+                 class="tip-tooltip pointer-events-none absolute z-10 overflow-hidden rounded-xl bg-slate-900/90 px-3 py-2 text-xs font-medium text-white opacity-0 invisible delay-150 [transition-property:opacity,visibility] duration-150 [transition-behavior:allow-discrete] [position-anchor:--tip-notification] [top:anchor(center)] [left:calc(anchor(end)+12px)] [translate:0_-50%] whitespace-nowrap text-left leading-5 text-ellipsis [max-inline-size:clamp(8rem,30vw,12rem)] group-hover/tip:delay-0 group-hover/tip:opacity-100 group-hover/tip:visible group-focus-visible/tip:delay-0 group-focus-visible/tip:opacity-100 group-focus-visible/tip:visible">
+                Notifications
+            </div>
+        </div>
+        <div class="tip-wrapper relative inline-flex group/tip"
+             th:if="${#authentication?.principal != null and #authentication?.principal != 'anonymousUser'}">
+            <button popovertarget="logoutPopover" popovertargetaction="toggle"
+                    class="tip-anchor flex h-10 w-10 items-center justify-center rounded-xl border border-transparent text-slate-400 transition-all duration-150 hover:border-slate-200 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:color-mix(in_srgb,white_60%,#2563eb)] [anchor-name:--tip-logout]"
+                    aria-label="로그아웃" aria-describedby="tip-logout">
+                <svg aria-hidden="true" viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor"
+                     stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 5H5a2 2 0 00-2 2v10a2 2 0 002 2h4"/>
+                    <polyline points="16 17 21 12 16 7"/>
+                    <line x1="21" y1="12" x2="9" y2="12"/>
+                </svg>
+            </button>
+            <div id="tip-logout" role="tooltip"
+                 class="tip-tooltip pointer-events-none absolute z-10 overflow-hidden rounded-xl bg-slate-900/90 px-3 py-2 text-xs font-medium text-white opacity-0 invisible delay-150 [transition-property:opacity,visibility] duration-150 [transition-behavior:allow-discrete] [position-anchor:--tip-logout] [top:anchor(center)] [left:calc(anchor(end)+12px)] [translate:0_-50%] whitespace-nowrap text-left leading-5 text-ellipsis [max-inline-size:clamp(8rem,30vw,12rem)] group-hover/tip:delay-0 group-hover/tip:opacity-100 group-hover/tip:visible group-focus-visible/tip:delay-0 group-focus-visible/tip:opacity-100 group-focus-visible/tip:visible">
+                로그아웃
+            </div>
+        </div>
+        <div class="tip-wrapper relative inline-flex group/tip"
+             th:if="${#authentication == null or #authentication?.principal == null or #authentication?.principal == 'anonymousUser'}">
+            <a th:href="@{/auth/signup}" href="../auth/signup.html"
+               class="tip-anchor flex h-10 w-10 items-center justify-center rounded-xl border border-transparent text-slate-400 transition-all duration-150 hover:border-slate-200 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:color-mix(in_srgb,white_60%,#2563eb)] [anchor-name:--tip-signup]"
+               aria-label="회원가입" aria-describedby="tip-signup">
+                <svg aria-hidden="true" viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor"
+                     stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 12a4 4 0 100-8 4 4 0 000 8z"/>
+                    <path d="M6 20v-.5a5.5 5.5 0 0111 0V20"/>
+                    <path d="M19 8v3"/>
+                    <path d="M17.5 9.5h3"/>
+                </svg>
+            </a>
+            <div id="tip-signup" role="tooltip"
+                 class="tip-tooltip pointer-events-none absolute z-10 overflow-hidden rounded-xl bg-slate-900/90 px-3 py-2 text-xs font-medium text-white opacity-0 invisible delay-150 [transition-property:opacity,visibility] duration-150 [transition-behavior:allow-discrete] [position-anchor:--tip-signup] [top:anchor(center)] [left:calc(anchor(end)+12px)] [translate:0_-50%] whitespace-nowrap text-left leading-5 text-ellipsis [max-inline-size:clamp(8rem,30vw,12rem)] group-hover/tip:delay-0 group-hover/tip:opacity-100 group-hover/tip:visible group-focus-visible/tip:delay-0 group-focus-visible/tip:opacity-100 group-focus-visible/tip:visible">
+                회원가입
+            </div>
+        </div>
+    </div>
+</aside>
+<div class="ml-20 flex min-h-screen flex-col">
+    <header class="h-20 content-center sticky top-0 border-b border-slate-200 bg-white/80 backdrop-blur">
+        <div class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-4">
+            <div class="flex flex-1 items-center gap-3">
+                <h2 class="text-lg font-semibold text-slate-900">Featured</h2>
+            </div>
+            <div class="flex items-center text-sm">
+                <a class="inline-flex items-center gap-2 rounded-full px-5 py-2 font-medium text-slate-700 transition hover:bg-slate-100"
+                   href="https://github.com/bunnyholes/boardhole" target="_blank" rel="noreferrer noopener">
+                    <svg aria-hidden="true" viewBox="0 0 24 24" class="h-4 w-4" fill="currentColor">
+                        <path d="M12 .5a12 12 0 00-3.8 23.4c.6.1.8-.2.8-.5v-2c-3.3.7-4-1.6-4-1.6-.6-1.5-1.4-1.9-1.4-1.9-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.3 1.8 1.3 1.1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.7-.3-5.6-1.3-5.6-5.8 0-1.3.5-2.3 1.2-3.2-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.3 1.2a11.2 11.2 0 016 0c2.3-1.5 3.3-1.2 3.3-1.2.6 1.6.2 2.8.1 3.1.7.9 1.2 2 1.2 3.2 0 4.5-2.9 5.5-5.6 5.8.5.4.8 1.1.8 2.2v3.3c0 .3.2.6.8.5A12 12 0 0012 .5z"/>
+                    </svg>
 
-                </li>
-            </ul>
-        </nav>
-    </aside>
+                </a>
+            </div>
+        </div>
+    </header>
+    <main class="flex-1">
+        <div class="mx-auto w-full max-w-6xl px-6 py-10">
+            <div class="flex flex-col gap-3">
+                <span class="inline-flex w-fit items-center gap-2 rounded-full border border-slate-200 bg-slate-100 px-3 py-1 text-sm font-medium text-slate-600">
+                    게시판
+                </span>
+                <h1 class="text-3xl font-semibold text-slate-900">커뮤니티 최신 글</h1>
+                <p class="text-sm text-slate-500">게시글을 검색하거나 새 글을 작성하고, 조회수를 한눈에 확인하세요.</p>
+            </div>
 
-    <!-- 검색 다이얼로그 -->
-    <dialog id="search-dialog">
-        <article>
-            <header>
-                <button aria-label="검색 닫기" command="close" commandfor="search-dialog" rel="prev"></button>
-                <h2>🔍 게시글 검색</h2>
-            </header>
-            <form class="board-search" method="get" role="search">
-                <fieldset role="group">
-                    <input aria-label="게시글 검색" autocomplete="off" enterkeyhint="search"
-                           name="search"
-                           placeholder="🔍 제목, 내용 검색" spellcheck="false" th:value="${search}"
-                           type="search" />
-                    <input type="submit" value="검색" />
-                </fieldset>
-            </form>
-        </article>
-    </dialog>
+            <div class="mt-8 flex flex-wrap items-center gap-3">
+                <form action="/boards" class="flex min-w-[260px] flex-1 items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-inner">
+                    <svg aria-hidden="true" viewBox="0 0 24 24" class="h-5 w-5 text-slate-400" fill="none"
+                         stroke="currentColor"
+                         stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="6"/>
+                        <line x1="16.5" y1="16.5" x2="20" y2="20"/>
+                    </svg>
+                    <input name="search" 
+                           th:value="${search}"
+                           class="w-full bg-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none"
+                           type="search" placeholder="제목, 내용으로 검색"/>
+                    <button type="submit"
+                            class="shrink-0 rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700">
+                        검색
+                    </button>
+                </form>
+                <div class="compose-wrapper relative inline-flex group/compose">
+                    <a th:href="@{/boards/write}" href="./boards/write.html"
+                       aria-describedby="compose-tooltip" aria-label="새 글 작성"
+                       class="compose-anchor relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 text-lg font-semibold text-slate-700 transition hover:border-slate-300 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:color-mix(in_srgb,white_60%,#2563eb)] [anchor-name:--compose]"
+                       title="새 글 작성">
+                        +
+                    </a>
+                    <div id="compose-tooltip" role="tooltip"
+                         class="compose-tooltip pointer-events-none absolute z-10 overflow-hidden rounded-xl bg-slate-900/90 px-3 py-2 text-xs font-medium text-white opacity-0 invisible delay-150 [transition-property:opacity,visibility] duration-150 [transition-behavior:allow-discrete] [position-anchor:--compose] [top:calc(anchor(bottom)+12px)] [left:anchor(end)] [translate:-100%_0] whitespace-nowrap text-left leading-5 [max-inline-size:clamp(10rem,40vw,16rem)] text-ellipsis group-hover/compose:delay-0 group-hover/compose:opacity-100 group-hover/compose:visible group-focus-visible/compose:delay-0 group-focus-visible/compose:opacity-100 group-focus-visible/compose:visible">
+                        새 글 작성
+                    </div>
+                </div>
+            </div>
 
-</section>
+            <div class="mt-10 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl">
+                <table class="min-w-full divide-y divide-slate-200 text-sm">
+                    <colgroup>
+                        <col/>
+                        <col class="w-28"/>
+                        <col class="w-24"/>
+                        <col class="w-20"/>
+                    </colgroup>
+                    <thead class="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    <tr>
+                        <th scope="col" class="px-6 py-4 text-left">제목</th>
+                        <th scope="col" class="px-6 py-4 text-left">작성자</th>
+                        <th scope="col" class="px-6 py-4 text-left">작성일</th>
+                        <th scope="col" class="px-6 py-4 text-left">조회수</th>
+                    </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                    <tr th:each="board : ${boards}" class="transition hover:bg-slate-50">
+                        <td class="px-6 py-4">
+                            <a th:href="@{/boards/{id}(id=${board.id})}" href="./boards/detail.html"
+                               th:text="${board.title}"
+                               class="block truncate text-base font-semibold text-slate-900 transition hover:text-slate-600">
+                                게시글 제목
+                            </a>
+                        </td>
+                        <td class="px-6 py-4 text-slate-500" th:text="${board.authorName}">작성자</td>
+                        <td class="px-6 py-4 tabular-nums text-slate-500" 
+                            th:text="${#temporals.format(board.createdAt, 'yy-MM-dd')}">25-01-10</td>
+                        <td class="px-6 py-4 text-slate-500" th:text="${board.viewCount}">0</td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(boards)}" class="transition">
+                        <td colspan="4" class="px-6 py-16 text-center text-slate-500">
+                            등록된 게시글이 없습니다.
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <nav aria-label="페이지네이션" class="mt-10 flex flex-wrap items-center justify-center gap-2 text-sm">
+                <!-- 동적 페이지네이션 (page 객체가 있을 때) -->
+                <th:block th:if="${page != null}">
+                    <a th:href="@{/boards(page=${page.number - 1})}" 
+                       th:if="${page.hasPrevious()}"
+                       class="inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 px-3 py-2 text-slate-500 transition hover:border-slate-300 hover:text-slate-900">
+                        이전
+                    </a>
+                    <th:block th:each="pageNum : ${#numbers.sequence(0, page.totalPages - 1)}">
+                        <a th:href="@{/boards(page=${pageNum})}"
+                           th:text="${pageNum + 1}"
+                           th:classappend="${pageNum == page.number} ? 'bg-slate-900 text-white font-semibold' : 'border border-slate-200 text-slate-600 hover:border-slate-300 hover:text-slate-900'"
+                           class="inline-flex items-center justify-center rounded-full px-3 py-2 transition">
+                            1
+                        </a>
+                    </th:block>
+                    <a th:href="@{/boards(page=${page.number + 1})}" 
+                       th:if="${page.hasNext()}"
+                       class="inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 px-3 py-2 text-slate-500 transition hover:border-slate-300 hover:text-slate-900">
+                        다음
+                    </a>
+                </th:block>
+                
+                <!-- 기본 페이지네이션 (page 객체가 없을 때) -->
+                <th:block th:if="${page == null}">
+                    <button disabled
+                            class="inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 px-3 py-2 text-slate-300 cursor-not-allowed">
+                        이전
+                    </button>
+                    <span class="inline-flex items-center justify-center rounded-full bg-slate-900 px-3 py-2 text-white font-semibold">
+                        1
+                    </span>
+                    <button disabled
+                            class="inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 px-3 py-2 text-slate-300 cursor-not-allowed">
+                        다음
+                    </button>
+                </th:block>
+            </nav>
+        </div>
+    </main>
+</div>
+<div id="searchPopover" popover
+     class="relative mx-auto mt-24 w-full max-w-xl rounded-3xl bg-white p-8 shadow-2xl [&::backdrop]:bg-slate-900/50 [&::backdrop]:backdrop-blur"
+>
+    <button popovertarget="searchPopover" popovertargetaction="hide"
+            class="absolute right-5 top-5 flex h-9 w-9 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
+            aria-label="검색 닫기">
+        <svg aria-hidden="true" viewBox="0 0 24 24" class="h-4 w-4" fill="none"
+             stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="7" y1="7" x2="17" y2="17"/>
+            <line x1="17" y1="7" x2="7" y2="17"/>
+        </svg>
+    </button>
+    <h3 class="text-2xl font-semibold text-slate-900">비주얼 검색</h3>
+    <p class="mt-2 text-sm text-slate-500">키워드를 입력하고 바로 필요한 보드를 찾아보세요.</p>
+    <form action="/boards" class="mt-6">
+        <div class="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-inner">
+            <svg aria-hidden="true" viewBox="0 0 24 24" class="h-5 w-5 text-slate-400" fill="none" stroke="currentColor"
+                 stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="6"/>
+                <line x1="16.5" y1="16.5" x2="20" y2="20"/>
+            </svg>
+            <input type="text"
+                   name="search"
+                   th:value="${search}"
+                   class="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400"
+                   placeholder="예: 모던 아트워크" autofocus/>
+            <button type="submit"
+                    class="rounded-full bg-slate-900 px-4 py-1.5 text-xs font-medium text-white transition hover:bg-slate-700">
+                검색
+            </button>
+        </div>
+    </form>
+    <div class="mt-6 space-y-3 text-sm text-slate-500">
+        <div class="flex items-center justify-between rounded-2xl border border-slate-100 px-4 py-3 transition hover:border-slate-200 hover:bg-slate-50">
+            <span>최근 검색: "대비 강한 패턴"</span>
+            <svg aria-hidden="true" viewBox="0 0 24 24" class="h-4 w-4 text-slate-300" fill="none"
+                 stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="7"/>
+                <path d="M12 9v4l2.5 1.5"/>
+            </svg>
+        </div>
+        <div class="flex items-center justify-between rounded-2xl border border-slate-100 px-4 py-3 transition hover:border-slate-200 hover:bg-slate-50">
+            <span>추천 태그: "브랜드 룩북"</span>
+            <svg aria-hidden="true" viewBox="0 0 24 24" class="h-4 w-4 text-sky-400" fill="none"
+                 stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 4.5l1 3 3 1-3 1-1 3-1-3-3-1 3-1z"/>
+                <path d="M6.5 15l.7 2 .7.3-.7.3-.7 2-.7-2-.7-.3.7-.3z"/>
+                <path d="M18 7.5l.5 1.5.5.2-.5.2-.5 1.5-.5-1.5-.5-.2.5-.2z"/>
+            </svg>
+        </div>
+    </div>
+</div>
+<div id="logoutPopover" popover
+     class="relative mx-auto mt-24 w-full max-w-md rounded-3xl bg-white p-8 shadow-2xl [&::backdrop]:bg-slate-900/50 [&::backdrop]:backdrop-blur"
+     th:if="${#authentication?.principal != null and #authentication?.principal != 'anonymousUser'}">
+    <button type="button" popovertarget="logoutPopover" popovertargetaction="hide"
+            class="absolute right-5 top-5 flex h-9 w-9 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
+            aria-label="닫기">
+        <svg aria-hidden="true" viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor"
+             stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="7" y1="7" x2="17" y2="17"/>
+            <line x1="17" y1="7" x2="7" y2="17"/>
+        </svg>
+    </button>
+    <h3 class="text-2xl font-semibold text-slate-900">로그아웃 하시겠어요?</h3>
+    <p class="mt-2 text-sm text-slate-500">현재 세션이 종료되고 다시 로그인해야 합니다.</p>
+    <div class="mt-6 rounded-2xl bg-slate-50 p-4">
+        <p class="text-xs text-slate-500">보안상의 이유로 공용 기기에서는 항상 로그아웃을 권장합니다.</p>
+    </div>
+    <div class="mt-6 flex items-center justify-end gap-3">
+        <button type="button" popovertarget="logoutPopover" popovertargetaction="hide"
+                class="rounded-full border border-slate-200 px-5 py-2 text-sm font-medium text-slate-600 transition hover:border-slate-300">
+            취소
+        </button>
+        <a th:href="@{/auth/logout}" href="../auth/logout.html"
+           class="rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white transition hover:bg-slate-700">
+            로그아웃
+        </a>
+    </div>
+</div>
 </body>
 </html>
