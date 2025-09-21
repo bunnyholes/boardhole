@@ -1,7 +1,7 @@
 # 로컬 개발용 Dockerfile - 컨테이너 내에서 빌드
 
 # Build stage
-FROM eclipse-temurin:21-jdk-alpine AS build
+FROM azul/zulu-openjdk-alpine:25 AS build
 WORKDIR /app
 
 # Gradle wrapper 복사
@@ -26,14 +26,20 @@ RUN --mount=type=cache,target=/root/.gradle \
     ./gradlew bootJar --no-daemon
 
 # Runtime stage
-FROM eclipse-temurin:21-jre-alpine
+FROM azul/zulu-openjdk-alpine:25-jre
+
+# 보안을 위한 non-root 유저
+RUN addgroup -g 1000 spring && \
+    adduser -D -u 1000 -G spring spring
+
 WORKDIR /app
 
-# 빌드 스테이지에서 JAR 파일 복사
-COPY --from=build /app/build/libs/*.jar app.jar
+# 애플리케이션 JAR 복사 (빌드 스테이지 산출물)
+COPY --chown=spring:spring --from=build /app/build/libs/*.jar app.jar
 
-# 포트 노출
+USER spring:spring
+
 EXPOSE 8080
 
-# 실행
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# 런타임에 JAVA_OPTS와 SPRING_PROFILES_ACTIVE 환경변수 설정 가능
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
