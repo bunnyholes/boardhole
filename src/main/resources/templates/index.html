@@ -27,7 +27,7 @@
         <div class="flex flex-col w-full">
             <!-- 프로필 -->
             <div class="tip-wrapper relative flex w-full group/tip">
-                <a class="tip-anchor flex h-20 w-full items-center justify-center transition-all duration-150 hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:color-mix(in_srgb,white_60%,#2563eb)] [anchor-name:--tip-profile]"
+                <a class="tip-anchor flex h-20 w-full items-center justify-center cursor-pointer transition-all duration-150 hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:color-mix(in_srgb,white_60%,#2563eb)] [anchor-name:--tip-profile]"
                    th:href="@{/users/me}" href="./users/detail.html"
                    aria-label="Profile" aria-describedby="index-tip-profile">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
@@ -46,7 +46,7 @@
             <!-- 검색 -->
             <div class="tip-wrapper relative flex w-full group/tip">
                 <button popovertarget="searchPopover" popovertargetaction="toggle"
-                        class="tip-anchor flex h-20 w-full items-center justify-center text-slate-400 transition-all duration-150 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:color-mix(in_srgb,white_60%,#2563eb)] [anchor-name:--tip-search]"
+                        class="tip-anchor flex h-20 w-full items-center justify-center cursor-pointer text-slate-400 transition-all duration-150 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:color-mix(in_srgb,white_60%,#2563eb)] [anchor-name:--tip-search]"
                         aria-label="검색 열기" aria-describedby="index-tip-search">
                     <svg aria-hidden="true" viewBox="0 0 24 24" class="h-5 w-5" fill="none"
                          stroke="currentColor" stroke-width="1.75" stroke-linecap="round"
@@ -66,7 +66,7 @@
         <div class="flex flex-col w-full">
             <!-- 게시판 -->
             <div class="tip-wrapper relative flex w-full group/tip">
-                <a class="tip-anchor flex h-20 w-full items-center justify-center text-slate-400 transition-all duration-150 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:color-mix(in_srgb,white_60%,#2563eb)] [anchor-name:--tip-board]"
+                <a class="tip-anchor flex h-20 w-full items-center justify-center cursor-pointer text-slate-400 transition-all duration-150 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:color-mix(in_srgb,white_60%,#2563eb)] [anchor-name:--tip-board]"
                    th:href="@{/boards}" href="./boards.html"
                    aria-label="게시판" aria-describedby="index-tip-board">
                     <svg aria-hidden="true" viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor"
@@ -86,7 +86,7 @@
             <!-- 사용자 관리 -->
             <div class="tip-wrapper relative flex w-full group/tip"
                  th:if="${#authorization.expression('hasRole(''ADMIN'')')}">
-                <a class="tip-anchor flex h-20 w-full items-center justify-center text-slate-400 transition-all duration-150 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:color-mix(in_srgb,white_60%,#2563eb)] [anchor-name:--tip-users]"
+                <a class="tip-anchor flex h-20 w-full items-center justify-center cursor-pointer text-slate-400 transition-all duration-150 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:color-mix(in_srgb,white_60%,#2563eb)] [anchor-name:--tip-users]"
                    th:href="@{/users}" href="./users.html"
                    aria-label="사용자 관리" aria-describedby="index-tip-users">
                     <svg aria-hidden="true" viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor"
@@ -102,6 +102,7 @@
                     사용자 관리
                 </div>
             </div>
+
         </div>
     </nav>
 
@@ -109,7 +110,7 @@
     <footer class="flex flex-col w-full text-slate-400">
         <!-- 알림 -->
         <div class="tip-wrapper relative flex w-full group/tip">
-            <button class="tip-anchor flex h-20 w-full items-center justify-center text-slate-400 transition-all duration-150 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:color-mix(in_srgb,white_60%,#2563eb)] [anchor-name:--tip-notification]"
+            <button class="tip-anchor flex h-20 w-full items-center justify-center cursor-pointer text-slate-400 transition-all duration-150 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:color-mix(in_srgb,white_60%,#2563eb)] [anchor-name:--tip-notification]"
                     aria-label="알림" aria-describedby="index-tip-notification">
                 <svg aria-hidden="true" viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor"
                      stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
@@ -119,7 +120,21 @@
             </button>
             <div id="index-tip-notification" role="tooltip"
                  class="tip-tooltip pointer-events-none absolute z-10 overflow-hidden rounded-xl bg-slate-900/90 px-3 py-2 text-xs font-medium text-white opacity-0 invisible delay-150 [transition-property:opacity,visibility] duration-150 [transition-behavior:allow-discrete] [position-anchor:--tip-notification] [top:anchor(center)] [left:calc(anchor(end)+12px)] [translate:0_-50%] whitespace-nowrap text-left leading-5 text-ellipsis [max-inline-size:clamp(8rem,30vw,12rem)] group-hover/tip:delay-0 group-hover/tip:opacity-100 group-hover/tip:visible group-focus-visible/tip:delay-0 group-focus-visible/tip:opacity-100 group-focus-visible/tip:visible">
-                Notifications
+                알림
+            </div>
+        </div>
+
+        <!-- API 문서 -->
+        <div class="tip-wrapper relative flex w-full group/tip">
+            <a class="tip-anchor flex h-20 w-full items-center justify-center cursor-pointer text-slate-400 transition-all duration-150 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:color-mix(in_srgb,white_60%,#2563eb)] [anchor-name:--tip-api-docs]"
+               th:href="@{/swagger-ui/index.html}" href="/swagger-ui/index.html"
+               target="_blank" rel="noopener noreferrer"
+               aria-label="API 문서" aria-describedby="index-tip-api-docs">
+                <img th:src="@{/assets/image/swagger.svg}" src="../../static/assets/image/swagger.svg" alt="Swagger API" class="h-5 w-5"/>
+            </a>
+            <div id="index-tip-api-docs" role="tooltip"
+                 class="tip-tooltip pointer-events-none absolute z-10 overflow-hidden rounded-xl bg-slate-900/90 px-3 py-2 text-xs font-medium text-white opacity-0 invisible delay-150 [transition-property:opacity,visibility] duration-150 [transition-behavior:allow-discrete] [position-anchor:--tip-api-docs] [top:anchor(center)] [left:calc(anchor(end)+12px)] [translate:0_-50%] whitespace-nowrap text-left leading-5 text-ellipsis [max-inline-size:clamp(8rem,30vw,12rem)] group-hover/tip:delay-0 group-hover/tip:opacity-100 group-hover/tip:visible group-focus-visible/tip:delay-0 group-focus-visible/tip:opacity-100 group-focus-visible/tip:visible">
+                API 문서
             </div>
         </div>
 
@@ -127,7 +142,7 @@
         <div class="tip-wrapper relative flex w-full group/tip"
              th:if="${#authentication?.principal != null and #authentication?.principal != 'anonymousUser'}">
             <button popovertarget="logoutPopover" popovertargetaction="toggle"
-                    class="tip-anchor flex h-20 w-full items-center justify-center text-slate-400 transition-all duration-150 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:color-mix(in_srgb,white_60%,#2563eb)] [anchor-name:--tip-logout]"
+                    class="tip-anchor flex h-20 w-full items-center justify-center cursor-pointer text-slate-400 transition-all duration-150 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:color-mix(in_srgb,white_60%,#2563eb)] [anchor-name:--tip-logout]"
                     aria-label="로그아웃" aria-describedby="index-tip-logout">
                 <svg aria-hidden="true" viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor"
                      stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
@@ -146,7 +161,7 @@
         <div class="tip-wrapper relative flex w-full group/tip"
              th:if="${#authentication == null or #authentication?.principal == null or #authentication?.principal == 'anonymousUser'}">
             <a th:href="@{/auth/login}" href="./auth/login.html"
-               class="tip-anchor flex h-20 w-full items-center justify-center text-slate-400 transition-all duration-150 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:color-mix(in_srgb,white_60%,#2563eb)] [anchor-name:--tip-login]"
+               class="tip-anchor flex h-20 w-full items-center justify-center cursor-pointer text-slate-400 transition-all duration-150 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:color-mix(in_srgb,white_60%,#2563eb)] [anchor-name:--tip-login]"
                aria-label="로그인" aria-describedby="index-tip-login">
                 <svg aria-hidden="true" viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor"
                      stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
@@ -166,7 +181,7 @@
     <header class="h-20 content-center sticky top-0 border-b border-slate-200 bg-white/80 backdrop-blur">
         <div class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-4">
             <div class="flex flex-1 items-center gap-3">
-                <h2 class="text-lg font-semibold text-slate-900 uppercase">boardholes</h2>
+                <h2 class="text-lg font-semibold text-slate-900 uppercase">boardhole</h2>
             </div>
             <div class="flex items-center text-sm">
                 <a class="inline-flex items-center gap-2 rounded-full px-5 py-2 font-medium text-slate-700 transition hover:bg-slate-100"
@@ -187,16 +202,13 @@
                 <div class="flex flex-col gap-12">
                     <div class="max-w-4xl mx-auto">
                         <span class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-4 py-1 text-sm font-medium uppercase tracking-widest text-slate-600">
-                            boardhole v1.6.0
+                            boardhole v1.7.1
                         </span>
                         <h1 class="mt-6 text-5xl font-bold tracking-tight text-slate-900 sm:text-6xl">
                             Spring Boot 게시판<br class="hidden sm:block"/>학습 프로젝트
                         </h1>
                         <p class="mt-6 text-lg text-slate-600 leading-relaxed">
-                            Spring Boot 3.5, Java 21을 기반으로 구현한 기본 게시판 시스템입니다.
-                            DDD 아키텍처, Spring Security 세션 인증, PostgreSQL/Redis를 활용한 학습용 프로젝트입니다.
-                            NoJS 기반 Thymeleaf 템플릿, CSS View Transitions, Popover API, @starting-style 등 최신 웹 기술을 지원하며,
-                            라즈베리파이에서 운영됩니다.
+                            Spring Boot와 최신 웹 기술을 활용한 게시판 학습 프로젝트입니다.
                         </p>
                         <div class="mt-10 flex flex-wrap gap-4">
                             <a th:href="@{/boards}" href="./boards.html"
@@ -215,160 +227,116 @@
                             </a>
                         </div>
                         <!-- 기술 스택 아이콘 그리드 -->
-                        <div class="mt-16">
-                            <h3 class="text-center text-sm font-semibold uppercase tracking-widest text-slate-500 mb-6">
+                        <div class="mt-16 space-y-12">
+                            <h3 class="text-center text-sm font-semibold uppercase tracking-widest text-slate-500 mb-8">
                                 Tech Stack</h3>
-                            <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8 gap-3">
-                                <!-- Spring Boot -->
-                                <div class="tip-wrapper group/tech">
-                                    <div class="tip-anchor w-20 h-20 rounded-xl border border-slate-200 bg-white p-3 shadow-sm flex flex-col items-center justify-center transition-all hover:shadow-md [anchor-name:--tip-spring]">
-                                        <div class="text-2xl mb-1">🍃</div>
-                                        <div class="text-xs font-semibold text-center text-slate-600">Spring</div>
-                                    </div>
-                                    <div class="tip-tooltip pointer-events-none absolute z-10 overflow-hidden rounded-xl bg-slate-900/90 px-3 py-2 text-xs font-medium text-white opacity-0 invisible delay-150 [transition-property:opacity,visibility] duration-150 [position-anchor:--tip-spring] [top:calc(anchor(bottom)+8px)] [left:anchor(center)] [translate:-50%_0] whitespace-nowrap group-hover/tech:delay-0 group-hover/tech:opacity-100 group-hover/tech:visible">
-                                        Spring Boot 3.5
-                                    </div>
-                                </div>
-
-                                <!-- Java -->
-                                <div class="tip-wrapper group/tech">
-                                    <div class="tip-anchor w-20 h-20 rounded-xl border border-slate-200 bg-white p-3 shadow-sm flex flex-col items-center justify-center transition-all hover:shadow-md [anchor-name:--tip-java]">
-                                        <div class="text-2xl mb-1">☕</div>
+                            
+                            <!-- Core Backend -->
+                            <div class="space-y-4">
+                                <h4 class="text-xs font-semibold uppercase tracking-widest text-slate-400 text-center">
+                                    ⚙️ Core Backend
+                                </h4>
+                                <div class="grid grid-cols-2 gap-3 justify-items-center max-w-xs mx-auto">
+                                    <!-- Java -->
+                                    <div class="w-20 h-20 rounded-xl border border-slate-200 bg-white p-3 shadow-sm flex flex-col items-center justify-center">
+                                        <img th:src="@{/assets/image/java.svg}" src="../../static/assets/image/java.svg" alt="Java" class="w-8 h-8 mb-1"/>
                                         <div class="text-xs font-semibold text-center text-slate-600">Java</div>
                                     </div>
-                                    <div class="tip-tooltip pointer-events-none absolute z-10 overflow-hidden rounded-xl bg-slate-900/90 px-3 py-2 text-xs font-medium text-white opacity-0 invisible delay-150 [transition-property:opacity,visibility] duration-150 [position-anchor:--tip-java] [top:calc(anchor(bottom)+8px)] [left:anchor(center)] [translate:-50%_0] whitespace-nowrap group-hover/tech:delay-0 group-hover/tech:opacity-100 group-hover/tech:visible">
-                                        Java 21
+
+                                    <!-- Spring Boot -->
+                                    <div class="w-20 h-20 rounded-xl border border-slate-200 bg-white p-3 shadow-sm flex flex-col items-center justify-center">
+                                        <img th:src="@{/assets/image/spring-boot.svg}" src="../../static/assets/image/spring-boot.svg" alt="Spring Boot" class="w-8 h-8 mb-1"/>
+                                        <div class="text-xs font-semibold text-center text-slate-600">Spring Boot</div>
                                     </div>
                                 </div>
+                            </div>
 
-                                <!-- PostgreSQL -->
-                                <div class="tip-wrapper group/tech">
-                                    <div class="tip-anchor w-20 h-20 rounded-xl border border-slate-200 bg-white p-3 shadow-sm flex flex-col items-center justify-center transition-all hover:shadow-md [anchor-name:--tip-postgres]">
-                                        <div class="text-2xl mb-1">🐘</div>
-                                        <div class="text-xs font-semibold text-center text-slate-600">PostgreSQL</div>
-                                    </div>
-                                    <div class="tip-tooltip pointer-events-none absolute z-10 overflow-hidden rounded-xl bg-slate-900/90 px-3 py-2 text-xs font-medium text-white opacity-0 invisible delay-150 [transition-property:opacity,visibility] duration-150 [position-anchor:--tip-postgres] [top:calc(anchor(bottom)+8px)] [left:anchor(center)] [translate:-50%_0] whitespace-nowrap group-hover/tech:delay-0 group-hover/tech:opacity-100 group-hover/tech:visible">
-                                        PostgreSQL 17
-                                    </div>
-                                </div>
-
-                                <!-- Redis -->
-                                <div class="tip-wrapper group/tech">
-                                    <div class="tip-anchor w-20 h-20 rounded-xl border border-slate-200 bg-white p-3 shadow-sm flex flex-col items-center justify-center transition-all hover:shadow-md [anchor-name:--tip-redis]">
-                                        <div class="text-2xl mb-1">🔴</div>
-                                        <div class="text-xs font-semibold text-center text-slate-600">Redis</div>
-                                    </div>
-                                    <div class="tip-tooltip pointer-events-none absolute z-10 overflow-hidden rounded-xl bg-slate-900/90 px-3 py-2 text-xs font-medium text-white opacity-0 invisible delay-150 [transition-property:opacity,visibility] duration-150 [position-anchor:--tip-redis] [top:calc(anchor(bottom)+8px)] [left:anchor(center)] [translate:-50%_0] whitespace-nowrap group-hover/tech:delay-0 group-hover/tech:opacity-100 group-hover/tech:visible">
-                                        Redis Session
-                                    </div>
-                                </div>
-
-                                <!-- Thymeleaf -->
-                                <div class="tip-wrapper group/tech">
-                                    <div class="tip-anchor w-20 h-20 rounded-xl border border-slate-200 bg-white p-3 shadow-sm flex flex-col items-center justify-center transition-all hover:shadow-md [anchor-name:--tip-thymeleaf]">
-                                        <div class="text-2xl mb-1">🌿</div>
+                            <!-- Frontend -->
+                            <div class="space-y-4">
+                                <h4 class="text-xs font-semibold uppercase tracking-widest text-slate-400 text-center">
+                                    🎨 Frontend
+                                </h4>
+                                <div class="grid grid-cols-2 gap-3 justify-items-center max-w-xs mx-auto">
+                                    <!-- Thymeleaf -->
+                                    <div class="w-20 h-20 rounded-xl border border-slate-200 bg-white p-3 shadow-sm flex flex-col items-center justify-center">
+                                        <img th:src="@{/assets/image/ThymeleafIcon.svg}" src="../../static/assets/image/ThymeleafIcon.svg" alt="Thymeleaf" class="w-8 h-8 mb-1"/>
                                         <div class="text-xs font-semibold text-center text-slate-600">Thymeleaf</div>
                                     </div>
-                                    <div class="tip-tooltip pointer-events-none absolute z-10 overflow-hidden rounded-xl bg-slate-900/90 px-3 py-2 text-xs font-medium text-white opacity-0 invisible delay-150 [transition-property:opacity,visibility] duration-150 [position-anchor:--tip-thymeleaf] [top:calc(anchor(bottom)+8px)] [left:anchor(center)] [translate:-50%_0] whitespace-nowrap group-hover/tech:delay-0 group-hover/tech:opacity-100 group-hover/tech:visible">
-                                        Thymeleaf
-                                    </div>
-                                </div>
 
-                                <!-- Docker -->
-                                <div class="tip-wrapper group/tech">
-                                    <div class="tip-anchor w-20 h-20 rounded-xl border border-slate-200 bg-white p-3 shadow-sm flex flex-col items-center justify-center transition-all hover:shadow-md [anchor-name:--tip-docker]">
-                                        <div class="text-2xl mb-1">🐳</div>
-                                        <div class="text-xs font-semibold text-center text-slate-600">Docker</div>
-                                    </div>
-                                    <div class="tip-tooltip pointer-events-none absolute z-10 overflow-hidden rounded-xl bg-slate-900/90 px-3 py-2 text-xs font-medium text-white opacity-0 invisible delay-150 [transition-property:opacity,visibility] duration-150 [position-anchor:--tip-docker] [top:calc(anchor(bottom)+8px)] [left:anchor(center)] [translate:-50%_0] whitespace-nowrap group-hover/tech:delay-0 group-hover/tech:opacity-100 group-hover/tech:visible">
-                                        Docker Compose
-                                    </div>
-                                </div>
-
-                                <!-- Tailwind CSS -->
-                                <div class="tip-wrapper group/tech">
-                                    <div class="tip-anchor w-20 h-20 rounded-xl border border-slate-200 bg-white p-3 shadow-sm flex flex-col items-center justify-center transition-all hover:shadow-md [anchor-name:--tip-tailwind]">
-                                        <div class="text-2xl mb-1">💨</div>
+                                    <!-- Tailwind CSS -->
+                                    <div class="w-20 h-20 rounded-xl border border-slate-200 bg-white p-3 shadow-sm flex flex-col items-center justify-center">
+                                        <img th:src="@{/assets/image/tailwind-css.svg}" src="../../static/assets/image/tailwind-css.svg" alt="Tailwind CSS" class="w-8 h-8 mb-1"/>
                                         <div class="text-xs font-semibold text-center text-slate-600">Tailwind</div>
                                     </div>
-                                    <div class="tip-tooltip pointer-events-none absolute z-10 overflow-hidden rounded-xl bg-slate-900/90 px-3 py-2 text-xs font-medium text-white opacity-0 invisible delay-150 [transition-property:opacity,visibility] duration-150 [position-anchor:--tip-tailwind] [top:calc(anchor(bottom)+8px)] [left:anchor(center)] [translate:-50%_0] whitespace-nowrap group-hover/tech:delay-0 group-hover/tech:opacity-100 group-hover/tech:visible">
-                                        Tailwind CSS
-                                    </div>
                                 </div>
+                            </div>
 
-                                <!-- Chrome -->
-                                <div class="tip-wrapper group/tech">
-                                    <div class="tip-anchor w-20 h-20 rounded-xl border border-slate-200 bg-white p-3 shadow-sm flex flex-col items-center justify-center transition-all hover:shadow-md [anchor-name:--tip-chrome]">
-                                        <div class="text-2xl mb-1">🌐</div>
-                                        <div class="text-xs font-semibold text-center text-slate-600">Chrome</div>
-                                    </div>
-                                    <div class="tip-tooltip pointer-events-none absolute z-10 overflow-hidden rounded-xl bg-slate-900/90 px-3 py-2 text-xs font-medium text-white opacity-0 invisible delay-150 [transition-property:opacity,visibility] duration-150 [position-anchor:--tip-chrome] [top:calc(anchor(bottom)+8px)] [left:anchor(center)] [translate:-50%_0] whitespace-nowrap group-hover/tech:delay-0 group-hover/tech:opacity-100 group-hover/tech:visible">
-                                        Chrome 125+
-                                    </div>
-                                </div>
-
-                                <!-- View Transitions -->
-                                <div class="tip-wrapper group/tech">
-                                    <div class="tip-anchor w-20 h-20 rounded-xl border border-slate-200 bg-white p-3 shadow-sm flex flex-col items-center justify-center transition-all hover:shadow-md [anchor-name:--tip-transitions]">
+                            <!-- Modern Browser APIs -->
+                            <div class="space-y-4">
+                                <h4 class="text-xs font-semibold uppercase tracking-widest text-slate-400 text-center">
+                                    ✨ Modern Browser APIs <span class="text-slate-300">(Chrome 125+)</span>
+                                </h4>
+                                <div class="grid grid-cols-3 gap-3 justify-items-center max-w-md mx-auto">
+                                    <!-- View Transitions -->
+                                    <div class="w-20 h-20 rounded-xl border border-slate-200 bg-white p-3 shadow-sm flex flex-col items-center justify-center">
                                         <div class="text-2xl mb-1">🎬</div>
                                         <div class="text-xs font-semibold text-center text-slate-600">Transitions</div>
                                     </div>
-                                    <div class="tip-tooltip pointer-events-none absolute z-10 overflow-hidden rounded-xl bg-slate-900/90 px-3 py-2 text-xs font-medium text-white opacity-0 invisible delay-150 [transition-property:opacity,visibility] duration-150 [position-anchor:--tip-transitions] [top:calc(anchor(bottom)+8px)] [left:anchor(center)] [translate:-50%_0] whitespace-nowrap group-hover/tech:delay-0 group-hover/tech:opacity-100 group-hover/tech:visible">
-                                        CSS View Transitions
-                                    </div>
-                                </div>
 
-                                <!-- Popover API -->
-                                <div class="tip-wrapper group/tech">
-                                    <div class="tip-anchor w-20 h-20 rounded-xl border border-slate-200 bg-white p-3 shadow-sm flex flex-col items-center justify-center transition-all hover:shadow-md [anchor-name:--tip-popover]">
+                                    <!-- Popover API -->
+                                    <div class="w-20 h-20 rounded-xl border border-slate-200 bg-white p-3 shadow-sm flex flex-col items-center justify-center">
                                         <div class="text-2xl mb-1">💬</div>
                                         <div class="text-xs font-semibold text-center text-slate-600">Popover</div>
                                     </div>
-                                    <div class="tip-tooltip pointer-events-none absolute z-10 overflow-hidden rounded-xl bg-slate-900/90 px-3 py-2 text-xs font-medium text-white opacity-0 invisible delay-150 [transition-property:opacity,visibility] duration-150 [position-anchor:--tip-popover] [top:calc(anchor(bottom)+8px)] [left:anchor(center)] [translate:-50%_0] whitespace-nowrap group-hover/tech:delay-0 group-hover/tech:opacity-100 group-hover/tech:visible">
-                                        HTML Popover API
-                                    </div>
-                                </div>
 
-                                <!-- CSS Anchor -->
-                                <div class="tip-wrapper group/tech">
-                                    <div class="tip-anchor w-20 h-20 rounded-xl border border-slate-200 bg-white p-3 shadow-sm flex flex-col items-center justify-center transition-all hover:shadow-md [anchor-name:--tip-anchor]">
+                                    <!-- CSS Anchor -->
+                                    <div class="w-20 h-20 rounded-xl border border-slate-200 bg-white p-3 shadow-sm flex flex-col items-center justify-center">
                                         <div class="text-2xl mb-1">⚓</div>
                                         <div class="text-xs font-semibold text-center text-slate-600">Anchor</div>
                                     </div>
-                                    <div class="tip-tooltip pointer-events-none absolute z-10 overflow-hidden rounded-xl bg-slate-900/90 px-3 py-2 text-xs font-medium text-white opacity-0 invisible delay-150 [transition-property:opacity,visibility] duration-150 [position-anchor:--tip-anchor] [top:calc(anchor(bottom)+8px)] [left:anchor(center)] [translate:-50%_0] whitespace-nowrap group-hover/tech:delay-0 group-hover/tech:opacity-100 group-hover/tech:visible">
-                                        CSS Anchor Positioning
+                                </div>
+                            </div>
+
+                            <!-- Data Storage -->
+                            <div class="space-y-4">
+                                <h4 class="text-xs font-semibold uppercase tracking-widest text-slate-400 text-center">
+                                    🗄️ Data Storage
+                                </h4>
+                                <div class="grid grid-cols-2 gap-3 justify-items-center max-w-xs mx-auto">
+                                    <!-- PostgreSQL -->
+                                    <div class="w-20 h-20 rounded-xl border border-slate-200 bg-white p-3 shadow-sm flex flex-col items-center justify-center">
+                                        <img th:src="@{/assets/image/postgresql.svg}" src="../../static/assets/image/postgresql.svg" alt="PostgreSQL" class="w-8 h-8 mb-1"/>
+                                        <div class="text-xs font-semibold text-center text-slate-600">PostgreSQL</div>
+                                    </div>
+
+                                    <!-- Redis -->
+                                    <div class="w-20 h-20 rounded-xl border border-slate-200 bg-white p-3 shadow-sm flex flex-col items-center justify-center">
+                                        <img th:src="@{/assets/image/redis.svg}" src="../../static/assets/image/redis.svg" alt="Redis" class="w-8 h-8 mb-1"/>
+                                        <div class="text-xs font-semibold text-center text-slate-600">Redis</div>
                                     </div>
                                 </div>
+                            </div>
 
-                                <!-- Raspberry Pi -->
-                                <div class="tip-wrapper group/tech">
-                                    <div class="tip-anchor w-20 h-20 rounded-xl border border-slate-200 bg-white p-3 shadow-sm flex flex-col items-center justify-center transition-all hover:shadow-md [anchor-name:--tip-raspberry]">
-                                        <div class="text-2xl mb-1">🍓</div>
+                            <!-- Infrastructure -->
+                            <div class="space-y-4">
+                                <h4 class="text-xs font-semibold uppercase tracking-widest text-slate-400 text-center">
+                                    🚀 Infrastructure
+                                </h4>
+                                <div class="grid grid-cols-2 gap-3 justify-items-center max-w-xs mx-auto">
+                                    <!-- Docker -->
+                                    <div class="w-20 h-20 rounded-xl border border-slate-200 bg-white p-3 shadow-sm flex flex-col items-center justify-center">
+                                        <img th:src="@{/assets/image/docker.svg}" src="../../static/assets/image/docker.svg" alt="Docker" class="w-8 h-8 mb-1"/>
+                                        <div class="text-xs font-semibold text-center text-slate-600">Docker</div>
+                                    </div>
+
+                                    <!-- Raspberry Pi -->
+                                    <div class="w-20 h-20 rounded-xl border border-slate-200 bg-white p-3 shadow-sm flex flex-col items-center justify-center">
+                                        <img th:src="@{/assets/image/raspberry-pi.svg}" src="../../static/assets/image/raspberry-pi.svg" alt="Raspberry Pi" class="w-8 h-8 mb-1"/>
                                         <div class="text-xs font-semibold text-center text-slate-600">RPi</div>
                                     </div>
-                                    <div class="tip-tooltip pointer-events-none absolute z-10 overflow-hidden rounded-xl bg-slate-900/90 px-3 py-2 text-xs font-medium text-white opacity-0 invisible delay-150 [transition-property:opacity,visibility] duration-150 [position-anchor:--tip-raspberry] [top:calc(anchor(bottom)+8px)] [left:anchor(center)] [translate:-50%_0] whitespace-nowrap group-hover/tech:delay-0 group-hover/tech:opacity-100 group-hover/tech:visible">
-                                        Raspberry Pi Server
-                                    </div>
                                 </div>
                             </div>
 
-                            <!-- 테스트 정보 추가 -->
-                            <div class="mt-8 flex items-center justify-center gap-6 rounded-xl border border-green-200 bg-green-50 px-6 py-4">
-                                <div class="flex items-center gap-2">
-                                    <div class="text-2xl">🧪</div>
-                                    <div>
-                                        <div class="text-sm font-semibold text-green-800">Test Coverage</div>
-                                        <div class="text-xs text-green-600">332개 테스트 케이스</div>
-                                    </div>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <div class="text-2xl">✅</div>
-                                    <div>
-                                        <div class="text-sm font-semibold text-green-800">Success Rate</div>
-                                        <div class="text-xs text-green-600">100% 통과</div>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
                     </div>
 
@@ -454,29 +422,27 @@
                     </div>
                 </div>
                 <div class="rounded-3xl border border-slate-200 bg-white p-10 shadow-md">
-                    <p class="text-xs uppercase tracking-[0.45em] text-slate-500">ARCHITECTURE SNAPSHOT</p>
-                    <h3 class="mt-4 text-2xl font-semibold text-slate-900">boardhole 도메인 맵</h3>
+                    <h3 class="text-2xl font-semibold text-slate-900">아키텍처 구조</h3>
                     <ul class="mt-6 space-y-5 text-sm">
                         <li class="flex items-start gap-3">
                             <span class="mt-1 inline-flex h-2 w-2 rounded-full bg-slate-400"></span>
                             <div>
-                                <p class="font-medium text-slate-900">Auth · User · Board · Shared</p>
-                                <p class="mt-1 text-slate-600">각 도메인이 Presentation → Application → Domain →
-                                    Infrastructure 레이어를 완비합니다.</p>
+                                <p class="font-medium text-slate-900">도메인 기반 계층형 아키텍처</p>
+                                <p class="mt-1 text-slate-600">Auth, User, Board 도메인이 각각 4계층 구조를 가집니다.</p>
                             </div>
                         </li>
                         <li class="flex items-start gap-3">
                             <span class="mt-1 inline-flex h-2 w-2 rounded-full bg-slate-400"></span>
                             <div>
                                 <p class="font-medium text-slate-900">이벤트 처리</p>
-                                <p class="mt-1 text-slate-600">게시글 조회 시 ViewedEvent를 통한 조회수 비동기 증가 처리</p>
+                                <p class="mt-1 text-slate-600">비동기 이벤트 처리로 성능 최적화</p>
                             </div>
                         </li>
                         <li class="flex items-start gap-3">
                             <span class="mt-1 inline-flex h-2 w-2 rounded-full bg-slate-400"></span>
                             <div>
                                 <p class="font-medium text-slate-900">품질 관리</p>
-                                <p class="mt-1 text-slate-600">Spring Boot Actuator, 구조화된 로깅, API 문서화, 테스트 자동화</p>
+                                <p class="mt-1 text-slate-600">종합 모니터링 및 자동화된 테스트</p>
                             </div>
                         </li>
                     </ul>
@@ -525,7 +491,7 @@
             <line x1="17" y1="7" x2="7" y2="17"/>
         </svg>
     </button>
-    <h3 class="text-2xl font-semibold text-slate-900">비주얼 검색</h3>
+    <h3 class="text-2xl font-semibold text-slate-900">검색</h3>
     <p class="mt-2 text-sm text-slate-500">키워드를 입력하고 바로 필요한 보드를 찾아보세요.</p>
     <form action="/boards" class="mt-6">
         <div class="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-inner">
@@ -539,7 +505,7 @@
                        name="search"
                        aria-describedby="index-popover-search-tip"
                        class="tip-anchor w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400 [anchor-name:--popover-search]"
-                       placeholder="예: 모던 아트워크" autofocus/>
+                       placeholder="검색어 입력" autofocus/>
                 <div id="index-popover-search-tip" role="tooltip"
                      class="tip-tooltip pointer-events-none absolute z-10 overflow-hidden rounded-xl bg-slate-900/90 px-3 py-2 text-xs font-medium text-white opacity-0 invisible delay-150 [transition-property:opacity,visibility] duration-150 [transition-behavior:allow-discrete] [position-anchor:--popover-search] [bottom:calc(anchor(top)+12px)] [left:anchor(center)] [translate:-50%_0] whitespace-nowrap text-left leading-5 text-ellipsis [max-inline-size:clamp(12rem,30vw,16rem)] group-hover/popover-search:delay-0 group-hover/popover-search:opacity-100 group-hover/popover-search:visible group-focus-within/popover-search:delay-0 group-focus-within/popover-search:opacity-100 group-focus-within/popover-search:visible">
                     검색어 입력후 엔터를 입력하세요.

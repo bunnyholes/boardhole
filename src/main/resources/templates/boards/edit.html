@@ -43,7 +43,7 @@
             </div>
             <div class="tip-wrapper relative group/tip">
                 <button popovertarget="searchPopover" popovertargetaction="toggle"
-                        class="tip-anchor flex h-20 w-full items-center justify-center text-slate-500 transition-all duration-150 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:color-mix(in_srgb,white_60%,#2563eb)] [anchor-name:--tip-search]"
+                        class="tip-anchor flex h-20 w-full items-center justify-center cursor-pointer text-slate-500 transition-all duration-150 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:color-mix(in_srgb,white_60%,#2563eb)] [anchor-name:--tip-search]"
                         aria-label="검색" aria-describedby="edit-tip-search">
                     <svg aria-hidden="true" viewBox="0 0 24 24" class="h-5 w-5" fill="none"
                          stroke="currentColor" stroke-width="1.75" stroke-linecap="round"
@@ -102,7 +102,7 @@
     <!-- 푸터: 알림, 로그아웃/로그인 -->
     <footer class="flex flex-col w-full text-slate-400">
         <div class="tip-wrapper relative group/tip">
-            <button class="tip-anchor flex h-20 w-full items-center justify-center text-slate-400 transition-all duration-150 hover:bg-slate-100 hover:text-amber-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:color-mix(in_srgb,white_60%,#2563eb)] [anchor-name:--tip-notification]"
+            <button class="tip-anchor flex h-20 w-full items-center justify-center cursor-pointer text-slate-400 transition-all duration-150 hover:bg-slate-100 hover:text-amber-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:color-mix(in_srgb,white_60%,#2563eb)] [anchor-name:--tip-notification]"
                     aria-label="알림" aria-describedby="edit-tip-notification">
                 <svg aria-hidden="true" viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor"
                      stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
@@ -115,10 +115,25 @@
                 Notifications
             </div>
         </div>
+        
+        <!-- API 문서 -->
+        <div class="tip-wrapper relative group/tip">
+            <a class="tip-anchor flex h-20 w-full items-center justify-center cursor-pointer text-slate-400 transition-all duration-150 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:color-mix(in_srgb,white_60%,#2563eb)] [anchor-name:--edit-tip-api-docs]"
+               th:href="@{/swagger-ui/index.html}" href="../../swagger-ui/index.html"
+               target="_blank" rel="noopener noreferrer"
+               aria-label="API 문서" aria-describedby="edit-tip-api-docs">
+                <img th:src="@{/assets/image/swagger.svg}" src="../../../static/assets/image/swagger.svg" alt="Swagger API" class="h-5 w-5"/>
+            </a>
+            <div id="edit-tip-api-docs" role="tooltip"
+                 class="tip-tooltip pointer-events-none absolute z-10 overflow-hidden rounded-xl bg-slate-900/90 px-3 py-2 text-xs font-medium text-white opacity-0 invisible delay-150 [transition-property:opacity,visibility] duration-150 [transition-behavior:allow-discrete] [position-anchor:--edit-tip-api-docs] [top:anchor(center)] [left:calc(anchor(end)+12px)] [translate:0_-50%] whitespace-nowrap text-left leading-5 text-ellipsis [max-inline-size:clamp(8rem,30vw,12rem)] group-hover/tip:delay-0 group-hover/tip:opacity-100 group-hover/tip:visible group-focus-visible/tip:delay-0 group-focus-visible/tip:opacity-100 group-focus-visible/tip:visible">
+                API 문서
+            </div>
+        </div>
+        
         <div class="tip-wrapper relative group/tip"
              th:if="${#authentication?.principal != null and #authentication?.principal != 'anonymousUser'}">
             <button popovertarget="logoutPopover" popovertargetaction="toggle"
-                    class="tip-anchor flex h-20 w-full items-center justify-center text-slate-400 transition-all duration-150 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:color-mix(in_srgb,white_60%,#2563eb)] [anchor-name:--tip-logout]"
+                    class="tip-anchor flex h-20 w-full items-center justify-center cursor-pointer text-slate-400 transition-all duration-150 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:color-mix(in_srgb,white_60%,#2563eb)] [anchor-name:--tip-logout]"
                     aria-label="로그아웃" aria-describedby="edit-tip-logout">
                 <svg aria-hidden="true" viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor"
                      stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
