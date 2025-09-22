@@ -58,13 +58,13 @@ Docker Compose가 자동으로 처리하는 것들:
     - Anon: `anon` / `Anon123!` (ROLE_USER)
 
 - 운영 환경에서의 권장 사항
-    - 비밀번호를 반드시 환경별로 오버라이드하세요 (예: `application-prod.yml`).
+    - 비밀번호를 반드시 환경별로 오버라이드하세요 (예: `application-dev.yml`).
     - 최초 기동 후 즉시 관리자 비밀번호를 변경하세요.
 
 - 설정 오버라이드 예시 (YAML)
 
 ```yaml
-# application-prod.yml 등
+# application-dev.yml 예시
 boardhole:
   default-users:
     admin:

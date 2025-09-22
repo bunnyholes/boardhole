@@ -17,7 +17,6 @@ comprehensive quality tooling.
 
 # Run
 ./gradlew bootRun            # Run with dev profile (default)
-./gradlew bootRun --args='--spring.profiles.active=prod'
 
 # Test
 ./gradlew test               # All tests (unit + e2e)
@@ -209,8 +208,8 @@ Docker services (Spring Boot Docker Compose auto-start):
 
 Profiles:
 
-- `dev` (default): Auto-DDL, SQL logging, debug
-- `prod`: Optimized settings, JSON logging
+- `dev`: Auto-DDL, SQL logging, debug
+- `smtp`: Email functionality (currently disabled)
 
 ## Dependencies
 

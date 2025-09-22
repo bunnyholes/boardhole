@@ -6,7 +6,7 @@
 spring:
   # 애플리케이션 기본 정보
   application:
-    name: boardholes
+    name: boardhole
   
   # JPA 공통 설정
   jpa:
@@ -54,12 +54,6 @@ boardhole:
     allow-credentials: true
     max-age: 3600
   
-  # Problem Details API 설정
-  problem:
-    # 문제 유형(type) 링크의 베이스 URI
-    # 비워두면 urn:problem-type:{slug} 형식으로 자동 생성
-    base-uri: # null (의도적으로 비움)
-  
   # 기본 사용자 템플릿 (비밀번호는 환경별 프로필에서 설정)
   default-users:
     admin:
@@ -76,86 +70,17 @@ boardhole:
     title: ${apiTitle}
     version: ${version}
     description: |
-      ## Board-Hole - Spring Boot Sample Code Repository
+      ## Boardhole - Spring Boot Sample Code Repository
 
-      Board-Hole은 "구덩이(Hole)"라는 의미로, 다양한 Spring Boot 샘플 코드를 모아둔 코드 저장소입니다.
+      Boardhole은 "구덩이(Hole)"라는 의미로, 다양한 Spring Boot 샘플 코드를 모아둔 코드 저장소입니다.
       실무에서 자주 사용되는 패턴과 기술들을 한곳에 모아 학습과 참고 목적으로 제공합니다.
 
-      ### 아키텍처 구성
-
-      도메인별 모듈화된 레이어드 아키텍처를 적용했습니다.
-
-      ```
-      presentation → application → domain → infrastructure
-
-      - presentation:  REST API Controller, DTO  
-      - application:   Command/Query Service, MapStruct Mapper
-      - domain:        Entity, Validation, Business Logic
-      - infrastructure: Repository, External API
-
-      각 도메인(user, board, email)별로 독립적인 모듈 구성
-      ```
-
-      ### 주요 샘플 코드 패턴
-
-      #### UUID 기반 엔티티 시스템
-      - 모든 엔티티 ID를 UUID로 통일하여 보안 강화
-      - 순차적 ID 추측 방지 및 분산 시스템 적합성 제공
-      - UUID v4 사용으로 충돌 확률 최소화
-      - API 엔드포인트: `/api/{domain}/{uuid}` 형태
-
-      #### 세션 기반 인증 시스템
-      - Spring Security + Redis Session Store
-      - 메소드 레벨 권한 제어(`@PreAuthorize` 활용)
-      - 권한별 접근 제어(PUBLIC, AUTH, ROLE:USER, ROLE:ADMIN, OWNER)
-      - UUID 기반 사용자 식별로 보안 강화
-
-      #### 게시판 CRUD 시스템
-      - 페이지네이션 + 검색 기능 구현
-      - Event-Driven(`@EventListener`로 조회수 증가 비동기 처리)
-      - 커스텀 검증(`@Valid*` / `@Optional*` 어노테이션)
-      - UUID 기반 게시글 식별 및 소유권 검증
-
-      #### 사용자 관리 시스템
-      - 사용자 CRUD + 프로필 관리
-      - 패스워드 정책 검증 및 이메일 변경 플로우
-      - UUID 기반 사용자 식별로 개인정보 보호 강화
-
-      #### 이메일 인증 시스템
-      - 현재 비활성화: 향후 JWT 기반 이메일 인증으로 대체 예정
-
-      ### 프로파일별 활성화 기능
-
-      #### dev 프로파일(기본값)
-      - Docker Compose: PostgreSQL + Redis 동적 포트로 자동 실행
-      - 이메일 기능: 현재 비활성화됨 (향후 JWT 기반 인증으로 대체 예정)
-      - 개발 도구: SQL 로깅, DDL 자동 업데이트, 디버그 로깅
-      - 컬러 로깅: 콘솔에서 색상 출력으로 가독성 향상
-      - 로컬 CORS: localhost/127.0.0.1 허용
-      - 기본 비밀번호: Admin123!, User123! (정책 준수: 대소문자+숫자+특수문자)
-
-      #### prod 프로파일
-      - 보안 강화: 환경변수 기반 설정, Secure Cookie
-      - 운영 최적화: DDL 검증만, SQL 로깅 비활성화
-      - 파일 로깅: 구조화된 로그 파일(10MB 롤링)
-      - CORS 제한: 환경변수로 허용 도메인 제한
-      - 환경변수 비밀번호: DATABASE_URL, ADMIN_PASSWORD 등
-
-      #### smtp 프로파일
-      - 현재 사용 불가: 이메일 기능이 비활성화됨 (향후 구현 예정)
-
-      ### 기술 스택
-
-      ```
-      Framework:  Spring Boot 3.5.5 + Java 21
-      Database:   PostgreSQL 17 + Redis 7.x
-      Security:   Spring Security + Session
-      ORM:        Spring Data JPA + Hibernate
-      Mapping:    MapStruct 1.6.3
-      Testing:    JUnit 5 + Testcontainers + RestAssured 5.5.6
-      Quality:    Checkstyle + PMD + SpotBugs + SonarCloud
-      API Doc:    SpringDoc OpenAPI 2.8.12
-      ```
+      ### 주요 기능
+      
+      - **게시판 CRUD**: 게시글 작성, 수정, 삭제, 조회
+      - **사용자 인증**: 세션 기반 로그인/로그아웃
+      - **권한 관리**: 사용자/관리자 역할 구분
+      - **UUID 기반**: 모든 엔티티 ID를 UUID로 통일하여 보안 강화
 
       ---
 
