@@ -1,158 +1,283 @@
 # boardholes - Spring Boot 게시판 애플리케이션
 
-## 🚀 빠른 시작 (아무것도 설정할 필요 없음!)
+Spring Boot 3.5.5와 Java 25를 기반으로 한 현대적인 게시판 시스템입니다.
 
-**Docker 데몬만 실행되어 있으면 모든 것이 자동으로 설정됩니다!**
+## 📋 필수 요구사항
 
+### Java 25
+프로젝트는 Java 25를 사용합니다. 반드시 Java 25가 설치되어 있어야 합니다.
+
+**설치 확인**:
 ```bash
-# 1. Docker 데몬이 실행 중인지 확인 (Docker Desktop 실행)
-docker --version  # Docker가 실행 중이면 버전이 표시됨
-
-# 2. 애플리케이션 실행 (PostgreSQL 17 + Redis 자동으로 시작됨)
-./gradlew bootRun
-
-# 3. 브라우저에서 접속
-http://localhost:8080
+java -version
+# "openjdk version "25"" 또는 "java version "25"" 표시되어야 함
 ```
 
-**끝! 애플리케이션이 필요한 모든 Docker 컨테이너를 자동으로 실행합니다.** 🎉
+**설치 방법**:
+- **macOS**: `brew install openjdk@25`
+- **Windows**: [Oracle JDK 25](https://www.oracle.com/java/technologies/downloads/#java25) 또는 [Adoptium](https://adoptium.net/)
+- **Linux**: 
+  ```bash
+  # Ubuntu/Debian
+  sudo apt update && sudo apt install openjdk-25-jdk
+  
+  # RHEL/CentOS/Fedora
+  sudo dnf install java-25-openjdk-devel
+  ```
 
-Docker Compose가 자동으로 처리하는 것들:
+### Docker Desktop
+데이터베이스(PostgreSQL)와 세션 스토어(Redis)가 Docker 컨테이너로 자동 관리됩니다.
 
-- ✅ PostgreSQL 17 이미지 자동 다운로드 및 실행 (동적 포트)
-- ✅ Redis 이미지 자동 다운로드 및 실행 (동적 포트)
+**설치 확인**:
+```bash
+docker --version  # Docker 버전이 표시되어야 함
+docker info       # Docker 데몬 실행 상태 확인
+```
+
+**설치 방법**:
+1. [Docker Desktop](https://www.docker.com/products/docker-desktop/) 다운로드 및 설치
+2. 설치 후 Docker Desktop 애플리케이션 실행
+3. Docker 데몬이 실행 중인지 확인
+
+## 🚀 빠른 시작
+
+### 1단계: 환경 확인
+```bash
+# Java 25 설치 확인
+java -version
+# 출력 예시: openjdk version "25" 2025-09-16
+
+# Docker 설치 및 실행 확인  
+docker --version
+# 출력 예시: Docker version 24.x.x
+
+docker info
+# Docker 데몬 정보가 표시되면 정상
+```
+
+### 2단계: 프로젝트 실행
+```bash
+# 저장소 클론
+git clone https://github.com/bunnyholes/boardhole.git
+cd boardhole
+
+# 애플리케이션 실행 (Docker 컨테이너 자동 시작)
+./gradlew bootRun
+```
+
+**자동으로 실행되는 것들**:
+- ✅ PostgreSQL 17 컨테이너 시작 (포트 자동 할당)
+- ✅ Redis 7 컨테이너 시작 (포트 자동 할당)
 - ✅ 데이터베이스 스키마 자동 생성
-- ✅ 모든 환경 변수 자동 설정
-- ✅ 네트워크 및 볼륨 자동 구성
+- ✅ 기본 사용자 계정 생성
+- ✅ Spring Boot 애플리케이션 시작
 
-**별도로 설치할 필요 없는 것들:**
+### 3단계: 접속 확인
+- **메인 페이지**: http://localhost:8080
+- **API 문서**: http://localhost:8080/swagger-ui/index.html
+- **Actuator**: http://localhost:8080/actuator/health
 
-- ❌ PostgreSQL 설치 불필요
-- ❌ Redis 설치 불필요
-- ❌ Docker 이미지 수동 다운로드 불필요
-- ❌ 데이터베이스 생성 불필요
-- ❌ 환경 변수 설정 불필요
+## 🔒 기본 계정 정보
 
-## 📋 유일한 필수 요구사항
+개발 및 테스트 편의를 위해 기본 계정들이 자동으로 생성됩니다:
 
-- **Java 21**
-- **Docker Desktop** (또는 Docker 데몬만 실행 중이면 됨)
-- 그게 전부입니다!
+| 구분 | 사용자명 | 비밀번호 | 역할 |
+|------|----------|----------|------|
+| 관리자 | `admin` | `Admin123!` | ROLE_ADMIN |
+| 일반 사용자 | `user` | `User123!` | ROLE_USER |
+| 게스트 | `anon` | `Anon123!` | ROLE_USER |
+
+**⚠️ 보안 주의사항**:
+- 운영 환경에서는 반드시 비밀번호를 변경하세요
+- 환경 변수로 비밀번호 오버라이드 가능:
+  ```bash
+  export BOARDHOLE_DEFAULT_USERS_ADMIN_PASSWORD='새로운비밀번호'
+  export BOARDHOLE_DEFAULT_USERS_REGULAR_PASSWORD='새로운비밀번호'
+  ```
 
 ## 🛠️ 주요 기능
 
 - **게시판 CRUD**: 게시글 작성, 수정, 삭제, 조회
 - **사용자 인증**: 세션 기반 로그인/로그아웃
-
 - **권한 관리**: 사용자/관리자 역할 구분
-- **API 문서**: Swagger UI 제공 (`/swagger-ui/index.html`)
+- **API 문서**: Swagger UI 제공
 - **표준 HTTP 응답**: RFC 7807 Problem Details 준수
-
-## 🔒 기본 계정과 보안 안내
-
-본 애플리케이션은 모든 프로필(운영 포함)에서 기본 계정들을 멱등하게 생성합니다. 이는 온보딩과 데모/E2E 테스트 편의를 위한 의도된 동작입니다. 기본 비밀번호의 변경·회전 책임은 배포/운영자에게 있습니다.
-
-- 기본 계정(기본값은 `application.yml`에서 설정, 환경별 오버라이드 권장)
-    - Admin: `admin` / `Admin123!` (ROLE_ADMIN)
-    - User: `user` / `User123!` (ROLE_USER)
-    - Anon: `anon` / `Anon123!` (ROLE_USER)
-
-- 운영 환경에서의 권장 사항
-    - 비밀번호를 반드시 환경별로 오버라이드하세요 (예: `application-dev.yml`).
-    - 최초 기동 후 즉시 관리자 비밀번호를 변경하세요.
-
-- 설정 오버라이드 예시 (YAML)
-
-```yaml
-# application-dev.yml 예시
-boardhole:
-  default-users:
-    admin:
-      password: "CHANGE_ME_STRONG!"
-    regular:
-      password: "CHANGE_ME_STRONG!"
-```
-
-- 환경변수로 오버라이드 예시
-
-```bash
-export BOARDHOLE_DEFAULT_USERS_ADMIN_PASSWORD='CHANGE_ME_STRONG!'
-export BOARDHOLE_DEFAULT_USERS_REGULAR_PASSWORD='CHANGE_ME_STRONG!'
-```
-
-- 비밀번호 변경 API (로그인 후 본인 비밀번호 변경)
-    - `PATCH /api/users/{id}/password` (폼 전송)
-    - 필드: `currentPassword`, `newPassword`, `confirmPassword`
+- **국제화**: 한국어/영어 메시지 지원
 
 ## 🏗️ 기술 스택
 
-- **Backend**: Spring Boot 3.5.5, Java 21
-- **Database**: PostgreSQL 17 (Docker)
-- **Session**: Redis (Docker)
-- **Build**: Gradle 8.14
+### Backend
+- **Framework**: Spring Boot 3.5.5
+- **Language**: Java 25
+- **Build Tool**: Gradle 9.1
+- **Security**: Spring Security (세션 기반)
+
+### Database & Cache
+- **Database**: PostgreSQL 17 (Docker 자동 관리)
+- **Session Store**: Redis 7 (Docker 자동 관리)
+- **ORM**: Spring Data JPA + Hibernate
+
+### Testing & Quality
 - **Testing**: JUnit 5, Testcontainers, RestAssured
-- **Quality**: Checkstyle, PMD, SpotBugs
+- **Quality**: SonarCloud, IntelliJ 코드 검사
+- **Architecture Testing**: ArchUnit
+
+### Frontend
+- **Template Engine**: Thymeleaf
+- **Security Integration**: Thymeleaf Spring Security
 
 ## 📁 프로젝트 구조
 
 ```
-src/main/java/bunny/boardhole/
+src/main/java/dev/xiyo/bunnyholes/boardhole/
 ├── auth/          # 인증/인가
+│   ├── application/
+│   ├── domain/
+│   ├── infrastructure/
+│   └── presentation/
 ├── board/         # 게시판
-├── user/          # 사용자
+│   ├── application/
+│   ├── domain/
+│   ├── infrastructure/
+│   └── presentation/
+├── user/          # 사용자 관리
+│   ├── application/
+│   ├── domain/
+│   ├── infrastructure/
+│   └── presentation/
 └── shared/        # 공통 모듈
+    ├── config/
+    ├── constants/
+    ├── exception/
+    └── security/
 ```
 
-각 도메인은 레이어드 아키텍처 적용:
-
-- `presentation` - REST API 컨트롤러
-- `application` - 비즈니스 로직
+**레이어드 아키텍처**:
+- `presentation` - REST API 컨트롤러 및 웹 컨트롤러
+- `application` - 비즈니스 로직 (Command/Query 분리)
 - `domain` - 엔티티 및 도메인 규칙
-- `infrastructure` - 데이터 접근
+- `infrastructure` - 데이터 접근 계층
 
 ## 🧪 테스트 실행
 
 ```bash
-# 모든 테스트
+# 모든 테스트 실행
 ./gradlew test
+
+# E2E 테스트만 실행
+./gradlew e2eTest
+
+# 테스트 커버리지 확인
+./gradlew jacocoTestReport
 ```
+
+**테스트 구성**:
+- **Unit Tests**: 단위 테스트 (Mock 기반)
+- **Integration Tests**: 통합 테스트 (Testcontainers 사용)
+- **E2E Tests**: 전체 시스템 테스트
+- **Architecture Tests**: ArchUnit으로 아키텍처 규칙 검증
 
 ## 🔧 유용한 명령어
 
+### Gradle 명령어
 ```bash
-# Docker 컨테이너 종료
-docker-compose down
+# 애플리케이션 실행
+./gradlew bootRun
 
-# Docker 컨테이너 및 볼륨 완전 삭제
-docker-compose down -v
+# 빌드 (테스트 포함)
+./gradlew build
+
+# 빌드 (테스트 제외)  
+./gradlew build -x test
+
+# 종료
+Ctrl+C (gradlew bootRun 실행 중인 터미널에서)
 ```
 
-## 📄 라이선스
+### Docker 관리
+```bash
+# 실행 중인 컨테이너 확인
+docker ps
 
-MIT License
+# Docker 컨테이너 종료 (애플리케이션 종료 시 자동)
+docker compose -f docker-compose.infra.yml down
 
-## 📚 개발 가이드
+# 컨테이너 및 볼륨 완전 삭제
+docker compose -f docker-compose.infra.yml down -v
 
-테스트 실행은 단일 명령(`./gradlew test`)만 안내합니다. 복잡한 분리/필터링은 현재 단계에서는 문서화하지 않습니다.
+# Docker 시스템 정리
+docker system prune
+```
 
-### 아키텍처 구조
+## 🖥️ 개발 환경 권장사항
 
-각 도메인은 레이어드 아키텍처를 따릅니다:
+### IDE 설정
+**IntelliJ IDEA** (Ultimate 또는 Community):
+1. Java 25 SDK 설정 확인
+2. Docker 플러그인 활성화
+3. Lombok 플러그인 설치
+4. 코드 스타일 자동 적용:
+   - Settings → Tools → Actions on Save
+   - ✅ 코드 자동 포맷팅
+   - ✅ import 최적화
 
-- **presentation**: REST API 컨트롤러 및 DTO
-- **application**: 비즈니스 로직 (Command/Query 분리)
-- **domain**: 엔티티 및 도메인 규칙
-- **infrastructure**: 데이터 접근 계층
+### 성능 최적화
+- **Docker Desktop**: 메모리 4GB 이상 할당 권장
+- **Gradle JVM**: `-Xmx2g` (gradle.properties에 설정됨)
+- **IDE JVM**: `-Xmx4g` 권장
 
-### 코드 스타일 설정
+## 🔧 문제 해결
 
-IntelliJ IDEA 자동 설정:
+### Java 관련 오류
+```bash
+# Java 25가 설치되지 않은 경우
+Error: JAVA_HOME is not defined correctly.
 
-1. 프로젝트 열기 시 `.idea/codeStyles/` 자동 감지
-2. Settings → Tools → Actions on Save 에서 다음 활성화:
-    - ✅ 코드 자동 포맷팅
-    - ✅ import 최적화
-    - ✅ 코드 재정렬 (선택사항)
+# 해결 방법:
+# 1. Java 25 설치
+# 2. JAVA_HOME 환경 변수 설정
+export JAVA_HOME=$(/usr/libexec/java_home -v 25)  # macOS
+export JAVA_HOME=/usr/lib/jvm/java-25-openjdk     # Linux
+```
+
+### Docker 관련 오류
+```bash
+# Docker 데몬이 실행되지 않은 경우
+Cannot connect to the Docker daemon
+
+# 해결 방법:
+# macOS/Windows: Docker Desktop 애플리케이션 실행
+# Linux: sudo systemctl start docker
+```
+
+### 포트 충돌 오류
+```bash
+# 8080 포트가 이미 사용 중인 경우
+Port 8080 is already in use
+
+# 해결 방법:
+# 1. 다른 애플리케이션 종료
+lsof -ti:8080 | xargs kill -9
+
+# 2. 또는 다른 포트 사용
+./gradlew bootRun --args='--server.port=8081'
+```
+
+## 📋 HTTP 응답 코드
+
+애플리케이션은 REST API 표준을 준수합니다:
+
+| 코드 | 의미 | 사용 예시 |
+|------|------|-----------|
+| **200 OK** | 조회 성공 | GET 요청 성공 |
+| **201 Created** | 생성 성공 | POST 요청으로 새 데이터 생성 |
+| **204 No Content** | 수정/삭제 성공 | PUT/PATCH/DELETE 성공, 반환 데이터 없음 |
+| **400 Bad Request** | 요청 형식 오류 | 잘못된 JSON, 누락된 필수 필드 |
+| **401 Unauthorized** | 인증 실패 | 로그인 필요, 세션 만료 |
+| **409 Conflict** | 중복 데이터 | 이메일/사용자명 중복 |
+| **422 Unprocessable Entity** | 유효성 검증 실패 | 비즈니스 규칙 위반 |
+
+모든 오류 응답은 **RFC 7807 Problem Details** 표준을 따라 구조화된 JSON으로 반환됩니다.
 
 ## 👥 기여하기
 
@@ -162,20 +287,21 @@ IntelliJ IDEA 자동 설정:
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-## 📋 HTTP 응답 코드
+### 코딩 컨벤션
+- **Null Safety**: 모든 패키지에 `@NullMarked` 적용
+- **국제화**: 사용자 대상 메시지는 `messages.properties` 사용
+- **검증**: 생성 시 `@Valid*`, 수정 시 `@Optional*` 어노테이션
+- **매핑**: MapStruct를 사용한 2단계 매핑 (Entity ↔ Result ↔ Response)
 
-애플리케이션은 REST API 표준을 준수하여 다음과 같은 HTTP 응답 코드를 사용합니다:
+## 📄 라이선스
 
-- **200 OK**: 조회 성공 (GET 요청 성공)
-- **201 Created**: 리소스 생성 성공 (POST 요청으로 새 데이터 생성)
-- **204 No Content**: 수정/삭제 성공 (PUT/PATCH/DELETE 요청 성공, 반환 데이터 없음)
-- **400 Bad Request**: 요청 형식 오류 (잘못된 JSON, 누락된 필수 필드)
-- **401 Unauthorized**: 인증 실패 (로그인 필요, 세션 만료)
-- **409 Conflict**: 중복 데이터 (이메일/사용자명 중복)
-- **422 Unprocessable Entity**: 유효성 검증 실패 (형식은 올바르나 비즈니스 규칙 위반)
-
-모든 오류 응답은 RFC 7807 Problem Details 표준을 따라 구조화된 JSON으로 반환됩니다.
+MIT License
 
 ## 📞 문의
 
-프로젝트 관련 문의사항은 Issues 탭을 이용해주세요.
+프로젝트 관련 문의사항은 [Issues](https://github.com/bunnyholes/boardhole/issues) 탭을 이용해주세요.
+
+---
+
+**🎉 모든 설정이 완료되었습니다!**  
+`./gradlew bootRun` 실행 후 http://localhost:8080 에서 애플리케이션을 확인하세요.
