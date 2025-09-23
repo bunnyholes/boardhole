@@ -18,7 +18,6 @@ import jakarta.validation.ConstraintViolationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.slf4j.MDC;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.mapping.PropertyReferenceException;
@@ -41,7 +40,6 @@ import org.springframework.web.context.request.async.AsyncRequestTimeoutExceptio
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
-import dev.xiyo.bunnyholes.boardhole.shared.config.log.RequestLoggingFilter;
 import dev.xiyo.bunnyholes.boardhole.shared.constants.ErrorCode;
 import dev.xiyo.bunnyholes.boardhole.shared.security.ProblemDetailsHelper;
 import dev.xiyo.bunnyholes.boardhole.shared.util.MessageUtils;
@@ -122,9 +120,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ProblemDetail handleDataIntegrityViolation(DataIntegrityViolationException ex, HttpServletRequest request) {
         // 보안: 원본 메시지는 로깅만 하고 사용자에게는 일반 메시지만 전달
-        log.error("Data integrity violation: path={}, method={}, traceId={}",
-                request.getRequestURI(), request.getMethod(),
-                MDC.get(RequestLoggingFilter.TRACE_ID), ex);
+        log.error("Data integrity violation: path={}, method={}",
+                request.getRequestURI(), request.getMethod(), ex);
 
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT,
                 MessageUtils.get("error.conflict"));
@@ -373,9 +370,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ProblemDetail handleUnexpected(Exception ex, HttpServletRequest request) {
         // 500 에러는 반드시 로깅
-        log.error("Unexpected error occurred: path={}, method={}, traceId={}",
-                request.getRequestURI(), request.getMethod(),
-                MDC.get(RequestLoggingFilter.TRACE_ID), ex);
+        log.error("Unexpected error occurred: path={}, method={}",
+                request.getRequestURI(), request.getMethod(), ex);
 
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, MessageUtils.get("error.internal"));
         pd.setTitle(MessageUtils.get("exception.title.internal-error"));

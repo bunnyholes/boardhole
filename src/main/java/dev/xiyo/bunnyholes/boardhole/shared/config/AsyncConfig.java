@@ -1,9 +1,6 @@
 package dev.xiyo.bunnyholes.boardhole.shared.config;
 
-import java.util.Map;
 import java.util.concurrent.ThreadPoolExecutor;
-
-import org.slf4j.MDC;
 import org.springframework.boot.autoconfigure.task.TaskExecutionProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,7 +18,6 @@ public class AsyncConfig {
     /**
      * Spring Boot TaskExecutor 빈 설정
      * - RejectedExecutionHandler: 큐가 가득 찼을 때 처리 방식
-     * - TaskDecorator: MDC 컨텍스트 전파
      * application.yml의 spring.task.execution 설정과 함께 작동
      *
      * @param properties Spring Boot TaskExecutionProperties
@@ -40,20 +36,6 @@ public class AsyncConfig {
 
         // RejectedExecutionHandler 설정
         executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
-
-        // MDC 컨텍스트 전파를 위한 TaskDecorator
-        executor.setTaskDecorator(runnable -> {
-            Map<String, String> contextMap = MDC.getCopyOfContextMap();
-            return () -> {
-                if (contextMap != null)
-                    MDC.setContextMap(contextMap);
-                try {
-                    runnable.run();
-                } finally {
-                    MDC.clear();
-                }
-            };
-        });
 
         executor.initialize();
         return executor;

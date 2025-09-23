@@ -2,17 +2,12 @@ package dev.xiyo.bunnyholes.boardhole.shared.security;
 
 import java.net.URI;
 import java.time.Instant;
-import java.util.Optional;
-
 import jakarta.servlet.http.HttpServletRequest;
 
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
-
-import org.slf4j.MDC;
 import org.springframework.http.ProblemDetail;
 
-import dev.xiyo.bunnyholes.boardhole.shared.config.log.RequestLoggingFilter;
 
 /**
  * ProblemDetail 생성을 위한 공통 헬퍼 클래스
@@ -33,12 +28,6 @@ public class ProblemDetailsHelper {
 
         pd.setProperty("path", request.getRequestURI());
         pd.setProperty("method", request.getMethod());
-
-        Optional
-                .ofNullable(MDC.get(RequestLoggingFilter.TRACE_ID))
-                .filter(traceId -> !traceId.isBlank())
-                .ifPresent(traceId -> pd.setProperty("traceId", traceId));
-
         pd.setProperty("timestamp", Instant.now().toString());
         pd.setProperty("code", errorCode);
     }
