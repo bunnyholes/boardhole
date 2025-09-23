@@ -13,10 +13,6 @@ public final class AuthSteps {
     // Default seeded accounts (DataInitializer)
     private static final String ADMIN_USERNAME = "admin";
     private static final String ADMIN_PASSWORD = "Admin123!";
-    private static final String REGULAR_USERNAME = "user";
-    private static final String REGULAR_PASSWORD = "User123!";
-    private static final String ANON_USERNAME = "anon";
-    private static final String ANON_PASSWORD = "Anon123!";
 
     public static void register(String username, String password, String name, String email) {
         given()
@@ -44,14 +40,5 @@ public final class AuthSteps {
     // Semantic helpers
     public static String loginAdmin() {
         return loginAs(ADMIN_USERNAME, ADMIN_PASSWORD);
-    }
-
-    public static String loginRegular() {
-        register(REGULAR_USERNAME, REGULAR_PASSWORD, "Regular User", "user@example.com");
-        return loginAs(REGULAR_USERNAME, REGULAR_PASSWORD);
-    }
-
-    public static String loginAnon() {
-        return loginAs(ANON_USERNAME, ANON_PASSWORD);
     }
 }

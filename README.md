@@ -90,7 +90,6 @@ cd boardhole
 - 환경 변수로 비밀번호 오버라이드 가능:
   ```bash
   export BOARDHOLE_DEFAULT_USERS_ADMIN_PASSWORD='새로운비밀번호'
-  export BOARDHOLE_DEFAULT_USERS_REGULAR_PASSWORD='새로운비밀번호'
   ```
 
 ## 🛠️ 주요 기능

@@ -28,9 +28,13 @@ class UserE2ETest extends E2ETestBase {
 
     @BeforeEach
     void loginDefaultUsers() {
-        // DataInitializer가 기본 admin/regular를 생성하므로 바로 로그인
+        // DataInitializer가 기본 admin을 생성하므로 바로 로그인
         admin = AuthSteps.loginAdmin();
-        regular = AuthSteps.loginRegular();
+        
+        // 일반 사용자는 동적으로 생성
+        String testUsername = "testuser_" + System.currentTimeMillis();
+        AuthSteps.register(testUsername, "TestUser123!", "Test User", "test@example.com");
+        regular = AuthSteps.loginAs(testUsername, "TestUser123!");
     }
 
     @Nested

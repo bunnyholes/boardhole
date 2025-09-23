@@ -11,12 +11,7 @@ public record DefaultUsersProperties(
         /**
          * 관리자 계정 정보
          */
-        UserInfo admin,
-
-        /**
-         * 일반 사용자 계정 정보
-         */
-        UserInfo regular
+        UserInfo admin
 ) {
 
     /**

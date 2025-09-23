@@ -75,8 +75,6 @@ public class DataInitializer implements CommandLineRunner {
             log.info(MessageUtils.get("log.board.welcome.created"));
         }
 
-        // Ensure anonymous default user exists for E2E tests
-        ensureAnonymousUser();
     }
 
     private void createWelcomeBoard() {
@@ -92,21 +90,5 @@ public class DataInitializer implements CommandLineRunner {
         boardRepository.save(welcomeBoard);
     }
 
-    // Create an additional anonymous default user for E2E convenience
-    // 개발 편의성 목적의 사용자이지만, 본 프로젝트에서는 의도적으로 모든 프로필에서 보장합니다.
-    private void ensureAnonymousUser() {
-        final String anonUsername = "anon";
-        if (!userRepository.existsByUsername(anonUsername)) {
-            User anon = User.builder()
-                            .username(anonUsername)
-                            .password(passwordEncoder.encode("Anon123!"))
-                            .name("Anonymous User")
-                            .email("anon@boardhole.com")
-                            .roles(Set.of(Role.USER))
-                            .build();
-            anon.verifyEmail();
-            userRepository.save(anon);
-        }
-    }
 
 }
