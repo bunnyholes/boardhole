@@ -15,7 +15,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.slf4j.MDC;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -27,7 +26,6 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
-import dev.xiyo.bunnyholes.boardhole.shared.config.log.RequestLoggingFilter;
 import dev.xiyo.bunnyholes.boardhole.shared.util.MessageUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -39,7 +37,6 @@ import static org.mockito.Mockito.when;
 @Tag("unit")
 class GlobalExceptionHandlerTest {
 
-    private static final String TRACE_ID = "test-trace-id-123";
     private static final String REQUEST_PATH = "/api/test";
     private static final String REQUEST_METHOD = "POST";
 
@@ -56,7 +53,6 @@ class GlobalExceptionHandlerTest {
         handler = new GlobalExceptionHandler(entityManager);
 
         LocaleContextHolder.setLocale(Locale.KOREAN);
-        MDC.put(RequestLoggingFilter.TRACE_ID, TRACE_ID);
 
         // Initialize MessageUtils
         ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
@@ -88,10 +84,9 @@ class GlobalExceptionHandlerTest {
         assertThat(result.getDetail()).isEqualTo(errorMessage);
         assertThat(result.getType()).isEqualTo(URI.create("urn:problem-type:not-found"));
         assertThat(result.getInstance()).isEqualTo(URI.create(REQUEST_PATH));
-        assertThat(result.getProperties()).containsKeys("path", "method", "timestamp", "traceId");
+        assertThat(result.getProperties()).containsKeys("path", "method", "timestamp");
         Map<String, Object> properties = result.getProperties();
         assertThat(properties).isNotNull();
-        assertThat(properties.get("traceId")).isEqualTo(TRACE_ID);
         assertThat(properties.get("path")).isEqualTo(REQUEST_PATH);
         assertThat(properties.get("method")).isEqualTo(REQUEST_METHOD);
     }
@@ -298,11 +293,10 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
-    @DisplayName("MDC에 traceId가 없을 때 처리")
-    void handleWithoutTraceId() {
+    @DisplayName("기본 프로퍼티가 올바르게 설정된다")
+    void shouldSetBasicProperties() {
         // Given
         setupRequestMock();
-        MDC.clear(); // Remove traceId
         final String errorMessage = "테스트 오류";
         ResourceNotFoundException ex = new ResourceNotFoundException(errorMessage);
 
@@ -310,8 +304,8 @@ class GlobalExceptionHandlerTest {
         ProblemDetail result = handler.handleNotFound(ex, request);
 
         // Then
-        assertThat(result.getProperties()).doesNotContainKey("traceId");
         assertThat(result.getProperties()).containsKeys("path", "method", "timestamp");
+        assertThat(result.getProperties()).doesNotContainKey("traceId");
     }
 
 }
