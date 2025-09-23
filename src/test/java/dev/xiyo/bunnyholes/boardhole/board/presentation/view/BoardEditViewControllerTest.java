@@ -28,7 +28,6 @@ import dev.xiyo.bunnyholes.boardhole.board.application.result.BoardResult;
 import dev.xiyo.bunnyholes.boardhole.board.domain.validation.BoardValidationConstants;
 import dev.xiyo.bunnyholes.boardhole.board.presentation.mapper.BoardWebMapper;
 import dev.xiyo.bunnyholes.boardhole.shared.config.ViewSecurityConfig;
-import dev.xiyo.bunnyholes.boardhole.shared.config.log.RequestLoggingFilter;
 import dev.xiyo.bunnyholes.boardhole.shared.exception.GlobalExceptionHandler;
 import dev.xiyo.bunnyholes.boardhole.shared.exception.ViewControllerAdvice;
 
@@ -57,7 +56,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(
         value = BoardEditViewController.class,
         excludeFilters = {
-                @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = RequestLoggingFilter.class),
                 @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = GlobalExceptionHandler.class)
         }
 )

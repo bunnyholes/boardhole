@@ -18,7 +18,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import dev.xiyo.bunnyholes.boardhole.shared.config.ViewSecurityConfig;
-import dev.xiyo.bunnyholes.boardhole.shared.config.log.RequestLoggingFilter;
 import dev.xiyo.bunnyholes.boardhole.shared.exception.GlobalExceptionHandler;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -34,7 +33,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(
         value = LoginViewController.class,
         excludeFilters = {
-                @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = RequestLoggingFilter.class),
                 @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = GlobalExceptionHandler.class)
         }
 )

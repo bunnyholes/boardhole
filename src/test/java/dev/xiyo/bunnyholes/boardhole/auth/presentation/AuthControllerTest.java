@@ -12,10 +12,7 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
 import org.springframework.http.MediaType;
@@ -29,9 +26,7 @@ import dev.xiyo.bunnyholes.boardhole.auth.application.command.LoginCommand;
 import dev.xiyo.bunnyholes.boardhole.auth.presentation.dto.LoginRequest;
 import dev.xiyo.bunnyholes.boardhole.auth.presentation.mapper.AuthWebMapper;
 import dev.xiyo.bunnyholes.boardhole.shared.config.ApiSecurityConfig;
-import dev.xiyo.bunnyholes.boardhole.shared.config.log.RequestLoggingFilter;
 import dev.xiyo.bunnyholes.boardhole.shared.constants.ApiPaths;
-import dev.xiyo.bunnyholes.boardhole.shared.exception.GlobalExceptionHandler;
 import dev.xiyo.bunnyholes.boardhole.shared.exception.UnauthorizedException;
 import dev.xiyo.bunnyholes.boardhole.user.application.command.CreateUserCommand;
 import dev.xiyo.bunnyholes.boardhole.user.application.command.UserCommandService;
@@ -45,18 +40,13 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.BDDMockito.willThrow;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(
-        value = AuthController.class,
-        excludeFilters = {
-                @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = RequestLoggingFilter.class)
-        }
-)
-@AutoConfigureMockMvc
-@Import({ApiSecurityConfig.class, GlobalExceptionHandler.class})
+@WebMvcTest(AuthController.class)
+@Import(ApiSecurityConfig.class)
 @DisplayName("AuthController MockMvc 테스트")
 @Tag("unit")
 @Tag("auth")
@@ -122,6 +112,7 @@ class AuthControllerTest {
                            .param("confirmPassword", request.confirmPassword())
                            .param("name", request.name())
                            .param("email", request.email())
+                           .with(csrf())
                    )
                    .andExpect(status().isNoContent());
 
@@ -155,6 +146,7 @@ class AuthControllerTest {
                            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                            .param("username", loginRequest.username())
                            .param("password", loginRequest.password())
+                           .with(csrf())
                    )
                    .andExpect(status().isNoContent());
 
@@ -183,6 +175,7 @@ class AuthControllerTest {
                            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                            .param("username", loginRequest.username())
                            .param("password", loginRequest.password())
+                           .with(csrf())
                    )
                    .andExpect(status().isUnauthorized())
                    .andExpect(jsonPath("$.status").value(401));
@@ -200,7 +193,7 @@ class AuthControllerTest {
         @WithMockUser(username = "testuser", roles = "USER")
         @DisplayName("✅ 인증된 사용자가 로그아웃하면 서비스 호출")
         void shouldLogoutWithPrincipal() throws Exception {
-            mockMvc.perform(post(AuthControllerTest.LOGOUT_URL))
+            mockMvc.perform(post(AuthControllerTest.LOGOUT_URL).with(csrf()))
                    .andExpect(status().isNoContent());
 
             then(authCommandService).should().logout();
@@ -210,7 +203,7 @@ class AuthControllerTest {
         @WithAnonymousUser
         @DisplayName("❌ 인증 정보 없이 로그아웃 시 403 응답")
         void shouldNotLogoutWithoutPrincipal() throws Exception {
-            mockMvc.perform(post(AuthControllerTest.LOGOUT_URL))
+            mockMvc.perform(post(AuthControllerTest.LOGOUT_URL).with(csrf()))
                    .andExpect(status().isForbidden())
                    .andExpect(jsonPath("$.status").value(403));
 

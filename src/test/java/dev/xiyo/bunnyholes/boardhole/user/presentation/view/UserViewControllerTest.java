@@ -27,7 +27,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import dev.xiyo.bunnyholes.boardhole.shared.config.ViewSecurityConfig;
-import dev.xiyo.bunnyholes.boardhole.shared.config.log.RequestLoggingFilter;
 import dev.xiyo.bunnyholes.boardhole.user.application.query.UserQueryService;
 import dev.xiyo.bunnyholes.boardhole.user.application.result.UserResult;
 import dev.xiyo.bunnyholes.boardhole.user.domain.Role;
@@ -52,7 +51,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(
         value = UserViewController.class,
         excludeFilters = {
-                @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = RequestLoggingFilter.class)
         }
 )
 @Import(ViewSecurityConfig.class) // 테스트용 보안 설정

@@ -31,7 +31,6 @@ import dev.xiyo.bunnyholes.boardhole.board.application.result.BoardResult;
 import dev.xiyo.bunnyholes.boardhole.board.presentation.dto.BoardFormRequest;
 import dev.xiyo.bunnyholes.boardhole.board.presentation.mapper.BoardWebMapper;
 import dev.xiyo.bunnyholes.boardhole.shared.config.ViewSecurityConfig;
-import dev.xiyo.bunnyholes.boardhole.shared.config.log.RequestLoggingFilter;
 import dev.xiyo.bunnyholes.boardhole.shared.exception.GlobalExceptionHandler;
 import dev.xiyo.bunnyholes.boardhole.user.domain.Role;
 import dev.xiyo.bunnyholes.boardhole.user.domain.User;
@@ -61,7 +60,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(
         value = BoardWriteViewController.class,
         excludeFilters = {
-                @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = RequestLoggingFilter.class),
                 @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = GlobalExceptionHandler.class)
         }
 )
