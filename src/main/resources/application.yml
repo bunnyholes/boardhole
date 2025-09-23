@@ -38,12 +38,6 @@ server:
 # 애플리케이션 도메인 설정
 # ========================================
 boardhole:
-  # 로깅 성능 임계값
-  logging:
-    performance:
-      fast-threshold: 100
-      normal-threshold: 500
-  
   # CORS 기본값 (환경별 프로필에서 오버라이드 권장)
   cors:
     path-patterns: "/api/**"

@@ -36,6 +36,15 @@ server:
     include-binding-errors: always    # 바인딩 에러 포함
     include-stacktrace: on-param      # 파라미터 요청시 스택트레이스 포함
     include-exception: true           # 예외 정보 포함
+  
+  # 톰캣 Access Log (개발 환경에서만 활성화)
+  tomcat:
+    accesslog:
+      enabled: true
+      pattern: "%h %u %t \"%r\" %s %D"  # IP 사용자 시간 "요청" 상태코드 처리시간
+      directory: logs
+      prefix: access
+      suffix: .log
 
 # 개발 환경 애플리케이션 설정
 boardhole:
