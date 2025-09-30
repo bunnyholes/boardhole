@@ -381,42 +381,4 @@ class BoardCommandServiceTest {
             verify(boardRepository, never()).delete(any());
         }
     }
-
-    @Nested
-    @DisplayName("조회수 증가")
-    class IncrementViewCount {
-
-        @Test
-        @DisplayName("✅ 조회수 증가 - save 사용 (saveAndFlush 아님)")
-        void incrementViewCount_ExistingBoard_IncrementsSuccessfully() {
-            // Given
-            IncrementViewCountCommand cmd = new IncrementViewCountCommand(mockBoard.getId());
-            when(boardRepository.findById(mockBoard.getId())).thenReturn(Optional.of(
-                    mockBoard));
-            when(boardRepository.save(mockBoard)).thenReturn(
-                    mockBoard);
-
-            // When
-            boardCommandService.incrementViewCount(cmd);
-
-            // Then
-            verify(boardRepository).findById(mockBoard.getId());
-            verify(boardRepository).save(mockBoard);
-        }
-
-        @Test
-        @DisplayName("❌ 게시글 미존재 → ResourceNotFoundException with 국제화 메시지")
-        void incrementViewCount_BoardNotFound_ThrowsResourceNotFoundException() {
-            // Given
-            IncrementViewCountCommand cmd = new IncrementViewCountCommand(UUID.randomUUID());
-            when(boardRepository.findById(cmd.boardId())).thenReturn(Optional.empty());
-
-            // When & Then
-            assertThatThrownBy(() -> boardCommandService.incrementViewCount(cmd))
-                    .isInstanceOf(ResourceNotFoundException.class);
-
-            verify(boardRepository).findById(cmd.boardId());
-            verifyNoMoreInteractions(boardRepository);
-        }
-    }
 }

@@ -1,6 +1,5 @@
 package dev.xiyo.bunnyholes.boardhole.board.application.command;
 
-import java.util.Optional;
 import java.util.UUID;
 
 import jakarta.validation.Valid;
@@ -91,24 +90,6 @@ public class BoardCommandService {
     public void delete(UUID id) {
         Board board = loadBoardOrThrow(id);
         boardRepository.delete(board);
-    }
-
-    /**
-     * 조회수 증가 (비동기 이벤트 처리용)
-     * <p>
-     * 별도 트랜잭션(REQUIRES_NEW)에서 실행하여 낙관적 동시성 제어를 제공합니다.
-     * 조회 트랜잭션과 분리되어 조회 성능에 영향을 주지 않습니다.
-     *
-     * @param cmd 조회수 증가 명령
-     */
-    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.REQUIRES_NEW)
-    public void incrementViewCount(@Valid IncrementViewCountCommand cmd) {
-        UUID boardId = cmd.boardId();
-        Board board = boardRepository
-                .findByIdForUpdate(boardId)
-                .orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.board.not-found.id", boardId)));
-
-        board.increaseViewCount();
     }
 
     /**
