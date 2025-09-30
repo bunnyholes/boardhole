@@ -25,6 +25,7 @@ import org.springframework.mock.web.MockMultipartFile;
 
 import dev.xiyo.bunnyholes.boardhole.shared.config.ViewSecurityConfig;
 import dev.xiyo.bunnyholes.boardhole.shared.exception.GlobalExceptionHandler;
+import dev.xiyo.bunnyholes.boardhole.shared.exception.InvalidFileException;
 import dev.xiyo.bunnyholes.boardhole.user.application.command.UpdateUserProfileImageCommand;
 import dev.xiyo.bunnyholes.boardhole.user.application.command.UserCommandService;
 import dev.xiyo.bunnyholes.boardhole.user.application.query.UserQueryService;
@@ -46,6 +47,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -258,6 +260,35 @@ class UserDetailViewControllerTest {
         assertThat(command.username()).isEqualTo(USERNAME);
         assertThat(command.remove()).isTrue();
         assertThat(command.image()).isNull();
+    }
+
+    @Test
+    @DisplayName("잘못된 이미지 업로드 시 에러 메시지를 플래시로 전달한다")
+    @WithMockUser(username = USERNAME, authorities = {"ROLE_USER"})
+    void uploadProfileImage_InvalidFile_ShouldFlashError() throws Exception {
+        var userResult = createUserResult(USER_ID, USERNAME, NAME, EMAIL, Set.of(Role.USER));
+        when(userQueryService.getUser(USERNAME)).thenReturn(userResult);
+        when(userWebMapper.toResponse(userResult)).thenReturn(toResponse(userResult));
+
+        MockMultipartFile file = new MockMultipartFile(
+                "profileImage",
+                "avatar.png",
+                "image/png",
+                "invalid".getBytes()
+        );
+
+        String errorMessage = "허용되지 않는 이미지";
+        when(userCommandService.updateProfileImage(any(UpdateUserProfileImageCommand.class)))
+                .thenThrow(new InvalidFileException(errorMessage));
+
+        mockMvc.perform(multipart("/users/me/profile-image")
+                        .file(file)
+                        .with(csrf()))
+               .andExpect(status().is3xxRedirection())
+               .andExpect(redirectedUrl("/users/me"))
+               .andExpect(flash().attribute("error", errorMessage));
+
+        verify(userCommandService).updateProfileImage(any(UpdateUserProfileImageCommand.class));
     }
 
     @Test

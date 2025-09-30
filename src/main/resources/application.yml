@@ -24,6 +24,12 @@ spring:
       filter:
         enabled: true  # HTML 폼에서 PUT, DELETE 등의 HTTP 메서드 사용 가능
 
+  # 파일 업로드 설정
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+
 # ========================================
 # 서버 전역 인코딩 설정
 # ========================================

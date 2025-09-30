@@ -34,6 +34,9 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import org.hibernate.annotations.DynamicUpdate;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 import org.springframework.lang.Nullable;
 
 import dev.xiyo.bunnyholes.boardhole.shared.domain.BaseEntity;
@@ -88,6 +91,7 @@ public class User extends BaseEntity implements Serializable {
 
     @Lob
     @Basic(fetch = FetchType.LAZY)
+    @JdbcTypeCode(SqlTypes.LONGVARBINARY)
     @Column(name = "profile_image", columnDefinition = "bytea")
     private byte[] profileImage;
 

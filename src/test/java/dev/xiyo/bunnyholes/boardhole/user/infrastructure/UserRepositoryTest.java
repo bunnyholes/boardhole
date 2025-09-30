@@ -276,6 +276,26 @@ class UserRepositoryTest extends dev.xiyo.bunnyholes.boardhole.testsupport.jpa.E
             assertThat(found).isPresent();
             assertThat(found.get().isEmailVerified()).isTrue();
         }
+
+        @Test
+        @DisplayName("프로필 이미지를 bytea 컬럼에 저장하고 다시 조회할 수 있다")
+        void updateProfileImage_PersistsBinaryData() {
+            // Given
+            byte[] payload = new byte[]{3, 1, 4, 1};
+            String contentType = "image/png";
+            testUser.updateProfileImage(payload, contentType, payload.length);
+
+            // When
+            userRepository.saveAndFlush(testUser);
+            entityManager.clear();
+
+            User found = userRepository.findById(testUser.getId()).orElseThrow();
+
+            // Then
+            assertThat(found.getProfileImage()).containsExactly(payload);
+            assertThat(found.getProfileImageContentType()).isEqualTo(contentType);
+            assertThat(found.getProfileImageSize()).isEqualTo((long) payload.length);
+        }
     }
 
     // =====================================

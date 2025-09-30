@@ -19,6 +19,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.util.unit.DataSize;
+import org.springframework.web.multipart.MultipartFile;
 
 import dev.xiyo.bunnyholes.boardhole.shared.exception.InvalidFileException;
 import dev.xiyo.bunnyholes.boardhole.shared.exception.ResourceNotFoundException;
@@ -42,6 +43,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.mock;
 
 @ExtendWith(SpringExtension.class)
 @Import({UserCommandService.class, ValidationEnabledTestConfig.class, MessageSourceTestConfig.class})
@@ -357,6 +359,57 @@ class UserCommandServiceTest {
         }
 
         @Test
+        @DisplayName("✅ image/jpg MIME 타입도 허용된다")
+        void shouldAcceptJpgAliasContentType() throws Exception {
+            User existing = UserCommandServiceTest.user();
+            ReflectionTestUtils.setField(existing, "id", UserCommandServiceTest.USER_ID);
+            given(userRepository.findByUsername(UserCommandServiceTest.USERNAME)).willReturn(Optional.of(existing));
+            given(userRepository.save(existing)).willReturn(existing);
+            UserResult expected = UserCommandServiceTest.userResult();
+            given(userMapper.toResult(existing)).willReturn(expected);
+
+            MockMultipartFile file = new MockMultipartFile("profileImage", "avatar.jpg", "image/jpg", new byte[]{9, 8, 7});
+            UpdateUserProfileImageCommand cmd = new UpdateUserProfileImageCommand(UserCommandServiceTest.USERNAME, file, false);
+
+            UserResult result = userCommandService.updateProfileImage(cmd);
+
+            assertThat(result).isEqualTo(expected);
+            assertThat(existing.hasProfileImage()).isTrue();
+            assertThat(existing.getProfileImageContentType()).isEqualTo("image/jpg");
+            assertThat(existing.getProfileImage()).containsExactly(file.getBytes());
+        }
+
+        @Test
+        @DisplayName("✅ 최대 허용 크기(100MB) 이미지는 업로드된다")
+        void shouldAcceptFileAtMaxLimit() throws Exception {
+            User existing = UserCommandServiceTest.user();
+            ReflectionTestUtils.setField(existing, "id", UserCommandServiceTest.USER_ID);
+            given(userRepository.findByUsername(UserCommandServiceTest.USERNAME)).willReturn(Optional.of(existing));
+            given(userRepository.save(existing)).willReturn(existing);
+            UserResult expected = UserCommandServiceTest.userResult();
+            given(userMapper.toResult(existing)).willReturn(expected);
+
+            long maxAllowedSize = DataSize.ofMegabytes(100).toBytes();
+            byte[] payload = new byte[1024];
+            MultipartFile file = mock(MultipartFile.class);
+            given(file.isEmpty()).willReturn(false);
+            given(file.getOriginalFilename()).willReturn("avatar.png");
+            given(file.getContentType()).willReturn("image/png");
+            given(file.getSize()).willReturn(maxAllowedSize);
+            given(file.getBytes()).willReturn(payload);
+
+            UpdateUserProfileImageCommand cmd = new UpdateUserProfileImageCommand(UserCommandServiceTest.USERNAME, file, false);
+
+            UserResult result = userCommandService.updateProfileImage(cmd);
+
+            assertThat(result).isEqualTo(expected);
+            assertThat(existing.hasProfileImage()).isTrue();
+            assertThat(existing.getProfileImageContentType()).isEqualTo("image/png");
+            assertThat(existing.getProfileImageSize()).isEqualTo(maxAllowedSize);
+            assertThat(existing.getProfileImage()).containsExactly(payload);
+        }
+
+        @Test
         @DisplayName("✅ remove=true이면 프로필 이미지 정보를 모두 초기화한다")
         void shouldClearProfileImage() {
             User existing = UserCommandServiceTest.user();
@@ -411,14 +464,17 @@ class UserCommandServiceTest {
         }
 
         @Test
-        @DisplayName("❌ 최대 크기를 초과하면 InvalidFileException")
+        @DisplayName("❌ 최대 허용 용량을 초과하면 InvalidFileException")
         void shouldRejectOversizedFile() {
             User existing = UserCommandServiceTest.user();
             ReflectionTestUtils.setField(existing, "id", UserCommandServiceTest.USER_ID);
             given(userRepository.findByUsername(UserCommandServiceTest.USERNAME)).willReturn(Optional.of(existing));
 
-            byte[] largeData = new byte[(int) DataSize.ofMegabytes(3).toBytes()];
-            MockMultipartFile file = new MockMultipartFile("profileImage", "avatar.png", "image/png", largeData);
+            MultipartFile file = mock(MultipartFile.class);
+            given(file.isEmpty()).willReturn(false);
+            given(file.getContentType()).willReturn("image/png");
+            given(file.getOriginalFilename()).willReturn("avatar.png");
+            given(file.getSize()).willReturn(DataSize.ofMegabytes(100).toBytes() + 1);
             UpdateUserProfileImageCommand cmd = new UpdateUserProfileImageCommand(UserCommandServiceTest.USERNAME, file, false);
 
             assertThatThrownBy(() -> userCommandService.updateProfileImage(cmd))
