@@ -84,14 +84,7 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 
     testImplementation 'org.springframework.security:spring-security-test'
-    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
-    testImplementation 'org.testcontainers:postgresql'
 
-
-    // -- RestAssured for E2E testing --
-    testImplementation 'io.rest-assured:rest-assured:5.5.6'
-    testImplementation 'io.rest-assured:json-path:5.5.6'
-    testImplementation 'io.rest-assured:xml-path:5.5.6'
 
     // -- Testing utilities --
     testImplementation 'org.awaitility:awaitility:4.3.0'
@@ -102,20 +95,7 @@ dependencies {
 }
 
 tasks.named('test') {
-    useJUnitPlatform {
-        excludeTags 'e2e'
-    }
-    maxParallelForks = Runtime.runtime.availableProcessors() ?: 1
-}
-
-// E2E 테스트 전용 태스크
-tasks.register('e2eTest', Test) {
-    testClassesDirs = sourceSets.test.output.classesDirs
-    classpath = sourceSets.test.runtimeClasspath
-
-    useJUnitPlatform {
-        includeTags 'e2e'
-    }
+    useJUnitPlatform()
     maxParallelForks = Runtime.runtime.availableProcessors() ?: 1
 }
 

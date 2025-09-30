@@ -1,24 +1,29 @@
 package dev.xiyo.bunnyholes.boardhole.board.presentation;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.Set;
+import java.util.List;
 import java.util.UUID;
+
+import jakarta.persistence.EntityManager;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
+import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithAnonymousUser;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
 
 import dev.xiyo.bunnyholes.boardhole.board.application.command.BoardCommandService;
 import dev.xiyo.bunnyholes.boardhole.board.application.command.CreateBoardCommand;
@@ -30,64 +35,61 @@ import dev.xiyo.bunnyholes.boardhole.board.presentation.dto.BoardCreateRequest;
 import dev.xiyo.bunnyholes.boardhole.board.presentation.dto.BoardResponse;
 import dev.xiyo.bunnyholes.boardhole.board.presentation.dto.BoardUpdateRequest;
 import dev.xiyo.bunnyholes.boardhole.board.presentation.mapper.BoardWebMapper;
-import org.springframework.security.core.userdetails.UserDetails;
-import dev.xiyo.bunnyholes.boardhole.user.domain.Role;
-import dev.xiyo.bunnyholes.boardhole.user.domain.User;
+import dev.xiyo.bunnyholes.boardhole.shared.config.ApiSecurityConfig;
+import dev.xiyo.bunnyholes.boardhole.shared.constants.ApiPaths;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
-import static org.mockito.BDDMockito.willDoNothing;
+import static org.mockito.Mockito.never;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@ExtendWith(MockitoExtension.class)
-@DisplayName("BoardController 단위 테스트")
+@WebMvcTest(BoardController.class)
+@Import(ApiSecurityConfig.class)
+@DisplayName("BoardController MockMvc 테스트")
 @Tag("unit")
 @Tag("board")
 class BoardControllerTest {
 
-    @Mock
+    private static final String BOARDS_URL = ApiPaths.BOARDS;
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockitoBean
     private BoardCommandService boardCommandService;
 
-    @Mock
+    @MockitoBean
     private BoardQueryService boardQueryService;
 
-    @Mock
+    @MockitoBean
     private BoardWebMapper boardWebMapper;
 
-    @InjectMocks
-    private BoardController boardController;
+    @MockitoBean
+    private JpaMetamodelMappingContext jpaMetamodelMappingContext;
 
-    private User testUser;
-    private UserDetails testPrincipal;
-    private BoardResult testBoardResult;
-    private BoardResponse testBoardResponse;
-    private Pageable pageable;
+    @MockitoBean
+    private EntityManager entityManager;
+
+    private UUID boardId;
+    private BoardResult boardResult;
+    private BoardResponse boardResponse;
 
     @BeforeEach
     void setUp() {
-        testUser = User.builder()
-                       .username("testuser")
-                       .password("encoded_password")
-                       .name("Test User")
-                       .email("test@example.com")
-                       .roles(Set.of(Role.USER))
-                       .build();
-        testPrincipal = org.springframework.security.core.userdetails.User.withUsername(testUser.getUsername())
-                                                                         .password(testUser.getPassword())
-                                                                         .authorities("ROLE_USER")
-                                                                         .build();
-
-        testBoardResult = new BoardResult(
-                UUID.randomUUID(), "Test Title", "Test Content", UUID.randomUUID(),
-                "testuser", 0, LocalDateTime.now(), null
-        );
-
-        testBoardResponse = new BoardResponse(
-                UUID.randomUUID(), "Test Title", "Test Content", UUID.randomUUID(),
-                "testuser", 0, LocalDateTime.now(), null
-        );
-
-        pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "id"));
+        boardId = UUID.fromString("550e8400-e29b-41d4-a716-446655440002");
+        boardResult = new BoardResult(boardId, "테스트 제목", "테스트 내용", UUID.randomUUID(), "작성자", 10,
+                LocalDateTime.now(), LocalDateTime.now());
+        boardResponse = new BoardResponse(boardResult.id(), boardResult.title(), boardResult.content(), boardResult.authorId(),
+                boardResult.authorName(), boardResult.viewCount(), boardResult.createdAt(), boardResult.updatedAt());
     }
 
     @Nested
@@ -95,25 +97,43 @@ class BoardControllerTest {
     class CreateBoard {
 
         @Test
-        @DisplayName("✅ 인증된 사용자가 게시글 작성 성공")
-        void shouldCreateBoardSuccessfully() {
-            // given
-            BoardCreateRequest request = new BoardCreateRequest("Test Title", "Test Content");
-            CreateBoardCommand command = new CreateBoardCommand(testUser.getUsername(), "Test Title", "Test Content");
+        @WithMockUser(username = "writer", roles = "USER")
+        @DisplayName("✅ 인증된 사용자는 게시글을 생성할 수 있다")
+        void shouldCreateBoard() throws Exception {
+            BoardCreateRequest request = new BoardCreateRequest(boardResult.title(), boardResult.content());
+            CreateBoardCommand command = new CreateBoardCommand("writer", request.title(), request.content());
 
-            given(boardWebMapper.toCreateCommand(request, testUser.getUsername())).willReturn(command);
-            given(boardCommandService.create(command)).willReturn(testBoardResult);
-            given(boardWebMapper.toResponse(testBoardResult)).willReturn(
-                    testBoardResponse);
+            given(boardWebMapper.toCreateCommand(any(BoardCreateRequest.class), eq("writer"))).willReturn(command);
+            given(boardCommandService.create(command)).willReturn(boardResult);
+            given(boardWebMapper.toResponse(boardResult)).willReturn(boardResponse);
 
-            // when
-            BoardResponse result = boardController.create(request, testPrincipal);
+            mockMvc.perform(post(BOARDS_URL)
+                            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                            .param("title", request.title())
+                            .param("content", request.content())
+                            .with(csrf()))
+                    .andExpect(status().isCreated())
+                    .andExpect(jsonPath("$.id").value(boardResponse.id().toString()))
+                    .andExpect(jsonPath("$.title").value(boardResponse.title()))
+                    .andExpect(jsonPath("$.content").value(boardResponse.content()));
 
-            // then
-            assertThat(result).isEqualTo(testBoardResponse);
-            then(boardWebMapper).should().toCreateCommand(request, testUser.getUsername());
+            then(boardWebMapper).should().toCreateCommand(any(BoardCreateRequest.class), eq("writer"));
             then(boardCommandService).should().create(command);
-            then(boardWebMapper).should().toResponse(testBoardResult);
+            then(boardWebMapper).should().toResponse(boardResult);
+        }
+
+        @Test
+        @WithAnonymousUser
+        @DisplayName("❌ 인증되지 않은 사용자는 게시글을 생성할 수 없다")
+        void shouldRejectAnonymousUser() throws Exception {
+            mockMvc.perform(post(BOARDS_URL)
+                            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                            .param("title", "익명")
+                            .param("content", "익명")
+                            .with(csrf()))
+                    .andExpect(status().isUnauthorized());
+
+            then(boardCommandService).shouldHaveNoInteractions();
         }
     }
 
@@ -122,48 +142,41 @@ class BoardControllerTest {
     class ListBoards {
 
         @Test
-        @DisplayName("✅ 검색어 없이 전체 게시글 목록 조회")
-        void shouldListAllBoards() {
-            // given
-            Page<BoardResult> resultPage = new PageImpl<>(Collections.singletonList(testBoardResult),
-                    pageable, 1);
-            Page<BoardResponse> responsePage = new PageImpl<>(Collections.singletonList(testBoardResponse),
-                    pageable, 1);
+        @DisplayName("✅ 검색어 없이 게시글 목록을 조회한다")
+        void shouldListBoardsWithoutSearch() throws Exception {
+            Pageable pageable = PageRequest.of(0, 10);
+            Page<BoardResult> resultPage = new PageImpl<>(List.of(boardResult), pageable, 1);
 
-            given(boardQueryService.listWithPaging(pageable)).willReturn(resultPage);
-            given(boardWebMapper.toResponse(testBoardResult)).willReturn(
-                    testBoardResponse);
+            given(boardQueryService.listWithPaging(any(Pageable.class))).willReturn(resultPage);
+            given(boardWebMapper.toResponse(boardResult)).willReturn(boardResponse);
 
-            // when
-            Page<BoardResponse> result = boardController.list(pageable, null);
+            mockMvc.perform(get(BOARDS_URL)
+                            .param("page", "0")
+                            .param("size", "10"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content[0].title").value(boardResponse.title()))
+                    .andExpect(jsonPath("$.content[0].authorName").value(boardResponse.authorName()));
 
-            // then
-            assertThat(result).isEqualTo(responsePage);
-            then(boardQueryService).should().listWithPaging(pageable);
-            then(boardWebMapper).should().toResponse(testBoardResult);
+            then(boardQueryService).should().listWithPaging(any(Pageable.class));
+            then(boardQueryService).should(never()).listWithPaging(any(Pageable.class), anyString());
         }
 
         @Test
-        @DisplayName("✅ 검색어로 게시글 검색")
-        void shouldSearchBoards() {
-            // given
-            final String searchTerm = "test";
-            Page<BoardResult> resultPage = new PageImpl<>(Collections.singletonList(testBoardResult),
-                    pageable, 1);
-            Page<BoardResponse> responsePage = new PageImpl<>(Collections.singletonList(testBoardResponse),
-                    pageable, 1);
+        @DisplayName("✅ 검색어를 사용해 게시글을 조회한다")
+        void shouldListBoardsWithSearch() throws Exception {
+            Pageable pageable = PageRequest.of(0, 10);
+            Page<BoardResult> resultPage = new PageImpl<>(List.of(boardResult), pageable, 1);
+            String keyword = "검색어";
 
-            given(boardQueryService.listWithPaging(pageable, searchTerm)).willReturn(resultPage);
-            given(boardWebMapper.toResponse(testBoardResult)).willReturn(
-                    testBoardResponse);
+            given(boardQueryService.listWithPaging(any(Pageable.class), eq(keyword))).willReturn(resultPage);
+            given(boardWebMapper.toResponse(boardResult)).willReturn(boardResponse);
 
-            // when
-            Page<BoardResponse> result = boardController.list(pageable, searchTerm);
+            mockMvc.perform(get(BOARDS_URL)
+                            .param("search", keyword))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content[0].title").value(boardResponse.title()));
 
-            // then
-            assertThat(result).isEqualTo(responsePage);
-            then(boardQueryService).should().listWithPaging(pageable, searchTerm);
-            then(boardWebMapper).should().toResponse(testBoardResult);
+            then(boardQueryService).should().listWithPaging(any(Pageable.class), eq(keyword));
         }
     }
 
@@ -172,25 +185,22 @@ class BoardControllerTest {
     class GetBoard {
 
         @Test
-        @DisplayName("✅ 게시글 ID로 조회 성공")
-        void shouldGetBoardById() {
-            // given
-            UUID boardId = UUID.randomUUID();
+        @DisplayName("✅ 게시글 상세 정보를 조회한다")
+        void shouldGetBoard() throws Exception {
             GetBoardQuery query = new GetBoardQuery(boardId);
 
             given(boardWebMapper.toGetBoardQuery(boardId)).willReturn(query);
-            given(boardQueryService.handle(query)).willReturn(testBoardResult);
-            given(boardWebMapper.toResponse(testBoardResult)).willReturn(
-                    testBoardResponse);
+            given(boardQueryService.handle(query)).willReturn(boardResult);
+            given(boardWebMapper.toResponse(boardResult)).willReturn(boardResponse);
 
-            // when
-            BoardResponse result = boardController.get(boardId);
+            mockMvc.perform(get(BOARDS_URL + "/" + boardId))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.id").value(boardResponse.id().toString()))
+                    .andExpect(jsonPath("$.authorName").value(boardResponse.authorName()));
 
-            // then
-            assertThat(result).isEqualTo(testBoardResponse);
             then(boardWebMapper).should().toGetBoardQuery(boardId);
             then(boardQueryService).should().handle(query);
-            then(boardWebMapper).should().toResponse(testBoardResult);
+            then(boardWebMapper).should().toResponse(boardResult);
         }
     }
 
@@ -199,33 +209,42 @@ class BoardControllerTest {
     class UpdateBoard {
 
         @Test
-        @DisplayName("✅ 게시글 수정 성공")
-        void shouldUpdateBoardSuccessfully() {
-            // given
-            UUID boardId = UUID.randomUUID();
-            BoardUpdateRequest request = new BoardUpdateRequest("Updated Title", "Updated Content");
-            UpdateBoardCommand command = new UpdateBoardCommand(boardId, "Updated Title", "Updated Content");
-            BoardResult updatedResult = new BoardResult(
-                    boardId, "Updated Title", "Updated Content", UUID.randomUUID(),
-                    "testuser", 0, LocalDateTime.now(), LocalDateTime.now()
-            );
-            BoardResponse updatedResponse = new BoardResponse(
-                    boardId, "Updated Title", "Updated Content", UUID.randomUUID(),
-                    "testuser", 0, LocalDateTime.now(), LocalDateTime.now()
-            );
+        @WithMockUser(username = "writer", roles = "USER")
+        @DisplayName("✅ 게시글 수정에 성공한다")
+        void shouldUpdateBoard() throws Exception {
+            BoardUpdateRequest request = new BoardUpdateRequest("수정된 제목", "수정된 내용");
+            UpdateBoardCommand command = new UpdateBoardCommand(boardId, request.title(), request.content());
 
-            given(boardWebMapper.toUpdateCommand(boardId, request)).willReturn(command);
-            given(boardCommandService.update(command)).willReturn(updatedResult);
-            given(boardWebMapper.toResponse(updatedResult)).willReturn(updatedResponse);
+            given(boardWebMapper.toUpdateCommand(eq(boardId), any(BoardUpdateRequest.class))).willReturn(command);
+            given(boardCommandService.update(command)).willReturn(boardResult);
+            given(boardWebMapper.toResponse(boardResult)).willReturn(boardResponse);
 
-            // when
-            BoardResponse result = boardController.update(boardId, request);
+            mockMvc.perform(put(BOARDS_URL + "/" + boardId)
+                            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                            .param("title", request.title())
+                            .param("content", request.content())
+                            .with(csrf()))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.id").value(boardResponse.id().toString()))
+                    .andExpect(jsonPath("$.title").value(boardResponse.title()));
 
-            // then
-            assertThat(result).isEqualTo(updatedResponse);
-            then(boardWebMapper).should().toUpdateCommand(boardId, request);
+            then(boardWebMapper).should().toUpdateCommand(eq(boardId), any(BoardUpdateRequest.class));
             then(boardCommandService).should().update(command);
-            then(boardWebMapper).should().toResponse(updatedResult);
+            then(boardWebMapper).should().toResponse(boardResult);
+        }
+
+        @Test
+        @WithAnonymousUser
+        @DisplayName("❌ 인증되지 않은 사용자는 게시글을 수정할 수 없다")
+        void shouldRejectAnonymousUpdate() throws Exception {
+            mockMvc.perform(put(BOARDS_URL + "/" + boardId)
+                            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                            .param("title", "수정")
+                            .param("content", "수정")
+                            .with(csrf()))
+                    .andExpect(status().isUnauthorized());
+
+            then(boardCommandService).shouldHaveNoInteractions();
         }
     }
 
@@ -234,17 +253,23 @@ class BoardControllerTest {
     class DeleteBoard {
 
         @Test
-        @DisplayName("✅ 게시글 삭제 성공")
-        void shouldDeleteBoardSuccessfully() {
-            // given
-            UUID boardId = UUID.randomUUID();
-            willDoNothing().given(boardCommandService).delete(boardId);
+        @WithMockUser(username = "writer", roles = "USER")
+        @DisplayName("✅ 게시글 삭제에 성공한다")
+        void shouldDeleteBoard() throws Exception {
+            mockMvc.perform(delete(BOARDS_URL + "/" + boardId).with(csrf()))
+                    .andExpect(status().isNoContent());
 
-            // when
-            boardController.delete(boardId);
-
-            // then
             then(boardCommandService).should().delete(boardId);
+        }
+
+        @Test
+        @WithAnonymousUser
+        @DisplayName("❌ 인증되지 않은 사용자는 게시글을 삭제할 수 없다")
+        void shouldRejectAnonymousDelete() throws Exception {
+            mockMvc.perform(delete(BOARDS_URL + "/" + boardId).with(csrf()))
+                    .andExpect(status().isUnauthorized());
+
+            then(boardCommandService).shouldHaveNoInteractions();
         }
     }
 }

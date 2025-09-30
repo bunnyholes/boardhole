@@ -6,14 +6,14 @@
 - Source: `src/main/java/dev/xiyo/bunnyholes/boardhole/**` organized by domain: `auth`, `board`, `user`, `shared`, `web`.
 - Layers per domain: `presentation` → `application` → `domain` → `infrastructure`.
 - Web assets: `src/main/resources/static/assets/**`.
-- Tests: `src/test/java/dev/xiyo/bunnyholes/boardhole/**` (JUnit 5, Testcontainers, RestAssured).
+- Tests: `src/test/java/dev/xiyo/bunnyholes/boardhole/**` (JUnit 5, H2 in-memory DB, MockMvc).
 
 ## Build, Test, Run
 
 - Build JAR + run tests: `./gradlew clean build`
 - Run locally (auto-starts PostgreSQL/Redis via Spring Boot Docker Compose if Docker is running):
     - `./gradlew bootRun` → http://localhost:8080
-- Unit/E2E tests:
+- Unit/MVC tests:
     - All tests: `./gradlew test`
     - Filter: `./gradlew test --tests "*ControllerTest"`
 - Package executable JAR: `./gradlew bootJar` (output in `build/libs/`).
@@ -29,9 +29,9 @@
 
 ## Testing Guidelines
 
-- Frameworks: JUnit 5, Spring Boot Test, Testcontainers (PostgreSQL), RestAssured for E2E.
+- Frameworks: JUnit 5, Spring Boot Test, H2 in-memory database, MockMvc for controller tests.
 - No local DB needed for tests; containers start automatically.
-- Name tests by unit under test and behavior, e.g., `BoardControllerTest`, `UserE2ETest`.
+- Name tests by unit under test and behavior, e.g., `BoardControllerTest`, `UserControllerTest`.
 - Run locally before pushing: `./gradlew test`.
 
 ## Commit & PR Guidelines

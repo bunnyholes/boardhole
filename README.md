@@ -115,7 +115,7 @@ cd boardhole
 - **ORM**: Spring Data JPA + Hibernate
 
 ### Testing & Quality
-- **Testing**: JUnit 5, Testcontainers, RestAssured
+- **Testing**: JUnit 5, H2 (in-memory), Spring MockMvc
 - **Quality**: SonarCloud, IntelliJ 코드 검사
 - **Architecture Testing**: ArchUnit
 
@@ -163,15 +163,12 @@ src/main/java/dev/xiyo/bunnyholes/boardhole/
 ```bash
 # 모든 테스트 실행
 ./gradlew test
-
-# E2E 테스트만 실행
-./gradlew e2eTest
 ```
 
 **테스트 구성**:
-- **Unit Tests**: 단위 테스트 (Mock 기반)
-- **Integration Tests**: 통합 테스트 (Testcontainers 사용)
-- **E2E Tests**: 전체 시스템 테스트
+- **Unit Tests**: 서비스/도메인 로직을 Mock 기반으로 검증
+- **MVC Tests**: `@WebMvcTest` + MockMvc 로 REST 컨트롤러를 검증
+- **Integration Tests**: H2 인메모리 데이터베이스 기반 JPA/Repository 테스트
 - **Architecture Tests**: ArchUnit으로 아키텍처 규칙 검증
 - **Coverage**: 현재 별도 커버리지 리포트는 제공되지 않습니다.
 

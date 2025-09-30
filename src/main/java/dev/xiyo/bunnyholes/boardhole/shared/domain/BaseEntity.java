@@ -8,7 +8,6 @@ import jakarta.persistence.MappedSuperclass;
 
 import lombok.Getter;
 
-import org.hibernate.annotations.SoftDelete;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
@@ -20,7 +19,6 @@ import dev.xiyo.bunnyholes.boardhole.shared.domain.schema.SchemaConstants;
 @Getter
 @MappedSuperclass
 @EntityListeners(AuditingEntityListener.class)
-@SoftDelete(columnName = "deleted")
 public abstract class BaseEntity {
 
     @CreatedDate

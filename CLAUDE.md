@@ -19,8 +19,7 @@ comprehensive quality tooling.
 ./gradlew bootRun            # Run with dev profile (default)
 
 # Test
-./gradlew test               # All tests (unit + e2e)
-./gradlew e2eTest           # @Tag("e2e") tests only
+./gradlew test               # All tests
 
 # Quality
 ./gradlew sonarAnalysis      # Run SonarCloud analysis
@@ -169,9 +168,9 @@ dev/xiyo/bunnyholes/boardhole/[domain]/
 - **OpenAPI 문서화**: 모든 API 엔드포인트 문서화 필수
 
 ### 테스트 규칙
-- **테스트 태그**: E2E 테스트는 `@Tag("e2e")` 필수
+- **테스트 태그**: 필요 시 `@Tag("unit")`, `@Tag("integration")` 등으로 분류 가능
 - **네이밍 규칙**: `[Method]_[Condition]_[Expected]`
-- **Testcontainers**: 실제 DB/Redis 사용한 통합 테스트
+- **H2 (in-memory)**: Docker 없이 실행 가능한 통합 테스트
 - **ArchUnit**: 아키텍처 계층 준수 검증
 - **병렬 실행**: `maxParallelForks` 설정으로 성능 최적화
 - **Mock 사용**: Spring Boot 3.5+ 에서는 `@MockitoBean` 사용 (Spring Boot 3.4부터 도입된 새로운 어노테이션)
@@ -189,7 +188,7 @@ dev/xiyo/bunnyholes/boardhole/[domain]/
 ## Testing Structure
 
 - **Unit**: Mock dependencies, fast execution
-- **E2E**: Full system tests with real DB/Redis and RestAssured, @Tag("e2e")
+- **MVC**: MockMvc-based controller tests using `@WebMvcTest`
 - **Architecture**: ArchUnit for layer compliance
 - **Naming**: [Method]_[Condition]_[Expected]
 
@@ -219,7 +218,7 @@ Profiles:
 - Session: spring-session-data-redis
 - Documentation: SpringDoc OpenAPI 2.8.12
 - Mapping: MapStruct 1.6.3
-- Testing: JUnit 5, RestAssured 5.5.0, Testcontainers, ArchUnit 1.4.1
+- Testing: JUnit 5, Spring Security Test/MockMvc, H2 (in-memory), ArchUnit 1.4.1
 - Null Safety: JSpecify 1.0.0
 
 ## Quality Standards

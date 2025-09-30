@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -29,7 +28,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DataJpaTest
 @ActiveProfiles("test")
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Tag("unit")
 @Tag("repository")
 class BoardRepositoryTest extends EntityTestBase {
@@ -208,68 +206,48 @@ class BoardRepositoryTest extends EntityTestBase {
     class DeleteTest {
 
         @Test
-        @DisplayName("게시글 삭제 - Soft Delete 검증")
-        void delete_ExistingBoard_SoftDeletesSuccessfully() {
+        @DisplayName("게시글 삭제 - 완전 삭제")
+        void delete_ExistingBoard_RemovesRecord() {
             // Given
             UUID boardId = testBoard.getId();
             long countBefore = boardRepository.count();
-            long totalCountBefore = boardRepository.findAllIncludingDeleted().size();
 
             // When
             boardRepository.delete(testBoard);
 
             // Then
-            assertThat(boardRepository.findById(boardId)).isEmpty(); // Normal query doesn't find it
+            assertThat(boardRepository.findById(boardId)).isEmpty();
             assertThat(boardRepository.count()).isEqualTo(countBefore - 1);
-
-            // Verify soft delete using native query
-            assertThat(boardRepository.findByIdIncludingDeleted(boardId)).isPresent(); // Still exists in DB
-            assertThat(boardRepository.findAllIncludingDeleted()).hasSize((int) totalCountBefore); // Total count unchanged
-            assertThat(boardRepository.findAllDeleted()).isNotEmpty(); // Appears in deleted records
         }
 
         @Test
-        @DisplayName("ID로 게시글 삭제 - Soft Delete 검증")
-        void deleteById_ExistingBoard_SoftDeletesSuccessfully() {
+        @DisplayName("ID로 게시글 삭제 - 완전 삭제")
+        void deleteById_ExistingBoard_RemovesRecord() {
             // Given
             UUID boardId = testBoard.getId();
             long countBefore = boardRepository.count();
-            long totalCountBefore = boardRepository.findAllIncludingDeleted().size();
 
             // When
             boardRepository.deleteById(boardId);
 
             // Then
-            assertThat(boardRepository.findById(boardId)).isEmpty(); // Normal query doesn't find it
+            assertThat(boardRepository.findById(boardId)).isEmpty();
             assertThat(boardRepository.count()).isEqualTo(countBefore - 1);
-
-            // Verify soft delete using native query
-            assertThat(boardRepository.findByIdIncludingDeleted(boardId)).isPresent(); // Still exists in DB
-            assertThat(boardRepository.findAllIncludingDeleted()).hasSize((int) totalCountBefore); // Total count unchanged
-
-            // Verify the deleted board appears in deleted records
-            var deletedBoards = boardRepository.findAllDeleted();
-            assertThat(deletedBoards).isNotEmpty().extracting("id").contains(boardId);
         }
 
         @Test
-        @DisplayName("전체 게시글 삭제 - Soft Delete 검증")
-        void deleteAll_SoftDeletesAllBoards() {
+        @DisplayName("전체 게시글 삭제 - 완전 삭제")
+        void deleteAll_RemovesAllBoards() {
             // Given
             boardRepository.save(Board.builder().title("Board to Delete").content("Will be deleted").author(
                     author).build());
-            long totalCountBefore = boardRepository.findAllIncludingDeleted().size();
 
             // When
             boardRepository.deleteAll();
 
             // Then
-            assertThat(boardRepository.count()).isEqualTo(0); // Normal query finds nothing
+            assertThat(boardRepository.count()).isEqualTo(0);
             assertThat(boardRepository.findAll()).isEmpty();
-
-            // Verify soft delete using native query
-            assertThat(boardRepository.findAllIncludingDeleted()).hasSize((int) totalCountBefore); // All still exist in DB
-            assertThat(boardRepository.findAllDeleted()).hasSize((int) totalCountBefore); // All marked as deleted
         }
 
         @Test
@@ -283,8 +261,7 @@ class BoardRepositoryTest extends EntityTestBase {
             boardRepository.delete(testBoard);
 
             // Then
-            assertThat(boardRepository.findById(boardId)).isEmpty(); // Normal query doesn't find it
-            assertThat(boardRepository.findByIdIncludingDeleted(boardId)).isPresent(); // But still exists as soft deleted
+            assertThat(boardRepository.findById(boardId)).isEmpty();
             assertThat(userRepository.findById(authorId)).isPresent(); // Author remains active
         }
     }
