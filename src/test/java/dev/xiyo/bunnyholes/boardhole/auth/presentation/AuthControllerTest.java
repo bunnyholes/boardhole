@@ -201,11 +201,10 @@ class AuthControllerTest {
 
         @Test
         @WithAnonymousUser
-        @DisplayName("❌ 인증 정보 없이 로그아웃 시 403 응답")
+        @DisplayName("❌ 인증 정보 없이 로그아웃 시 401 응답")
         void shouldNotLogoutWithoutPrincipal() throws Exception {
             mockMvc.perform(post(AuthControllerTest.LOGOUT_URL).with(csrf()))
-                   .andExpect(status().isForbidden())
-                   .andExpect(jsonPath("$.status").value(403));
+                   .andExpect(status().isUnauthorized());
 
             then(authCommandService).shouldHaveNoInteractions();
         }

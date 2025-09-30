@@ -1,91 +1,98 @@
 package dev.xiyo.bunnyholes.boardhole.user.presentation;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+
+import jakarta.persistence.EntityManager;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.ArgumentCaptor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
+import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithAnonymousUser;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
 
-import org.springframework.security.core.userdetails.UserDetails;
+import dev.xiyo.bunnyholes.boardhole.shared.config.ApiSecurityConfig;
+import dev.xiyo.bunnyholes.boardhole.shared.constants.ApiPaths;
 import dev.xiyo.bunnyholes.boardhole.user.application.command.UpdatePasswordCommand;
 import dev.xiyo.bunnyholes.boardhole.user.application.command.UpdateUserCommand;
 import dev.xiyo.bunnyholes.boardhole.user.application.command.UserCommandService;
 import dev.xiyo.bunnyholes.boardhole.user.application.query.UserQueryService;
 import dev.xiyo.bunnyholes.boardhole.user.application.result.UserResult;
 import dev.xiyo.bunnyholes.boardhole.user.domain.Role;
-import dev.xiyo.bunnyholes.boardhole.user.domain.User;
 import dev.xiyo.bunnyholes.boardhole.user.presentation.dto.PasswordUpdateRequest;
 import dev.xiyo.bunnyholes.boardhole.user.presentation.dto.UserResponse;
 import dev.xiyo.bunnyholes.boardhole.user.presentation.dto.UserUpdateRequest;
 import dev.xiyo.bunnyholes.boardhole.user.presentation.mapper.UserWebMapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
-import static org.mockito.BDDMockito.willDoNothing;
+import static org.mockito.Mockito.never;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@ExtendWith(MockitoExtension.class)
-@DisplayName("UserController 단위 테스트")
+@WebMvcTest(UserController.class)
+@Import(ApiSecurityConfig.class)
+@DisplayName("UserController MockMvc 테스트")
 @Tag("unit")
 @Tag("user")
 class UserControllerTest {
 
-    @Mock
+    private static final String USERS_URL = ApiPaths.USERS;
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockitoBean
     private UserCommandService userCommandService;
 
-    @Mock
+    @MockitoBean
     private UserQueryService userQueryService;
 
-    @Mock
+    @MockitoBean
     private UserWebMapper userWebMapper;
 
-    @InjectMocks
-    private UserController userController;
+    @MockitoBean
+    private JpaMetamodelMappingContext jpaMetamodelMappingContext;
 
-    private User testUser;
-    private UserDetails testPrincipal;
-    private UserResult testUserResult;
-    private UserResponse testUserResponse;
-    private Pageable pageable;
+    @MockitoBean
+    private EntityManager entityManager;
+
+    private UUID userId;
+    private UserResult userResult;
+    private UserResponse userResponse;
 
     @BeforeEach
     void setUp() {
-        testUser = User.builder()
-                       .username("testuser")
-                       .password("encoded_password")
-                       .name("Test User")
-                       .email("test@example.com")
-                       .roles(Set.of(Role.USER))
-                       .build();
-        testPrincipal = org.springframework.security.core.userdetails.User.withUsername(testUser.getUsername())
-                                                                         .password(testUser.getPassword())
-                                                                         .authorities("ROLE_USER")
-                                                                         .build();
-
-        testUserResult = new UserResult(
-                UUID.randomUUID(), "testuser", "Test User", "test@example.com",
-                LocalDateTime.now(), null, null, Set.of(Role.USER)
-        );
-
-        testUserResponse = new UserResponse(
-                UUID.randomUUID(), "testuser", "Test User", "test@example.com",
-                LocalDateTime.now(), null, Set.of(Role.USER)
-        );
-
-        pageable = PageRequest.of(0, 20);
+        userId = UUID.fromString("550e8400-e29b-41d4-a716-446655440003");
+        userResult = new UserResult(userId, "tester", "테스터", "tester@example.com",
+                LocalDateTime.now(), LocalDateTime.now(), null, Set.of(Role.USER));
+        userResponse = new UserResponse(userResult.id(), userResult.username(), userResult.name(), userResult.email(),
+                userResult.createdAt(), userResult.lastLogin(), userResult.roles());
     }
 
     @Nested
@@ -93,90 +100,91 @@ class UserControllerTest {
     class ListUsers {
 
         @Test
-        @DisplayName("✅ 검색어 없이 전체 사용자 목록 조회")
-        void shouldListAllUsers() {
-            // given
-            Page<UserResult> resultPage = new PageImpl<>(Collections.singletonList(testUserResult),
-                    pageable, 1);
-            Page<UserResponse> responsePage = new PageImpl<>(Collections.singletonList(testUserResponse),
-                    pageable, 1);
+        @WithAnonymousUser
+        @DisplayName("❌ 인증되지 않은 사용자는 목록을 조회할 수 없다")
+        void shouldRejectAnonymous() throws Exception {
+            mockMvc.perform(get(USERS_URL))
+                    .andExpect(status().isUnauthorized());
 
-            given(userQueryService.listWithPaging(pageable)).willReturn(resultPage);
-            given(userWebMapper.toResponse(testUserResult)).willReturn(
-                    testUserResponse);
-
-            // when
-            Page<UserResponse> result = userController.list(null, pageable);
-
-            // then
-            assertThat(result).isEqualTo(responsePage);
-            then(userQueryService).should().listWithPaging(pageable);
-            then(userWebMapper).should().toResponse(testUserResult);
+            then(userQueryService).shouldHaveNoInteractions();
         }
 
         @Test
-        @DisplayName("✅ 검색어로 사용자 검색")
-        void shouldSearchUsers() {
-            // given
-            final String searchTerm = "test";
-            Page<UserResult> resultPage = new PageImpl<>(Collections.singletonList(testUserResult),
-                    pageable, 1);
-            Page<UserResponse> responsePage = new PageImpl<>(Collections.singletonList(testUserResponse),
-                    pageable, 1);
+        @WithMockUser(roles = "ADMIN")
+        @DisplayName("✅ 관리자는 전체 사용자를 조회할 수 있다")
+        void shouldListUsersForAdmin() throws Exception {
+            Pageable pageable = PageRequest.of(0, 20);
+            Page<UserResult> page = new PageImpl<>(List.of(userResult), pageable, 1);
 
-            given(userQueryService.listWithPaging(pageable, searchTerm)).willReturn(resultPage);
-            given(userWebMapper.toResponse(testUserResult)).willReturn(
-                    testUserResponse);
+            given(userQueryService.listWithPaging(any(Pageable.class))).willReturn(page);
+            given(userWebMapper.toResponse(userResult)).willReturn(userResponse);
 
-            // when
-            Page<UserResponse> result = userController.list(searchTerm, pageable);
+            mockMvc.perform(get(USERS_URL)
+                            .param("page", "0")
+                            .param("size", "20"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content[0].username").value(userResponse.username()))
+                    .andExpect(jsonPath("$.content[0].roles[0]").value("USER"));
 
-            // then
-            assertThat(result).isEqualTo(responsePage);
-            then(userQueryService).should().listWithPaging(pageable, searchTerm);
-            then(userWebMapper).should().toResponse(testUserResult);
+            then(userQueryService).should().listWithPaging(any(Pageable.class));
         }
 
         @Test
-        @DisplayName("✅ 빈 검색어로 전체 목록 조회")
-        void shouldListAllUsersWhenSearchIsEmpty() {
-            // given
-            final String emptySearch = "   ";
-            Page<UserResult> resultPage = new PageImpl<>(Collections.singletonList(testUserResult),
-                    pageable, 1);
+        @WithMockUser(roles = "ADMIN")
+        @DisplayName("✅ 검색어를 제공하면 트림된 검색어로 조회한다")
+        void shouldListUsersWithSearch() throws Exception {
+            Pageable pageable = PageRequest.of(0, 20);
+            Page<UserResult> page = new PageImpl<>(List.of(userResult), pageable, 1);
+            String keyword = "tester";
 
-            given(userQueryService.listWithPaging(pageable)).willReturn(resultPage);
-            given(userWebMapper.toResponse(testUserResult)).willReturn(
-                    testUserResponse);
+            given(userQueryService.listWithPaging(any(Pageable.class), eq(keyword))).willReturn(page);
+            given(userWebMapper.toResponse(userResult)).willReturn(userResponse);
 
-            // when
-            userController.list(emptySearch, pageable);
+            mockMvc.perform(get(USERS_URL)
+                            .param("search", " " + keyword + " "))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content[0].username").value(userResponse.username()));
 
-            // then
-            then(userQueryService).should().listWithPaging(pageable);
+            then(userQueryService).should().listWithPaging(any(Pageable.class), eq(keyword));
+        }
+
+        @Test
+        @WithMockUser(roles = "ADMIN")
+        @DisplayName("✅ 공백 검색어는 전체 조회로 처리한다")
+        void shouldTreatBlankSearchAsListAll() throws Exception {
+            Pageable pageable = PageRequest.of(0, 20);
+            Page<UserResult> page = new PageImpl<>(List.of(userResult), pageable, 1);
+
+            given(userQueryService.listWithPaging(any(Pageable.class))).willReturn(page);
+            given(userWebMapper.toResponse(userResult)).willReturn(userResponse);
+
+            mockMvc.perform(get(USERS_URL)
+                            .param("search", "   "))
+                    .andExpect(status().isOk());
+
+            then(userQueryService).should().listWithPaging(any(Pageable.class));
+            then(userQueryService).should(never()).listWithPaging(any(Pageable.class), anyString());
         }
     }
 
     @Nested
-    @DisplayName("GET /api/users/{username} - 사용자 단일 조회")
+    @DisplayName("GET /api/users/{username} - 사용자 상세 조회")
     class GetUser {
 
         @Test
-        @DisplayName("✅ 사용자명으로 조회 성공")
-        void shouldGetUserByUsername() {
-            // given
-            String username = testUser.getUsername();
-            given(userQueryService.get(username)).willReturn(testUserResult);
-            given(userWebMapper.toResponse(testUserResult)).willReturn(
-                    testUserResponse);
+        @WithMockUser(username = "tester", roles = "USER")
+        @DisplayName("✅ 인증 사용자는 사용자 정보를 조회할 수 있다")
+        void shouldGetUser() throws Exception {
+            given(userQueryService.get("tester")).willReturn(userResult);
+            given(userWebMapper.toResponse(userResult)).willReturn(userResponse);
 
-            // when
-            UserResponse result = userController.get(username);
+            mockMvc.perform(get(USERS_URL + "/tester"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.username").value(userResponse.username()))
+                    .andExpect(jsonPath("$.name").value(userResponse.name()));
 
-            // then
-            assertThat(result).isEqualTo(testUserResponse);
-            then(userQueryService).should().get(username);
-            then(userWebMapper).should().toResponse(testUserResult);
+            then(userQueryService).should().get("tester");
+            then(userWebMapper).should().toResponse(userResult);
         }
     }
 
@@ -185,32 +193,39 @@ class UserControllerTest {
     class UpdateUser {
 
         @Test
-        @DisplayName("✅ 사용자 정보 수정 성공")
-        void shouldUpdateUserSuccessfully() {
-            // given
-            UserUpdateRequest request = new UserUpdateRequest("Updated Name");
-            UpdateUserCommand command = new UpdateUserCommand(testUser.getUsername(), "Updated Name");
-            UserResult updatedResult = new UserResult(
-                    UUID.randomUUID(), "testuser", "Updated Name", "updated@example.com",
-                    LocalDateTime.now(), null, null, Set.of(Role.USER)
-            );
-            UserResponse updatedResponse = new UserResponse(
-                    UUID.randomUUID(), "testuser", "Updated Name", "updated@example.com",
-                    LocalDateTime.now(), null, Set.of(Role.USER)
-            );
+        @WithMockUser(username = "tester", roles = "USER")
+        @DisplayName("✅ 인증 사용자는 자신의 정보를 수정할 수 있다")
+        void shouldUpdateUser() throws Exception {
+            UserUpdateRequest request = new UserUpdateRequest("새 이름");
+            UpdateUserCommand command = new UpdateUserCommand("tester", request.name());
 
-            given(userWebMapper.toUpdateCommand(testUser.getUsername(), request)).willReturn(command);
-            given(userCommandService.update(command)).willReturn(updatedResult);
-            given(userWebMapper.toResponse(updatedResult)).willReturn(updatedResponse);
+            given(userWebMapper.toUpdateCommand(eq("tester"), any(UserUpdateRequest.class))).willReturn(command);
+            given(userCommandService.update(command)).willReturn(userResult);
+            given(userWebMapper.toResponse(userResult)).willReturn(userResponse);
 
-            // when
-            UserResponse result = userController.update(testUser.getUsername(), request);
+            mockMvc.perform(put(USERS_URL + "/tester")
+                            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                            .param("name", request.name())
+                            .with(csrf()))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.username").value(userResponse.username()));
 
-            // then
-            assertThat(result).isEqualTo(updatedResponse);
-            then(userWebMapper).should().toUpdateCommand(testUser.getUsername(), request);
+            then(userWebMapper).should().toUpdateCommand(eq("tester"), any(UserUpdateRequest.class));
             then(userCommandService).should().update(command);
-            then(userWebMapper).should().toResponse(updatedResult);
+            then(userWebMapper).should().toResponse(userResult);
+        }
+
+        @Test
+        @WithAnonymousUser
+        @DisplayName("❌ 인증되지 않은 사용자는 정보를 수정할 수 없다")
+        void shouldRejectAnonymousUpdate() throws Exception {
+            mockMvc.perform(put(USERS_URL + "/tester")
+                            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                            .param("name", "누구")
+                            .with(csrf()))
+                    .andExpect(status().isUnauthorized());
+
+            then(userCommandService).shouldHaveNoInteractions();
         }
     }
 
@@ -219,17 +234,23 @@ class UserControllerTest {
     class DeleteUser {
 
         @Test
-        @DisplayName("✅ 사용자 삭제 성공")
-        void shouldDeleteUserSuccessfully() {
-            // given
-            String username = testUser.getUsername();
-            willDoNothing().given(userCommandService).delete(username);
+        @WithMockUser(username = "tester", roles = "USER")
+        @DisplayName("✅ 인증 사용자는 계정을 삭제할 수 있다")
+        void shouldDeleteUser() throws Exception {
+            mockMvc.perform(delete(USERS_URL + "/tester").with(csrf()))
+                    .andExpect(status().isNoContent());
 
-            // when
-            userController.delete(username);
+            then(userCommandService).should().delete("tester");
+        }
 
-            // then
-            then(userCommandService).should().delete(username);
+        @Test
+        @WithAnonymousUser
+        @DisplayName("❌ 인증되지 않은 사용자는 계정을 삭제할 수 없다")
+        void shouldRejectAnonymousDelete() throws Exception {
+            mockMvc.perform(delete(USERS_URL + "/tester").with(csrf()))
+                    .andExpect(status().isUnauthorized());
+
+            then(userCommandService).shouldHaveNoInteractions();
         }
     }
 
@@ -238,41 +259,43 @@ class UserControllerTest {
     class UpdatePassword {
 
         @Test
-        @DisplayName("✅ 패스워드 변경 성공")
-        void shouldUpdatePasswordSuccessfully() {
-            // given
-            PasswordUpdateRequest request = new PasswordUpdateRequest(
-                    "currentPassword", "newPassword123!", "newPassword123!"
-            );
-            UpdatePasswordCommand command = new UpdatePasswordCommand(testUser.getUsername(), "currentPassword", "newPassword123!", "newPassword123!");
+        @WithMockUser(username = "tester", roles = "USER")
+        @DisplayName("✅ 패스워드 변경 요청을 처리한다")
+        void shouldUpdatePassword() throws Exception {
+            PasswordUpdateRequest request = new PasswordUpdateRequest("OldPass123!", "NewPass123!", "NewPass123!");
+            UpdatePasswordCommand command = new UpdatePasswordCommand("tester", request.currentPassword(),
+                    request.newPassword(), request.confirmPassword());
 
-            given(userWebMapper.toUpdatePasswordCommand(testUser.getUsername(), request)).willReturn(command);
-            willDoNothing().given(userCommandService).updatePassword(command);
+            given(userWebMapper.toUpdatePasswordCommand(eq("tester"), any(PasswordUpdateRequest.class))).willReturn(command);
 
-            // when
-            userController.updatePassword(testUser.getUsername(), request);
+            mockMvc.perform(patch(USERS_URL + "/tester/password")
+                            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                            .param("currentPassword", request.currentPassword())
+                            .param("newPassword", request.newPassword())
+                            .param("confirmPassword", request.confirmPassword())
+                            .with(csrf()))
+                    .andExpect(status().isNoContent());
 
-            // then
-            then(userWebMapper).should().toUpdatePasswordCommand(testUser.getUsername(), request);
-            then(userCommandService).should().updatePassword(command);
+            ArgumentCaptor<UpdatePasswordCommand> captor = ArgumentCaptor.forClass(UpdatePasswordCommand.class);
+            then(userCommandService).should().updatePassword(captor.capture());
+
+            UpdatePasswordCommand captured = captor.getValue();
+            assertThat(captured.username()).isEqualTo("tester");
+            assertThat(captured.newPassword()).isEqualTo(request.newPassword());
         }
 
         @Test
-        @DisplayName("❌ 패스워드 확인 불일치 시 예외 발생")
-        void shouldFailBeanValidationWhenConfirmationMismatch() {
-            // given
-            PasswordUpdateRequest request = new PasswordUpdateRequest(
-                    "currentPassword", "newPassword123!", "differentPassword"
-            );
+        @WithAnonymousUser
+        @DisplayName("❌ 인증되지 않은 사용자는 패스워드를 변경할 수 없다")
+        void shouldRejectAnonymousPasswordUpdate() throws Exception {
+            mockMvc.perform(patch(USERS_URL + "/tester/password")
+                            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                            .param("currentPassword", "old")
+                            .param("newPassword", "new")
+                            .param("confirmPassword", "new")
+                            .with(csrf()))
+                    .andExpect(status().isUnauthorized());
 
-            // when
-            var factory = jakarta.validation.Validation.buildDefaultValidatorFactory();
-            var validator = factory.getValidator();
-            var violations = validator.validate(request);
-
-            // then
-            assertThat(violations).isNotEmpty();
-            then(userWebMapper).shouldHaveNoInteractions();
             then(userCommandService).shouldHaveNoInteractions();
         }
     }
@@ -282,21 +305,17 @@ class UserControllerTest {
     class CurrentUser {
 
         @Test
-        @DisplayName("✅ 현재 로그인한 사용자 정보 조회")
-        void shouldGetCurrentUserInfo() {
-            // given
-            given(userQueryService.get(testUser.getUsername())).willReturn(
-                    testUserResult);
-            given(userWebMapper.toResponse(testUserResult)).willReturn(
-                    testUserResponse);
+        @WithMockUser(username = "tester", roles = "USER")
+        @DisplayName("✅ 로그인한 사용자는 자신의 정보를 조회할 수 있다")
+        void shouldReturnCurrentUser() throws Exception {
+            given(userQueryService.get("tester")).willReturn(userResult);
+            given(userWebMapper.toResponse(userResult)).willReturn(userResponse);
 
-            // when
-            UserResponse result = userController.me(testPrincipal);
+            mockMvc.perform(get(USERS_URL + ApiPaths.USERS_ME))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.username").value(userResponse.username()));
 
-            // then
-            assertThat(result).isEqualTo(testUserResponse);
-            then(userQueryService).should().get(testUser.getUsername());
-            then(userWebMapper).should().toResponse(testUserResult);
+            then(userQueryService).should().get("tester");
         }
     }
 }

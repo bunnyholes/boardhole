@@ -25,7 +25,6 @@ import lombok.Setter;
 import lombok.ToString;
 
 import org.hibernate.annotations.DynamicUpdate;
-import org.hibernate.annotations.SoftDelete;
 
 import dev.xiyo.bunnyholes.boardhole.board.domain.validation.BoardValidationConstants;
 import dev.xiyo.bunnyholes.boardhole.board.domain.validation.required.ValidBoardContent;
@@ -41,7 +40,6 @@ import dev.xiyo.bunnyholes.boardhole.user.domain.User;
 @Entity
 @EntityListeners(ValidationListener.class)
 @DynamicUpdate
-@SoftDelete(columnName = "deleted")
 @Table(name = "boards", indexes = {@Index(name = "idx_board_title", columnList = "title"), @Index(name = "idx_board_created_at", columnList = "created_at"),})
 public class Board extends BaseEntity implements Serializable {
     @Serial
