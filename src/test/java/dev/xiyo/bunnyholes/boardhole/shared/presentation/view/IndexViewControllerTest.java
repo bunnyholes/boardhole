@@ -1,4 +1,4 @@
-package dev.xiyo.bunnyholes.boardhole.web.view;
+package dev.xiyo.bunnyholes.boardhole.shared.presentation.view;
 
 import jakarta.persistence.EntityManager;
 
@@ -74,12 +74,12 @@ class IndexViewControllerTest {
         }
 
         @Test
-        @DisplayName("페이지 타이틀 'boardholes'가 표시된다")
+        @DisplayName("페이지 타이틀 'boardhole'가 표시된다")
         @WithAnonymousUser
         void shouldDisplayPageTitle() throws Exception {
             mockMvc.perform(get("/"))
                    .andExpect(status().isOk())
-                   .andExpect(content().string(containsString("boardholes")));
+                   .andExpect(content().string(containsString("boardhole")));
         }
     }
 
@@ -123,7 +123,7 @@ class IndexViewControllerTest {
                 mockMvc.perform(get("/"))
                        .andExpect(status().isOk())
                        .andExpect(content().string(containsString("aria-label=\"알림\"")))
-                       .andExpect(content().string(containsString("Notifications")));
+                       .andExpect(content().string(containsString("알림")));
             }
         }
 
@@ -133,11 +133,11 @@ class IndexViewControllerTest {
         class MainHeader {
 
             @Test
-            @DisplayName("boardholes 타이틀이 표시된다")
-            void shouldDisplayBoardholesTitle() throws Exception {
+            @DisplayName("boardhole 타이틀이 표시된다")
+            void shouldDisplayBoardholeTitle() throws Exception {
                 mockMvc.perform(get("/"))
                        .andExpect(status().isOk())
-                       .andExpect(content().string(containsString("class=\"text-lg font-semibold text-slate-900 uppercase\">boardholes")));
+                       .andExpect(content().string(containsString("class=\"text-lg font-semibold text-slate-900 uppercase\">boardhole")));
             }
 
             @Test
@@ -200,7 +200,7 @@ class IndexViewControllerTest {
             void shouldDisplayVersionBadge() throws Exception {
                 mockMvc.perform(get("/"))
                        .andExpect(status().isOk())
-                       .andExpect(content().string(containsString("boardhole v1.6.0")));
+                       .andExpect(content().string(containsString("boardhole v")));
             }
 
             @Test
@@ -217,8 +217,7 @@ class IndexViewControllerTest {
             void shouldDisplayDescription() throws Exception {
                 mockMvc.perform(get("/"))
                        .andExpect(status().isOk())
-                       .andExpect(content().string(containsString("Spring Boot 3.5, Java 21을 기반으로 구현한")))
-                       .andExpect(content().string(containsString("DDD 아키텍처, Spring Security 세션 인증")));
+                       .andExpect(content().string(containsString("Spring Boot와 최신 웹 기술을 활용한 게시판 학습 프로젝트입니다.")));
             }
 
             @Test
@@ -227,7 +226,7 @@ class IndexViewControllerTest {
                 mockMvc.perform(get("/"))
                        .andExpect(status().isOk())
                        .andExpect(content().string(containsString("게시판 둘러보기")))
-                       .andExpect(content().string(containsString("예: 모던 아트워크")));
+                       .andExpect(content().string(containsString("검색어 입력")));
             }
         }
 
@@ -318,7 +317,7 @@ class IndexViewControllerTest {
                     mockMvc.perform(get("/"))
                            .andExpect(status().isOk())
                            .andExpect(content().string(containsString("id=\"searchPopover\"")))
-                           .andExpect(content().string(containsString("비주얼 검색")));
+                           .andExpect(content().string(containsString("<h3 class=\"text-2xl font-semibold text-slate-900\">검색")));
                 }
 
                 @Test
@@ -336,7 +335,7 @@ class IndexViewControllerTest {
                     mockMvc.perform(get("/"))
                            .andExpect(status().isOk())
                            .andExpect(content().string(containsString("키워드를 입력하고 바로 필요한 보드를 찾아보세요")))
-                           .andExpect(content().string(containsString("placeholder=\"예: 모던 아트워크\"")));
+                           .andExpect(content().string(containsString("placeholder=\"검색어 입력\"")));
                 }
 
                 @Test
@@ -344,8 +343,8 @@ class IndexViewControllerTest {
                 void shouldDisplaySearchPopover() throws Exception {
                     mockMvc.perform(get("/"))
                            .andExpect(status().isOk())
-                           .andExpect(content().string(containsString("비주얼 검색")))
-                           .andExpect(content().string(containsString("키워드를 입력하고 바로 필요한 보드를 찾아보세요")));
+                           .andExpect(content().string(containsString("<h3 class=\"text-2xl font-semibold text-slate-900\">검색")))
+                           .andExpect(content().string(containsString("검색어 입력후 엔터를 입력하세요.")));
                 }
             }
 

@@ -29,8 +29,8 @@ import dev.xiyo.bunnyholes.boardhole.shared.util.MessageUtils;
 @ControllerAdvice(basePackages = {
         "dev.xiyo.bunnyholes.boardhole.auth.presentation.view",
         "dev.xiyo.bunnyholes.boardhole.board.presentation.view",
-        "dev.xiyo.bunnyholes.boardhole.user.presentation.view",
-        "dev.xiyo.bunnyholes.boardhole.web.view"
+        "dev.xiyo.bunnyholes.boardhole.shared.presentation.view",
+        "dev.xiyo.bunnyholes.boardhole.user.presentation.view"
 })
 public class ViewControllerAdvice {
 
