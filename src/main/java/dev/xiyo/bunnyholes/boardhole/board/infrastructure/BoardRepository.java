@@ -8,10 +8,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import jakarta.persistence.LockModeType;
+import org.springframework.transaction.annotation.Transactional;
 
 import dev.xiyo.bunnyholes.boardhole.board.domain.Board;
 
@@ -53,6 +55,17 @@ public interface BoardRepository extends JpaRepository<Board, UUID> {
     @Lock(LockModeType.OPTIMISTIC)
     @Query("SELECT b FROM Board b WHERE b.id = :boardId")
     Optional<Board> findByIdForUpdate(@Param("boardId") UUID boardId);
+
+    /**
+     * 게시글 조회수 증가 (감사 필드 미갱신용 직접 업데이트)
+     *
+     * @param boardId 게시글 ID
+     * @return 업데이트된 행 수 (0이면 게시글 미존재)
+     */
+    @Modifying(clearAutomatically = false, flushAutomatically = false)
+    @Transactional
+    @Query("UPDATE Board b SET b.viewCount = b.viewCount + 1 WHERE b.id = :boardId")
+    int incrementViewCount(@Param("boardId") UUID boardId);
 
     /**
      * 특정 기간 내 생성된 게시글 수 조회

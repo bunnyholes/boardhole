@@ -1,5 +1,6 @@
 package dev.xiyo.bunnyholes.boardhole.board.infrastructure;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -215,6 +216,30 @@ class BoardRepositoryTest extends EntityTestBase {
             // Then
             assertThat(locked).isPresent();
             assertThat(locked.get().getId()).isEqualTo(testBoard.getId());
+        }
+
+        @Test
+        @DisplayName("@Modifying 조회수 증가 쿼리는 updatedAt을 변경하지 않는다")
+        void incrementViewCount_DoesNotUpdateTimestamp() {
+            // Given
+            entityManager.flush();
+            entityManager.clear();
+
+            Board before = boardRepository.findById(testBoard.getId()).orElseThrow();
+            int originalViewCount = before.getViewCount();
+            LocalDateTime originalUpdatedAt = before.getUpdatedAt();
+
+            // When
+            int updatedRows = boardRepository.incrementViewCount(testBoard.getId());
+
+            // Then
+            assertThat(updatedRows).isEqualTo(1);
+
+            entityManager.clear();
+            Board after = boardRepository.findById(testBoard.getId()).orElseThrow();
+
+            assertThat(after.getViewCount()).isEqualTo(originalViewCount + 1);
+            assertThat(after.getUpdatedAt()).isEqualTo(originalUpdatedAt);
         }
 
     }
