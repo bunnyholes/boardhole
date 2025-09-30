@@ -1,4 +1,4 @@
-package dev.xiyo.bunnyholes.boardhole.shared.web;
+package dev.xiyo.bunnyholes.boardhole.shared.presentation.view;
 
 import java.time.Instant;
 

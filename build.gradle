@@ -96,8 +96,8 @@ dependencies {
     // -- Testing utilities --
     testImplementation 'org.awaitility:awaitility:4.3.0'
 
-    // -- Playwright for browser E2E testing --
-    testImplementation 'com.microsoft.playwright:playwright:1.55.0'
+    // -- In-memory database for integration-style tests without Docker --
+    testImplementation 'com.h2database:h2:2.3.232'
 
 }
 
@@ -139,17 +139,16 @@ tasks.register('entityTest', Test) {
     maxParallelForks = Runtime.runtime.availableProcessors() ?: 1
 }
 
-// View 레이어 테스트만 실행하는 태스크 (E2E는 제외)
+// View 레이어 테스트만 실행하는 태스크 (MockMvc 기반 뷰 테스트)
 tasks.register('viewTest', Test) {
     group = 'verification'
-    description = 'Runs only tests tagged with @Tag("view"), excluding E2E suites.'
+    description = 'Runs only tests tagged with @Tag("view") using the MockMvc-based test suites.'
 
     testClassesDirs = sourceSets.test.output.classesDirs
     classpath = sourceSets.test.runtimeClasspath
 
     useJUnitPlatform {
         includeTags 'view'
-        excludeTags 'e2e'
     }
 
     filter {

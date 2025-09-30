@@ -1,6 +1,4 @@
-package dev.xiyo.bunnyholes.boardhole.web.view;
-
-import lombok.RequiredArgsConstructor;
+package dev.xiyo.bunnyholes.boardhole.shared.presentation.view;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -13,7 +11,6 @@ import org.springframework.web.bind.annotation.RequestParam;
  * 애플리케이션의 홈페이지를 담당합니다.
  */
 @Controller
-@RequiredArgsConstructor
 public class IndexViewController {
 
     /**

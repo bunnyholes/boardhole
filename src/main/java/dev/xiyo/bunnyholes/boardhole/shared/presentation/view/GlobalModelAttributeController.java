@@ -1,4 +1,4 @@
-package dev.xiyo.bunnyholes.boardhole.shared.web;
+package dev.xiyo.bunnyholes.boardhole.shared.presentation.view;
 
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
