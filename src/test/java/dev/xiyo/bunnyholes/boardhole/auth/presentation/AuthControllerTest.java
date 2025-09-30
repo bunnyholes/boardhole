@@ -105,7 +105,8 @@ class AuthControllerTest {
                 LocalDateTime.now(),
                 null,
                 null,
-                Set.of(Role.USER)
+                Set.of(Role.USER),
+                false
         );
     }
 

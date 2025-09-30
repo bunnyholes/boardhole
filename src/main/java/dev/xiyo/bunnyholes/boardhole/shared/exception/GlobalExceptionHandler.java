@@ -117,6 +117,15 @@ public class GlobalExceptionHandler {
         return pd;
     }
 
+    @ExceptionHandler(InvalidFileException.class)
+    public ProblemDetail handleInvalidFile(InvalidFileException ex, HttpServletRequest request) {
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_ENTITY, ex.getMessage());
+        pd.setTitle(MessageUtils.get("exception.title.validation-failed"));
+        pd.setType(ProblemDetailsHelper.buildType("invalid-file"));
+        ProblemDetailsHelper.addCommonProperties(pd, request, ErrorCode.VALIDATION_ERROR.getCode());
+        return pd;
+    }
+
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ProblemDetail handleDataIntegrityViolation(DataIntegrityViolationException ex, HttpServletRequest request) {
         // 보안: 원본 메시지는 로깅만 하고 사용자에게는 일반 메시지만 전달

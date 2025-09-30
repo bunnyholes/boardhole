@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import dev.xiyo.bunnyholes.boardhole.shared.exception.ResourceNotFoundException;
 import dev.xiyo.bunnyholes.boardhole.shared.util.MessageUtils;
 import dev.xiyo.bunnyholes.boardhole.user.application.mapper.UserMapper;
+import dev.xiyo.bunnyholes.boardhole.user.application.result.UserProfileImageResult;
 import dev.xiyo.bunnyholes.boardhole.user.application.result.UserResult;
 import dev.xiyo.bunnyholes.boardhole.user.domain.User;
 import dev.xiyo.bunnyholes.boardhole.user.infrastructure.UserRepository;
@@ -42,6 +43,22 @@ public class UserQueryService {
                 .findByUsername(username)
                 .map(userMapper::toResult)
                 .orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.user.not-found.username", username)));
+    }
+
+    @Transactional(readOnly = true)
+    @PreAuthorize("hasRole('ADMIN') or #username.equalsIgnoreCase(authentication.name)")
+    public UserProfileImageResult getProfileImage(String username) {
+        User user = userRepository
+                .findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.user.not-found.username", username)));
+
+        if (!user.hasProfileImage())
+            throw new ResourceNotFoundException(MessageUtils.get("error.user.profile-image.not-found", username));
+
+        byte[] image = user.getProfileImage();
+        return new UserProfileImageResult(image != null ? image.clone() : null,
+                user.getProfileImageContentType(),
+                user.getProfileImageSize() != null ? user.getProfileImageSize() : image.length);
     }
 
     /**

@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
+import jakarta.persistence.Basic;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
@@ -15,11 +16,13 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotEmpty;
 
@@ -34,6 +37,7 @@ import org.hibernate.annotations.DynamicUpdate;
 import org.springframework.lang.Nullable;
 
 import dev.xiyo.bunnyholes.boardhole.shared.domain.BaseEntity;
+import dev.xiyo.bunnyholes.boardhole.shared.domain.schema.SchemaConstants;
 import dev.xiyo.bunnyholes.boardhole.shared.domain.listener.ValidationListener;
 import dev.xiyo.bunnyholes.boardhole.user.domain.validation.UserValidationConstants;
 import dev.xiyo.bunnyholes.boardhole.user.domain.validation.required.ValidEmail;
@@ -81,6 +85,17 @@ public class User extends BaseEntity implements Serializable {
 
     @Column
     private @Nullable LocalDateTime emailVerifiedAt;
+
+    @Lob
+    @Basic(fetch = FetchType.LAZY)
+    @Column(name = "profile_image", columnDefinition = "bytea")
+    private byte[] profileImage;
+
+    @Column(name = "profile_image_content_type", length = SchemaConstants.MIME_TYPE_MAX_LENGTH)
+    private String profileImageContentType;
+
+    @Column(name = "profile_image_size")
+    private Long profileImageSize;
 
     @Getter(AccessLevel.NONE)
     @NotEmpty(message = "{validation.user.roles.empty}")
@@ -159,6 +174,22 @@ public class User extends BaseEntity implements Serializable {
 
     public Set<Role> getRoles() {
         return Collections.unmodifiableSet(roles);
+    }
+
+    public void updateProfileImage(byte[] profileImage, String contentType, long size) {
+        this.profileImage = profileImage != null ? profileImage.clone() : null;
+        this.profileImageContentType = contentType;
+        this.profileImageSize = size;
+    }
+
+    public void clearProfileImage() {
+        this.profileImage = null;
+        this.profileImageContentType = null;
+        this.profileImageSize = null;
+    }
+
+    public boolean hasProfileImage() {
+        return profileImage != null && profileImage.length > 0;
     }
 
 }

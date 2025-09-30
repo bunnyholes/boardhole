@@ -131,7 +131,8 @@ class SignupViewControllerTest {
                 LocalDateTime.now(),
                 LocalDateTime.now(),
                 null,
-                Set.of(Role.USER)
+                Set.of(Role.USER),
+                false
         );
 
         when(userCommandService.create(any())).thenReturn(userResult);

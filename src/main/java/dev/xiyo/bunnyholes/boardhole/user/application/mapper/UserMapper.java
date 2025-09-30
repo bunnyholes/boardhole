@@ -3,6 +3,7 @@ package dev.xiyo.bunnyholes.boardhole.user.application.mapper;
 import java.time.LocalDateTime;
 
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 
 import dev.xiyo.bunnyholes.boardhole.user.application.command.UpdateUserCommand;
@@ -13,6 +14,7 @@ import dev.xiyo.bunnyholes.boardhole.user.domain.User;
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 @SuppressWarnings("NullableProblems")
 public interface UserMapper {
+    @Mapping(target = "hasProfileImage", expression = "java(user.hasProfileImage())")
     UserResult toResult(User user);
 
     /**

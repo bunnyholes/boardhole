@@ -14,5 +14,6 @@ public record UserResponse(@Schema(description = "사용자 ID", example = "550e
                            @Schema(description = "이메일 주소", example = "admin@boardhole.com") String email,
                            @Schema(description = "계정 생성 일시", example = "2024-01-15T10:30:00") LocalDateTime createdAt,
                            @Schema(description = "마지막 로그인 일시", example = "2024-01-16T14:20:15") LocalDateTime lastLogin,
-                           @Schema(description = "사용자 역할 목록", example = "[\"USER\", \"ADMIN\"]") Set<Role> roles) {
+                           @Schema(description = "사용자 역할 목록", example = "[\"USER\", \"ADMIN\"]") Set<Role> roles,
+                           @Schema(description = "프로필 이미지 업로드 여부", example = "true") boolean hasProfileImage) {
 }

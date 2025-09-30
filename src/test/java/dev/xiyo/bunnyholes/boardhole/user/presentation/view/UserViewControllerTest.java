@@ -188,6 +188,6 @@ class UserViewControllerTest {
     private static UserResult createUserResult(UUID id, String username, String name, String email,
                                                LocalDateTime createdAt, LocalDateTime updatedAt,
                                                LocalDateTime lastLogin, Set<Role> roles) {
-        return new UserResult(id, username, name, email, createdAt, updatedAt, lastLogin, roles);
+        return new UserResult(id, username, name, email, createdAt, updatedAt, lastLogin, roles, false);
     }
 }

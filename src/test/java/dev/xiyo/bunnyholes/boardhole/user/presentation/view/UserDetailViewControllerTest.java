@@ -1,6 +1,7 @@
 package dev.xiyo.bunnyholes.boardhole.user.presentation.view;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.Set;
 import java.util.UUID;
 
@@ -120,7 +121,7 @@ class UserDetailViewControllerTest {
     void mypage_UserNotFound_ShouldSetDefaultObject() throws Exception {
         // given
         when(userQueryService.getUser(USERNAME)).thenReturn(null);
-        when(userWebMapper.toResponse(null)).thenReturn(new UserResponse(null, USERNAME, "", null, null, null, Set.of()));
+        when(userWebMapper.toResponse(null)).thenReturn(new UserResponse(null, USERNAME, "", null, null, null, Collections.emptySet(), false));
 
         // when & then
         mockMvc.perform(get("/users/me"))
@@ -266,11 +267,11 @@ class UserDetailViewControllerTest {
         LocalDateTime createdAt = LocalDateTime.now().minusDays(7);
         LocalDateTime updatedAt = LocalDateTime.now().minusDays(1);
         LocalDateTime lastLogin = LocalDateTime.now().minusHours(2);
-        return new UserResult(id, username, name, email, createdAt, updatedAt, lastLogin, roles);
+        return new UserResult(id, username, name, email, createdAt, updatedAt, lastLogin, roles, false);
     }
 
     private static UserResponse toResponse(UserResult result) {
         return new UserResponse(result.id(), result.username(), result.name(), result.email(), result.createdAt(), result.lastLogin(),
-                result.roles());
+                result.roles(), result.hasProfileImage());
     }
 }
