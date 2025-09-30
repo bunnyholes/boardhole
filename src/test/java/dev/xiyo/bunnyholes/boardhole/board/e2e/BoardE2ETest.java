@@ -32,7 +32,11 @@ class BoardE2ETest extends E2ETestBase {
     @BeforeEach
     void loginDefaults() {
         admin = AuthSteps.loginAdmin();
-        regular = AuthSteps.loginRegular();
+        
+        // 일반 사용자는 동적으로 생성
+        String testUsername = "testuser_" + System.currentTimeMillis();
+        AuthSteps.register(testUsername, "TestUser123!", "Test User", "test@example.com");
+        regular = AuthSteps.loginAs(testUsername, "TestUser123!");
     }
 
     @Nested

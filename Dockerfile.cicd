@@ -1,7 +1,7 @@
 # CI/CD 전용 Dockerfile - 빌드 스테이지 없이 JAR만 복사
 
 # Runtime stage
-FROM azul/zulu-openjdk-alpine:25-jre
+FROM azul/zulu-openjdk-alpine:21-jre
 
 # 보안을 위한 non-root 유저
 RUN addgroup -g 1000 spring && \
@@ -15,6 +15,7 @@ COPY --chown=spring:spring build/libs/*.jar app.jar
 USER spring:spring
 
 EXPOSE 8080
+STOPSIGNAL SIGTERM
 
 # 런타임에 JAVA_OPTS와 SPRING_PROFILES_ACTIVE 환경변수 설정 가능
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]

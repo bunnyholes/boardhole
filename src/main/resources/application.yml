@@ -28,6 +28,7 @@ spring:
 # 서버 전역 인코딩 설정
 # ========================================
 server:
+  shutdown: graceful  # Graceful Shutdown 활성화
   servlet:
     encoding:
       charset: UTF-8
@@ -55,11 +56,6 @@ boardhole:
       password: Admin123!  # 환경별로 오버라이드 권장 (정책 준수: 대/소문자+숫자+특수문자)
       name: 관리자
       email: admin@boardhole.com
-    regular:
-      username: user
-      password: User123!  # 환경별로 오버라이드 권장 (정책 준수)
-      name: 일반 사용자
-      email: user@boardhole.com
   api:
     title: ${apiTitle}
     version: ${version}
@@ -87,3 +83,16 @@ boardhole:
     license:
       name: ${apiLicenseName}
       url: ${apiLicenseUrl}
+
+# ========================================
+# Actuator 헬스체크
+# ========================================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      probes:
+        enabled: true
