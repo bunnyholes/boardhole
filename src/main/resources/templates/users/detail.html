@@ -26,7 +26,7 @@
                         <aside class="rounded-3xl border border-slate-200 bg-white/70 p-6 shadow-sm backdrop-blur">
                             <h2 class="text-lg font-semibold text-slate-800">프로필 이미지</h2>
                             <p class="mt-2 text-sm leading-6 text-slate-500">업로드된 이미지는 전용 API를 통해 불러와 브라우저가 병렬로 다운로드합니다.</p>
-                            <div class="mt-6 flex flex-col items-center gap-4"
+                            <div class="mt-6 flex w-full flex-col items-center gap-4"
                                  th:with="displayName=${(user.name != null and !#strings.isEmpty(user.name)) ? user.name : user.username}">
                                 <figure class="relative flex h-48 w-48 items-center justify-center overflow-hidden rounded-full bg-slate-100 shadow-inner ring-1 ring-inset ring-slate-200">
                                     <img th:if="${user.hasProfileImage}"
@@ -39,7 +39,7 @@
                                           th:text="${#strings.substring(displayName, 0, 1)}"
                                           class="text-5xl font-semibold text-slate-400"></span>
                                 </figure>
-                                <div class="text-center text-sm text-slate-500">
+                                <div class="w-full text-center text-sm text-slate-500">
                                     <p>최신 이미지는 업로드 후 새로고침하면 자동으로 반영됩니다.</p>
                                     <a th:href="@{/api/users/{username}/profile-image(username=${user.username})}"
                                        class="mt-2 inline-flex items-center justify-center rounded-full border border-slate-200 px-4 py-2 font-medium text-slate-600 transition hover:border-slate-300 hover:bg-slate-50"
@@ -47,6 +47,46 @@
                                        rel="noopener noreferrer">
                                         원본 이미지 보기
                                     </a>
+                                </div>
+                                <div class="mt-6 w-full space-y-4">
+                                    <div th:if="${success != null}" class="rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 text-left text-sm font-medium text-blue-700 shadow-sm">
+                                        <span th:text="${success}">성공 메시지</span>
+                                    </div>
+                                    <div th:if="${error != null}" class="rounded-2xl border border-rose-100 bg-rose-50 px-4 py-3 text-left text-sm font-medium text-rose-700 shadow-sm">
+                                        <span th:text="${error}">에러 메시지</span>
+                                    </div>
+                                    <form method="post"
+                                          th:action="@{/users/me/profile-image}"
+                                          enctype="multipart/form-data"
+                                          class="space-y-4">
+                                        <input th:if="${_csrf != null}"
+                                               th:attr="name=${_csrf.parameterName}, value=${_csrf.token}"
+                                               type="hidden"/>
+                                        <div class="space-y-2 text-left">
+                                            <label for="profileImage" class="text-sm font-semibold text-slate-700">새 프로필 이미지</label>
+                                            <input id="profileImage"
+                                                   name="profileImage"
+                                                   type="file"
+                                                   accept="image/png,image/jpeg,image/gif,image/webp"
+                                                   class="block w-full cursor-pointer rounded-2xl border border-dashed border-slate-300 bg-white px-4 py-3 text-sm text-slate-600 transition focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:ring-offset-0 file:mr-4 file:rounded-full file:border-0 file:bg-slate-900 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:border-slate-400 hover:file:bg-slate-700"/>
+                                            <p class="text-xs text-slate-400">PNG, JPG, GIF, WEBP 형식의 최대 2MB 이미지까지 업로드할 수 있습니다.</p>
+                                        </div>
+                                        <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+                                            <button type="submit"
+                                                    class="inline-flex w-full items-center justify-center rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/70 focus-visible:ring-offset-2 sm:w-auto">
+                                                이미지 업로드
+                                            </button>
+                                            <button type="submit"
+                                                    name="remove"
+                                                    value="true"
+                                                    th:disabled="${!user.hasProfileImage}"
+                                                    th:attr="aria-disabled=${!user.hasProfileImage}"
+                                                    th:classappend="${!user.hasProfileImage} ? ' cursor-not-allowed opacity-60' : ''"
+                                                    class="inline-flex w-full items-center justify-center rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-slate-400 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:ring-offset-2 sm:w-auto">
+                                                이미지 삭제
+                                            </button>
+                                        </div>
+                                    </form>
                                 </div>
                             </div>
                         </aside>

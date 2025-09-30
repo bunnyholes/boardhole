@@ -121,7 +121,8 @@
 
                         <footer class="mt-10 flex items-center justify-end gap-4 border-t border-slate-200 pt-6">
                             <div sec:authorize="hasPermission(#vars.board.id, 'BOARD', 'WRITE')"
-                                 class="flex items-center gap-3">
+                                 class="flex items-center gap-3"
+                                 data-testid="manage-menu">
                                 <a th:href="@{/boards/{id}/edit(id=${board.id})}" href="./edit.html"
                                    class="inline-flex items-center justify-center gap-2 rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white transition hover:bg-slate-700">
                                     수정하기

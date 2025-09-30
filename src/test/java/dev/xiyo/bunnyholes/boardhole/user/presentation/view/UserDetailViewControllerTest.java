@@ -10,6 +10,7 @@ import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.ComponentScan;
@@ -20,15 +21,21 @@ import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.mock.web.MockMultipartFile;
 
 import dev.xiyo.bunnyholes.boardhole.shared.config.ViewSecurityConfig;
 import dev.xiyo.bunnyholes.boardhole.shared.exception.GlobalExceptionHandler;
+import dev.xiyo.bunnyholes.boardhole.user.application.command.UpdateUserProfileImageCommand;
 import dev.xiyo.bunnyholes.boardhole.user.application.command.UserCommandService;
 import dev.xiyo.bunnyholes.boardhole.user.application.query.UserQueryService;
 import dev.xiyo.bunnyholes.boardhole.user.application.result.UserResult;
 import dev.xiyo.bunnyholes.boardhole.user.domain.Role;
 import dev.xiyo.bunnyholes.boardhole.user.presentation.dto.UserResponse;
+import dev.xiyo.bunnyholes.boardhole.user.presentation.mapper.UserProfileImageCommandMapper;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -36,12 +43,14 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 
 /**
  * UserDetailViewController Thymeleaf 템플릿 단위 테스트
@@ -55,7 +64,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
                 @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = GlobalExceptionHandler.class)
         }
 )
-@Import(ViewSecurityConfig.class)
+@Import({ViewSecurityConfig.class, UserProfileImageCommandMapper.class})
 @Tag("unit")
 @Tag("view")
 @DisplayName("UserDetailViewController 뷰 테스트")
@@ -113,6 +122,25 @@ class UserDetailViewControllerTest {
                .andExpect(model().attributeExists("user"));
 
         verify(userQueryService).getUser(USERNAME);
+    }
+
+    @Test
+    @DisplayName("마이페이지는 프로필 이미지 업로드 폼을 표시한다")
+    @WithMockUser(username = USERNAME, authorities = {"ROLE_USER"})
+    void mypage_ShouldRenderProfileImageUploadForm() throws Exception {
+        var userResult = createUserResult(USER_ID, USERNAME, NAME, EMAIL, Set.of(Role.USER));
+
+        when(userQueryService.getUser(USERNAME)).thenReturn(userResult);
+        when(userWebMapper.toResponse(userResult)).thenReturn(toResponse(userResult));
+
+        mockMvc.perform(get("/users/me"))
+               .andExpect(status().isOk())
+               .andExpect(view().name("users/detail"))
+               .andExpect(content().string(allOf(
+                       containsString("action=\"/users/me/profile-image\""),
+                       containsString("name=\"profileImage\""),
+                       containsString("enctype=\"multipart/form-data\""))))
+               .andExpect(model().attributeExists("user"));
     }
 
     @Test
@@ -178,6 +206,58 @@ class UserDetailViewControllerTest {
                .andExpect(view().name("users/detail"))
                .andExpect(model().hasErrors())
                .andExpect(model().attributeExists("user"));
+    }
+
+    @Test
+    @DisplayName("프로필 이미지 업로드 시 서비스가 호출되고 마이페이지로 리디렉션된다")
+    @WithMockUser(username = USERNAME, authorities = {"ROLE_USER"})
+    void uploadProfileImage_WithValidFile_ShouldRedirect() throws Exception {
+        var userResult = createUserResult(USER_ID, USERNAME, NAME, EMAIL, Set.of(Role.USER));
+        when(userQueryService.getUser(USERNAME)).thenReturn(userResult);
+        when(userWebMapper.toResponse(userResult)).thenReturn(toResponse(userResult));
+
+        MockMultipartFile file = new MockMultipartFile(
+                "profileImage",
+                "avatar.png",
+                "image/png",
+                "fake-image".getBytes()
+        );
+
+        mockMvc.perform(multipart("/users/me/profile-image")
+                        .file(file)
+                        .with(csrf()))
+               .andExpect(status().is3xxRedirection())
+               .andExpect(redirectedUrl("/users/me"));
+
+        ArgumentCaptor<UpdateUserProfileImageCommand> captor = ArgumentCaptor.forClass(UpdateUserProfileImageCommand.class);
+        verify(userCommandService).updateProfileImage(captor.capture());
+        UpdateUserProfileImageCommand command = captor.getValue();
+        assertThat(command.username()).isEqualTo(USERNAME);
+        assertThat(command.remove()).isFalse();
+        assertThat(command.image()).isNotNull();
+        assertThat(command.image().getOriginalFilename()).isEqualTo("avatar.png");
+    }
+
+    @Test
+    @DisplayName("프로필 이미지 삭제를 요청하면 remove 플래그로 서비스가 호출된다")
+    @WithMockUser(username = USERNAME, authorities = {"ROLE_USER"})
+    void uploadProfileImage_RemoveFlag_ShouldInvokeRemoval() throws Exception {
+        var userResult = createUserResult(USER_ID, USERNAME, NAME, EMAIL, Set.of(Role.USER), true);
+        when(userQueryService.getUser(USERNAME)).thenReturn(userResult);
+        when(userWebMapper.toResponse(userResult)).thenReturn(toResponse(userResult));
+
+        mockMvc.perform(multipart("/users/me/profile-image")
+                        .param("remove", "true")
+                        .with(csrf()))
+               .andExpect(status().is3xxRedirection())
+               .andExpect(redirectedUrl("/users/me"));
+
+        ArgumentCaptor<UpdateUserProfileImageCommand> captor = ArgumentCaptor.forClass(UpdateUserProfileImageCommand.class);
+        verify(userCommandService).updateProfileImage(captor.capture());
+        UpdateUserProfileImageCommand command = captor.getValue();
+        assertThat(command.username()).isEqualTo(USERNAME);
+        assertThat(command.remove()).isTrue();
+        assertThat(command.image()).isNull();
     }
 
     @Test
@@ -264,10 +344,15 @@ class UserDetailViewControllerTest {
     }
 
     private static UserResult createUserResult(UUID id, String username, String name, String email, Set<Role> roles) {
+        return createUserResult(id, username, name, email, roles, false);
+    }
+
+    private static UserResult createUserResult(UUID id, String username, String name, String email, Set<Role> roles,
+            boolean hasProfileImage) {
         LocalDateTime createdAt = LocalDateTime.now().minusDays(7);
         LocalDateTime updatedAt = LocalDateTime.now().minusDays(1);
         LocalDateTime lastLogin = LocalDateTime.now().minusHours(2);
-        return new UserResult(id, username, name, email, createdAt, updatedAt, lastLogin, roles, false);
+        return new UserResult(id, username, name, email, createdAt, updatedAt, lastLogin, roles, hasProfileImage);
     }
 
     private static UserResponse toResponse(UserResult result) {
