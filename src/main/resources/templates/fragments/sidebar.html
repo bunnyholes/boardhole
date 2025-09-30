@@ -1,0 +1,158 @@
+<aside xmlns:th="http://www.thymeleaf.org" th:fragment="sidebar()"
+       th:with="requestUri=${#httpServletRequest != null ? #httpServletRequest.requestURI : ''}"
+       class="fixed left-0 top-0 flex h-screen w-20 flex-col border-r border-slate-200 bg-white">
+    <header class="w-full h-20 border-b border-slate-200 bg-white/80">
+        <a class="w-full h-full block text-center content-center font-bold text-white bg-slate-900 transition hover:bg-slate-800 text-2xl"
+           th:href="@{/}" href="/">
+            BH
+        </a>
+    </header>
+
+    <nav class="flex-1 flex flex-col w-full overflow-y-auto divide-y divide-slate-200">
+        <div class="flex flex-col w-full">
+            <div class="tip-wrapper relative flex w-full group/tip">
+                <a class="tip-anchor flex h-20 w-full items-center justify-center cursor-pointer transition-all duration-150 hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:color-mix(in_srgb,white_60%,#2563eb)] [anchor-name:--tip-profile]"
+                   th:href="@{/users/me}" href="/users/me"
+                   aria-label="Profile" aria-describedby="layout-tip-profile">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                         class="lucide lucide-user-round-icon lucide-user-round">
+                        <circle cx="12" cy="8" r="5"/>
+                        <path d="M20 21a8 8 0 0 0-16 0"/>
+                    </svg>
+                </a>
+                <div id="layout-tip-profile" role="tooltip"
+                     class="tip-tooltip pointer-events-none absolute z-10 overflow-hidden rounded-xl bg-slate-900/90 px-3 py-2 text-xs font-medium text-white opacity-0 invisible delay-150 [transition-property:opacity,visibility] duration-150 [transition-behavior:allow-discrete] [position-anchor:--tip-profile] [top:anchor(center)] [left:calc(anchor(end)+12px)] [translate:0_-50%] whitespace-nowrap text-left leading-5 text-ellipsis [max-inline-size:clamp(8rem,30vw,12rem)] group-hover/tip:delay-0 group-hover/tip:opacity-100 group-hover/tip:visible group-focus-visible/tip:delay-0 group-focus-visible/tip:opacity-100 group-focus-visible/tip:visible">
+                    Profile
+                </div>
+            </div>
+
+            <div class="tip-wrapper relative flex w-full group/tip">
+                <button popovertarget="searchPopover" popovertargetaction="toggle"
+                        class="tip-anchor flex h-20 w-full items-center justify-center cursor-pointer text-slate-400 transition-all duration-150 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:color-mix(in_srgb,white_60%,#2563eb)] [anchor-name:--tip-search]"
+                        aria-label="검색 열기" aria-describedby="layout-tip-search">
+                    <svg aria-hidden="true" viewBox="0 0 24 24" class="h-5 w-5" fill="none"
+                         stroke="currentColor" stroke-width="1.75" stroke-linecap="round"
+                         stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="6"/>
+                        <line x1="16.5" y1="16.5" x2="20" y2="20"/>
+                    </svg>
+                </button>
+                <div id="layout-tip-search" role="tooltip"
+                     class="tip-tooltip pointer-events-none absolute z-10 overflow-hidden rounded-xl bg-slate-900/90 px-3 py-2 text-xs font-medium text-white opacity-0 invisible delay-150 [transition-property:opacity,visibility] duration-150 [transition-behavior:allow-discrete] [position-anchor:--tip-search] [top:anchor(center)] [left:calc(anchor(end)+12px)] [translate:0_-50%] whitespace-nowrap text-left leading-5 text-ellipsis [max-inline-size:clamp(8rem,30vw,12rem)] group-hover/tip:delay-0 group-hover/tip:opacity-100 group-hover/tip:visible group-focus-visible/tip:delay-0 group-focus-visible/tip:opacity-100 group-focus-visible/tip:visible">
+                    검색
+                </div>
+            </div>
+        </div>
+
+        <div class="flex flex-col w-full">
+            <div class="tip-wrapper relative flex w-full group/tip">
+                <a class="tip-anchor flex h-20 w-full items-center justify-center cursor-pointer text-slate-400 transition-all duration-150 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:color-mix(in_srgb,white_60%,#2563eb)] [anchor-name:--tip-board]"
+                   th:href="@{/boards}" href="/boards"
+                   th:classappend="${#strings.startsWith(requestUri, '/boards')} ? ' bg-slate-900 text-white hover:bg-slate-900 hover:text-white' : ''"
+                   th:attr="aria-current=${#strings.startsWith(requestUri, '/boards')} ? 'page' : null"
+                   aria-label="게시판" aria-describedby="layout-tip-board">
+                    <svg aria-hidden="true" viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor"
+                         stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="4" y="3" width="14" height="18" rx="2"/>
+                        <line x1="8" y1="3" x2="8" y2="21"/>
+                        <line x1="11.5" y1="8" x2="16" y2="8"/>
+                        <line x1="11.5" y1="12" x2="16" y2="12"/>
+                    </svg>
+                </a>
+                <div id="layout-tip-board" role="tooltip"
+                     class="tip-tooltip pointer-events-none absolute z-10 overflow-hidden rounded-xl bg-slate-900/90 px-3 py-2 text-xs font-medium text-white opacity-0 invisible delay-150 [transition-property:opacity,visibility] duration-150 [transition-behavior:allow-discrete] [position-anchor:--tip-board] [top:anchor(center)] [left:calc(anchor(end)+12px)] [translate:0_-50%] whitespace-nowrap text-left leading-5 text-ellipsis [max-inline-size:clamp(8rem,30vw,12rem)] group-hover/tip:delay-0 group-hover/tip:opacity-100 group-hover/tip:visible group-focus-visible/tip:delay-0 group-focus-visible/tip:opacity-100 group-focus-visible/tip:visible">
+                    게시판
+                </div>
+            </div>
+
+            <div class="tip-wrapper relative flex w-full group/tip"
+                 th:if="${#authorization.expression('hasRole(''ADMIN'')')}">
+                <a class="tip-anchor flex h-20 w-full items-center justify-center cursor-pointer text-slate-400 transition-all duration-150 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:color-mix(in_srgb,white_60%,#2563eb)] [anchor-name:--tip-users]"
+                   th:href="@{/users}" href="/users"
+                   th:classappend="${#strings.startsWith(requestUri, '/users')} ? ' bg-slate-900 text-white hover:bg-slate-900 hover:text-white' : ''"
+                   th:attr="aria-current=${#strings.startsWith(requestUri, '/users')} ? 'page' : null"
+                   aria-label="사용자 관리" aria-describedby="layout-tip-users">
+                    <svg aria-hidden="true" viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor"
+                         stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                        <circle cx="8.5" cy="7" r="4"/>
+                        <path d="M20 8v6"/>
+                        <path d="M23 11h-6"/>
+                    </svg>
+                </a>
+                <div id="layout-tip-users" role="tooltip"
+                     class="tip-tooltip pointer-events-none absolute z-10 overflow-hidden rounded-xl bg-slate-900/90 px-3 py-2 text-xs font-medium text-white opacity-0 invisible delay-150 [transition-property:opacity,visibility] duration-150 [transition-behavior:allow-discrete] [position-anchor:--tip-users] [top:anchor(center)] [left:calc(anchor(end)+12px)] [translate:0_-50%] whitespace-nowrap text-left leading-5 text-ellipsis [max-inline-size:clamp(8rem,30vw,12rem)] group-hover/tip:delay-0 group-hover/tip:opacity-100 group-hover/tip:visible group-focus-visible/tip:delay-0 group-focus-visible/tip:opacity-100 group-focus-visible/tip:visible">
+                    사용자 관리
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <footer class="flex flex-col w-full text-slate-400">
+        <div class="tip-wrapper relative flex w-full group/tip">
+            <button class="tip-anchor flex h-20 w-full items-center justify-center cursor-pointer text-slate-400 transition-all duration-150 hover:bg-slate-100 hover:border-amber-300 hover:text-amber-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:color-mix(in_srgb,white_60%,#2563eb)] [anchor-name:--tip-notification]"
+                    aria-label="알림" aria-describedby="layout-tip-notification">
+                <svg aria-hidden="true" viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor"
+                     stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M6 10a6 6 0 0112 0v4.5l1.5 1.5H4.5L6 14.5z"/>
+                    <path d="M9.5 19a2.5 2.5 0 005 0"/>
+                </svg>
+            </button>
+            <div id="layout-tip-notification" role="tooltip"
+                 class="tip-tooltip pointer-events-none absolute z-10 overflow-hidden rounded-xl bg-slate-900/90 px-3 py-2 text-xs font-medium text-white opacity-0 invisible delay-150 [transition-property:opacity,visibility] duration-150 [transition-behavior:allow-discrete] [position-anchor:--tip-notification] [top:anchor(center)] [left:calc(anchor(end)+12px)] [translate:0_-50%] whitespace-nowrap text-left leading-5 text-ellipsis [max-inline-size:clamp(8rem,30vw,12rem)] group-hover/tip:delay-0 group-hover/tip:opacity-100 group-hover/tip:visible group-focus-visible/tip:delay-0 group-focus-visible/tip:opacity-100 group-focus-visible/tip:visible">
+                알림
+            </div>
+        </div>
+
+        <div class="tip-wrapper relative flex w-full group/tip">
+            <a class="tip-anchor flex h-20 w-full items-center justify-center cursor-pointer text-slate-400 transition-all duration-150 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:color-mix(in_srgb,white_60%,#2563eb)] [anchor-name:--tip-api-docs]"
+               th:href="@{/swagger-ui/index.html}" href="/swagger-ui/index.html"
+               target="_blank" rel="noopener noreferrer"
+               aria-label="API 문서" aria-describedby="layout-tip-api-docs">
+                <img th:src="@{/assets/image/swagger.svg}" src="/assets/image/swagger.svg" alt="Swagger API"
+                     class="h-5 w-5"/>
+            </a>
+            <div id="layout-tip-api-docs" role="tooltip"
+                 class="tip-tooltip pointer-events-none absolute z-10 overflow-hidden rounded-xl bg-slate-900/90 px-3 py-2 text-xs font-medium text-white opacity-0 invisible delay-150 [transition-property:opacity,visibility] duration-150 [transition-behavior:allow-discrete] [position-anchor:--tip-api-docs] [top:anchor(center)] [left:calc(anchor(end)+12px)] [translate:0_-50%] whitespace-nowrap text-left leading-5 text-ellipsis [max-inline-size:clamp(8rem,30vw,12rem)] group-hover/tip:delay-0 group-hover/tip:opacity-100 group-hover/tip:visible group-focus-visible/tip:delay-0 group-focus-visible/tip:opacity-100 group-focus-visible/tip:visible">
+                API 문서
+            </div>
+        </div>
+
+        <div class="tip-wrapper relative flex w-full group/tip"
+             th:if="${#authentication?.principal != null and #authentication?.principal != 'anonymousUser'}">
+            <button popovertarget="logoutPopover" popovertargetaction="toggle"
+                    class="tip-anchor flex h-20 w-full items-center justify-center cursor-pointer text-slate-400 transition-all duration-150 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:color-mix(in_srgb,white_60%,#2563eb)] [anchor-name:--tip-logout]"
+                    aria-label="로그아웃" aria-describedby="layout-tip-logout">
+                <svg aria-hidden="true" viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor"
+                     stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 5H5a2 2 0 00-2 2v10a2 2 0 002 2h4"/>
+                    <polyline points="16 17 21 12 16 7"/>
+                    <line x1="21" y1="12" x2="9" y2="12"/>
+                </svg>
+            </button>
+            <div id="layout-tip-logout" role="tooltip"
+                 class="tip-tooltip pointer-events-none absolute z-10 overflow-hidden rounded-xl bg-slate-900/90 px-3 py-2 text-xs font-medium text-white opacity-0 invisible delay-150 [transition-property:opacity,visibility] duration-150 [transition-behavior:allow-discrete] [position-anchor:--tip-logout] [top:anchor(center)] [left:calc(anchor(end)+12px)] [translate:0_-50%] whitespace-nowrap text-left leading-5 text-ellipsis [max-inline-size:clamp(8rem,30vw,12rem)] group-hover/tip:delay-0 group-hover/tip:opacity-100 group-hover/tip:visible group-focus-visible/tip:delay-0 group-focus-visible/tip:opacity-100 group-focus-visible/tip:visible">
+                로그아웃
+            </div>
+        </div>
+
+        <div class="tip-wrapper relative flex w-full group/tip"
+             th:if="${#authentication == null or #authentication?.principal == null or #authentication?.principal == 'anonymousUser'}">
+            <a th:href="@{/auth/login}" href="/auth/login"
+               class="tip-anchor flex h-20 w-full items-center justify-center cursor-pointer text-slate-400 transition-all duration-150 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:color-mix(in_srgb,white_60%,#2563eb)] [anchor-name:--tip-login]"
+               aria-label="로그인" aria-describedby="layout-tip-login">
+                <svg aria-hidden="true" viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor"
+                     stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/>
+                    <polyline points="10 17 15 12 10 7"/>
+                    <line x1="15" y1="12" x2="3" y2="12"/>
+                </svg>
+            </a>
+            <div id="layout-tip-login" role="tooltip"
+                 class="tip-tooltip pointer-events-none absolute z-10 overflow-hidden rounded-xl bg-slate-900/90 px-3 py-2 text-xs font-medium text-white opacity-0 invisible delay-150 [transition-property:opacity,visibility] duration-150 [transition-behavior:allow-discrete] [position-anchor:--tip-login] [top:anchor(center)] [left:calc(anchor(end)+12px)] [translate:0_-50%] whitespace-nowrap text-left leading-5 text-ellipsis [max-inline-size:clamp(8rem,30vw,12rem)] group-hover/tip:delay-0 group-hover/tip:opacity-100 group-hover/tip:visible group-focus-visible/tip:delay-0 group-focus-visible/tip:opacity-100 group-focus-visible/tip:visible">
+                로그인
+            </div>
+        </div>
+    </footer>
+</aside>

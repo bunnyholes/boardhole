@@ -50,7 +50,7 @@ public class BoardListViewController {
         if (pageable.getPageNumber() > 0 && pageable.getPageNumber() >= boards.getTotalPages()) {
             throw new IllegalArgumentException("요청한 페이지 번호가 유효하지 않습니다. 페이지: " + (pageable.getPageNumber() + 1) + ", 총 페이지: " + boards.getTotalPages());
         }
-        
+
         model.addAttribute("boards", boards);
         model.addAttribute("search", search);
         return "boards";
