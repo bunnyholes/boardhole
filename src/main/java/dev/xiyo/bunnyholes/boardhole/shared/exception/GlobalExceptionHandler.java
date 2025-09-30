@@ -28,6 +28,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
+import org.springframework.util.unit.DataSize;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -345,11 +346,15 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ProblemDetail handleMaxUploadSizeExceeded(MaxUploadSizeExceededException ex, HttpServletRequest request) {
-        log.warn("File upload size exceeded: {}", ex.getMaxUploadSize());
+        long rawMaxSize = ex.getMaxUploadSize();
+        log.warn("File upload size exceeded: {}", rawMaxSize);
+        Long maxSizeMb = rawMaxSize > 0 ? DataSize.ofBytes(rawMaxSize).toMegabytes() : null;
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.PAYLOAD_TOO_LARGE,
-                MessageUtils.get("error.upload.size-exceeded", ex.getMaxUploadSize()));
+                MessageUtils.get("error.upload.size-exceeded", maxSizeMb != null ? maxSizeMb : rawMaxSize));
         pd.setTitle(MessageUtils.get("exception.title.payload-too-large"));
-        pd.setProperty("maxSize", ex.getMaxUploadSize());
+        pd.setProperty("maxSize", rawMaxSize);
+        if (maxSizeMb != null)
+            pd.setProperty("maxSizeMb", maxSizeMb);
         pd.setType(ProblemDetailsHelper.buildType("upload-size-exceeded"));
         ProblemDetailsHelper.addCommonProperties(pd, request, ErrorCode.PAYLOAD_TOO_LARGE.getCode());
         return pd;
