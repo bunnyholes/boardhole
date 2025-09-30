@@ -13,7 +13,7 @@
             <div class="tip-wrapper relative flex w-full group/tip">
                 <a class="tip-anchor flex h-20 w-full items-center justify-center cursor-pointer transition-all duration-150 hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:color-mix(in_srgb,white_60%,#2563eb)] [anchor-name:--tip-profile]"
                    th:href="@{/users/me}" href="/users/me"
-                   aria-label="Profile" aria-describedby="layout-tip-profile">
+                   aria-label="Profile" aria-describedby="index-tip-profile">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
                          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                          class="lucide lucide-user-round-icon lucide-user-round">
@@ -25,12 +25,13 @@
                      class="tip-tooltip pointer-events-none absolute z-10 overflow-hidden rounded-xl bg-slate-900/90 px-3 py-2 text-xs font-medium text-white opacity-0 invisible delay-150 [transition-property:opacity,visibility] duration-150 [transition-behavior:allow-discrete] [position-anchor:--tip-profile] [top:anchor(center)] [left:calc(anchor(end)+12px)] [translate:0_-50%] whitespace-nowrap text-left leading-5 text-ellipsis [max-inline-size:clamp(8rem,30vw,12rem)] group-hover/tip:delay-0 group-hover/tip:opacity-100 group-hover/tip:visible group-focus-visible/tip:delay-0 group-focus-visible/tip:opacity-100 group-focus-visible/tip:visible">
                     Profile
                 </div>
+                <div id="index-tip-profile" role="tooltip" class="sr-only">Profile</div>
             </div>
 
             <div class="tip-wrapper relative flex w-full group/tip">
                 <button popovertarget="searchPopover" popovertargetaction="toggle"
                         class="tip-anchor flex h-20 w-full items-center justify-center cursor-pointer text-slate-400 transition-all duration-150 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:color-mix(in_srgb,white_60%,#2563eb)] [anchor-name:--tip-search]"
-                        aria-label="검색 열기" aria-describedby="layout-tip-search">
+                        aria-label="검색 열기" aria-describedby="index-tip-search">
                     <svg aria-hidden="true" viewBox="0 0 24 24" class="h-5 w-5" fill="none"
                          stroke="currentColor" stroke-width="1.75" stroke-linecap="round"
                          stroke-linejoin="round">
@@ -42,6 +43,7 @@
                      class="tip-tooltip pointer-events-none absolute z-10 overflow-hidden rounded-xl bg-slate-900/90 px-3 py-2 text-xs font-medium text-white opacity-0 invisible delay-150 [transition-property:opacity,visibility] duration-150 [transition-behavior:allow-discrete] [position-anchor:--tip-search] [top:anchor(center)] [left:calc(anchor(end)+12px)] [translate:0_-50%] whitespace-nowrap text-left leading-5 text-ellipsis [max-inline-size:clamp(8rem,30vw,12rem)] group-hover/tip:delay-0 group-hover/tip:opacity-100 group-hover/tip:visible group-focus-visible/tip:delay-0 group-focus-visible/tip:opacity-100 group-focus-visible/tip:visible">
                     검색
                 </div>
+                <div id="index-tip-search" role="tooltip" class="sr-only">검색</div>
             </div>
         </div>
 
@@ -51,7 +53,7 @@
                    th:href="@{/boards}" href="/boards"
                    th:classappend="${#strings.startsWith(requestUri, '/boards')} ? ' bg-slate-900 text-white hover:bg-slate-900 hover:text-white' : ''"
                    th:attr="aria-current=${#strings.startsWith(requestUri, '/boards')} ? 'page' : null"
-                   aria-label="게시판" aria-describedby="layout-tip-board">
+                   aria-label="게시판" aria-describedby="index-tip-board">
                     <svg aria-hidden="true" viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor"
                          stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
                         <rect x="4" y="3" width="14" height="18" rx="2"/>
@@ -64,6 +66,7 @@
                      class="tip-tooltip pointer-events-none absolute z-10 overflow-hidden rounded-xl bg-slate-900/90 px-3 py-2 text-xs font-medium text-white opacity-0 invisible delay-150 [transition-property:opacity,visibility] duration-150 [transition-behavior:allow-discrete] [position-anchor:--tip-board] [top:anchor(center)] [left:calc(anchor(end)+12px)] [translate:0_-50%] whitespace-nowrap text-left leading-5 text-ellipsis [max-inline-size:clamp(8rem,30vw,12rem)] group-hover/tip:delay-0 group-hover/tip:opacity-100 group-hover/tip:visible group-focus-visible/tip:delay-0 group-focus-visible/tip:opacity-100 group-focus-visible/tip:visible">
                     게시판
                 </div>
+                <div id="index-tip-board" role="tooltip" class="sr-only">게시판</div>
             </div>
 
             <div class="tip-wrapper relative flex w-full group/tip"

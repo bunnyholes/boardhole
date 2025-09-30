@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -13,6 +14,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -21,8 +23,12 @@ import dev.xiyo.bunnyholes.boardhole.user.application.command.UpdateUserCommand;
 import dev.xiyo.bunnyholes.boardhole.user.application.command.UserCommandService;
 import dev.xiyo.bunnyholes.boardhole.user.application.query.UserQueryService;
 import dev.xiyo.bunnyholes.boardhole.user.presentation.dto.UserResponse;
+import dev.xiyo.bunnyholes.boardhole.user.presentation.dto.UserProfileImageRequest;
 import dev.xiyo.bunnyholes.boardhole.user.presentation.dto.UserUpdateRequest;
 import dev.xiyo.bunnyholes.boardhole.user.presentation.mapper.UserWebMapper;
+import dev.xiyo.bunnyholes.boardhole.user.presentation.mapper.UserProfileImageCommandMapper;
+import dev.xiyo.bunnyholes.boardhole.shared.exception.InvalidFileException;
+import dev.xiyo.bunnyholes.boardhole.shared.util.MessageUtils;
 
 @Controller
 @RequestMapping("/users")
@@ -33,6 +39,7 @@ public class UserDetailViewController {
     private final UserQueryService userQueryService;
     private final UserCommandService userCommandService;
     private final UserWebMapper userWebMapper;
+    private final UserProfileImageCommandMapper userProfileImageCommandMapper;
 
     @ModelAttribute("user")
     public UserResponse loadUser(@AuthenticationPrincipal UserDetails principal) {
@@ -91,6 +98,32 @@ public class UserDetailViewController {
         userCommandService.update(command);
 
         redirectAttributes.addFlashAttribute("success", "프로필이 성공적으로 수정되었습니다.");
+        return "redirect:/users/me";
+    }
+
+    @PostMapping(value = "/me/profile-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("isAuthenticated()")
+    public String updateProfileImage(
+            @ModelAttribute UserProfileImageRequest request,
+            @AuthenticationPrincipal UserDetails principal,
+            RedirectAttributes redirectAttributes
+    ) {
+        var username = principal.getUsername();
+        var command = userProfileImageCommandMapper.toCommand(username, request);
+
+        try {
+            userCommandService.updateProfileImage(command);
+            if (command.remove()) {
+                redirectAttributes.addFlashAttribute("success",
+                        MessageUtils.get("success.user.profile-image.removed"));
+            } else {
+                redirectAttributes.addFlashAttribute("success",
+                        MessageUtils.get("success.user.profile-image.updated"));
+            }
+        } catch (InvalidFileException ex) {
+            redirectAttributes.addFlashAttribute("error", ex.getMessage());
+        }
+
         return "redirect:/users/me";
     }
 }
