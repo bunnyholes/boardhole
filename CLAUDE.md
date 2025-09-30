@@ -39,7 +39,7 @@ presentation → application → domain → infrastructure
 ### Domain Pattern
 
 ```
-bunny.boardhole.[domain]/
+dev/xiyo/bunnyholes/boardhole/[domain]/
 ├── application/
 │   ├── command/     # Write operations (Commands + CommandService)
 │   ├── query/       # Read operations (QueryService)
@@ -57,6 +57,8 @@ bunny.boardhole.[domain]/
     ├── dto/         # Request/Response DTOs
     └── mapper/      # MapStruct mappers (Result ↔ Response)
 ```
+
+`web` 도메인은 서버 렌더링 뷰와 정적 리소스를 다루며 `presentation`과 `view` 하위 디렉터리로 구성됩니다.
 
 ## Key Patterns
 

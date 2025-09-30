@@ -3,10 +3,10 @@
 ## Project Structure & Modules
 
 - Java 21 + Spring Boot 3 (Gradle).
-- Source: `src/main/java/bunny/boardhole/**` organized by domain: `auth`, `user`, `board`, `shared`.
+- Source: `src/main/java/dev/xiyo/bunnyholes/boardhole/**` organized by domain: `auth`, `board`, `user`, `shared`, `web`.
 - Layers per domain: `presentation` → `application` → `domain` → `infrastructure`.
 - Web assets: `src/main/resources/static/assets/**`.
-- Tests: `src/test/java/bunny/boardhole/**` (JUnit 5, Testcontainers, RestAssured).
+- Tests: `src/test/java/dev/xiyo/bunnyholes/boardhole/**` (JUnit 5, Testcontainers, RestAssured).
 
 ## Build, Test, Run
 

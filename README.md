@@ -142,11 +142,14 @@ src/main/java/dev/xiyo/bunnyholes/boardhole/
 │   ├── domain/
 │   ├── infrastructure/
 │   └── presentation/
-└── shared/        # 공통 모듈
-    ├── config/
-    ├── constants/
-    ├── exception/
-    └── security/
+├── shared/        # 공통 모듈
+│   ├── config/
+│   ├── constants/
+│   ├── exception/
+│   └── security/
+└── web/           # Thymeleaf 기반 웹 뷰와 정적 리소스 조립
+    ├── presentation/
+    └── view/
 ```
 
 **레이어드 아키텍처**:
@@ -163,9 +166,6 @@ src/main/java/dev/xiyo/bunnyholes/boardhole/
 
 # E2E 테스트만 실행
 ./gradlew e2eTest
-
-# 테스트 커버리지 확인
-./gradlew jacocoTestReport
 ```
 
 **테스트 구성**:
@@ -173,6 +173,7 @@ src/main/java/dev/xiyo/bunnyholes/boardhole/
 - **Integration Tests**: 통합 테스트 (Testcontainers 사용)
 - **E2E Tests**: 전체 시스템 테스트
 - **Architecture Tests**: ArchUnit으로 아키텍처 규칙 검증
+- **Coverage**: 현재 별도 커버리지 리포트는 제공되지 않습니다.
 
 ## 🔧 유용한 명령어
 
