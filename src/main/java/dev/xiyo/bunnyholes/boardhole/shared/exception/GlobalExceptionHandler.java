@@ -184,16 +184,6 @@ public class GlobalExceptionHandler {
         return handleValidationException(ex.getBindingResult(), request);
     }
 
-    @ExceptionHandler(ValidationException.class)
-    @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
-    public ProblemDetail handleValidationException(ValidationException ex, HttpServletRequest request) {
-        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_ENTITY, ex.getMessage());
-        pd.setTitle(MessageUtils.get("exception.title.validation-failed"));
-        pd.setType(ProblemDetailsHelper.buildType("validation-error"));
-        ProblemDetailsHelper.addCommonProperties(pd, request, ErrorCode.VALIDATION_ERROR.getCode());
-        return pd;
-    }
-
     @ExceptionHandler(ConstraintViolationException.class)
     @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
     public ProblemDetail handleBadRequest(ConstraintViolationException ex, HttpServletRequest request) {
