@@ -39,8 +39,16 @@ import dev.xiyo.bunnyholes.boardhole.user.infrastructure.UserRepository;
 @RequiredArgsConstructor
 public class UserCommandService {
 
-    private static final long MAX_PROFILE_IMAGE_SIZE_BYTES = DataSize.ofMegabytes(2).toBytes();
-    private static final Set<String> ALLOWED_PROFILE_IMAGE_TYPES = Set.of("image/jpeg", "image/png", "image/gif", "image/webp");
+    private static final DataSize MAX_PROFILE_IMAGE_SIZE = DataSize.ofMegabytes(100);
+    private static final long MAX_PROFILE_IMAGE_SIZE_BYTES = MAX_PROFILE_IMAGE_SIZE.toBytes();
+    private static final Set<String> ALLOWED_PROFILE_IMAGE_TYPES = Set.of(
+            "image/jpeg",
+            "image/jpg",
+            "image/pjpeg",
+            "image/png",
+            "image/x-png",
+            "image/gif",
+            "image/webp");
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -181,7 +189,7 @@ public class UserCommandService {
 
     private void validateProfileImage(MultipartFile image) {
         if (image.getSize() > MAX_PROFILE_IMAGE_SIZE_BYTES)
-            throw new InvalidFileException(MessageUtils.get("error.user.profile-image.size-exceeded", DataSize.ofBytes(MAX_PROFILE_IMAGE_SIZE_BYTES).toKilobytes()));
+            throw new InvalidFileException(MessageUtils.get("error.user.profile-image.size-exceeded", MAX_PROFILE_IMAGE_SIZE.toMegabytes()));
 
         String contentType = image.getContentType();
         if (contentType == null || ALLOWED_PROFILE_IMAGE_TYPES.stream().noneMatch(contentType::equalsIgnoreCase))
