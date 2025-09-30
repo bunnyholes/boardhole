@@ -22,92 +22,122 @@
                         <p class="mt-2 text-base text-slate-500">프로필 정보를 확인하고 수정할 수 있습니다. 수정 후 저장 버튼을 클릭하세요.</p>
                     </div>
 
-                    <form id="profileForm" method="post" th:action="@{/users/me}" novalidate class="space-y-6">
-                        <input type="hidden" name="_method" value="PUT"/>
-                        <input type="hidden" name="_method" value="put"/>
-
-                        <div>
-                            <label for="username" class="block text-sm font-semibold text-slate-700 mb-2">사용자명</label>
-                            <input id="username"
-                                   name="username"
-                                   th:value="${user.username}"
-                                   value="hello-hong"
-                                   type="text"
-                                   disabled
-                                   class="w-full rounded-2xl border border-slate-200 bg-slate-100 px-4 py-3 text-base text-slate-500 cursor-not-allowed">
-                            <small class="mt-2 block text-sm text-slate-500">사용자명은 변경할 수 없습니다.</small>
-                        </div>
-
-                        <div>
-                            <label for="email" class="block text-sm font-semibold text-slate-700 mb-2">이메일</label>
-                            <input id="email"
-                                   name="email"
-                                   th:value="${user.email}"
-                                   value="hong@gil.dong"
-                                   type="email"
-                                   disabled
-                                   class="w-full rounded-2xl border border-slate-200 bg-slate-100 px-4 py-3 text-base text-slate-500 cursor-not-allowed">
-                            <small class="mt-2 block text-sm text-slate-500">이메일은 변경할 수 없습니다.</small>
-                        </div>
-
-                        <div>
-                            <label for="name" class="block text-sm font-semibold text-slate-700 mb-2">이름</label>
-                            <input id="name"
-                                   maxlength="100"
-                                   name="name"
-                                   placeholder="이름을 입력하세요"
-                                   th:value="${updateRequest != null ? updateRequest.name() : user.name}"
-                                   value="홍길동"
-                                   type="text"
-                                   th:classappend="${updateRequest != null and #fields.hasErrors('updateRequest.name')} ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : ''"
-                                   class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition">
-                            <div th:if="${updateRequest != null and #fields.hasErrors('updateRequest.name')}" class="mt-2">
-                                <p th:each="err : ${#fields.errors('updateRequest.name')}"
-                                   th:text="${err}"
-                                   class="text-sm text-red-600">
-                                    에러 메시지
-                                </p>
-                            </div>
-                        </div>
-
-                        <div>
-                            <label for="roles" class="block text-sm font-semibold text-slate-700 mb-2">역할</label>
-                            <input id="roles"
-                                   type="text"
-                                   th:value="${#strings.listJoin(user.roles, ', ')}"
-                                   value="USER"
-                                   disabled
-                                   class="w-full rounded-2xl border border-slate-200 bg-slate-100 px-4 py-3 text-base text-slate-500 cursor-not-allowed">
-                        </div>
-
-                        <div class="grid gap-4 md:grid-cols-2">
-                            <div>
-                                <label class="block text-sm font-semibold text-slate-700 mb-2">가입일</label>
-                                <div class="rounded-2xl border border-slate-200 bg-slate-100 px-4 py-3">
-                                    <span class="text-base text-slate-500"
-                                          th:text="${user.createdAt != null ? #temporals.format(user.createdAt, 'yyyy-MM-dd') : '알 수 없음'}">2025-10-22</span>
+                    <div class="grid gap-8 lg:grid-cols-[minmax(0,22rem)_1fr]">
+                        <aside class="rounded-3xl border border-slate-200 bg-white/70 p-6 shadow-sm backdrop-blur">
+                            <h2 class="text-lg font-semibold text-slate-800">프로필 이미지</h2>
+                            <p class="mt-2 text-sm leading-6 text-slate-500">업로드된 이미지는 전용 API를 통해 불러와 브라우저가 병렬로 다운로드합니다.</p>
+                            <div class="mt-6 flex flex-col items-center gap-4"
+                                 th:with="displayName=${(user.name != null and !#strings.isEmpty(user.name)) ? user.name : user.username}">
+                                <figure class="relative flex h-48 w-48 items-center justify-center overflow-hidden rounded-full bg-slate-100 shadow-inner ring-1 ring-inset ring-slate-200">
+                                    <img th:if="${user.hasProfileImage}"
+                                         th:src="@{/api/users/{username}/profile-image(username=${user.username})}"
+                                         th:alt="${displayName + '님의 프로필 이미지'}"
+                                         class="h-full w-full object-cover"
+                                         loading="lazy"
+                                         decoding="async"/>
+                                    <span th:unless="${user.hasProfileImage}"
+                                          th:text="${#strings.substring(displayName, 0, 1)}"
+                                          class="text-5xl font-semibold text-slate-400"></span>
+                                </figure>
+                                <div class="text-center text-sm text-slate-500">
+                                    <p>최신 이미지는 업로드 후 새로고침하면 자동으로 반영됩니다.</p>
+                                    <a th:href="@{/api/users/{username}/profile-image(username=${user.username})}"
+                                       class="mt-2 inline-flex items-center justify-center rounded-full border border-slate-200 px-4 py-2 font-medium text-slate-600 transition hover:border-slate-300 hover:bg-slate-50"
+                                       target="_blank"
+                                       rel="noopener noreferrer">
+                                        원본 이미지 보기
+                                    </a>
                                 </div>
                             </div>
+                        </aside>
+
+                        <form id="profileForm" method="post" th:action="@{/users/me}" novalidate class="space-y-6">
+                            <input type="hidden" name="_method" value="PUT"/>
+                            <input type="hidden" name="_method" value="put"/>
+
                             <div>
-                                <label class="block text-sm font-semibold text-slate-700 mb-2">최근 로그인</label>
-                                <div class="rounded-2xl border border-slate-200 bg-slate-100 px-4 py-3">
-                                    <span class="text-base text-slate-500"
-                                          th:text="${user.lastLogin != null ? #temporals.format(user.lastLogin, 'yyyy-MM-dd HH:mm') : '기록 없음'}">2025-10-22 10:55</span>
+                                <label for="username" class="mb-2 block text-sm font-semibold text-slate-700">사용자명</label>
+                                <input id="username"
+                                       name="username"
+                                       th:value="${user.username}"
+                                       value="hello-hong"
+                                       type="text"
+                                       disabled
+                                       class="w-full rounded-2xl border border-slate-200 bg-slate-100 px-4 py-3 text-base text-slate-500 cursor-not-allowed">
+                                <small class="mt-2 block text-sm text-slate-500">사용자명은 변경할 수 없습니다.</small>
+                            </div>
+
+                            <div>
+                                <label for="email" class="mb-2 block text-sm font-semibold text-slate-700">이메일</label>
+                                <input id="email"
+                                       name="email"
+                                       th:value="${user.email}"
+                                       value="hong@gil.dong"
+                                       type="email"
+                                       disabled
+                                       class="w-full rounded-2xl border border-slate-200 bg-slate-100 px-4 py-3 text-base text-slate-500 cursor-not-allowed">
+                                <small class="mt-2 block text-sm text-slate-500">이메일은 변경할 수 없습니다.</small>
+                            </div>
+
+                            <div>
+                                <label for="name" class="mb-2 block text-sm font-semibold text-slate-700">이름</label>
+                                <input id="name"
+                                       maxlength="100"
+                                       name="name"
+                                       placeholder="이름을 입력하세요"
+                                       th:value="${updateRequest != null ? updateRequest.name() : user.name}"
+                                       value="홍길동"
+                                       type="text"
+                                       th:classappend="${updateRequest != null and #fields.hasErrors('updateRequest.name')} ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : ''"
+                                       class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base text-slate-900 placeholder:text-slate-400 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+                                <div th:if="${updateRequest != null and #fields.hasErrors('updateRequest.name')}" class="mt-2">
+                                    <p th:each="err : ${#fields.errors('updateRequest.name')}"
+                                       th:text="${err}"
+                                       class="text-sm text-red-600">
+                                        에러 메시지
+                                    </p>
                                 </div>
                             </div>
-                        </div>
 
-                        <div class="flex items-center justify-end gap-3 pt-4">
-                            <a th:href="@{/}" href="../index.html"
-                               class="inline-flex items-center justify-center rounded-full border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:bg-slate-50">
-                                취소
-                            </a>
-                            <button type="submit"
-                                    class="rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/70 focus-visible:ring-offset-2">
-                                수정 완료
-                            </button>
-                        </div>
-                    </form>
+                            <div>
+                                <label for="roles" class="mb-2 block text-sm font-semibold text-slate-700">역할</label>
+                                <input id="roles"
+                                       type="text"
+                                       th:value="${#strings.listJoin(user.roles, ', ')}"
+                                       value="USER"
+                                       disabled
+                                       class="w-full rounded-2xl border border-slate-200 bg-slate-100 px-4 py-3 text-base text-slate-500 cursor-not-allowed">
+                            </div>
+
+                            <div class="grid gap-4 md:grid-cols-2">
+                                <div>
+                                    <label class="mb-2 block text-sm font-semibold text-slate-700">가입일</label>
+                                    <div class="rounded-2xl border border-slate-200 bg-slate-100 px-4 py-3">
+                                        <span class="text-base text-slate-500"
+                                              th:text="${user.createdAt != null ? #temporals.format(user.createdAt, 'yyyy-MM-dd') : '알 수 없음'}">2025-10-22</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="mb-2 block text-sm font-semibold text-slate-700">최근 로그인</label>
+                                    <div class="rounded-2xl border border-slate-200 bg-slate-100 px-4 py-3">
+                                        <span class="text-base text-slate-500"
+                                              th:text="${user.lastLogin != null ? #temporals.format(user.lastLogin, 'yyyy-MM-dd HH:mm') : '기록 없음'}">2025-10-22 10:55</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-end gap-3 pt-4">
+                                <a th:href="@{/}" href="../index.html"
+                                   class="inline-flex items-center justify-center rounded-full border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:bg-slate-50">
+                                    취소
+                                </a>
+                                <button type="submit"
+                                        class="rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/70 focus-visible:ring-offset-2">
+                                    수정 완료
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </section>
             </main>
 </body>

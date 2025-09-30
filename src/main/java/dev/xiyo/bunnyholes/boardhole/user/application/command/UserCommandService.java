@@ -1,5 +1,6 @@
 package dev.xiyo.bunnyholes.boardhole.user.application.command;
 
+import java.io.IOException;
 import java.util.Set;
 
 import jakarta.validation.Valid;
@@ -13,9 +14,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.util.unit.DataSize;
 
 import dev.xiyo.bunnyholes.boardhole.shared.exception.DuplicateEmailException;
 import dev.xiyo.bunnyholes.boardhole.shared.exception.DuplicateUsernameException;
+import dev.xiyo.bunnyholes.boardhole.shared.exception.InvalidFileException;
 import dev.xiyo.bunnyholes.boardhole.shared.exception.ResourceNotFoundException;
 import dev.xiyo.bunnyholes.boardhole.shared.exception.UnauthorizedException;
 import dev.xiyo.bunnyholes.boardhole.shared.util.MessageUtils;
@@ -34,6 +38,9 @@ import dev.xiyo.bunnyholes.boardhole.user.infrastructure.UserRepository;
 @Validated
 @RequiredArgsConstructor
 public class UserCommandService {
+
+    private static final long MAX_PROFILE_IMAGE_SIZE_BYTES = DataSize.ofMegabytes(2).toBytes();
+    private static final Set<String> ALLOWED_PROFILE_IMAGE_TYPES = Set.of("image/jpeg", "image/png", "image/gif", "image/webp");
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -147,6 +154,46 @@ public class UserCommandService {
         // 새 패스워드 설정
         user.changePassword(passwordEncoder.encode(cmd.newPassword()));
         userRepository.save(user);
+    }
+
+    @Transactional
+    @PreAuthorize("hasRole('ADMIN') or #cmd.username().equalsIgnoreCase(authentication.name)")
+    public UserResult updateProfileImage(@Valid UpdateUserProfileImageCommand cmd) {
+        User user = userRepository
+                .findByUsername(cmd.username())
+                .orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.user.not-found.username", cmd.username())));
+
+        if (cmd.remove()) {
+            user.clearProfileImage();
+        } else {
+            MultipartFile image = cmd.image();
+            if (image == null || image.isEmpty())
+                throw new InvalidFileException(MessageUtils.get("error.user.profile-image.empty"));
+
+            validateProfileImage(image);
+            byte[] bytes = toBytes(image);
+            user.updateProfileImage(bytes, image.getContentType(), image.getSize());
+        }
+
+        User saved = userRepository.save(user);
+        return userMapper.toResult(saved);
+    }
+
+    private void validateProfileImage(MultipartFile image) {
+        if (image.getSize() > MAX_PROFILE_IMAGE_SIZE_BYTES)
+            throw new InvalidFileException(MessageUtils.get("error.user.profile-image.size-exceeded", DataSize.ofBytes(MAX_PROFILE_IMAGE_SIZE_BYTES).toKilobytes()));
+
+        String contentType = image.getContentType();
+        if (contentType == null || ALLOWED_PROFILE_IMAGE_TYPES.stream().noneMatch(contentType::equalsIgnoreCase))
+            throw new InvalidFileException(MessageUtils.get("error.user.profile-image.unsupported", String.join(", ", ALLOWED_PROFILE_IMAGE_TYPES)));
+    }
+
+    private byte[] toBytes(MultipartFile image) {
+        try {
+            return image.getBytes();
+        } catch (IOException e) {
+            throw new InvalidFileException(MessageUtils.get("error.user.profile-image.read"), e);
+        }
     }
 
 }

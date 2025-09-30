@@ -179,7 +179,7 @@ class BoardControllerTest {
                     mockMvc.perform(form(post(BOARDS_URL))
                                     .param("title", "익명")
                                     .param("content", "익명"))
-                            .andExpect(status().isUnauthorized());
+                            .andExpect(status().isForbidden());
 
                     then(boardCommandService).shouldHaveNoInteractions();
                 }
@@ -430,7 +430,7 @@ class BoardControllerTest {
                     mockMvc.perform(form(put(BOARDS_URL + "/" + boardId))
                                     .param("title", "수정")
                                     .param("content", "수정"))
-                            .andExpect(status().isUnauthorized());
+                            .andExpect(status().isForbidden());
 
                     then(boardCommandService).shouldHaveNoInteractions();
                     then(boardWebMapper).shouldHaveNoInteractions();
@@ -516,7 +516,7 @@ class BoardControllerTest {
                 @DisplayName("❌ 인증되지 않은 사용자는 게시글을 삭제할 수 없다")
                 void shouldRejectAnonymousDelete() throws Exception {
                     mockMvc.perform(delete(BOARDS_URL + "/" + boardId).with(csrf()))
-                            .andExpect(status().isUnauthorized());
+                            .andExpect(status().isForbidden());
 
                     then(boardCommandService).shouldHaveNoInteractions();
                 }

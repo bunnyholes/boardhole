@@ -9,6 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -28,10 +29,13 @@ import org.springframework.web.bind.annotation.RestController;
 import dev.xiyo.bunnyholes.boardhole.shared.constants.ApiPaths;
 import dev.xiyo.bunnyholes.boardhole.user.application.command.UserCommandService;
 import dev.xiyo.bunnyholes.boardhole.user.application.query.UserQueryService;
+import dev.xiyo.bunnyholes.boardhole.user.application.result.UserProfileImageResult;
 import dev.xiyo.bunnyholes.boardhole.user.application.result.UserResult;
 import dev.xiyo.bunnyholes.boardhole.user.presentation.dto.PasswordUpdateRequest;
+import dev.xiyo.bunnyholes.boardhole.user.presentation.dto.UserProfileImageRequest;
 import dev.xiyo.bunnyholes.boardhole.user.presentation.dto.UserResponse;
 import dev.xiyo.bunnyholes.boardhole.user.presentation.dto.UserUpdateRequest;
+import dev.xiyo.bunnyholes.boardhole.user.presentation.mapper.UserProfileImageCommandMapper;
 import dev.xiyo.bunnyholes.boardhole.user.presentation.mapper.UserWebMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -51,6 +55,7 @@ public class UserController {
     private final UserCommandService userCommandService;
     private final UserQueryService userQueryService;
     private final UserWebMapper userWebMapper;
+    private final UserProfileImageCommandMapper userProfileImageCommandMapper;
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
@@ -111,6 +116,38 @@ public class UserController {
     public void updatePassword(@Parameter(description = "사용자명") @PathVariable String username, @Validated @ModelAttribute PasswordUpdateRequest req) {
         var cmd = userWebMapper.toUpdatePasswordCommand(username, req);
         userCommandService.updatePassword(cmd);
+    }
+
+    @PutMapping(value = "/{username}/profile-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "프로필 이미지 업로드/삭제", description = "[AUTH] 프로필 이미지를 업로드하거나 삭제합니다. remove=true일 경우 기존 이미지를 삭제합니다.",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true,
+                    content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE, schema = @Schema(implementation = UserProfileImageRequest.class))))
+    @ApiResponse(responseCode = "200", description = "프로필 이미지 업로드 성공", content = @Content(schema = @Schema(implementation = UserResponse.class)))
+    @ApiResponse(responseCode = "204", description = "프로필 이미지 삭제 성공")
+    @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
+    @ApiResponse(responseCode = "422", description = "유효하지 않은 파일")
+    public ResponseEntity<?> updateProfileImage(@PathVariable String username, @ModelAttribute UserProfileImageRequest request) {
+        var cmd = userProfileImageCommandMapper.toCommand(username, request);
+        boolean remove = cmd.remove();
+        UserResult result = userCommandService.updateProfileImage(cmd);
+        if (remove)
+            return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(userWebMapper.toResponse(result));
+    }
+
+    @GetMapping(value = "/{username}/profile-image")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "프로필 이미지 다운로드", description = "[AUTH] 사용자의 프로필 이미지를 바이너리로 반환합니다.")
+    @ApiResponse(responseCode = "200", description = "프로필 이미지 다운로드 성공")
+    @ApiResponse(responseCode = "404", description = "이미지 없음")
+    public ResponseEntity<byte[]> getProfileImage(@PathVariable String username) {
+        UserProfileImageResult result = userQueryService.getProfileImage(username);
+        MediaType mediaType = result.contentType() != null ? MediaType.parseMediaType(result.contentType()) : MediaType.APPLICATION_OCTET_STREAM;
+        return ResponseEntity.ok()
+                .contentType(mediaType)
+                .contentLength(result.size())
+                .body(result.data());
     }
 
     // 이메일 변경 기능은 JWT 기반 인증으로 전환 예정

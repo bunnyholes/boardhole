@@ -14,10 +14,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.util.unit.DataSize;
 
+import dev.xiyo.bunnyholes.boardhole.shared.exception.InvalidFileException;
 import dev.xiyo.bunnyholes.boardhole.shared.exception.ResourceNotFoundException;
 import dev.xiyo.bunnyholes.boardhole.shared.exception.UnauthorizedException;
 import dev.xiyo.bunnyholes.boardhole.shared.test.MessageSourceTestConfig;
@@ -25,6 +28,7 @@ import dev.xiyo.bunnyholes.boardhole.shared.test.ValidationEnabledTestConfig;
 import dev.xiyo.bunnyholes.boardhole.user.application.command.CreateUserCommand;
 import dev.xiyo.bunnyholes.boardhole.user.application.command.UpdatePasswordCommand;
 import dev.xiyo.bunnyholes.boardhole.user.application.command.UpdateUserCommand;
+import dev.xiyo.bunnyholes.boardhole.user.application.command.UpdateUserProfileImageCommand;
 import dev.xiyo.bunnyholes.boardhole.user.application.command.UserCommandService;
 import dev.xiyo.bunnyholes.boardhole.user.application.mapper.UserMapper;
 import dev.xiyo.bunnyholes.boardhole.user.application.result.UserResult;
@@ -32,8 +36,8 @@ import dev.xiyo.bunnyholes.boardhole.user.domain.Role;
 import dev.xiyo.bunnyholes.boardhole.user.domain.User;
 import dev.xiyo.bunnyholes.boardhole.user.infrastructure.UserRepository;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.any;
@@ -87,7 +91,7 @@ class UserCommandServiceTest {
 
     private static UserResult userResultWithName(String name) {
         // Suppress null warning: test record with null timestamps for testing purposes
-        @SuppressWarnings("DataFlowIssue") UserResult result = new UserResult(USER_ID, USERNAME, name, EMAIL, null, null, null, Set.of(Role.USER));
+        @SuppressWarnings("DataFlowIssue") UserResult result = new UserResult(USER_ID, USERNAME, name, EMAIL, null, null, null, Set.of(Role.USER), false);
         return result;
     }
 
@@ -323,4 +327,116 @@ class UserCommandServiceTest {
         }
     }
 
+    @Nested
+    @DisplayName("프로필 이미지 업데이트")
+    @Tag("profile-image")
+    class UpdateProfileImage {
+
+        @Test
+        @DisplayName("✅ 유효한 이미지 업로드 시 사용자 엔티티가 갱신된다")
+        void shouldUpdateProfileImage() throws Exception {
+            User existing = UserCommandServiceTest.user();
+            ReflectionTestUtils.setField(existing, "id", UserCommandServiceTest.USER_ID);
+            given(userRepository.findByUsername(UserCommandServiceTest.USERNAME)).willReturn(Optional.of(existing));
+            given(userRepository.save(existing)).willReturn(existing);
+            UserResult expected = UserCommandServiceTest.userResult();
+            given(userMapper.toResult(existing)).willReturn(expected);
+
+            MockMultipartFile file = new MockMultipartFile("profileImage", "avatar.png", "image/png", new byte[]{1, 2, 3});
+            UpdateUserProfileImageCommand cmd = new UpdateUserProfileImageCommand(UserCommandServiceTest.USERNAME, file, false);
+
+            UserResult result = userCommandService.updateProfileImage(cmd);
+
+            assertThat(result).isEqualTo(expected);
+            assertThat(existing.hasProfileImage()).isTrue();
+            assertThat(existing.getProfileImageContentType()).isEqualTo("image/png");
+            assertThat(existing.getProfileImageSize()).isEqualTo(file.getSize());
+            assertThat(existing.getProfileImage()).containsExactly(file.getBytes());
+
+            then(userRepository).should().save(existing);
+        }
+
+        @Test
+        @DisplayName("✅ remove=true이면 프로필 이미지 정보를 모두 초기화한다")
+        void shouldClearProfileImage() {
+            User existing = UserCommandServiceTest.user();
+            ReflectionTestUtils.setField(existing, "id", UserCommandServiceTest.USER_ID);
+            existing.updateProfileImage(new byte[]{9, 9}, "image/png", 2);
+            given(userRepository.findByUsername(UserCommandServiceTest.USERNAME)).willReturn(Optional.of(existing));
+            given(userRepository.save(existing)).willReturn(existing);
+            UserResult expected = UserCommandServiceTest.userResult();
+            given(userMapper.toResult(existing)).willReturn(expected);
+
+            UpdateUserProfileImageCommand cmd = new UpdateUserProfileImageCommand(UserCommandServiceTest.USERNAME, null, true);
+
+            UserResult result = userCommandService.updateProfileImage(cmd);
+
+            assertThat(result).isEqualTo(expected);
+            assertThat(existing.hasProfileImage()).isFalse();
+            assertThat(existing.getProfileImage()).isNull();
+            assertThat(existing.getProfileImageContentType()).isNull();
+            assertThat(existing.getProfileImageSize()).isNull();
+        }
+
+        @Test
+        @DisplayName("❌ 빈 파일 업로드 시 InvalidFileException")
+        void shouldRejectEmptyFile() {
+            User existing = UserCommandServiceTest.user();
+            ReflectionTestUtils.setField(existing, "id", UserCommandServiceTest.USER_ID);
+            given(userRepository.findByUsername(UserCommandServiceTest.USERNAME)).willReturn(Optional.of(existing));
+
+            MockMultipartFile file = new MockMultipartFile("profileImage", "avatar.png", "image/png", new byte[]{});
+            UpdateUserProfileImageCommand cmd = new UpdateUserProfileImageCommand(UserCommandServiceTest.USERNAME, file, false);
+
+            assertThatThrownBy(() -> userCommandService.updateProfileImage(cmd))
+                    .isInstanceOf(InvalidFileException.class);
+
+            then(userRepository).should(never()).save(any());
+        }
+
+        @Test
+        @DisplayName("❌ 허용되지 않은 MIME 타입 업로드 시 InvalidFileException")
+        void shouldRejectUnsupportedContentType() {
+            User existing = UserCommandServiceTest.user();
+            ReflectionTestUtils.setField(existing, "id", UserCommandServiceTest.USER_ID);
+            given(userRepository.findByUsername(UserCommandServiceTest.USERNAME)).willReturn(Optional.of(existing));
+
+            MockMultipartFile file = new MockMultipartFile("profileImage", "avatar.bmp", "image/bmp", new byte[]{1});
+            UpdateUserProfileImageCommand cmd = new UpdateUserProfileImageCommand(UserCommandServiceTest.USERNAME, file, false);
+
+            assertThatThrownBy(() -> userCommandService.updateProfileImage(cmd))
+                    .isInstanceOf(InvalidFileException.class);
+
+            then(userRepository).should(never()).save(any());
+        }
+
+        @Test
+        @DisplayName("❌ 최대 크기를 초과하면 InvalidFileException")
+        void shouldRejectOversizedFile() {
+            User existing = UserCommandServiceTest.user();
+            ReflectionTestUtils.setField(existing, "id", UserCommandServiceTest.USER_ID);
+            given(userRepository.findByUsername(UserCommandServiceTest.USERNAME)).willReturn(Optional.of(existing));
+
+            byte[] largeData = new byte[(int) DataSize.ofMegabytes(3).toBytes()];
+            MockMultipartFile file = new MockMultipartFile("profileImage", "avatar.png", "image/png", largeData);
+            UpdateUserProfileImageCommand cmd = new UpdateUserProfileImageCommand(UserCommandServiceTest.USERNAME, file, false);
+
+            assertThatThrownBy(() -> userCommandService.updateProfileImage(cmd))
+                    .isInstanceOf(InvalidFileException.class);
+
+            then(userRepository).should(never()).save(any());
+        }
+
+        @Test
+        @DisplayName("❌ 사용자 미존재 시 ResourceNotFoundException")
+        void shouldThrowWhenUserMissing() {
+            given(userRepository.findByUsername(UserCommandServiceTest.USERNAME)).willReturn(Optional.empty());
+
+            MockMultipartFile file = new MockMultipartFile("profileImage", "avatar.png", "image/png", new byte[]{1});
+            UpdateUserProfileImageCommand cmd = new UpdateUserProfileImageCommand(UserCommandServiceTest.USERNAME, file, false);
+
+            assertThatThrownBy(() -> userCommandService.updateProfileImage(cmd))
+                    .isInstanceOf(ResourceNotFoundException.class);
+        }
+    }
 }

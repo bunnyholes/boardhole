@@ -26,11 +26,13 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.test.web.servlet.request.MockMultipartHttpServletRequestBuilder;
 
 import dev.xiyo.bunnyholes.boardhole.shared.config.ApiSecurityConfig;
 import dev.xiyo.bunnyholes.boardhole.shared.constants.ApiPaths;
@@ -38,13 +40,17 @@ import dev.xiyo.bunnyholes.boardhole.shared.exception.ResourceNotFoundException;
 import dev.xiyo.bunnyholes.boardhole.shared.exception.UnauthorizedException;
 import dev.xiyo.bunnyholes.boardhole.user.application.command.UpdatePasswordCommand;
 import dev.xiyo.bunnyholes.boardhole.user.application.command.UpdateUserCommand;
+import dev.xiyo.bunnyholes.boardhole.user.application.command.UpdateUserProfileImageCommand;
 import dev.xiyo.bunnyholes.boardhole.user.application.command.UserCommandService;
 import dev.xiyo.bunnyholes.boardhole.user.application.query.UserQueryService;
+import dev.xiyo.bunnyholes.boardhole.user.application.result.UserProfileImageResult;
 import dev.xiyo.bunnyholes.boardhole.user.application.result.UserResult;
 import dev.xiyo.bunnyholes.boardhole.user.domain.Role;
 import dev.xiyo.bunnyholes.boardhole.user.presentation.dto.PasswordUpdateRequest;
+import dev.xiyo.bunnyholes.boardhole.user.presentation.dto.UserProfileImageRequest;
 import dev.xiyo.bunnyholes.boardhole.user.presentation.dto.UserResponse;
 import dev.xiyo.bunnyholes.boardhole.user.presentation.dto.UserUpdateRequest;
+import dev.xiyo.bunnyholes.boardhole.user.presentation.mapper.UserProfileImageCommandMapper;
 import dev.xiyo.bunnyholes.boardhole.user.presentation.mapper.UserWebMapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -56,8 +62,11 @@ import static org.mockito.BDDMockito.willThrow;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -88,6 +97,9 @@ class UserControllerTest {
     @MockitoBean
     private EntityManager entityManager;
 
+    @MockitoBean
+    private UserProfileImageCommandMapper userProfileImageCommandMapper;
+
     private UUID userId;
     private UserResult userResult;
     private UserResponse userResponse;
@@ -108,9 +120,9 @@ class UserControllerTest {
     void setUp() {
         userId = UUID.fromString("550e8400-e29b-41d4-a716-446655440003");
         userResult = new UserResult(userId, "tester", "테스터", "tester@example.com",
-                LocalDateTime.now(), LocalDateTime.now(), null, Set.of(Role.USER));
+                LocalDateTime.now(), LocalDateTime.now(), null, Set.of(Role.USER), false);
         userResponse = new UserResponse(userResult.id(), userResult.username(), userResult.name(), userResult.email(),
-                userResult.createdAt(), userResult.lastLogin(), userResult.roles());
+                userResult.createdAt(), userResult.lastLogin(), userResult.roles(), userResult.hasProfileImage());
     }
 
     private Page<UserResult> singleUserPage(Pageable pageable) {
@@ -537,6 +549,113 @@ class UserControllerTest {
                     then(userCommandService).shouldHaveNoInteractions();
                 }
             }
+        }
+    }
+
+    @Nested
+    @DisplayName("PUT /api/users/{username}/profile-image - 프로필 이미지 업로드/삭제")
+    class UpdateProfileImage {
+
+        private MockMultipartHttpServletRequestBuilder multipartPut(String urlTemplate) {
+            MockMultipartHttpServletRequestBuilder builder = multipart(urlTemplate);
+            builder.with(request -> {
+                request.setMethod("PUT");
+                return request;
+            });
+            builder.with(csrf());
+            return builder;
+        }
+
+        @Test
+        @WithMockUser(username = "tester", roles = "USER")
+        @DisplayName("✅ 멀티파트로 이미지를 업로드하면 200 OK와 갱신된 사용자 정보를 반환한다")
+        void shouldUploadProfileImage() throws Exception {
+            MockMultipartFile file = new MockMultipartFile("profileImage", "avatar.png", "image/png", new byte[]{1, 2, 3});
+            UpdateUserProfileImageCommand command = new UpdateUserProfileImageCommand("tester", file, false);
+            UserResult updatedResult = new UserResult(userId, "tester", "테스터", "tester@example.com",
+                    LocalDateTime.now(), LocalDateTime.now(), null, Set.of(Role.USER), true);
+            UserResponse updatedResponse = new UserResponse(updatedResult.id(), updatedResult.username(), updatedResult.name(),
+                    updatedResult.email(), updatedResult.createdAt(), updatedResult.lastLogin(), updatedResult.roles(), true);
+
+            given(userProfileImageCommandMapper.toCommand(eq("tester"), any(UserProfileImageRequest.class))).willReturn(command);
+            given(userCommandService.updateProfileImage(command)).willReturn(updatedResult);
+            given(userWebMapper.toResponse(updatedResult)).willReturn(updatedResponse);
+
+            mockMvc.perform(multipartPut(USERS_URL + "/tester/profile-image").file(file))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.hasProfileImage").value(true));
+
+            then(userCommandService).should().updateProfileImage(command);
+            then(userWebMapper).should().toResponse(updatedResult);
+        }
+
+        @Test
+        @WithMockUser(username = "tester", roles = "USER")
+        @DisplayName("✅ remove=true이면 이미지를 삭제하고 204를 반환한다")
+        void shouldRemoveProfileImage() throws Exception {
+            UpdateUserProfileImageCommand command = new UpdateUserProfileImageCommand("tester", null, true);
+            UserResult clearedResult = new UserResult(userId, "tester", "테스터", "tester@example.com",
+                    LocalDateTime.now(), LocalDateTime.now(), null, Set.of(Role.USER), false);
+
+            given(userProfileImageCommandMapper.toCommand(eq("tester"), any(UserProfileImageRequest.class))).willReturn(command);
+            given(userCommandService.updateProfileImage(command)).willReturn(clearedResult);
+
+            mockMvc.perform(multipartPut(USERS_URL + "/tester/profile-image").param("remove", "true"))
+                    .andExpect(status().isNoContent());
+
+            then(userCommandService).should().updateProfileImage(command);
+            then(userWebMapper).shouldHaveNoInteractions();
+        }
+
+        @Test
+        @WithAnonymousUser
+        @DisplayName("❌ 인증되지 않은 사용자는 업로드할 수 없다")
+        void shouldRejectAnonymousUpload() throws Exception {
+            mockMvc.perform(multipartPut(USERS_URL + "/tester/profile-image"))
+                    .andExpect(status().isForbidden());
+
+            then(userCommandService).shouldHaveNoInteractions();
+        }
+    }
+
+    @Nested
+    @DisplayName("GET /api/users/{username}/profile-image - 프로필 이미지 조회")
+    class GetProfileImage {
+
+        @Test
+        @WithMockUser(username = "tester", roles = "USER")
+        @DisplayName("✅ 프로필 이미지 바이너리를 반환한다")
+        void shouldReturnProfileImage() throws Exception {
+            byte[] data = {1, 2, 3};
+            UserProfileImageResult imageResult = new UserProfileImageResult(data, "image/png", data.length);
+            given(userQueryService.getProfileImage("tester")).willReturn(imageResult);
+
+            mockMvc.perform(get(USERS_URL + "/tester/profile-image").with(csrf()))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentTypeCompatibleWith(MediaType.IMAGE_PNG));
+
+            then(userQueryService).should().getProfileImage("tester");
+        }
+
+        @Test
+        @WithAnonymousUser
+        @DisplayName("❌ 인증되지 않은 사용자는 이미지에 접근할 수 없다")
+        void shouldRejectAnonymousAccess() throws Exception {
+            mockMvc.perform(get(USERS_URL + "/tester/profile-image"))
+                    .andExpect(status().isUnauthorized());
+
+            then(userQueryService).shouldHaveNoInteractions();
+        }
+
+        @Test
+        @WithMockUser(username = "tester", roles = "USER")
+        @DisplayName("❌ 이미지가 없으면 404 ProblemDetail을 반환한다")
+        void shouldReturnNotFoundWhenImageMissing() throws Exception {
+            given(userQueryService.getProfileImage("tester"))
+                    .willThrow(new ResourceNotFoundException("이미지를 찾을 수 없습니다."));
+
+            mockMvc.perform(get(USERS_URL + "/tester/profile-image").with(csrf()))
+                    .andExpect(status().isNotFound());
         }
     }
 

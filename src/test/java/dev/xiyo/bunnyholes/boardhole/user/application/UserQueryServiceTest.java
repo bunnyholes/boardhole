@@ -30,6 +30,7 @@ import dev.xiyo.bunnyholes.boardhole.shared.test.FixedKoreanLocaleExtension;
 import dev.xiyo.bunnyholes.boardhole.shared.util.MessageUtils;
 import dev.xiyo.bunnyholes.boardhole.user.application.mapper.UserMapper;
 import dev.xiyo.bunnyholes.boardhole.user.application.query.UserQueryService;
+import dev.xiyo.bunnyholes.boardhole.user.application.result.UserProfileImageResult;
 import dev.xiyo.bunnyholes.boardhole.user.application.result.UserResult;
 import dev.xiyo.bunnyholes.boardhole.user.domain.Role;
 import dev.xiyo.bunnyholes.boardhole.user.domain.User;
@@ -78,7 +79,7 @@ class UserQueryServiceTest {
 
     private static UserResult userResultWithName(String name) {
         // Suppress null warning: test record with null timestamps for testing purposes
-        @SuppressWarnings("DataFlowIssue") UserResult result = new UserResult(USER_ID, USERNAME, name, EMAIL, null, null, null, Set.of(Role.USER));
+        @SuppressWarnings("DataFlowIssue") UserResult result = new UserResult(USER_ID, USERNAME, name, EMAIL, null, null, null, Set.of(Role.USER), false);
         return result;
     }
 
@@ -263,6 +264,49 @@ class UserQueryServiceTest {
             assertThat(result).isEmpty();
             verify(userRepository).findByUsernameContainingIgnoreCaseOrNameContainingIgnoreCaseOrEmailContainingIgnoreCase(
                     UserQueryServiceTest.USERNAME, UserQueryServiceTest.USERNAME, UserQueryServiceTest.USERNAME, pageable);
+        }
+    }
+
+    @Nested
+    @DisplayName("프로필 이미지 조회")
+    @Tag("profile-image")
+    class GetProfileImage {
+
+        @Test
+        @DisplayName("✅ 사용자의 프로필 이미지를 반환한다")
+        void shouldReturnProfileImage() {
+            User user = UserQueryServiceTest.user();
+            ReflectionTestUtils.setField(user, "id", UserQueryServiceTest.USER_ID);
+            byte[] data = {1, 2, 3};
+            user.updateProfileImage(data, "image/png", data.length);
+
+            when(userRepository.findByUsername(UserQueryServiceTest.USERNAME)).thenReturn(Optional.of(user));
+
+            UserProfileImageResult result = userQueryService.getProfileImage(UserQueryServiceTest.USERNAME);
+
+            assertThat(result.contentType()).isEqualTo("image/png");
+            assertThat(result.size()).isEqualTo(data.length);
+            assertThat(result.data()).containsExactly(data);
+        }
+
+        @Test
+        @DisplayName("❌ 이미지가 없으면 ResourceNotFoundException")
+        void shouldThrowWhenImageMissing() {
+            User user = UserQueryServiceTest.user();
+            ReflectionTestUtils.setField(user, "id", UserQueryServiceTest.USER_ID);
+            when(userRepository.findByUsername(UserQueryServiceTest.USERNAME)).thenReturn(Optional.of(user));
+
+            assertThatThrownBy(() -> userQueryService.getProfileImage(UserQueryServiceTest.USERNAME))
+                    .isInstanceOf(ResourceNotFoundException.class);
+        }
+
+        @Test
+        @DisplayName("❌ 사용자 미존재 시 ResourceNotFoundException")
+        void shouldThrowWhenUserMissing() {
+            when(userRepository.findByUsername(UserQueryServiceTest.USERNAME)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> userQueryService.getProfileImage(UserQueryServiceTest.USERNAME))
+                    .isInstanceOf(ResourceNotFoundException.class);
         }
     }
 }
