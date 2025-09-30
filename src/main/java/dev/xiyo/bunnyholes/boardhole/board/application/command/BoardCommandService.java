@@ -105,13 +105,10 @@ public class BoardCommandService {
     public void incrementViewCount(@Valid IncrementViewCountCommand cmd) {
         UUID boardId = cmd.boardId();
         Board board = boardRepository
-                .findById(boardId)
+                .findByIdForUpdate(boardId)
                 .orElseThrow(() -> new ResourceNotFoundException(MessageUtils.get("error.board.not-found.id", boardId)));
 
         board.increaseViewCount();
-
-        // 커밋 시 flush가 진행되어 낙관적 락 충돌이 감지됨
-        boardRepository.save(board);
     }
 
     /**

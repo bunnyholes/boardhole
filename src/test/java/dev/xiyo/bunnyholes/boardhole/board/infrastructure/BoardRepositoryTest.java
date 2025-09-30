@@ -181,19 +181,40 @@ class BoardRepositoryTest extends EntityTestBase {
         }
 
         @Test
-        @DisplayName("조회수 증가")
-        void increaseViewCount_UpdatesViewCount() {
+        @DisplayName("조회수 증가 시 버전과 조회수가 함께 증가")
+        void increaseViewCount_UpdatesViewCountAndVersion() {
             // Given
-            int originalViewCount = testBoard.getViewCount();
+            entityManager.flush();
+            entityManager.clear();
+
+            Board board = boardRepository.findByIdForUpdate(testBoard.getId()).orElseThrow();
+            int originalViewCount = board.getViewCount();
+            long previousVersion = board.getVersion() == null ? 0L : board.getVersion();
 
             // When
-            testBoard.increaseViewCount();
-            boardRepository.save(testBoard);
-            Optional<Board> found = boardRepository.findById(testBoard.getId());
+            board.increaseViewCount();
+            entityManager.flush();
+            entityManager.clear();
+            Board found = boardRepository.findById(testBoard.getId()).orElseThrow();
 
             // Then
-            assertThat(found).isPresent();
-            assertThat(found.get().getViewCount()).isEqualTo(originalViewCount + 1);
+            assertThat(found.getViewCount()).isEqualTo(originalViewCount + 1);
+            assertThat(found.getVersion()).isEqualTo(previousVersion + 1);
+        }
+
+        @Test
+        @DisplayName("낙관적 잠금을 위한 전용 조회 메서드 사용")
+        void findByIdForUpdate_ReturnsManagedEntity() {
+            // Given
+            entityManager.flush();
+            entityManager.clear();
+
+            // When
+            Optional<Board> locked = boardRepository.findByIdForUpdate(testBoard.getId());
+
+            // Then
+            assertThat(locked).isPresent();
+            assertThat(locked.get().getId()).isEqualTo(testBoard.getId());
         }
 
     }
