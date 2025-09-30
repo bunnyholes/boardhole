@@ -1,28 +1,28 @@
 # boardholes - Spring Boot 게시판 애플리케이션
 
-Spring Boot 3.5.5와 Java 25를 기반으로 한 현대적인 게시판 시스템입니다.
+Spring Boot 3.5.5와 Java 21을 기반으로 한 현대적인 게시판 시스템입니다.
 
 ## 📋 필수 요구사항
 
-### Java 25
-프로젝트는 Java 25를 사용합니다. 반드시 Java 25가 설치되어 있어야 합니다.
+### Java 21
+프로젝트는 Java 21을 사용합니다. 반드시 Java 21이 설치되어 있어야 합니다.
 
 **설치 확인**:
 ```bash
 java -version
-# "openjdk version "25"" 또는 "java version "25"" 표시되어야 함
+# "openjdk version "21"" 또는 "java version "21"" 표시되어야 함
 ```
 
 **설치 방법**:
-- **macOS**: `brew install openjdk@25`
-- **Windows**: [Oracle JDK 25](https://www.oracle.com/java/technologies/downloads/#java25) 또는 [Adoptium](https://adoptium.net/)
+- **macOS**: `brew install openjdk@21`
+- **Windows**: [Oracle JDK 21](https://www.oracle.com/java/technologies/downloads/#java21) 또는 [Adoptium](https://adoptium.net/)
 - **Linux**: 
   ```bash
   # Ubuntu/Debian
-  sudo apt update && sudo apt install openjdk-25-jdk
+  sudo apt update && sudo apt install openjdk-21-jdk
   
   # RHEL/CentOS/Fedora
-  sudo dnf install java-25-openjdk-devel
+  sudo dnf install java-21-openjdk-devel
   ```
 
 ### Docker Desktop
@@ -43,9 +43,9 @@ docker info       # Docker 데몬 실행 상태 확인
 
 ### 1단계: 환경 확인
 ```bash
-# Java 25 설치 확인
+# Java 21 설치 확인
 java -version
-# 출력 예시: openjdk version "25" 2025-09-16
+# 출력 예시: openjdk version "21" 2024-09-16
 
 # Docker 설치 및 실행 확인  
 docker --version
@@ -105,7 +105,7 @@ cd boardhole
 
 ### Backend
 - **Framework**: Spring Boot 3.5.5
-- **Language**: Java 25
+- **Language**: Java 21
 - **Build Tool**: Gradle 9.1
 - **Security**: Spring Security (세션 기반)
 
@@ -210,7 +210,7 @@ docker system prune
 
 ### IDE 설정
 **IntelliJ IDEA** (Ultimate 또는 Community):
-1. Java 25 SDK 설정 확인
+1. Java 21 SDK 설정 확인
 2. Docker 플러그인 활성화
 3. Lombok 플러그인 설치
 4. 코드 스타일 자동 적용:
@@ -227,14 +227,14 @@ docker system prune
 
 ### Java 관련 오류
 ```bash
-# Java 25가 설치되지 않은 경우
+# Java 21이 설치되지 않은 경우
 Error: JAVA_HOME is not defined correctly.
 
 # 해결 방법:
-# 1. Java 25 설치
+# 1. Java 21 설치
 # 2. JAVA_HOME 환경 변수 설정
-export JAVA_HOME=$(/usr/libexec/java_home -v 25)  # macOS
-export JAVA_HOME=/usr/lib/jvm/java-25-openjdk     # Linux
+export JAVA_HOME=$(/usr/libexec/java_home -v 21)  # macOS
+export JAVA_HOME=/usr/lib/jvm/java-21-openjdk     # Linux
 ```
 
 ### Docker 관련 오류

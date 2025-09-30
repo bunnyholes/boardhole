@@ -28,6 +28,7 @@ spring:
 # 서버 전역 인코딩 설정
 # ========================================
 server:
+  shutdown: graceful  # Graceful Shutdown 활성화
   servlet:
     encoding:
       charset: UTF-8
@@ -82,3 +83,16 @@ boardhole:
     license:
       name: ${apiLicenseName}
       url: ${apiLicenseUrl}
+
+# ========================================
+# Actuator 헬스체크
+# ========================================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      probes:
+        enabled: true

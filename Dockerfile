@@ -1,7 +1,7 @@
 # 로컬 개발용 Dockerfile - 컨테이너 내에서 빌드
 
 # Build stage
-FROM azul/zulu-openjdk-alpine:25 AS build
+FROM azul/zulu-openjdk-alpine:21 AS build
 WORKDIR /app
 
 # Gradle wrapper 복사
@@ -26,7 +26,7 @@ RUN --mount=type=cache,target=/root/.gradle \
     ./gradlew bootJar --no-daemon
 
 # Runtime stage
-FROM azul/zulu-openjdk-alpine:25-jre
+FROM azul/zulu-openjdk-alpine:21-jre
 
 # 보안을 위한 non-root 유저
 RUN addgroup -g 1000 spring && \
@@ -40,6 +40,7 @@ COPY --chown=spring:spring --from=build /app/build/libs/*.jar app.jar
 USER spring:spring
 
 EXPOSE 8080
+STOPSIGNAL SIGTERM
 
 # 런타임에 JAVA_OPTS와 SPRING_PROFILES_ACTIVE 환경변수 설정 가능
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
