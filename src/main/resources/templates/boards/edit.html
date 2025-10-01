@@ -10,10 +10,10 @@
             navigation: auto;
         }
     </style>
-    <!--/*/ <th:block th:replace="~{fragments/head :: head('board edit - boardhole')}"/> /*/-->
+    <th:block th:replace="~{fragments/head :: head('board edit - boardhole')}"/>
 </head>
 <body class="bg-slate-50 text-slate-900">
-    <!--/*/ <th:block th:replace="~{layouts/shell :: shell('board edit - boardhole', ~{::main})}"/> /*/-->
+<th:block th:replace="~{layouts/shell :: shell('board edit - boardhole', ~{::main})}">
     <main class="flex-1">
                 <section class="mx-auto max-w-4xl px-6 py-10">
                     <!-- 페이지 타이틀 -->
@@ -73,5 +73,6 @@
                     </form>
                 </section>
             </main>
+</th:block>
 </body>
 </html>

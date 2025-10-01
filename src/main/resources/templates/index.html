@@ -10,10 +10,10 @@
             navigation: auto;
         }
     </style>
-    <!--/*/ <th:block th:replace="~{fragments/head :: head('home - boardhole')}"/> /*/-->
+    <th:block th:replace="~{fragments/head :: head('home - boardhole')}"/>
 </head>
 <body class="bg-slate-50 text-slate-900">
-    <!--/*/ <th:block th:replace="~{layouts/shell :: shell('home - boardhole', ~{::main})}"/> /*/-->
+<th:block th:replace="~{layouts/shell :: shell('home - boardhole', ~{::main})}">
     <main class="flex-1">
                     <section class="mx-auto max-w-6xl px-6 py-20">
                         <div>
@@ -272,5 +272,6 @@
                         </div>
                     </section>
                 </main>
+</th:block>
 </body>
 </html>
