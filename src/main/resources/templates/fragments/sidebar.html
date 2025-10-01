@@ -1,9 +1,10 @@
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="sidebar()">
 <style>
     body {
       margin-left: 5rem; /* Tailwind spacing 20에 해당 */
     }
 </style>
-<aside xmlns:th="http://www.thymeleaf.org" th:fragment="sidebar()"
+<aside
     th:with="requestUri=${#httpServletRequest != null ? #httpServletRequest.requestURI : ''}"
     class="fixed left-0 top-0 flex h-screen w-20 flex-col border-r border-slate-200 bg-white">
     <header class="w-full h-20 border-b border-slate-200 bg-white/80">
@@ -165,7 +166,7 @@
     </footer>
     </aside>
 
-    <div id="searchPopover" popover
+<div id="searchPopover" popover
          class="mx-auto mt-24 w-full max-w-xl rounded-3xl bg-white p-8 shadow-2xl
                 transition-discrete
                 starting:open:opacity-0
@@ -264,3 +265,4 @@
             </a>
         </div>
     </div>
+</th:block>
