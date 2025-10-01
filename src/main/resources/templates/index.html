@@ -5,16 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <title>home - boardhole</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <style>
-        @view-transition {
-            navigation: auto;
-        }
-    </style>
     <th:block th:replace="~{fragments/head :: head('home - boardhole')}"/>
 </head>
 <body class="bg-slate-50 text-slate-900">
-<th:block th:replace="~{layouts/shell :: shell('home - boardhole', ~{::main})}">
-    <main class="flex-1">
+<th:block th:replace="~{fragments/sidebar :: sidebar()}"></th:block>
+<th:block th:replace="~{fragments/header :: header()}"></th:block>
+<main>
                     <section class="mx-auto max-w-6xl px-6 py-20">
                         <div>
                             <div class="flex flex-col gap-12">
@@ -272,6 +268,5 @@
                         </div>
                     </section>
                 </main>
-</th:block>
 </body>
 </html>

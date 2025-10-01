@@ -6,16 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <title th:text="${board.title + ' - boardhole'}">board detail - boardhole</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <style>
-        @view-transition {
-            navigation: auto;
-        }
-    </style>
     <th:block th:replace="~{fragments/head :: head('board detail - boardhole')}"/>
 </head>
 <body class="bg-slate-50 text-slate-900">
-<th:block th:replace="~{layouts/shell :: shell('board detail - boardhole', ~{::main})}">
-    <main class="flex-1">
+<th:block th:replace="~{fragments/sidebar :: sidebar()}"></th:block>
+<th:block th:replace="~{fragments/header :: header()}"></th:block>
+<main>
                 <section class="mx-auto max-w-6xl px-6 pt-10 pb-6">
                     <!-- 페이지 타이틀 -->
                     <div class="mb-8">
@@ -132,6 +128,5 @@
                     </article>
                 </section>
             </main>
-</th:block>
 </body>
 </html>

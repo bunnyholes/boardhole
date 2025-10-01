@@ -5,16 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <title>user detail - boardhole</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <style>
-        @view-transition {
-            navigation: auto;
-        }
-    </style>
     <th:block th:replace="~{fragments/head :: head('user detail - boardhole')}"/>
 </head>
 <body class="bg-slate-50 text-slate-900">
-<th:block th:replace="~{layouts/shell :: shell('user detail - boardhole', ~{::main})}">
-<main class="flex-1">
+<th:block th:replace="~{fragments/sidebar :: sidebar()}"></th:block>
+<th:block th:replace="~{fragments/header :: header()}"></th:block>
+<main>
             <section class="mx-auto max-w-4xl px-6 py-10">
                 <!-- 페이지 타이틀 -->
                 <div class="mb-8">
@@ -29,10 +25,11 @@
                         <div class="mt-6 flex w-full flex-col items-center gap-4"
                              th:with="displayName=${(user.name != null and !#strings.isEmpty(user.name)) ? user.name : user.username}">
                             <figure class="relative flex h-48 w-48 items-center justify-center overflow-hidden rounded-full bg-slate-100 shadow-inner ring-1 ring-inset ring-slate-200">
-                                <img th:if="${user.hasProfileImage}"
-                                     th:src="@{/api/users/{username}/profile-image(username=${user.username})}"
-                                     th:alt="${displayName + '님의 프로필 이미지'}"
-                                     class="h-full w-full object-cover"
+                          <img th:if="${user.hasProfileImage}"
+                              th:src="@{/api/users/{username}/profile-image(username=${user.username})}"
+                              th:alt="${displayName + '님의 프로필 이미지'}"
+                              alt="사용자 프로필 이미지"
+                              class="h-full w-full object-cover"
                                      loading="lazy"
                                      decoding="async"/>
                                 <span th:unless="${user.hasProfileImage}"
@@ -179,7 +176,6 @@
                     </form>
                 </div>
             </section>
-        </main>
-</th:block>
+    </main>
 </body>
 </html>
