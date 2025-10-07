@@ -51,6 +51,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @Validated
 @RequiredArgsConstructor
 @Tag(name = "사용자 API", description = "사용자 관리 및 조회 기능")
+@SecurityRequirement(name = "basicAuth")
 public class UserController {
     private final UserCommandService userCommandService;
     private final UserQueryService userQueryService;
@@ -59,7 +60,7 @@ public class UserController {
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "사용자 목록 조회", description = "[ROLE:ADMIN] 관리자가 사용자 목록을 페이지네이션으로 조회합니다. 검색 기능을 제공합니다.", security = @SecurityRequirement(name = "admin-role"))
+    @Operation(summary = "사용자 목록 조회", description = "[ROLE:ADMIN] 관리자가 사용자 목록을 페이지네이션으로 조회합니다. 검색 기능을 제공합니다.", security = @SecurityRequirement(name = "basicAuth"))
     @ApiResponse(responseCode = "200", description = "사용자 목록 조회 성공", content = @Content(schema = @Schema(implementation = Page.class)))
     @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
     @ApiResponse(responseCode = "403", description = "관리자 권한 없음")

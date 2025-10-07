@@ -89,7 +89,8 @@ public class SecurityConfig {
                         // All other API requests require authentication
                         .anyRequest().authenticated())
                 .formLogin(AbstractHttpConfigurer::disable)  // formLogin 비활성화
-                .httpBasic(AbstractHttpConfigurer::disable)  // HTTP Basic 비활성화
+                .httpBasic(httpBasic -> httpBasic
+                        .realmName("Board Hole API"))  // HTTP Basic 활성화 (API 클라이언트 및 Swagger UI용)
                 .requestCache(cache -> cache
                         .requestCache(new NullRequestCache()))  // RequestCache 비활성화 (불필요한 세션 생성 방지)
                 .sessionManagement(session -> session

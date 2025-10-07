@@ -6,10 +6,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import dev.xiyo.bunnyholes.boardhole.shared.properties.ApiProperties;
+import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
+import io.swagger.v3.oas.models.security.SecurityScheme;
 
 /**
  * OpenAPI Bean 설정
@@ -26,6 +28,8 @@ public class OpenApiConfiguration {
         ApiProperties.Contact contact = apiProperties.contact();
         ApiProperties.License license = apiProperties.license();
 
+        final String basicAuthSchemeName = "basicAuth";
+
         return new OpenAPI()
                 .info(new Info()
                         .title(apiProperties.title())
@@ -38,6 +42,12 @@ public class OpenApiConfiguration {
                                 .url(contact.url()))
                         .license(new License()
                                 .name(license.name())
-                                .url(license.url())));
+                                .url(license.url())))
+                .components(new Components()
+                        .addSecuritySchemes(basicAuthSchemeName,
+                                new SecurityScheme()
+                                        .type(SecurityScheme.Type.HTTP)
+                                        .scheme("basic")
+                                        .description("HTTP Basic Authentication (username/password)")));
     }
 }

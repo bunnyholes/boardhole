@@ -43,6 +43,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @Slf4j
@@ -59,6 +60,7 @@ public class BoardController {
     @PostMapping(consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE}, produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "게시글 작성", description = "[AUTH] 새로운 게시글을 작성합니다. 인증된 사용자만 사용할 수 있습니다.",
+            security = @SecurityRequirement(name = "basicAuth"),
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content = @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE, schema = @Schema(implementation = BoardCreateRequest.class))))
     @ApiResponse(responseCode = "201", description = "게시글이 성공적으로 작성됨", content = @Content(schema = @Schema(implementation = BoardResponse.class)))
     @ApiResponse(responseCode = "422", description = "유효성 검증 실패")
@@ -95,6 +97,7 @@ public class BoardController {
     @PutMapping(value = "/{id}", consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE}, produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "게시글 수정", description = "[OWNER] 기존 게시글을 수정합니다. 작성자 본인만 수정 가능합니다.",
+            security = @SecurityRequirement(name = "basicAuth"),
 
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content = @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE, schema = @Schema(implementation = BoardUpdateRequest.class))))
     @ApiResponse(responseCode = "200", description = "게시글 수정 성공", content = @Content(schema = @Schema(implementation = BoardResponse.class)))
@@ -112,9 +115,8 @@ public class BoardController {
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "게시글 삭제", description = "[OWNER] 기존 게시글을 삭제합니다. 작성자 본인만 삭제 가능합니다."
-
-    )
+    @Operation(summary = "게시글 삭제", description = "[OWNER] 기존 게시글을 삭제합니다. 작성자 본인만 삭제 가능합니다.",
+            security = @SecurityRequirement(name = "basicAuth"))
     @ApiResponse(responseCode = "204", description = "게시글 삭제 성공")
     @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
     @ApiResponse(responseCode = "403", description = "삭제 권한 없음 (작성자가 아님)")
