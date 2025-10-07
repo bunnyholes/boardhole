@@ -8,93 +8,93 @@
     <th:block th:replace="~{fragments/head :: head('users - boardhole')}"/>
 </head>
 <body class="bg-slate-50 text-slate-900">
-<th:block th:replace="~{fragments/sidebar :: sidebar()}"></th:block>
 <th:block th:replace="~{fragments/header :: header()}"></th:block>
+<th:block th:replace="~{fragments/sidebar :: sidebar()}"></th:block>
 <main>
-                <section class="mx-auto max-w-6xl px-6 pt-10 pb-6">
-                    <!-- 페이지 타이틀 -->
-                    <div class="mb-8">
-                        <h1 class="text-3xl font-semibold text-slate-900">활성 사용자 현황</h1>
-                        <p class="mt-2 text-base text-slate-500">현재 등록된 사용자 목록과 가입 일자를 확인하고 상세 페이지에서 추가 정보를 관리하세요.</p>
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <span class="text-sm text-slate-500">총 사용자</span>
-                        <span class="inline-flex items-center gap-2 text-sm font-semibold text-slate-700">
+    <section class="mx-auto max-w-6xl px-6 pt-10 pb-6">
+        <!-- 페이지 타이틀 -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-semibold text-slate-900">활성 사용자 현황</h1>
+            <p class="mt-2 text-base text-slate-500">현재 등록된 사용자 목록과 가입 일자를 확인하고 상세 페이지에서 추가 정보를 관리하세요.</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <span class="text-sm text-slate-500">총 사용자</span>
+            <span class="inline-flex items-center gap-2 text-sm font-semibold text-slate-700">
                             <span th:text="${users.totalElements}">1</span>명
                         </span>
+        </div>
+    </section>
+
+    <section class="mx-auto max-w-6xl px-6 pb-10 mt-12">
+        <div class="overflow-x-auto">
+            <table class="min-w-full text-sm whitespace-nowrap">
+                <caption class="mt-4 text-sm text-slate-500 caption-bottom">
+                    <div class="flex justify-between items-center">
+                        <span>현재 <span th:text="${users.number + 1}">1</span>쪽</span>
+                        <span>총 <span th:text="${users.totalPages}">1</span>쪽, 결과 <span
+                                th:text="${users.totalElements}">0</span>개</span>
                     </div>
-                </section>
-
-                <section class="mx-auto max-w-6xl px-6 pb-10 mt-12">
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full text-sm whitespace-nowrap">
-                            <caption class="mt-4 text-sm text-slate-500 caption-bottom">
-                                <div class="flex justify-between items-center">
-                                    <span>현재 <span th:text="${users.number + 1}">1</span>쪽</span>
-                                    <span>총 <span th:text="${users.totalPages}">1</span>쪽, 결과 <span
-                                            th:text="${users.totalElements}">0</span>개</span>
-                                </div>
-                            </caption>
-                            <colgroup>
-                                <col/>
-                                <col/>
-                                <col/>
-                            </colgroup>
-                            <thead class="border-b border-slate-200 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                            <tr>
-                                <th scope="col" class="px-3 py-2 text-left">사용자</th>
-                                <th scope="col" class="px-3 py-2 text-left">이메일</th>
-                                <th scope="col" class="px-3 py-2 text-left">가입일</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr th:each="user : ${users.content}"
-                                class="border-b border-slate-100 transition hover:bg-slate-50">
-                                <td class="px-3 py-2">
-                                    <a th:href="@{/users/{username}(username=${user.username})}" href="./users/detail.html"
-                                       class="flex items-center gap-3 transition hover:opacity-75">
-                                        <div class="flex h-10 w-10 items-center justify-center rounded-full bg-slate-300 text-slate-700 font-semibold">
-                                            <span th:text="${#strings.substring(user.username ?: 'U', 0, 1)?.toUpperCase()}">H</span>
-                                        </div>
-                                        <div>
-                                            <div class="font-semibold text-slate-900" th:text="${user.name}">홍길동</div>
-                                            <div class="text-sm text-slate-500" th:text="${user.username}">hello_hong</div>
-                                        </div>
-                                    </a>
-                                </td>
-                                <td class="px-3 py-2 text-slate-500" th:text="${user.email}">
-                                    hong@gil.dong
-                                </td>
-                                <td class="px-3 py-2 tabular-nums text-slate-500 text-xs"
-                                    th:text="${#temporals.format(user.createdAt, 'yyyy-MM-dd')}">2025-10-22
-                                </td>
-                            </tr>
-                            <tr th:if="${#lists.isEmpty(users.content)}" class="border-b border-slate-100 transition">
-                                <td colspan="3" class="px-3 py-8 text-center text-slate-500">
-                                    등록된 사용자가 없습니다.
-                                </td>
-                            </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <nav aria-label="사용자 페이지네이션"
-                         class="mt-10 flex items-center justify-center gap-3 text-sm text-slate-600">
-
-                        <!-- 이전 버튼 -->
-                        <a th:href="${users.hasPrevious()} ? @{/users(page=${users.number - 1})} : '#'"
-                           th:classappend="${!users.hasPrevious()} ? 'cursor-not-allowed bg-slate-100 text-slate-400' : 'hover:bg-slate-100 hover:text-slate-900'"
-                           class="inline-flex h-9 min-w-9 items-center justify-center rounded-full px-3 py-2 transition">
-                            이전
+                </caption>
+                <colgroup>
+                    <col/>
+                    <col/>
+                    <col/>
+                </colgroup>
+                <thead class="border-b border-slate-200 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                <tr>
+                    <th scope="col" class="px-3 py-2 text-left">사용자</th>
+                    <th scope="col" class="px-3 py-2 text-left">이메일</th>
+                    <th scope="col" class="px-3 py-2 text-left">가입일</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="user : ${users.content}"
+                    class="border-b border-slate-100 transition hover:bg-slate-50">
+                    <td class="px-3 py-2">
+                        <a th:href="@{/users/{username}(username=${user.username})}" href="./users/detail.html"
+                           class="flex items-center gap-3 transition hover:opacity-75">
+                            <div class="flex h-10 w-10 items-center justify-center rounded-full bg-slate-300 text-slate-700 font-semibold">
+                                <span th:text="${#strings.substring(user.username ?: 'U', 0, 1)?.toUpperCase()}">H</span>
+                            </div>
+                            <div>
+                                <div class="font-semibold text-slate-900" th:text="${user.name}">홍길동</div>
+                                <div class="text-sm text-slate-500" th:text="${user.username}">hello_hong</div>
+                            </div>
                         </a>
+                    </td>
+                    <td class="px-3 py-2 text-slate-500" th:text="${user.email}">
+                        hong@gil.dong
+                    </td>
+                    <td class="px-3 py-2 tabular-nums text-slate-500 text-xs"
+                        th:text="${#temporals.format(user.createdAt, 'yyyy-MM-dd')}">2025-10-22
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(users.content)}" class="border-b border-slate-100 transition">
+                    <td colspan="3" class="px-3 py-8 text-center text-slate-500">
+                        등록된 사용자가 없습니다.
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
 
-                        <!-- 다음 버튼 -->
-                        <a th:href="${users.hasNext()} ? @{/users(page=${users.number + 1})} : '#'"
-                           th:classappend="${!users.hasNext()} ? 'cursor-not-allowed bg-slate-100 text-slate-400' : 'hover:bg-slate-100 hover:text-slate-900'"
-                           class="inline-flex h-9 min-w-9 items-center justify-center rounded-full px-3 py-2 transition">
-                            다음
-                        </a>
-            </nav>
-        </main>
+        <nav aria-label="사용자 페이지네이션"
+             class="mt-10 flex items-center justify-center gap-3 text-sm text-slate-600">
+
+            <!-- 이전 버튼 -->
+            <a th:href="${users.hasPrevious()} ? @{/users(page=${users.number - 1})} : '#'"
+               th:classappend="${!users.hasPrevious()} ? 'cursor-not-allowed bg-slate-100 text-slate-400' : 'hover:bg-slate-100 hover:text-slate-900'"
+               class="inline-flex h-9 min-w-9 items-center justify-center rounded-full px-3 py-2 transition">
+                이전
+            </a>
+
+            <!-- 다음 버튼 -->
+            <a th:href="${users.hasNext()} ? @{/users(page=${users.number + 1})} : '#'"
+               th:classappend="${!users.hasNext()} ? 'cursor-not-allowed bg-slate-100 text-slate-400' : 'hover:bg-slate-100 hover:text-slate-900'"
+               class="inline-flex h-9 min-w-9 items-center justify-center rounded-full px-3 py-2 transition">
+                다음
+            </a>
+        </nav>
+</main>
 </body>
 </html>
