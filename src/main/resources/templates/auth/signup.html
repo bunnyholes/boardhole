@@ -1,29 +1,33 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" data-theme="dracula">
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <title>signup - boardhole</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css"/>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5/themes.css" rel="stylesheet" type="text/css"/>
 </head>
-<body class="bg-slate-50 text-slate-900">
-<div class="flex min-h-screen items-center justify-center px-4 py-12">
+<body class="bg-base-100 text-base-content">
+<main class="max-w-5xl mx-auto px-4 py-6">
+</main>
+<div class="flex min-h-[calc(100vh-6rem)] items-center justify-center px-4 pb-12">
     <div class="w-full max-w-md">
-        <div class="rounded-3xl bg-white p-10 shadow-2xl">
+        <div class="rounded-3xl bg-base-200 p-10 shadow-2xl">
             <div class="mb-8 text-center">
                 <a th:href="@{/}" href="../index.html" class="inline-block">
-                    <span class="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-900 text-2xl font-bold text-white">
+                    <span class="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-primary text-2xl font-bold text-base-content">
                         BH
                     </span>
                 </a>
-                <h1 class="mt-6 text-3xl font-semibold text-slate-900">회원가입</h1>
-                <p class="mt-2 text-base text-slate-500">boardholes 계정을 만들고 커뮤니티에 참여하세요</p>
+                <h1 class="mt-6 text-3xl font-semibold text-base-content">회원가입</h1>
+                <p class="mt-2 text-base text-base-content/60">boardholes 계정을 만들고 커뮤니티에 참여하세요</p>
             </div>
 
             <form method="post" th:action="@{/auth/signup}" th:object="${userCreateRequest}">
                 <div class="space-y-5">
                     <div>
-                        <label for="email" class="block text-sm font-semibold text-slate-700 mb-2">
+                        <label for="email" class="block text-sm font-semibold text-base-content/80 mb-2">
                             이메일
                         </label>
                         <input autocomplete="email" id="email" placeholder="you@example.com"
@@ -31,9 +35,9 @@
                                th:attr="aria-invalid=${#fields.hasErrors('email')} ? 'true' : (${#fields.hasAnyErrors()} ? 'false' : null),aria-describedby=${#fields.hasErrors('email')} ? 'email-help' : null"
                                th:field="*{email}"
                                type="email"
-                               class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
+                               class="w-full rounded-2xl border border-base-300 bg-base-200 px-4 py-3 text-base text-base-content placeholder:text-base-content/50 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
                                th:classappend="${#fields.hasErrors('email')} ? ' border-rose-500 focus:border-rose-500 focus:ring-rose-500/20' : ''">
-                        <small class="block mt-1 text-xs text-slate-500">로그인 확인 및 알림에 사용됩니다</small>
+                        <small class="block mt-1 text-xs text-base-content/60">로그인 확인 및 알림에 사용됩니다</small>
                         <small id="email-help" class="block mt-1 text-xs text-rose-500" th:errors="*{email}"
                                th:if="${#fields.hasErrors('email')}">
                             이메일 오류
@@ -41,7 +45,7 @@
                     </div>
 
                     <div>
-                        <label for="name" class="block text-sm font-semibold text-slate-700 mb-2">
+                        <label for="name" class="block text-sm font-semibold text-base-content/80 mb-2">
                             이름
                         </label>
                         <input autocomplete="name" id="name" maxlength="50" placeholder="홍길동"
@@ -49,7 +53,7 @@
                                th:attr="aria-invalid=${#fields.hasErrors('name')} ? 'true' : (${#fields.hasAnyErrors()} ? 'false' : null),aria-describedby=${#fields.hasErrors('name')} ? 'name-help' : null"
                                th:field="*{name}"
                                type="text"
-                               class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
+                               class="w-full rounded-2xl border border-base-300 bg-base-200 px-4 py-3 text-base text-base-content placeholder:text-base-content/50 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
                                th:classappend="${#fields.hasErrors('name')} ? ' border-rose-500 focus:border-rose-500 focus:ring-rose-500/20' : ''">
                         <small id="name-help" class="block mt-1 text-xs text-rose-500" th:errors="*{name}"
                                th:if="${#fields.hasErrors('name')}">
@@ -58,7 +62,7 @@
                     </div>
 
                     <div>
-                        <label for="username" class="block text-sm font-semibold text-slate-700 mb-2">
+                        <label for="username" class="block text-sm font-semibold text-base-content/80 mb-2">
                             사용자명
                         </label>
                         <input autocomplete="username" id="username" maxlength="20"
@@ -67,9 +71,9 @@
                                th:attr="aria-invalid=${#fields.hasErrors('username')} ? 'true' : (${#fields.hasAnyErrors()} ? 'false' : null),aria-describedby=${#fields.hasErrors('username')} ? 'username-help' : null"
                                th:field="*{username}" title="영문과 숫자만 사용하여 3-20자로 입력해주세요."
                                type="text"
-                               class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
+                               class="w-full rounded-2xl border border-base-300 bg-base-200 px-4 py-3 text-base text-base-content placeholder:text-base-content/50 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
                                th:classappend="${#fields.hasErrors('username')} ? ' border-rose-500 focus:border-rose-500 focus:ring-rose-500/20' : ''">
-                        <small class="block mt-1 text-xs text-slate-500">영문, 숫자 조합으로 3-20자 이내로 입력해주세요</small>
+                        <small class="block mt-1 text-xs text-base-content/60">영문, 숫자 조합으로 3-20자 이내로 입력해주세요</small>
                         <small id="username-help" class="block mt-1 text-xs text-rose-500" th:errors="*{username}"
                                th:if="${#fields.hasErrors('username')}">
                             사용자명 오류
@@ -77,7 +81,7 @@
                     </div>
 
                     <div>
-                        <label for="password" class="block text-sm font-semibold text-slate-700 mb-2">
+                        <label for="password" class="block text-sm font-semibold text-base-content/80 mb-2">
                             비밀번호
                         </label>
                         <input autocomplete="new-password" id="password" maxlength="100"
@@ -88,9 +92,9 @@
                                th:field="*{password}"
                                title="8자 이상, 대/소문자, 숫자, 특수문자를 모두 포함해야 합니다."
                                type="password"
-                               class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
+                               class="w-full rounded-2xl border border-base-300 bg-base-200 px-4 py-3 text-base text-base-content placeholder:text-base-content/50 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
                                th:classappend="${#fields.hasErrors('password')} ? ' border-rose-500 focus:border-rose-500 focus:ring-rose-500/20' : ''">
-                        <small class="block mt-1 text-xs text-slate-500">8자 이상, 대/소문자, 숫자, 특수문자를 각각 포함해야 합니다</small>
+                        <small class="block mt-1 text-xs text-base-content/60">8자 이상, 대/소문자, 숫자, 특수문자를 각각 포함해야 합니다</small>
                         <small id="password-help" class="block mt-1 text-xs text-rose-500" th:errors="*{password}"
                                th:if="${#fields.hasErrors('password')}">
                             비밀번호 오류
@@ -98,7 +102,7 @@
                     </div>
 
                     <div>
-                        <label for="confirmPassword" class="block text-sm font-semibold text-slate-700 mb-2">
+                        <label for="confirmPassword" class="block text-sm font-semibold text-base-content/80 mb-2">
                             비밀번호 확인
                         </label>
                         <input autocomplete="new-password" id="confirmPassword" placeholder="비밀번호를 다시 입력"
@@ -106,7 +110,7 @@
                                th:attr="aria-invalid=${#fields.hasErrors('confirmPassword')} ? 'true' : (${#fields.hasAnyErrors()} ? 'false' : null),aria-describedby=${#fields.hasErrors('confirmPassword')} ? 'confirm-password-help' : null"
                                th:field="*{confirmPassword}"
                                type="password"
-                               class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
+                               class="w-full rounded-2xl border border-base-300 bg-base-200 px-4 py-3 text-base text-base-content placeholder:text-base-content/50 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
                                th:classappend="${#fields.hasErrors('confirmPassword')} ? ' border-rose-500 focus:border-rose-500 focus:ring-rose-500/20' : ''">
                         <small id="confirm-password-help" class="block mt-1 text-xs text-rose-500"
                                th:errors="*{confirmPassword}"
@@ -117,8 +121,8 @@
 
                     <div class="flex items-start">
                         <input name="agree" required type="checkbox" id="agree"
-                               class="mt-1 mr-3 h-4 w-4 rounded border-slate-200 bg-white text-slate-900 focus:ring-2 focus:ring-blue-500/20 focus:ring-offset-0">
-                        <label for="agree" class="text-sm text-slate-600">
+                               class="mt-1 mr-3 h-4 w-4 rounded border-base-300 bg-base-200 text-base-content focus:ring-2 focus:ring-blue-500/20 focus:ring-offset-0">
+                        <label for="agree" class="text-sm text-base-content/70">
                             이용약관과 개인정보 처리방침에 동의합니다
                         </label>
                     </div>
@@ -130,16 +134,16 @@
                         에러</p>
                 </div>
 
-                <button class="mt-8 w-full rounded-full bg-slate-900 px-6 py-3 text-base font-semibold text-white transition hover:bg-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/70 focus-visible:ring-offset-2"
+                <button class="mt-8 w-full rounded-full bg-primary px-6 py-3 text-base font-semibold text-base-content transition hover:bg-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/70 focus-visible:ring-offset-2"
                         type="submit">회원가입
                 </button>
             </form>
 
             <div class="mt-8 text-center">
-                <p class="text-sm text-slate-500">
+                <p class="text-sm text-base-content/60">
                     이미 계정이 있으신가요?
                     <a th:href="@{/auth/login}" href="./login.html"
-                       class="font-semibold text-slate-900 transition hover:text-slate-600">
+                       class="font-semibold text-base-content transition hover:text-base-content/70">
                         로그인
                     </a>
                 </p>
@@ -148,7 +152,7 @@
 
         <div class="mt-6 text-center">
             <a th:href="@{/}" href="../index.html"
-               class="inline-flex items-center text-sm text-slate-500 transition hover:text-slate-700">
+               class="inline-flex items-center text-sm text-base-content/60 transition hover:text-base-content/80">
                 <svg aria-hidden="true" viewBox="0 0 24 24" class="mr-2 h-4 w-4" fill="none"
                      stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="15 18 9 12 15 6"/>

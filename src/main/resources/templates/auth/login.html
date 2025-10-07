@@ -1,23 +1,29 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" data-theme="dracula">
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <title>login - boardhole</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css"/>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5/themes.css" rel="stylesheet" type="text/css"/>
+    <th:block th:replace="~{fragments/head :: head('login - boardhole')}"/>
 </head>
-<body class="bg-slate-50 text-slate-900">
-<div class="flex min-h-screen items-center justify-center px-4 py-12">
-    <div class="w-full max-w-md">
-        <div class="rounded-3xl bg-white p-10 shadow-2xl">
+<body class="bg-base-100 text-base-content">
+<main class="min-h-screen flex flex-col gap-8 px-4 py-6">
+    <div class="max-w-5xl mx-auto">
+    </div>
+    <div class="flex-1 flex items-center justify-center pb-12">
+        <div class="w-full max-w-md">
+            <div class="rounded-3xl bg-base-200 p-10 shadow-2xl">
             <div class="mb-8 text-center">
                 <a th:href="@{/}" href="../index.html" class="inline-block">
-                    <span class="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-900 text-2xl font-bold text-white">
+                    <span class="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-primary text-2xl font-bold text-base-content">
                         BH
                     </span>
                 </a>
-                <h1 class="mt-6 text-3xl font-semibold text-slate-900">로그인</h1>
-                <p class="mt-2 text-base text-slate-500">boardholes 계정으로 커뮤니티에 참여하세요</p>
+                <h1 class="mt-6 text-3xl font-semibold text-base-content">로그인</h1>
+                <p class="mt-2 text-base text-base-content/60">boardholes 계정으로 커뮤니티에 참여하세요</p>
             </div>
 
             <form method="post" novalidate th:action="@{/auth/login}">
@@ -27,21 +33,21 @@
 
                 <div class="space-y-5">
                     <div>
-                        <label for="username" class="block text-sm font-semibold text-slate-700 mb-2">
+                        <label for="username" class="block text-sm font-semibold text-base-content/80 mb-2">
                             사용자이름
                         </label>
                         <input autocomplete="username" id="username" inputmode="email" name="username"
                                placeholder="name@example.com" required type="text"
-                               class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition">
+                               class="w-full rounded-2xl border border-base-300 bg-base-200 px-4 py-3 text-base text-base-content placeholder:text-base-content/50 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition">
                     </div>
 
                     <div>
-                        <label for="password" class="block text-sm font-semibold text-slate-700 mb-2">
+                        <label for="password" class="block text-sm font-semibold text-base-content/80 mb-2">
                             비밀번호
                         </label>
                         <input autocomplete="current-password" id="password" name="password" placeholder="비밀번호를 입력하세요"
                                required type="password"
-                               class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition">
+                               class="w-full rounded-2xl border border-base-300 bg-base-200 px-4 py-3 text-base text-base-content placeholder:text-base-content/50 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition">
                     </div>
                 </div>
 
@@ -51,33 +57,34 @@
                     </p>
                 </div>
 
-                <button class="mt-8 w-full rounded-full bg-slate-900 px-6 py-3 text-base font-semibold text-white transition hover:bg-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/70 focus-visible:ring-offset-2"
+                <button class="mt-8 w-full rounded-full bg-primary px-6 py-3 text-base font-semibold text-base-content transition hover:bg-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/70 focus-visible:ring-offset-2"
                         type="submit">로그인
                 </button>
             </form>
 
             <div class="mt-8 text-center">
-                <p class="text-sm text-slate-500">
+                <p class="text-sm text-base-content/60">
                     계정이 없으신가요?
                     <a th:href="@{/auth/signup}" href="./signup.html"
-                       class="font-semibold text-slate-900 transition hover:text-slate-600">
+                       class="font-semibold text-base-content transition hover:text-base-content/70">
                         회원가입
                     </a>
                 </p>
             </div>
-        </div>
+            </div>
 
-        <div class="mt-6 text-center">
-            <a th:href="@{/}" href="../index.html"
-               class="inline-flex items-center text-sm text-slate-500 transition hover:text-slate-700">
-                <svg aria-hidden="true" viewBox="0 0 24 24" class="mr-2 h-4 w-4" fill="none"
-                     stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="15 18 9 12 15 6"/>
-                </svg>
-                홈으로 돌아가기
-            </a>
+            <div class="mt-6 text-center">
+                <a th:href="@{/}" href="../index.html"
+                   class="inline-flex items-center text-sm text-base-content/60 transition hover:text-base-content/80">
+                    <svg aria-hidden="true" viewBox="0 0 24 24" class="mr-2 h-4 w-4" fill="none"
+                         stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="15 18 9 12 15 6"/>
+                    </svg>
+                    홈으로 돌아가기
+                </a>
+            </div>
         </div>
     </div>
-</div>
+</main>
 </body>
 </html>

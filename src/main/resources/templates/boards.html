@@ -1,124 +1,138 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" data-theme="dracula">
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <title>boards - boardhole</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css"/>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5/themes.css" rel="stylesheet" type="text/css"/>
     <th:block th:replace="~{fragments/head :: head('boards - boardhole')}"/>
 </head>
-<body class="bg-slate-50 text-slate-900">
+<body class="bg-base-100 text-base-content">
 <th:block th:replace="~{fragments/header :: header()}"></th:block>
 <th:block th:replace="~{fragments/sidebar :: sidebar()}"></th:block>
 <main>
-                    <section class="mx-auto max-w-6xl px-6 pt-10 pb-6">
-                        <!-- 페이지 타이틀 -->
-                        <div class="mb-8">
-                            <h1 class="text-3xl font-semibold text-slate-900">커뮤니티 최신 글</h1>
-                            <p class="mt-2 text-base text-slate-500">게시글을 검색하거나 새 글을 작성하고, 조회수를 한눈에 확인하세요.</p>
-                        </div>
+    <section class="mx-auto max-w-6xl px-6 pt-10 pb-6">
+        <!-- 페이지 타이틀 -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-semibold text-base-content">커뮤니티 최신 글</h1>
+            <p class="mt-2 text-base text-base-content/60">게시글을 검색하거나 새 글을 작성하고, 조회수를 한눈에 확인하세요.</p>
+        </div>
 
-                        <div class="mt-6 flex flex-wrap items-center gap-3">
-                            <form th:action="@{/boards}" action="./boards.html"
-                                  class="flex min-w-[260px] flex-1 items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-inner">
-                                <svg aria-hidden="true" viewBox="0 0 24 24" class="h-5 w-5 text-slate-400" fill="none"
-                                     stroke="currentColor"
-                                     stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                                    <circle cx="11" cy="11" r="6"/>
-                                    <line x1="16.5" y1="16.5" x2="20" y2="20"/>
-                                </svg>
-                                <div class="tip-wrapper relative flex-1 group/search">
-                                    <input name="search"
-                                           th:value="${search}"
-                                           aria-describedby="boards-search-tip"
-                                           class="tip-anchor w-full bg-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none [anchor-name:--boards-search]"
-                                           type="search" placeholder="제목, 내용으로 검색"/>
-                                    <div id="boards-search-tip" role="tooltip"
-                                         class="tip-tooltip pointer-events-none absolute z-10 overflow-hidden rounded-xl bg-slate-900/90 px-3 py-2 text-xs font-medium text-white opacity-0 invisible delay-150 [transition-property:opacity,visibility] duration-150 [transition-behavior:allow-discrete] [position-anchor:--boards-search] [bottom:calc(anchor(top)+12px)] [left:anchor(center)] [translate:-50%_0] whitespace-nowrap text-left leading-5 text-ellipsis [max-inline-size:clamp(12rem,30vw,16rem)] group-hover/search:delay-0 group-hover/search:opacity-100 group-hover/search:visible group-focus-within/search:delay-0 group-focus-within/search:opacity-100 group-focus-within/search:visible">
-                                        검색어 입력후 엔터를 입력하세요.
-                                    </div>
-                                </div>
-                            </form>
-                            <div class="compose-wrapper relative inline-flex group/compose">
-                                <a th:href="@{/boards/write}" href="./boards/write.html"
-                                   aria-describedby="compose-tooltip" aria-label="새 글 작성"
-                                   class="compose-anchor relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 text-lg font-semibold text-slate-700 transition hover:border-slate-300 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:color-mix(in_srgb,white_60%,#2563eb)] [anchor-name:--compose]"
-                                   title="새 글 작성">
-                                    +
-                                </a>
-                                <div id="compose-tooltip" role="tooltip"
-                                     class="compose-tooltip pointer-events-none absolute z-10 overflow-hidden rounded-xl bg-slate-900/90 px-3 py-2 text-xs font-medium text-white opacity-0 invisible delay-150 [transition-property:opacity,visibility] duration-150 [transition-behavior:allow-discrete] [position-anchor:--compose] [top:calc(anchor(bottom)+12px)] [left:anchor(end)] [translate:-100%_0] whitespace-nowrap text-left leading-5 [max-inline-size:clamp(10rem,40vw,16rem)] text-ellipsis group-hover/compose:delay-0 group-hover/compose:opacity-100 group-hover/compose:visible group-focus-visible/compose:delay-0 group-focus-visible/compose:opacity-100 group-focus-visible/compose:visible">
-                                    새 글 작성
-                                </div>
-                            </div>
-                        </div>
-                    </section>
+        <div class="mt-6 flex flex-wrap items-center gap-3">
+            <form th:action="@{/boards}" action="./boards.html"
+                  class="flex min-w-[260px] flex-1 items-center gap-3 rounded-2xl bg-base-200 px-4 py-3 shadow-inner">
+                <svg aria-hidden="true" viewBox="0 0 24 24" class="h-5 w-5 text-base-content/50" fill="none"
+                     stroke="currentColor"
+                     stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="6"/>
+                    <line x1="16.5" y1="16.5" x2="20" y2="20"/>
+                </svg>
+                <div class="tip-wrapper relative flex-1 group/search">
+                    <input name="search"
+                           th:value="${search}"
+                           aria-describedby="boards-search-tip"
+                           class="tip-anchor w-full bg-transparent text-sm text-base-content/80 placeholder:text-base-content/50 focus:outline-none [anchor-name:--boards-search]"
+                           type="search" placeholder="제목, 내용으로 검색"/>
+                    <div id="boards-search-tip" role="tooltip"
+                         class="tip-tooltip pointer-events-none absolute z-10 overflow-hidden rounded-xl bg-primary/90 px-3 py-2 text-xs font-medium text-base-content opacity-0 invisible delay-150 [transition-property:opacity,visibility] duration-150 [transition-behavior:allow-discrete] [position-anchor:--boards-search] [bottom:calc(anchor(top)+12px)] [left:anchor(center)] [translate:-50%_0] whitespace-nowrap text-left leading-5 text-ellipsis [max-inline-size:clamp(12rem,30vw,16rem)] group-hover/search:delay-0 group-hover/search:opacity-100 group-hover/search:visible group-focus-within/search:delay-0 group-focus-within/search:opacity-100 group-focus-within/search:visible">
+                        검색어 입력후 엔터를 입력하세요.
+                    </div>
+                </div>
+            </form>
+            <div class="compose-wrapper relative inline-flex group/compose">
+                <a th:href="@{/boards/write}" href="./boards/write.html"
+                   aria-describedby="compose-tooltip" aria-label="새 글 작성"
+                   class="compose-anchor relative inline-flex h-10 w-10 items-center justify-center rounded-full text-lg font-semibold text-base-content/80 transition hover:text-base-content focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:color-mix(in_srgb,white_60%,#2563eb)] [anchor-name:--compose]"
+                   title="새 글 작성">
+                    +
+                </a>
+                <div id="compose-tooltip" role="tooltip"
+                     class="compose-tooltip pointer-events-none absolute z-10 overflow-hidden rounded-xl bg-primary/90 px-3 py-2 text-xs font-medium text-base-content opacity-0 invisible delay-150 [transition-property:opacity,visibility] duration-150 [transition-behavior:allow-discrete] [position-anchor:--compose] [top:calc(anchor(bottom)+12px)] [left:anchor(end)] [translate:-100%_0] whitespace-nowrap text-left leading-5 [max-inline-size:clamp(10rem,40vw,16rem)] text-ellipsis group-hover/compose:delay-0 group-hover/compose:opacity-100 group-hover/compose:visible group-focus-visible/compose:delay-0 group-focus-visible/compose:opacity-100 group-focus-visible/compose:visible">
+                    새 글 작성
+                </div>
+            </div>
+        </div>
+    </section>
 
-                    <section class="mx-auto max-w-6xl px-6 pb-10 mt-12">
-                        <div class="overflow-x-auto">
-                            <table class="min-w-full text-sm whitespace-nowrap">
-                                <caption class="mt-4 text-sm text-slate-500 caption-bottom">
-                                    <div class="flex justify-between items-center">
-                                        <span>현재 <span th:text="${boards.number + 1}">1</span>쪽</span>
-                                        <span>총 <span th:text="${boards.totalPages}">1</span>쪽, 결과 <span th:text="${boards.totalElements}">0</span>개</span>
-                                    </div>
-                                </caption>
-                                <colgroup>
-                                    <col/>
-                                    <col/>
-                                    <col/>
-                                    <col/>
-                                </colgroup>
-                                <thead class="border-b border-slate-200 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                                <tr>
-                                    <th scope="col" class="px-3 py-2 text-left">제목</th>
-                                    <th scope="col" class="px-3 py-2 text-left">작성자</th>
-                                    <th scope="col" class="px-3 py-2 text-left">작성일</th>
-                                    <th scope="col" class="px-3 py-2 text-left">조회수</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                <tr th:each="board : ${boards}" class="border-b border-slate-100 transition hover:bg-slate-50">
-                                    <td class="px-3 py-2">
-                                        <a th:href="@{/boards/{id}(id=${board.id})}" href="./boards/detail.html"
-                                           th:text="${board.title}"
-                                           class="block truncate text-base font-semibold text-slate-900 transition hover:text-slate-600">
-                                            환영합니다!
-                                        </a>
-                                    </td>
-                                    <td class="px-3 py-2 text-slate-500" th:text="${board.authorName}">홍길동</td>
-                                    <td class="px-3 py-2 tabular-nums text-slate-500 text-xs"
-                                        th:text="${#temporals.format(board.createdAt, 'yyyy-MM-dd')}">2025-01-10
-                                    </td>
-                                    <td class="px-3 py-2 text-slate-500" th:text="${board.viewCount}">999</td>
-                                </tr>
-                                <tr th:if="${#lists.isEmpty(boards)}" class="border-b border-slate-100 transition">
-                                    <td colspan="4" class="px-3 py-8 text-center text-slate-500">
-                                        등록된 게시글이 없습니다.
-                                    </td>
-                                </tr>
-                                </tbody>
-                            </table>
-                        </div>
+    <section class="mx-auto max-w-6xl px-6 pb-10 mt-12">
+        <div class="overflow-x-auto rounded-box border border-base-content/5 bg-base-100">
+            <table class="table w-full">
+                <thead class="bg-base-200 text-xs uppercase tracking-wide text-base-content/70">
+                <tr>
+                    <th class="w-12 text-center font-semibold">#</th>
+                    <th class="font-semibold">제목</th>
+                    <th class="font-semibold">작성자</th>
+                    <th class="font-semibold">작성일</th>
+                    <th class="font-semibold">조회수</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="board, iterStat : ${boards}"
+                    class="border-b border-base-content/10 last:border-none hover:bg-base-200/60">
+                    <th th:text="${boards.number * boards.size + iterStat.count}"
+                        class="text-center font-medium text-base-content/70">1
+                    </th>
+                    <td class="align-middle">
+                        <a th:href="@{/boards/{id}(id=${board.id})}" href="./boards/detail.html"
+                           th:text="${board.title}"
+                           class="block truncate font-semibold text-base-content transition hover:text-base-content/70">
+                            환영합니다!
+                        </a>
+                    </td>
+                    <td class="align-middle text-base-content/70" th:text="${board.authorName}">홍길동</td>
+                    <td class="align-middle tabular-nums text-base-content/60"
+                        th:text="${#temporals.format(board.createdAt, 'yyyy-MM-dd')}">
+                        2025-01-10
+                    </td>
+                    <td class="align-middle text-base-content/70" th:text="${board.viewCount}">999</td>
+                </tr>
+                <tr th:if="${boards.empty}">
+                    <td colspan="5" class="py-8 text-center text-base-content/60">
+                        등록된 게시글이 없습니다.
+                    </td>
+                </tr>
+                </tbody>
+                <tfoot class="text-xs uppercase tracking-wide text-base-content/60">
+                <tr>
+                    <th class="text-center font-semibold">#</th>
+                    <th class="font-semibold">제목</th>
+                    <th class="font-semibold">작성자</th>
+                    <th class="font-semibold">작성일</th>
+                    <th class="font-semibold">조회수</th>
+                </tr>
+                </tfoot>
+            </table>
+        </div>
 
-                        <nav aria-label="게시글 페이지네이션"
-                             class="mt-10 flex items-center justify-center gap-3 text-sm text-slate-600">
+        <div class="mt-6 flex flex-wrap items-center justify-between gap-3 text-sm text-base-content/60">
+            <span>현재 <span th:text="${boards.number + 1}">1</span>쪽</span>
+            <span>총 <span th:text="${boards.totalPages}">1</span>쪽, 결과 <span th:text="${boards.totalElements}">0</span>개</span>
+        </div>
 
-                            <!-- 이전 버튼 -->
-                            <a th:href="${boards.hasPrevious()} ? @{/boards(page=${boards.number - 1}, search=${search})} : '#'"
-                               th:classappend="${!boards.hasPrevious()} ? 'cursor-not-allowed bg-slate-100 text-slate-400' : 'hover:bg-slate-100 hover:text-slate-900'"
-                               class="inline-flex h-9 min-w-9 items-center justify-center rounded-full px-3 py-2 transition">
-                                이전
-                            </a>
+        <nav aria-label="게시글 페이지네이션" class="mt-6 flex items-center justify-center text-sm text-base-content/70">
+            <div class="join">
+                <a th:href="${boards.hasPrevious()} ? @{/boards(page=${boards.number - 1}, search=${search})} : '#'"
+                   th:classappend="${!boards.hasPrevious()} ? 'btn-disabled' : ''"
+                   class="join-item btn btn-outline">
+                    «
+                </a>
 
-                            <!-- 다음 버튼 -->
-                            <a th:href="${boards.hasNext()} ? @{/boards(page=${boards.number + 1}, search=${search})} : '#'"
-                               th:classappend="${!boards.hasNext()} ? 'cursor-not-allowed bg-slate-100 text-slate-400' : 'hover:bg-slate-100 hover:text-slate-900'"
-                               class="inline-flex h-9 min-w-9 items-center justify-center rounded-full px-3 py-2 transition">
-                                다음
-                            </a>
-                        </nav>
-                    </section>
-                </main>
+                <span class="join-item btn btn-outline btn-disabled">
+                                    <span th:text="${boards.number + 1}">1</span>
+                                    /
+                                    <span th:text="${boards.totalPages}">1</span>
+                                </span>
+
+                <a th:href="${boards.hasNext()} ? @{/boards(page=${boards.number + 1}, search=${search})} : '#'"
+                   th:classappend="${!boards.hasNext()} ? 'btn-disabled' : ''"
+                   class="join-item btn btn-outline">
+                    »
+                </a>
+            </div>
+        </nav>
+    </section>
+</main>
 </body>
 </html>

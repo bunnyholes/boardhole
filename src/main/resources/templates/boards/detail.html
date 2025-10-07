@@ -1,28 +1,31 @@
 <!DOCTYPE html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      data-theme="dracula">
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <title th:text="${board.title + ' - boardhole'}">board detail - boardhole</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css"/>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5/themes.css" rel="stylesheet" type="text/css"/>
     <th:block th:replace="~{fragments/head :: head('board detail - boardhole')}"/>
 </head>
-<body class="bg-slate-50 text-slate-900">
+<body class="bg-base-100 text-base-content">
 <th:block th:replace="~{fragments/header :: header()}"></th:block>
 <th:block th:replace="~{fragments/sidebar :: sidebar()}"></th:block>
 <main>
                 <section class="mx-auto max-w-6xl px-6 pt-10 pb-6">
                     <!-- 페이지 타이틀 -->
                     <div class="mb-8">
-                        <h1 class="text-3xl font-semibold text-slate-900" th:text="${board.title}">타이틀</h1>
-                        <p class="mt-2 text-base text-slate-500">게시글 상세 정보를 확인하세요.</p>
+                        <h1 class="text-3xl font-semibold text-base-content" th:text="${board.title}">타이틀</h1>
+                        <p class="mt-2 text-base text-base-content/60">게시글 상세 정보를 확인하세요.</p>
                     </div>
                 </section>
                 <section class="mx-auto max-w-6xl px-6 pb-10 mt-12">
                     <article>
-                        <header class="border-b border-slate-200 pb-6">
-                            <div class="grid grid-cols-2 gap-x-8 gap-y-2 max-w-lg text-sm text-slate-500">
+                        <header class="border-b border-base-300 pb-6">
+                            <div class="grid grid-cols-2 gap-x-8 gap-y-2 max-w-lg text-sm text-base-content/60">
                                 <!-- 좌상: 작성자 -->
                                 <div class="tip-wrapper relative inline-flex items-center gap-2 group/tip">
                                     <div class="tip-anchor inline-flex items-center gap-2 [anchor-name:--tip-author]"
@@ -33,10 +36,10 @@
                                             <circle cx="12" cy="8" r="3"/>
                                             <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>
                                         </svg>
-                                        <span class="font-medium text-slate-700" th:text="${board.authorName}">홍길동</span>
+                                        <span class="font-medium text-base-content/80" th:text="${board.authorName}">홍길동</span>
                                     </div>
                                     <div id="detail-tip-author" role="tooltip"
-                                         class="tip-tooltip pointer-events-none absolute z-10 overflow-hidden rounded-xl bg-slate-900/90 px-3 py-2 text-xs font-medium text-white opacity-0 invisible delay-150 [transition-property:opacity,visibility] duration-150 [transition-behavior:allow-discrete] [position-anchor:--tip-author] [bottom:calc(anchor(top)-8px)] [left:anchor(start)] whitespace-nowrap text-left leading-5 text-ellipsis group-hover/tip:delay-0 group-hover/tip:opacity-100 group-hover/tip:visible group-focus-visible/tip:delay-0 group-focus-visible/tip:opacity-100 group-focus-visible/tip:visible">
+                                         class="tip-tooltip pointer-events-none absolute z-10 overflow-hidden rounded-xl bg-primary/90 px-3 py-2 text-xs font-medium text-base-content opacity-0 invisible delay-150 [transition-property:opacity,visibility] duration-150 [transition-behavior:allow-discrete] [position-anchor:--tip-author] [bottom:calc(anchor(top)-8px)] [left:anchor(start)] whitespace-nowrap text-left leading-5 text-ellipsis group-hover/tip:delay-0 group-hover/tip:opacity-100 group-hover/tip:visible group-focus-visible/tip:delay-0 group-focus-visible/tip:opacity-100 group-focus-visible/tip:visible">
                                         작성자
                                     </div>
                                 </div>
@@ -57,7 +60,7 @@
                                         </time>
                                     </div>
                                     <div id="detail-tip-created" role="tooltip"
-                                         class="tip-tooltip pointer-events-none absolute z-10 overflow-hidden rounded-xl bg-slate-900/90 px-3 py-2 text-xs font-medium text-white opacity-0 invisible delay-150 [transition-property:opacity,visibility] duration-150 [transition-behavior:allow-discrete] [position-anchor:--tip-created] [bottom:calc(anchor(top)-8px)] [left:anchor(start)] whitespace-nowrap text-left leading-5 text-ellipsis group-hover/tip:delay-0 group-hover/tip:opacity-100 group-hover/tip:visible group-focus-visible/tip:delay-0 group-focus-visible/tip:opacity-100 group-focus-visible/tip:visible">
+                                         class="tip-tooltip pointer-events-none absolute z-10 overflow-hidden rounded-xl bg-primary/90 px-3 py-2 text-xs font-medium text-base-content opacity-0 invisible delay-150 [transition-property:opacity,visibility] duration-150 [transition-behavior:allow-discrete] [position-anchor:--tip-created] [bottom:calc(anchor(top)-8px)] [left:anchor(start)] whitespace-nowrap text-left leading-5 text-ellipsis group-hover/tip:delay-0 group-hover/tip:opacity-100 group-hover/tip:visible group-focus-visible/tip:delay-0 group-focus-visible/tip:opacity-100 group-focus-visible/tip:visible">
                                         작성시간
                                     </div>
                                 </div>
@@ -72,10 +75,10 @@
                                             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                                             <circle cx="12" cy="12" r="3"/>
                                         </svg>
-                                        <span class="text-sm text-slate-500" th:text="${board.viewCount}">999</span>
+                                        <span class="text-sm text-base-content/60" th:text="${board.viewCount}">999</span>
                                     </div>
                                     <div id="detail-tip-views" role="tooltip"
-                                         class="tip-tooltip pointer-events-none absolute z-10 overflow-hidden rounded-xl bg-slate-900/90 px-3 py-2 text-xs font-medium text-white opacity-0 invisible delay-150 [transition-property:opacity,visibility] duration-150 [transition-behavior:allow-discrete] [position-anchor:--tip-views] [bottom:calc(anchor(top)-8px)] [left:anchor(start)] whitespace-nowrap text-left leading-5 text-ellipsis group-hover/tip:delay-0 group-hover/tip:opacity-100 group-hover/tip:visible group-focus-visible/tip:delay-0 group-focus-visible/tip:opacity-100 group-focus-visible/tip:visible">
+                                         class="tip-tooltip pointer-events-none absolute z-10 overflow-hidden rounded-xl bg-primary/90 px-3 py-2 text-xs font-medium text-base-content opacity-0 invisible delay-150 [transition-property:opacity,visibility] duration-150 [transition-behavior:allow-discrete] [position-anchor:--tip-views] [bottom:calc(anchor(top)-8px)] [left:anchor(start)] whitespace-nowrap text-left leading-5 text-ellipsis group-hover/tip:delay-0 group-hover/tip:opacity-100 group-hover/tip:visible group-focus-visible/tip:delay-0 group-focus-visible/tip:opacity-100 group-focus-visible/tip:visible">
                                         조회수
                                     </div>
                                 </div>
@@ -97,7 +100,7 @@
                                         </time>
                                     </div>
                                     <div id="detail-tip-updated" role="tooltip"
-                                         class="tip-tooltip pointer-events-none absolute z-10 overflow-hidden rounded-xl bg-slate-900/90 px-3 py-2 text-xs font-medium text-white opacity-0 invisible delay-150 [transition-property:opacity,visibility] duration-150 [transition-behavior:allow-discrete] [position-anchor:--tip-updated] [bottom:calc(anchor(top)-8px)] [left:anchor(start)] whitespace-nowrap text-left leading-5 text-ellipsis group-hover/tip:delay-0 group-hover/tip:opacity-100 group-hover/tip:visible group-focus-visible/tip:delay-0 group-focus-visible/tip:opacity-100 group-focus-visible/tip:visible">
+                                         class="tip-tooltip pointer-events-none absolute z-10 overflow-hidden rounded-xl bg-primary/90 px-3 py-2 text-xs font-medium text-base-content opacity-0 invisible delay-150 [transition-property:opacity,visibility] duration-150 [transition-behavior:allow-discrete] [position-anchor:--tip-updated] [bottom:calc(anchor(top)-8px)] [left:anchor(start)] whitespace-nowrap text-left leading-5 text-ellipsis group-hover/tip:delay-0 group-hover/tip:opacity-100 group-hover/tip:visible group-focus-visible/tip:delay-0 group-focus-visible/tip:opacity-100 group-focus-visible/tip:visible">
                                         수정시간
                                     </div>
                                 </div>
@@ -108,19 +111,19 @@
                         </header>
 
                         <div class="mt-8 prose prose-slate max-w-none">
-                            <p class="whitespace-pre-wrap text-base leading-relaxed text-slate-700" th:text="${board.content}">
+                            <p class="whitespace-pre-wrap text-base leading-relaxed text-base-content/80" th:text="${board.content}">
                                 게시글 내용이 여기에 표시됩니다.
                                 여러 줄의 내용이 들어갈 수 있습니다.
                                 긴 텍스트도 깔끔하게 표시됩니다.
                             </p>
                         </div>
 
-                        <footer class="mt-10 flex items-center justify-end gap-4 border-t border-slate-200 pt-6">
+                        <footer class="mt-10 flex items-center justify-end gap-4 border-t border-base-300 pt-6">
                             <div sec:authorize="hasPermission(#vars.board.id, 'BOARD', 'WRITE')"
                                  class="flex items-center gap-3"
                                  data-testid="manage-menu">
                                 <a th:href="@{/boards/{id}/edit(id=${board.id})}" href="./edit.html"
-                                   class="inline-flex items-center justify-center gap-2 rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white transition hover:bg-slate-700">
+                                   class="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-5 py-2 text-sm font-semibold text-base-content transition hover:bg-slate-700">
                                     수정하기
                                 </a>
                             </div>

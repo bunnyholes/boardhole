@@ -1,13 +1,15 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" data-theme="dracula">
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <title>board edit - boardhole</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css"/>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5/themes.css" rel="stylesheet" type="text/css"/>
     <th:block th:replace="~{fragments/head :: head('board edit - boardhole')}"/>
 </head>
-<body class="bg-slate-50 text-slate-900">
+<body class="bg-base-100 text-base-content">
 <th:block th:replace="~{fragments/header :: header()}"></th:block>
 <th:block th:replace="~{fragments/sidebar :: sidebar()}"></th:block>
 <main>
@@ -15,15 +17,15 @@
                     <!-- 페이지 타이틀 -->
                     <div class="mb-8">
                         <span class="inline-flex items-center gap-2 rounded-full border px-4 py-1 text-sm font-medium border-blue-200 bg-blue-50 text-blue-700">✏️ 게시글 수정</span>
-                        <h1 class="text-3xl font-semibold text-slate-900 mt-4">게시글 수정하기</h1>
-                        <p class="mt-2 text-base text-slate-500">내용을 수정하고 저장하면 즉시 반영됩니다. 언제든지 다시 수정할 수 있습니다.</p>
+                        <h1 class="text-3xl font-semibold text-base-content mt-4">게시글 수정하기</h1>
+                        <p class="mt-2 text-base text-base-content/60">내용을 수정하고 저장하면 즉시 반영됩니다. 언제든지 다시 수정할 수 있습니다.</p>
                     </div>
 
                     <form id="boardForm" method="post" th:action="@{/boards/{id}(id=${id})}" th:object="${board}" novalidate
                           class="space-y-6">
                         <input type="hidden" name="_method" value="put"/>
                         <div>
-                            <label for="title" class="block text-sm font-semibold text-slate-700 mb-2">제목</label>
+                            <label for="title" class="block text-sm font-semibold text-base-content/80 mb-2">제목</label>
                             <input aria-required="true"
                                    id="title"
                                    maxlength="255"
@@ -33,14 +35,14 @@
                                    th:attr="aria-invalid=${#fields.hasErrors('title')} ? 'true' : (${#fields.hasAnyErrors()} ? 'false' : null),aria-describedby=${#fields.hasErrors('title')} ? 'title-help' : null"
                                    th:field="*{title}"
                                    type="text"
-                                   class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
+                                   class="w-full rounded-2xl border border-base-300 bg-base-200 px-4 py-3 text-base text-base-content placeholder:text-base-content/50 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
                                    th:classappend="${#fields.hasErrors('title')} ? ' border-rose-500 focus:border-rose-500 focus:ring-rose-500/20' : ''">
                             <small id="title-help" class="mt-2 block text-sm text-rose-500"
                                    th:if="${#fields.hasErrors('title')}" th:errors="*{title}">제목 오류 메시지</small>
                         </div>
 
                         <div>
-                            <label for="content" class="block text-sm font-semibold text-slate-700 mb-2">내용</label>
+                            <label for="content" class="block text-sm font-semibold text-base-content/80 mb-2">내용</label>
                             <textarea aria-required="true"
                                       id="content"
                                       maxlength="10000"
@@ -50,7 +52,7 @@
                                       rows="15"
                                       th:attr="aria-invalid=${#fields.hasErrors('content')} ? 'true' : (${#fields.hasAnyErrors()} ? 'false' : null),aria-describedby=${#fields.hasErrors('content')} ? 'content-help' : null"
                                       th:field="*{content}"
-                                      class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition resize-none"
+                                      class="w-full rounded-2xl border border-base-300 bg-base-200 px-4 py-3 text-base text-base-content placeholder:text-base-content/50 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition resize-none"
                                       th:classappend="${#fields.hasErrors('content')} ? ' border-rose-500 focus:border-rose-500 focus:ring-rose-500/20' : ''"></textarea>
                             <small id="content-help" class="mt-2 block text-sm text-rose-500"
                                    th:if="${#fields.hasErrors('content')}" th:errors="*{content}">내용 오류 메시지</small>
@@ -58,11 +60,11 @@
 
                         <div class="flex items-center justify-end gap-3 pt-4">
                             <a th:href="@{/boards/{id}(id=${id})}" href="../boards/detail.html"
-                               class="inline-flex items-center justify-center rounded-full border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:bg-slate-50">
+                               class="inline-flex items-center justify-center rounded-full border border-base-300 px-5 py-2.5 text-sm font-semibold text-base-content/70 transition hover:border-base-300 hover:bg-base-200">
                                 취소
                             </a>
                             <button type="submit"
-                                    class="rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/70 focus-visible:ring-offset-2">
+                                    class="rounded-full bg-primary px-6 py-3 text-sm font-semibold text-base-content transition hover:bg-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/70 focus-visible:ring-offset-2">
                                 수정 완료
                             </button>
                         </div>

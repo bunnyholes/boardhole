@@ -1,15 +1,19 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" data-theme="dracula">
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <title>logout success - boardhole</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css"/>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5/themes.css" rel="stylesheet" type="text/css"/>
 </head>
-<body class="bg-slate-50 text-slate-900">
-<div class="flex min-h-screen items-center justify-center px-4 py-12">
+<body class="bg-base-100 text-base-content">
+<main class="max-w-5xl mx-auto px-4 py-6">
+</main>
+<div class="flex min-h-[calc(100vh-6rem)] items-center justify-center px-4 pb-12">
     <div class="w-full max-w-md text-center">
-        <div class="rounded-3xl bg-white p-10 shadow-2xl">
+        <div class="rounded-3xl bg-base-200 p-10 shadow-2xl">
             <div class="mb-8">
                 <div class="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-green-100">
                     <svg aria-hidden="true" viewBox="0 0 24 24" class="h-10 w-10 text-green-600" fill="none"
@@ -17,12 +21,12 @@
                         <polyline points="20 6 9 17 4 12"/>
                     </svg>
                 </div>
-                <h1 class="text-3xl font-semibold text-slate-900">로그아웃 완료</h1>
-                <p class="mt-2 text-base text-slate-500">다시 방문하실 때까지 기다릴게요.</p>
+                <h1 class="text-3xl font-semibold text-base-content">로그아웃 완료</h1>
+                <p class="mt-2 text-base text-base-content/60">다시 방문하실 때까지 기다릴게요.</p>
             </div>
 
             <a th:href="@{/}" href="../index.html"
-               class="block w-full rounded-full bg-slate-900 px-6 py-3 text-base font-semibold text-white transition hover:bg-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/70 focus-visible:ring-offset-2">
+               class="block w-full rounded-full bg-primary px-6 py-3 text-base font-semibold text-base-content transition hover:bg-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/70 focus-visible:ring-offset-2">
                 홈으로 이동
             </a>
         </div>

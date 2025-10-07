@@ -33,14 +33,14 @@
                     </svg>
                 </button>
                 <div class="flex-1 content-center-safe px-6">
-                    <p class="uppercase tracking-[0.4em] text-sm text-slate-300">Menu</p>
+                    <p class="uppercase tracking-[0.4em] text-sm text-base-content/40">Menu</p>
                 </div>
             </header>
 
             <nav class="flex-1 flex flex-col w-full overflow-y-auto text-surface-400-600">
                 <a th:href="@{/users/me}" href="/users/me"
                    class="flex h-20 w-full hover:preset-filled-surface-400-600 transition"
-                   th:classappend="${#strings.startsWith(requestUri, '/users/me')} ? ' preset-filled-surface-400-600 text-white' : ''"
+                   th:classappend="${#strings.startsWith(requestUri, '/users/me')} ? ' preset-filled-surface-400-600 text-base-content' : ''"
                    aria-label="Profile" title="Profile"
                    th:attr="aria-current=${#strings.startsWith(requestUri, '/users/me')} ? 'page' : null">
                     <div class="w-20 grid place-items-center-safe">
@@ -56,7 +56,7 @@
 
                 <a th:href="@{/boards}" href="/boards"
                    class="flex h-20 w-full hover:preset-filled-surface-400-600 transition"
-                   th:classappend="${#strings.startsWith(requestUri, '/boards')} ? ' preset-filled-surface-400-600 text-white' : ''"
+                   th:classappend="${#strings.startsWith(requestUri, '/boards')} ? ' preset-filled-surface-400-600 text-base-content' : ''"
                    aria-label="Boards" title="Boards"
                    th:attr="aria-current=${#strings.startsWith(requestUri, '/boards')} ? 'page' : null">
                     <div class="w-20 grid place-items-center-safe">
@@ -74,7 +74,7 @@
                 <a th:if="${#authorization.expression('hasRole(''ADMIN'')')}"
                    th:href="@{/users}" href="/users"
                    class="flex h-20 w-full hover:preset-filled-surface-400-600 transition"
-                   th:classappend="${#strings.startsWith(requestUri, '/users')} ? ' preset-filled-surface-400-600 text-white' : ''"
+                   th:classappend="${#strings.startsWith(requestUri, '/users')} ? ' preset-filled-surface-400-600 text-base-content' : ''"
                    aria-label="Users" title="Users"
                    th:attr="aria-current=${#strings.startsWith(requestUri, '/users')} ? 'page' : null">
                     <div class="w-20 grid place-items-center-safe">
