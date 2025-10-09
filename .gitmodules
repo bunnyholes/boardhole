@@ -1,0 +1,3 @@
+[submodule "boardhole-ops"]
+	path = boardhole-ops
+	url = https://github.com/XIYO/boardhole-ops.git

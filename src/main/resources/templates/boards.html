@@ -22,24 +22,24 @@
 
         <div class="mt-6 flex flex-wrap items-center gap-3">
             <form th:action="@{/boards}" action="./boards.html"
-                  class="flex min-w-[260px] flex-1 items-center gap-3 rounded-2xl bg-base-200 px-4 py-3 shadow-inner">
-                <svg aria-hidden="true" viewBox="0 0 24 24" class="h-5 w-5 text-base-content/50" fill="none"
-                     stroke="currentColor"
-                     stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="11" cy="11" r="6"/>
-                    <line x1="16.5" y1="16.5" x2="20" y2="20"/>
-                </svg>
-                <div class="tip-wrapper relative flex-1 group/search">
-                    <input name="search"
-                           th:value="${search}"
-                           aria-describedby="boards-search-tip"
-                           class="tip-anchor w-full bg-transparent text-sm text-base-content/80 placeholder:text-base-content/50 focus:outline-none [anchor-name:--boards-search]"
-                           type="search" placeholder="제목, 내용으로 검색"/>
-                    <div id="boards-search-tip" role="tooltip"
-                         class="tip-tooltip pointer-events-none absolute z-10 overflow-hidden rounded-xl bg-primary/90 px-3 py-2 text-xs font-medium text-base-content opacity-0 invisible delay-150 [transition-property:opacity,visibility] duration-150 [transition-behavior:allow-discrete] [position-anchor:--boards-search] [bottom:calc(anchor(top)+12px)] [left:anchor(center)] [translate:-50%_0] whitespace-nowrap text-left leading-5 text-ellipsis [max-inline-size:clamp(12rem,30vw,16rem)] group-hover/search:delay-0 group-hover/search:opacity-100 group-hover/search:visible group-focus-within/search:delay-0 group-focus-within/search:opacity-100 group-focus-within/search:visible">
-                        검색어 입력후 엔터를 입력하세요.
+                  class="w-full max-w-md">
+                <fieldset class="fieldset w-full bg-base-100/70">
+                    <legend class="fieldset-legend text-sm font-medium text-base-content/70">검색어</legend>
+                    <div class="relative">
+                        <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-base-content/50">
+                            <svg aria-hidden="true" viewBox="0 0 24 24" class="h-5 w-5" fill="none"
+                                 stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="11" cy="11" r="6"/>
+                                <line x1="16.5" y1="16.5" x2="20" y2="20"/>
+                            </svg>
+                        </span>
+                        <input name="search"
+                               th:value="${search}"
+                               class="input w-full pl-10 text-base-content placeholder:text-base-content/50"
+                               type="search" placeholder="제목, 내용으로 검색"/>
                     </div>
-                </div>
+                    <p class="label text-xs text-base-content/60">엔터 키를 눌러 검색하세요.</p>
+                </fieldset>
             </form>
             <div class="compose-wrapper relative inline-flex group/compose">
                 <a th:href="@{/boards/write}" href="./boards/write.html"
