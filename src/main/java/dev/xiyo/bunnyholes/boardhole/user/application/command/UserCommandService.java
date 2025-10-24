@@ -9,6 +9,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.util.unit.DataSize;
 
+import dev.xiyo.bunnyholes.boardhole.shared.cache.CacheConstants;
 import dev.xiyo.bunnyholes.boardhole.shared.exception.DuplicateEmailException;
 import dev.xiyo.bunnyholes.boardhole.shared.exception.DuplicateUsernameException;
 import dev.xiyo.bunnyholes.boardhole.shared.exception.InvalidFileException;
@@ -63,6 +65,7 @@ public class UserCommandService {
      * @throws DuplicateEmailException    이메일 중복 시
      */
     @Transactional
+    @CacheEvict(cacheNames = CacheConstants.User.CACHE_NAME, allEntries = true)
     public UserResult create(@Valid CreateUserCommand cmd) {
         User saved = createUser(cmd);
         return userMapper.toResult(saved);
@@ -95,6 +98,7 @@ public class UserCommandService {
      */
     @Transactional
     @PreAuthorize("hasRole('ADMIN') or #cmd.username().equalsIgnoreCase(authentication.name)")
+    @CacheEvict(cacheNames = CacheConstants.User.CACHE_NAME, allEntries = true)
     public UserResult update(@Valid UpdateUserCommand cmd) {
         String username = cmd.username();
         User user = userRepository
@@ -116,6 +120,7 @@ public class UserCommandService {
      */
     @Transactional
     @PreAuthorize("hasRole('ADMIN') or #username.equalsIgnoreCase(authentication.name)")
+    @CacheEvict(cacheNames = CacheConstants.User.CACHE_NAME, allEntries = true)
     public void delete(@NotBlank String username) {
         User existing = userRepository
                 .findByUsername(username)
@@ -148,6 +153,7 @@ public class UserCommandService {
      */
     @Transactional
     @PreAuthorize("hasRole('ADMIN') or #cmd.username().equalsIgnoreCase(authentication.name)")
+    @CacheEvict(cacheNames = CacheConstants.User.CACHE_NAME, allEntries = true)
     public void updatePassword(@Valid UpdatePasswordCommand cmd) {
         User user = userRepository
                 .findByUsername(cmd.username())
@@ -166,6 +172,7 @@ public class UserCommandService {
 
     @Transactional
     @PreAuthorize("hasRole('ADMIN') or #cmd.username().equalsIgnoreCase(authentication.name)")
+    @CacheEvict(cacheNames = CacheConstants.User.CACHE_NAME, allEntries = true)
     public UserResult updateProfileImage(@Valid UpdateUserProfileImageCommand cmd) {
         User user = userRepository
                 .findByUsername(cmd.username())

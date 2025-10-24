@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +17,7 @@ import dev.xiyo.bunnyholes.boardhole.board.application.mapper.BoardMapper;
 import dev.xiyo.bunnyholes.boardhole.board.application.result.BoardResult;
 import dev.xiyo.bunnyholes.boardhole.board.domain.Board;
 import dev.xiyo.bunnyholes.boardhole.board.infrastructure.BoardRepository;
+import dev.xiyo.bunnyholes.boardhole.shared.cache.CacheConstants;
 import dev.xiyo.bunnyholes.boardhole.shared.exception.ResourceNotFoundException;
 import dev.xiyo.bunnyholes.boardhole.shared.util.MessageUtils;
 import dev.xiyo.bunnyholes.boardhole.user.domain.User;
@@ -42,6 +44,7 @@ public class BoardCommandService {
      * @throws ResourceNotFoundException 작성자를 찾을 수 없는 경우
      */
     @Transactional
+    @CacheEvict(cacheNames = CacheConstants.Board.CACHE_NAME, allEntries = true)
     public BoardResult create(@Valid CreateBoardCommand cmd) {
         String authorUsername = cmd.authorUsername();
         User author = userRepository
@@ -65,6 +68,7 @@ public class BoardCommandService {
      */
     @Transactional
     @PreAuthorize("hasPermission(#cmd.boardId, 'BOARD', 'WRITE')")
+    @CacheEvict(cacheNames = CacheConstants.Board.CACHE_NAME, allEntries = true)
     public BoardResult update(@Valid UpdateBoardCommand cmd) {
         UUID id = cmd.boardId();
         Board board = boardRepository
@@ -87,6 +91,7 @@ public class BoardCommandService {
      */
     @Transactional
     @PreAuthorize("hasPermission(#id, 'BOARD', 'DELETE')")
+    @CacheEvict(cacheNames = CacheConstants.Board.CACHE_NAME, allEntries = true)
     public void delete(UUID id) {
         Board board = loadBoardOrThrow(id);
         boardRepository.delete(board);

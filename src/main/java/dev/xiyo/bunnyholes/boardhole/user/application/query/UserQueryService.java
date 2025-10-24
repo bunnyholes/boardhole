@@ -3,12 +3,14 @@ package dev.xiyo.bunnyholes.boardhole.user.application.query;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import dev.xiyo.bunnyholes.boardhole.shared.cache.CacheConstants;
 import dev.xiyo.bunnyholes.boardhole.shared.exception.ResourceNotFoundException;
 import dev.xiyo.bunnyholes.boardhole.shared.util.MessageUtils;
 import dev.xiyo.bunnyholes.boardhole.user.application.mapper.UserMapper;
@@ -38,6 +40,7 @@ public class UserQueryService {
      */
     @Transactional(readOnly = true)
     @PreAuthorize("hasRole('ADMIN') or #username.equalsIgnoreCase(authentication.name)")
+    @Cacheable(cacheNames = CacheConstants.User.CACHE_NAME, key = "T(dev.xiyo.bunnyholes.boardhole.shared.cache.CacheConstants).CacheKey.userId(#username)")
     public UserResult get(String username) {
         return userRepository
                 .findByUsername(username)
@@ -47,6 +50,7 @@ public class UserQueryService {
 
     @Transactional(readOnly = true)
     @PreAuthorize("hasRole('ADMIN') or #username.equalsIgnoreCase(authentication.name)")
+    @Cacheable(cacheNames = CacheConstants.User.CACHE_NAME, key = "T(dev.xiyo.bunnyholes.boardhole.shared.cache.CacheConstants).CacheKey.userProfileImage(#username)")
     public UserProfileImageResult getProfileImage(String username) {
         User user = userRepository
                 .findByUsername(username)

@@ -7,6 +7,7 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -19,6 +20,7 @@ import dev.xiyo.bunnyholes.boardhole.board.application.mapper.BoardMapper;
 import dev.xiyo.bunnyholes.boardhole.board.application.result.BoardResult;
 import dev.xiyo.bunnyholes.boardhole.board.domain.Board;
 import dev.xiyo.bunnyholes.boardhole.board.infrastructure.BoardRepository;
+import dev.xiyo.bunnyholes.boardhole.shared.cache.CacheConstants;
 import dev.xiyo.bunnyholes.boardhole.shared.exception.ResourceNotFoundException;
 import dev.xiyo.bunnyholes.boardhole.shared.util.MessageUtils;
 
@@ -46,6 +48,7 @@ public class BoardQueryService {
      * @throws ResourceNotFoundException 게시글을 찾을 수 없는 경우
      */
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = CacheConstants.Board.CACHE_NAME, key = "#query.id()")
     public BoardResult handle(GetBoardQuery query) {
         Board board = boardRepository
                 .findById(query.id())
@@ -106,6 +109,7 @@ public class BoardQueryService {
      * @return 최근 게시글 목록
      */
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = CacheConstants.Board.CACHE_NAME, key = "T(dev.xiyo.bunnyholes.boardhole.shared.cache.CacheConstants).CacheKey.boardRecent(#limit)")
     public List<BoardResult> getRecentBoards(int limit) {
         Pageable pageable = PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "createdAt"));
         return boardRepository.findAll(pageable).map(boardMapper::toResult).getContent();
@@ -117,6 +121,7 @@ public class BoardQueryService {
      * @return 전체 게시글 수
      */
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = CacheConstants.Board.CACHE_NAME, key = "T(dev.xiyo.bunnyholes.boardhole.shared.cache.CacheConstants).Board.COUNT")
     public Long getTotalBoardCount() {
         return boardRepository.count();
     }
@@ -127,6 +132,7 @@ public class BoardQueryService {
      * @return 오늘 작성된 게시글 수
      */
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = CacheConstants.Board.CACHE_NAME, key = "T(dev.xiyo.bunnyholes.boardhole.shared.cache.CacheConstants).Board.COUNT_TODAY")
     public Long getTodayBoardCount() {
         LocalDate today = LocalDate.now();
         return boardRepository.countByCreatedAtBetween(
@@ -142,6 +148,7 @@ public class BoardQueryService {
      * @return 사용자의 게시글 수
      */
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = CacheConstants.Board.CACHE_NAME, key = "T(dev.xiyo.bunnyholes.boardhole.shared.cache.CacheConstants).CacheKey.boardCountByAuthor(#authorId)")
     public Long getMyBoardCount(UUID authorId) {
         return boardRepository.countByAuthorId(authorId);
     }
