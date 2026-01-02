@@ -138,6 +138,42 @@
                         </footer>
                     </article>
                 </section>
+
+                <section id="reply-section" class="mx-auto max-w-6xl px-6 pb-10">
+                    <h2 class="text-xl font-semibold mb-6 flex items-center gap-2">
+                        <svg aria-hidden="true" viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor"
+                             stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                        </svg>
+                        <span>댓글</span>
+                        <span th:text="${replyCount}" class="text-base-content/60">0</span>
+                    </h2>
+
+                    <form th:action="@{/api/boards/{id}/replies(id=${board.id})}" method="post"
+                          class="mb-8" sec:authorize="isAuthenticated()">
+                        <textarea name="content" rows="3"
+                                  class="textarea textarea-bordered w-full"
+                                  placeholder="댓글을 입력하세요" required></textarea>
+                        <div class="flex justify-end mt-2">
+                            <button type="submit" class="btn btn-primary">작성</button>
+                        </div>
+                    </form>
+
+                    <div sec:authorize="!isAuthenticated()" class="mb-8 p-4 bg-base-200 rounded-lg text-center">
+                        <p class="text-base-content/60">댓글을 작성하려면
+                            <a th:href="@{/auth/login}" class="link link-primary">로그인</a>하세요.
+                        </p>
+                    </div>
+
+                    <div id="reply-tree" th:if="${replies != null and not #lists.isEmpty(replies)}">
+                        <th:block th:replace="~{fragments/reply-tree :: replyList(${replies}, ${board.id})}"/>
+                    </div>
+
+                    <div th:if="${replies == null or #lists.isEmpty(replies)}" class="text-center py-8 text-base-content/60">
+                        <p>아직 댓글이 없습니다. 첫 댓글을 작성해보세요!</p>
+                    </div>
+                </section>
             </main>
+
 </body>
 </html>

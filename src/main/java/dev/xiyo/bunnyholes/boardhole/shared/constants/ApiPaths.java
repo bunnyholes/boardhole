@@ -21,5 +21,7 @@ public final class ApiPaths {
     public static final String AUTH = API_PREFIX + "/auth";
     public static final String USERS = API_PREFIX + "/users";
     public static final String BOARDS = API_PREFIX + "/boards";
+    public static final String REPLIES = API_PREFIX + "/replies";
+    public static final String BOARD_REPLIES = BOARDS + "/{boardId}/replies";
 
 }

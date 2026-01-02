@@ -17,6 +17,8 @@ spring:
   docker:
     compose:
       file: docker-compose.infra.yml
+      skip:
+        in-tests: true
   
   # MVC 설정
   mvc:

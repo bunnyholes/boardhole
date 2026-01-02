@@ -1,7 +1,7 @@
 services:
   postgres:
     image: postgres:17-alpine
-    container_name: boardhole-postgres
+    container_name: boardhole-cte-postgres
     ports:
       - "5432"
     environment:
@@ -19,7 +19,7 @@ services:
   
   redis:
     image: redis:7-alpine
-    container_name: boardhole-redis
+    container_name: boardhole-cte-redis
     ports:
       - "6379"
     command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru

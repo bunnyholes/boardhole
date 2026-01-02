@@ -1,6 +1,7 @@
 package dev.xiyo.bunnyholes.boardhole.board.presentation.view;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 import jakarta.persistence.EntityManager;
@@ -26,6 +27,8 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import dev.xiyo.bunnyholes.boardhole.board.application.query.BoardQueryService;
 import dev.xiyo.bunnyholes.boardhole.board.application.result.BoardResult;
+import dev.xiyo.bunnyholes.boardhole.reply.application.query.ReplyQueryService;
+import dev.xiyo.bunnyholes.boardhole.reply.application.result.ReplyTreeResult;
 import dev.xiyo.bunnyholes.boardhole.shared.config.ViewSecurityConfig;
 import dev.xiyo.bunnyholes.boardhole.shared.exception.GlobalExceptionHandler;
 import dev.xiyo.bunnyholes.boardhole.shared.exception.ResourceNotFoundException;
@@ -73,6 +76,9 @@ class BoardDetailViewControllerTest {
     private BoardQueryService boardQueryService;
 
     @MockitoBean
+    private ReplyQueryService replyQueryService;
+
+    @MockitoBean
     private EntityManager entityManager;
 
     @MockitoBean
@@ -84,6 +90,7 @@ class BoardDetailViewControllerTest {
     @BeforeEach
     void setUp() {
         lenient().when(permissionEvaluator.hasPermission(any(), any(), any(), any())).thenReturn(false);
+        lenient().when(replyQueryService.getReplyTree(any())).thenReturn(new ReplyTreeResult(List.of(), 0));
     }
 
     @AfterEach

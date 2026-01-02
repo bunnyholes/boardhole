@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import dev.xiyo.bunnyholes.boardhole.board.application.query.BoardQueryService;
+import dev.xiyo.bunnyholes.boardhole.reply.application.query.ReplyQueryService;
+import dev.xiyo.bunnyholes.boardhole.reply.application.result.ReplyTreeResult;
 import dev.xiyo.bunnyholes.boardhole.shared.exception.ResourceNotFoundException;
 
 /**
@@ -25,22 +27,16 @@ import dev.xiyo.bunnyholes.boardhole.shared.exception.ResourceNotFoundException;
 public class BoardDetailViewController {
 
     private final BoardQueryService boardQueryService;
+    private final ReplyQueryService replyQueryService;
 
-    /**
-     * 게시글 상세 페이지
-     * <p>
-     * 게시글 상세 정보를 조회하여 표시합니다.
-     * 조회 시 조회수가 자동으로 증가합니다.
-     *
-     * @param id    게시글 ID
-     * @param model 뷰에 전달할 데이터
-     * @return 게시글 상세 템플릿
-     * @throws ResourceNotFoundException 게시글을 찾을 수 없는 경우
-     */
     @GetMapping("/{id}")
     public String detail(@PathVariable UUID id, Model model) {
         var board = boardQueryService.getBoard(id);
+        ReplyTreeResult replyTree = replyQueryService.getReplyTree(id);
+
         model.addAttribute("board", board);
+        model.addAttribute("replies", replyTree.replies());
+        model.addAttribute("replyCount", replyTree.totalCount());
         return "boards/detail";
     }
 }

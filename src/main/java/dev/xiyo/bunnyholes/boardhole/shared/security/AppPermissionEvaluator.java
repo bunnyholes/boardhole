@@ -12,6 +12,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import dev.xiyo.bunnyholes.boardhole.board.infrastructure.BoardRepository;
+import dev.xiyo.bunnyholes.boardhole.reply.infrastructure.ReplyRepository;
 import dev.xiyo.bunnyholes.boardhole.shared.constants.PermissionType;
 import dev.xiyo.bunnyholes.boardhole.user.infrastructure.UserRepository;
 
@@ -20,6 +21,7 @@ import dev.xiyo.bunnyholes.boardhole.user.infrastructure.UserRepository;
 public class AppPermissionEvaluator implements PermissionEvaluator {
 
     private final BoardRepository boardRepository;
+    private final ReplyRepository replyRepository;
     private final UserRepository userRepository;
 
     private static boolean hasRole(Authentication auth, String role) {
@@ -72,6 +74,10 @@ public class AppPermissionEvaluator implements PermissionEvaluator {
                 case PermissionType.WRITE, PermissionType.DELETE -> isBoardOwner(auth, targetIdentifier);
                 default -> false;
             };
+            case PermissionType.TARGET_REPLY -> switch (perm) {
+                case PermissionType.WRITE, PermissionType.DELETE -> isReplyOwner(auth, targetIdentifier);
+                default -> false;
+            };
             case PermissionType.TARGET_USER -> switch (perm) {
                 case PermissionType.READ, PermissionType.WRITE, PermissionType.DELETE -> isSameUser(auth, targetIdentifier);
                 default -> false;
@@ -85,17 +91,19 @@ public class AppPermissionEvaluator implements PermissionEvaluator {
     }
 
     private boolean isBoardOwner(Authentication auth, String boardId) {
-        // TODO: 성능 최적화 - 실제 부하 발생 시 캐싱 고려
-        // 현재는 매 권한 체크마다 DB 조회가 발생하지만,
-        // 실제 운영 환경에서 부하가 발생하면 다음과 같은 최적화 가능:
-        // 1. @Cacheable 적용으로 권한 체크 결과 캐싱
-        // 2. Spring Security의 MethodSecurityExpressionOperations 캐싱 활용
-
-        // N+1 문제 해결: 작성자 ID만 조회하는 경량 쿼리 사용
-        // 전체 Board 엔티티를 로드하지 않고 필요한 정보만 조회하여 성능 최적화
         try {
             return boardRepository.findAuthorUsernameById(java.util.UUID.fromString(boardId))
                                   .map(ownerUsername -> isSameUser(auth, ownerUsername))
+                                  .orElse(false);
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
+    }
+
+    private boolean isReplyOwner(Authentication auth, String replyId) {
+        try {
+            return replyRepository.findByIdWithAuthor(java.util.UUID.fromString(replyId))
+                                  .map(reply -> isSameUser(auth, reply.getAuthor().getUsername()))
                                   .orElse(false);
         } catch (IllegalArgumentException e) {
             return false;

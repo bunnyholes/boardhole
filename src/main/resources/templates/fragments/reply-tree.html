@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<th:block th:fragment="replyList(replies, boardId)">
+    <div th:each="reply : ${replies}" class="reply-item mb-4"
+         th:id="'reply-' + ${reply.id}" style="scroll-margin-top: 6rem;">
+        <div th:style="|margin-left: ${reply.depth * 2}rem|"
+             class="border-l-2 border-base-300 pl-4">
+
+            <div th:if="${reply.deleted}" class="text-base-content/40 italic py-2">
+                삭제된 댓글입니다.
+            </div>
+
+            <div th:unless="${reply.deleted}" class="py-2">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2 text-sm text-base-content/60">
+                        <svg aria-hidden="true" viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor"
+                             stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="8" r="3"/>
+                            <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>
+                        </svg>
+                        <span class="font-medium text-base-content/80" th:text="${reply.authorName}">작성자</span>
+                        <time th:datetime="${reply.createdAt}"
+                              th:text="${#temporals.format(reply.createdAt, 'yyyy.MM.dd HH:mm')}"
+                              class="text-base-content/50">
+                            2025.01.02 10:00
+                        </time>
+                        <span th:if="${reply.updatedAt != null and reply.updatedAt != reply.createdAt}"
+                              class="text-amber-600 text-xs">(수정됨)</span>
+                    </div>
+
+                    <div sec:authorize="isAuthenticated()"
+                         th:if="${#authentication.name == reply.authorName}"
+                         class="flex items-center gap-2">
+                        <a th:href="@{/boards/{boardId}(boardId=${boardId}, editReply=${reply.id})}"
+                           class="text-xs text-base-content/50 hover:text-primary">
+                            수정
+                        </a>
+                        <form th:action="@{/replies/{id}/delete(id=${reply.id})}" method="post" class="inline"
+                              onsubmit="return confirm('정말 삭제하시겠습니까?');">
+                            <input type="hidden" name="boardId" th:value="${boardId}"/>
+                            <button type="submit" class="text-xs text-base-content/50 hover:text-error">
+                                삭제
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <p class="mt-2 text-base-content/80 whitespace-pre-wrap" th:text="${reply.content}">댓글 내용</p>
+
+                <div th:id="'edit-form-' + ${reply.id}" class="mt-2"
+                     th:classappend="${param.editReply == null or !param.editReply[0].equals(reply.id.toString())} ? 'hidden'">
+                    <form th:action="@{/replies/{id}(id=${reply.id})}" method="post">
+                        <textarea name="content" rows="2"
+                                  class="textarea textarea-bordered textarea-sm w-full"
+                                  th:text="${reply.content}"></textarea>
+                        <div class="flex justify-end gap-2 mt-2">
+                            <a th:href="@{/boards/{boardId}(boardId=${boardId})}"
+                               class="btn btn-ghost btn-sm">
+                                취소
+                            </a>
+                            <button type="submit" class="btn btn-primary btn-sm">저장</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div th:if="${reply.depth < 4}" class="mt-2">
+                    <a th:href="@{/boards/{boardId}(boardId=${boardId}, replyTo=${reply.id})}"
+                       sec:authorize="isAuthenticated()"
+                       class="text-sm text-primary hover:underline">
+                        답글
+                    </a>
+
+                    <div th:id="'reply-form-' + ${reply.id}" class="mt-2"
+                         th:classappend="${param.replyTo == null or !param.replyTo[0].equals(reply.id.toString())} ? 'hidden'">
+                        <form th:action="@{/api/boards/{boardId}/replies(boardId=${boardId})}" method="post">
+                            <input type="hidden" name="parentId" th:value="${reply.id}"/>
+                            <textarea name="content" rows="2"
+                                      class="textarea textarea-bordered textarea-sm w-full"
+                                      placeholder="답글을 입력하세요" required></textarea>
+                            <div class="flex justify-end gap-2 mt-2">
+                                <a th:href="@{/boards/{boardId}(boardId=${boardId})}"
+                                   class="btn btn-ghost btn-sm">
+                                    취소
+                                </a>
+                                <button type="submit" class="btn btn-primary btn-sm">작성</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <th:block th:if="${reply.children != null and not #lists.isEmpty(reply.children)}"
+                      th:replace="~{fragments/reply-tree :: replyList(${reply.children}, ${boardId})}"/>
+        </div>
+    </div>
+</th:block>
+
+</html>
