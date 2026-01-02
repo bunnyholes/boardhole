@@ -126,6 +126,14 @@
                                    class="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-5 py-2 text-sm font-semibold text-base-content transition hover:bg-slate-700">
                                     수정하기
                                 </a>
+                                <form th:action="@{/boards/{id}(id=${board.id})}" method="post" class="inline"
+                                      onsubmit="return confirm('정말 삭제하시겠습니까?');">
+                                    <input type="hidden" name="_method" value="delete"/>
+                                    <button type="submit"
+                                            class="inline-flex items-center justify-center gap-2 rounded-full bg-error px-5 py-2 text-sm font-semibold text-error-content transition hover:bg-red-700">
+                                        삭제하기
+                                    </button>
+                                </form>
                             </div>
                         </footer>
                     </article>

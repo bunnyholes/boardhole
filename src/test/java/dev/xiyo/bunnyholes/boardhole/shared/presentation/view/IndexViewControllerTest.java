@@ -28,14 +28,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
-/**
- * IndexViewController 뷰 컨트롤러 단위 테스트
- * <p>
- * Nested 클래스를 사용한 계층적 테스트 구조
- * - 관련 테스트들을 논리적으로 그룹핑
- * - IDE에서 트리 뷰로 표시
- * - 특정 그룹만 선택 실행 가능
- */
 @WebMvcTest(
         value = IndexViewController.class,
         excludeFilters = {
@@ -93,24 +85,24 @@ class IndexViewControllerTest {
         class Sidebar {
 
             @Test
-            @DisplayName("고정 사이드바가 렌더링된다")
-            void shouldRenderFixedSidebar() throws Exception {
+            @DisplayName("사이드바가 렌더링된다")
+            void shouldRenderSidebar() throws Exception {
                 mockMvc.perform(get("/"))
                        .andExpect(status().isOk())
-                       .andExpect(content().string(containsString("class=\"fixed left-0 top-0 flex h-screen w-20")));
+                       .andExpect(content().string(containsString("id=\"sidebar\"")));
             }
 
             @Test
-            @DisplayName("BH 로고가 표시된다")
-            void shouldDisplayLogo() throws Exception {
+            @DisplayName("사이드바 토글 버튼이 표시된다")
+            void shouldDisplaySidebarToggle() throws Exception {
                 mockMvc.perform(get("/"))
                        .andExpect(status().isOk())
-                       .andExpect(content().string(containsString("BH")));
+                       .andExpect(content().string(containsString("popovertarget=\"sidebar\"")));
             }
 
             @Test
-            @DisplayName("프로필 이미지가 표시된다")
-            void shouldDisplayProfileImage() throws Exception {
+            @DisplayName("프로필 링크가 표시된다")
+            void shouldDisplayProfileLink() throws Exception {
                 mockMvc.perform(get("/"))
                        .andExpect(status().isOk())
                        .andExpect(content().string(containsString("aria-label=\"Profile\"")))
@@ -122,8 +114,7 @@ class IndexViewControllerTest {
             void shouldDisplayNotificationButton() throws Exception {
                 mockMvc.perform(get("/"))
                        .andExpect(status().isOk())
-                       .andExpect(content().string(containsString("aria-label=\"알림\"")))
-                       .andExpect(content().string(containsString("알림")));
+                       .andExpect(content().string(containsString("aria-label=\"알림\"")));
             }
         }
 
@@ -133,11 +124,11 @@ class IndexViewControllerTest {
         class MainHeader {
 
             @Test
-            @DisplayName("boardhole 타이틀이 표시된다")
+            @DisplayName("BOARDHOLE 타이틀이 표시된다")
             void shouldDisplayBoardholeTitle() throws Exception {
                 mockMvc.perform(get("/"))
                        .andExpect(status().isOk())
-                       .andExpect(content().string(containsString("class=\"text-lg font-semibold text-slate-900 uppercase\">boardhole")));
+                       .andExpect(content().string(containsString("BOARDHOLE")));
             }
 
             @Test
@@ -157,31 +148,21 @@ class IndexViewControllerTest {
         class Navigation {
 
             @Test
-            @DisplayName("검색 버튼이 렌더링된다")
-            void shouldRenderSearchButton() throws Exception {
-                mockMvc.perform(get("/"))
-                       .andExpect(status().isOk())
-                       .andExpect(content().string(containsString("popovertarget=\"searchPopover\"")))
-                       .andExpect(content().string(containsString("aria-label=\"검색 열기\"")));
-            }
-
-            @Test
             @DisplayName("게시판 링크가 표시된다")
             void shouldDisplayBoardLink() throws Exception {
                 mockMvc.perform(get("/"))
                        .andExpect(status().isOk())
                        .andExpect(content().string(containsString("href=\"/boards\"")))
-                       .andExpect(content().string(containsString("aria-label=\"게시판\"")));
+                       .andExpect(content().string(containsString("aria-label=\"Boards\"")));
             }
 
             @Test
-            @DisplayName("툴팁이 올바르게 설정된다")
-            void shouldHaveCorrectTooltips() throws Exception {
+            @DisplayName("프로필 링크가 표시된다")
+            void shouldDisplayProfileLink() throws Exception {
                 mockMvc.perform(get("/"))
                        .andExpect(status().isOk())
-                       .andExpect(content().string(containsString("role=\"tooltip\"")))
-                       .andExpect(content().string(containsString("id=\"index-tip-search\"")))
-                       .andExpect(content().string(containsString("id=\"index-tip-board\"")));
+                       .andExpect(content().string(containsString("href=\"/users/me\"")))
+                       .andExpect(content().string(containsString("aria-label=\"Profile\"")));
             }
         }
     }
@@ -221,12 +202,11 @@ class IndexViewControllerTest {
             }
 
             @Test
-            @DisplayName("검색 입력 영역이 표시된다")
-            void shouldDisplaySearchInput() throws Exception {
+            @DisplayName("게시판 둘러보기 버튼이 표시된다")
+            void shouldDisplayBrowseBoardsButton() throws Exception {
                 mockMvc.perform(get("/"))
                        .andExpect(status().isOk())
-                       .andExpect(content().string(containsString("게시판 둘러보기")))
-                       .andExpect(content().string(containsString("검색어 입력")));
+                       .andExpect(content().string(containsString("게시판 둘러보기")));
             }
         }
 
@@ -256,11 +236,11 @@ class IndexViewControllerTest {
             }
 
             @Test
-            @DisplayName("게시판 둘러보기 버튼이 포함된다")
-            void shouldIncludeStartButton() throws Exception {
+            @DisplayName("회원가입 버튼이 포함된다")
+            void shouldIncludeSignupButton() throws Exception {
                 mockMvc.perform(get("/"))
                        .andExpect(status().isOk())
-                       .andExpect(content().string(containsString("게시판 둘러보기")));
+                       .andExpect(content().string(containsString("회원가입")));
             }
         }
 
@@ -296,90 +276,38 @@ class IndexViewControllerTest {
                        .andExpect(content().string(containsString("DDD 기반")));
             }
         }
-    }
-
-    @Nested
-    @DisplayName("인터랙티브 요소")
-    class InteractiveElements {
 
         @Nested
-        @DisplayName("팝오버")
-        class Popovers {
+        @DisplayName("기술 스택")
+        @WithAnonymousUser
+        class TechStack {
 
-            @Nested
-            @DisplayName("검색 팝오버")
-            @WithAnonymousUser
-            class SearchPopover {
-
-                @Test
-                @DisplayName("팝오버가 렌더링된다")
-                void shouldRenderPopover() throws Exception {
-                    mockMvc.perform(get("/"))
-                           .andExpect(status().isOk())
-                           .andExpect(content().string(containsString("id=\"searchPopover\"")))
-                           .andExpect(content().string(containsString("<h3 class=\"text-2xl font-semibold text-slate-900\">검색")));
-                }
-
-                @Test
-                @DisplayName("닫기 버튼이 있다")
-                void shouldHaveCloseButton() throws Exception {
-                    mockMvc.perform(get("/"))
-                           .andExpect(status().isOk())
-                           .andExpect(content().string(containsString("popovertargetaction=\"hide\"")))
-                           .andExpect(content().string(containsString("aria-label=\"검색 닫기\"")));
-                }
-
-                @Test
-                @DisplayName("검색 입력 필드가 있다")
-                void shouldHaveSearchInput() throws Exception {
-                    mockMvc.perform(get("/"))
-                           .andExpect(status().isOk())
-                           .andExpect(content().string(containsString("키워드를 입력하고 바로 필요한 보드를 찾아보세요")))
-                           .andExpect(content().string(containsString("placeholder=\"검색어 입력\"")));
-                }
-
-                @Test
-                @DisplayName("검색 팝오버가 표시된다")
-                void shouldDisplaySearchPopover() throws Exception {
-                    mockMvc.perform(get("/"))
-                           .andExpect(status().isOk())
-                           .andExpect(content().string(containsString("<h3 class=\"text-2xl font-semibold text-slate-900\">검색")))
-                           .andExpect(content().string(containsString("검색어 입력후 엔터를 입력하세요.")));
-                }
+            @Test
+            @DisplayName("Tech Stack 섹션이 표시된다")
+            void shouldDisplayTechStackSection() throws Exception {
+                mockMvc.perform(get("/"))
+                       .andExpect(status().isOk())
+                       .andExpect(content().string(containsString("Tech Stack")));
             }
 
-            @Nested
-            @DisplayName("로그아웃 팝오버")
-            class LogoutPopover {
+            @Test
+            @DisplayName("Core Backend 기술이 표시된다")
+            void shouldDisplayCoreBackendTech() throws Exception {
+                mockMvc.perform(get("/"))
+                       .andExpect(status().isOk())
+                       .andExpect(content().string(containsString("Core Backend")))
+                       .andExpect(content().string(containsString("Java")))
+                       .andExpect(content().string(containsString("Spring Boot")));
+            }
 
-                @Test
-                @DisplayName("로그인 상태에서 팝오버가 렌더링된다")
-                @WithMockUser(username = "testuser")
-                void shouldRenderForAuthenticatedUser() throws Exception {
-                    mockMvc.perform(get("/"))
-                           .andExpect(status().isOk())
-                           .andExpect(content().string(containsString("id=\"logoutPopover\"")))
-                           .andExpect(content().string(containsString("로그아웃 하시겠어요?")));
-                }
-
-                @Test
-                @DisplayName("확인 메시지가 표시된다")
-                @WithMockUser(username = "testuser")
-                void shouldDisplayConfirmationMessage() throws Exception {
-                    mockMvc.perform(get("/"))
-                           .andExpect(status().isOk())
-                           .andExpect(content().string(containsString("현재 세션이 종료되고 다시 로그인해야 합니다")));
-                }
-
-                @Test
-                @DisplayName("취소/확인 버튼이 있다")
-                @WithMockUser(username = "testuser")
-                void shouldHaveActionButtons() throws Exception {
-                    mockMvc.perform(get("/"))
-                           .andExpect(status().isOk())
-                           .andExpect(content().string(containsString("취소")))
-                           .andExpect(content().string(containsString("href=\"/auth/logout\"")));
-                }
+            @Test
+            @DisplayName("Data Storage 기술이 표시된다")
+            void shouldDisplayDataStorageTech() throws Exception {
+                mockMvc.perform(get("/"))
+                       .andExpect(status().isOk())
+                       .andExpect(content().string(containsString("Data Storage")))
+                       .andExpect(content().string(containsString("PostgreSQL")))
+                       .andExpect(content().string(containsString("Redis")));
             }
         }
     }
@@ -401,16 +329,6 @@ class IndexViewControllerTest {
                        .andExpect(content().string(containsString("회원가입")))
                        .andExpect(content().string(containsString("href=\"/auth/signup\"")));
             }
-
-            @Test
-            @DisplayName("로그아웃 버튼이 표시되지 않는다")
-            void shouldNotShowLogoutButton() throws Exception {
-                mockMvc.perform(get("/"))
-                       .andExpect(status().isOk())
-                       // Thymeleaf 조건부 렌더링으로 인해 정확한 검증이 어려움
-                       // 회원가입 텍스트가 있으면 비로그인 상태로 간주
-                       .andExpect(content().string(containsString("회원가입")));
-            }
         }
 
         @Nested
@@ -418,23 +336,12 @@ class IndexViewControllerTest {
         class AuthenticatedUser {
 
             @Test
-            @DisplayName("로그아웃 버튼이 표시된다")
+            @DisplayName("프로필 링크가 표시된다")
             @WithMockUser(username = "testuser")
-            void shouldShowLogoutButton() throws Exception {
+            void shouldShowProfileLink() throws Exception {
                 mockMvc.perform(get("/"))
                        .andExpect(status().isOk())
-                       .andExpect(content().string(containsString("popovertarget=\"logoutPopover\"")))
-                       .andExpect(content().string(containsString("aria-label=\"로그아웃\"")));
-            }
-
-            @Test
-            @DisplayName("로그아웃 팝오버가 표시된다")
-            @WithMockUser(username = "testuser")
-            void shouldShowLogoutPopover() throws Exception {
-                mockMvc.perform(get("/"))
-                       .andExpect(status().isOk())
-                       .andExpect(content().string(containsString("id=\"logoutPopover\"")))
-                       .andExpect(content().string(containsString("로그아웃 하시겠어요?")));
+                       .andExpect(content().string(containsString("href=\"/users/me\"")));
             }
         }
     }
@@ -449,32 +356,13 @@ class IndexViewControllerTest {
         class AriaAttributes {
 
             @Test
-            @DisplayName("모든 인터랙티브 요소가 aria-label을 가진다")
+            @DisplayName("인터랙티브 요소가 aria-label을 가진다")
             void shouldHaveAriaLabels() throws Exception {
                 mockMvc.perform(get("/"))
                        .andExpect(status().isOk())
                        .andExpect(content().string(containsString("aria-label=\"Profile\"")))
-                       .andExpect(content().string(containsString("aria-label=\"검색 열기\"")))
-                       .andExpect(content().string(containsString("aria-label=\"게시판\"")))
+                       .andExpect(content().string(containsString("aria-label=\"Boards\"")))
                        .andExpect(content().string(containsString("aria-label=\"알림\"")));
-            }
-
-            @Test
-            @DisplayName("툴팁이 role='tooltip'을 가진다")
-            void shouldHaveTooltipRole() throws Exception {
-                mockMvc.perform(get("/"))
-                       .andExpect(status().isOk())
-                       .andExpect(content().string(containsString("role=\"tooltip\"")));
-            }
-
-            @Test
-            @DisplayName("버튼이 aria-describedby로 툴팁과 연결된다")
-            void shouldConnectButtonsWithTooltips() throws Exception {
-                mockMvc.perform(get("/"))
-                       .andExpect(status().isOk())
-                       .andExpect(content().string(containsString("aria-describedby=\"index-tip-profile\"")))
-                       .andExpect(content().string(containsString("aria-describedby=\"index-tip-search\"")))
-                       .andExpect(content().string(containsString("aria-describedby=\"index-tip-board\"")));
             }
         }
 

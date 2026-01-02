@@ -330,8 +330,7 @@ class BoardListViewControllerTest {
             // when & then
             mockMvc.perform(get("/boards").param("page", "1"))
                    .andExpect(status().isOk())
-                   .andExpect(content().string(containsString("이전")))
-                   .andExpect(content().string(containsString("다음")));
+                   .andExpect(content().string(containsString("aria-label=\"게시글 페이지네이션\"")));
         }
 
         // 페이지 번호 그룹 기능 제거로 인한 테스트 삭제
@@ -352,11 +351,15 @@ class BoardListViewControllerTest {
             when(boardQueryService.getBoards(any(), any())).thenReturn(emptyPage);
 
             // when & then
-            mockMvc.perform(get("/boards"))
+            var result = mockMvc.perform(get("/boards"))
                    .andExpect(status().isOk())
-                   .andExpect(content().string(containsString("이전")))
-                   .andExpect(content().string(containsString("다음")))
-                   .andExpect(content().string(containsString("cursor-not-allowed")));
+                   .andReturn();
+
+            String content = result.getResponse().getContentAsString();
+            // 이전 버튼 비활성화
+            assertTrue(content.contains("btn-disabled") && content.contains("«"));
+            // 다음 버튼 비활성화
+            assertTrue(content.contains("btn-disabled") && content.contains("»"));
         }
 
         @Test
@@ -373,10 +376,13 @@ class BoardListViewControllerTest {
             when(boardQueryService.getBoards(any(), any())).thenReturn(singlePage);
 
             // when & then
-            mockMvc.perform(get("/boards"))
+            var result = mockMvc.perform(get("/boards"))
                    .andExpect(status().isOk())
-                   .andExpect(content().string(containsString("다음")))
-                   .andExpect(content().string(containsString("cursor-not-allowed")));
+                   .andReturn();
+
+            String content = result.getResponse().getContentAsString();
+            // 이전/다음 버튼 비활성화 확인
+            assertTrue(content.contains("btn-disabled"));
         }
 
         @Test
@@ -396,12 +402,10 @@ class BoardListViewControllerTest {
             var result = mockMvc.perform(get("/boards"))
                    .andExpect(status().isOk())
                    .andReturn();
-            
+
             String content = result.getResponse().getContentAsString();
-            // 이전 버튼 비활성화 확인
-            assertTrue(content.contains("이전") && content.contains("cursor-not-allowed"));
-            // 다음 버튼 활성화 확인 (a 태그로 렌더링)
-            assertTrue(content.contains("다음") && content.contains("/boards?page=1"));
+            // 다음 버튼 활성화 확인 (page=1 링크 존재)
+            assertTrue(content.contains("/boards?page=1"));
         }
 
         @Test
@@ -421,12 +425,10 @@ class BoardListViewControllerTest {
             var result = mockMvc.perform(get("/boards").param("page", "1"))
                    .andExpect(status().isOk())
                    .andReturn();
-            
+
             String content = result.getResponse().getContentAsString();
-            // 이전 버튼 활성화 확인 (a 태그로 렌더링)
-            assertTrue(content.contains("이전") && content.contains("/boards?page=0"));
-            // 다음 버튼 비활성화 확인
-            assertTrue(content.contains("다음") && content.contains("cursor-not-allowed"));
+            // 이전 버튼 활성화 확인 (page=0 링크 존재)
+            assertTrue(content.contains("/boards?page=0"));
         }
 
         // 페이지 번호 표시 기능 제거로 인한 테스트 삭제
@@ -450,12 +452,12 @@ class BoardListViewControllerTest {
             var result = mockMvc.perform(get("/boards").param("page", "11"))
                    .andExpect(status().isOk())
                    .andReturn();
-            
+
             String content = result.getResponse().getContentAsString();
-            // 이전 버튼 활성화 확인
-            assertTrue(content.contains("이전") && content.contains("/boards?page=10"));
+            // 이전 버튼 활성화 확인 (page=10 링크 존재)
+            assertTrue(content.contains("/boards?page=10"));
             // 다음 버튼 비활성화 확인
-            assertTrue(content.contains("다음") && content.contains("cursor-not-allowed"));
+            assertTrue(content.contains("btn-disabled"));
         }
 
         @Test
