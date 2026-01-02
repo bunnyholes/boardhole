@@ -68,7 +68,7 @@ class BoardEntityTest extends EntityTestBase {
             // when & then
             assertThatThrownBy(() -> {
                 Board board = Board.builder().title("").content(EntityTestBase.TEST_BOARD_CONTENT).author(author).build();
-                entityManager.persistAndFlush(board);
+                persistAndFlush(board);
             }).isInstanceOf(ConstraintViolationException.class);
         }
 
@@ -82,7 +82,7 @@ class BoardEntityTest extends EntityTestBase {
             // when & then
             assertThatThrownBy(() -> {
                 Board board = Board.builder().title(EntityTestBase.TEST_BOARD_TITLE).content("").author(author).build();
-                entityManager.persistAndFlush(board);
+                persistAndFlush(board);
             }).isInstanceOf(ConstraintViolationException.class);
         }
 
@@ -104,7 +104,7 @@ class BoardEntityTest extends EntityTestBase {
             // when & then
             assertThatThrownBy(() -> {
                 Board board = Board.builder().title(longTitle).content(EntityTestBase.TEST_BOARD_CONTENT).author(author).build();
-                entityManager.persistAndFlush(board);
+                persistAndFlush(board);
             }).isInstanceOf(ConstraintViolationException.class);
         }
 
@@ -119,7 +119,7 @@ class BoardEntityTest extends EntityTestBase {
             // when & then
             assertThatThrownBy(() -> {
                 Board board = Board.builder().title(EntityTestBase.TEST_BOARD_TITLE).content(longContent).author(author).build();
-                entityManager.persistAndFlush(board);
+                persistAndFlush(board);
             }).isInstanceOf(ConstraintViolationException.class);
         }
     }
@@ -137,7 +137,7 @@ class BoardEntityTest extends EntityTestBase {
             Board board = Board.builder().title(EntityTestBase.TEST_BOARD_TITLE).content(EntityTestBase.TEST_BOARD_CONTENT).author(author).build();
 
             // when
-            entityManager.persistAndFlush(board);
+            persistAndFlush(board);
 
             // then
             assertThat(board.getCreatedAt()).isNotNull();
@@ -151,7 +151,7 @@ class BoardEntityTest extends EntityTestBase {
             // given
             User author = createAndPersistUser();
             Board board = Board.builder().title(EntityTestBase.TEST_BOARD_TITLE).content(EntityTestBase.TEST_BOARD_CONTENT).author(author).build();
-            entityManager.persistAndFlush(board);
+            persistAndFlush(board);
             LocalDateTime originalUpdatedAt = board.getUpdatedAt();
 
             // when
@@ -194,7 +194,7 @@ class BoardEntityTest extends EntityTestBase {
             // when & then
             assertThatThrownBy(() -> {
                 board.setTitle("");
-                entityManager.persistAndFlush(board);
+                persistAndFlush(board);
             }).isInstanceOf(ConstraintViolationException.class);
         }
 
@@ -224,7 +224,7 @@ class BoardEntityTest extends EntityTestBase {
             // when & then
             assertThatThrownBy(() -> {
                 board.setContent("");
-                entityManager.persistAndFlush(board);
+                persistAndFlush(board);
             }).isInstanceOf(ConstraintViolationException.class);
         }
 
@@ -234,7 +234,7 @@ class BoardEntityTest extends EntityTestBase {
             // given
             User author = createAndPersistUser();
             Board board = Board.builder().title(EntityTestBase.TEST_BOARD_TITLE).content(EntityTestBase.TEST_BOARD_CONTENT).author(author).build();
-            entityManager.persistAndFlush(board);
+            persistAndFlush(board);
 
             // when
             board.increaseViewCount();
@@ -263,7 +263,7 @@ class BoardEntityTest extends EntityTestBase {
             Board board = Board.builder().title(EntityTestBase.TEST_BOARD_TITLE).content(EntityTestBase.TEST_BOARD_CONTENT).author(author).build();
 
             // when
-            entityManager.persistAndFlush(board);
+            persistAndFlush(board);
             entityManager.clear();
             Board foundBoard = entityManager.find(Board.class, board.getId());
 
@@ -283,7 +283,7 @@ class BoardEntityTest extends EntityTestBase {
             // given
             User author = createAndPersistUser();
             Board board = Board.builder().title(EntityTestBase.TEST_BOARD_TITLE).content(EntityTestBase.TEST_BOARD_CONTENT).author(author).build();
-            entityManager.persistAndFlush(board);
+            persistAndFlush(board);
             Long originalVersion = board.getVersion();
 
             // when

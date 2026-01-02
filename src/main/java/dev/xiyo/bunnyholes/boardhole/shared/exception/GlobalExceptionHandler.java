@@ -20,7 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.data.mapping.PropertyReferenceException;
+import org.springframework.data.core.PropertyReferenceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
@@ -240,7 +240,7 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleInvalidSort(PropertyReferenceException ex, HttpServletRequest request) {
         String invalidField = ex.getPropertyName();
         Class<?> domainType = Optional.ofNullable(ex.getType())
-                                      .map(org.springframework.data.util.TypeInformation::getType)
+                                      .map(org.springframework.data.core.TypeInformation::getType)
                                       .orElse(null);
 
         List<String> allowedFields = domainType != null ? getSortableAttributes(domainType) : List.of();

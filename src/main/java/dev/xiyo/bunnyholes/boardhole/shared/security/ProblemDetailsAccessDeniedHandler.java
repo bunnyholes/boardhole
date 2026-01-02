@@ -14,7 +14,7 @@ import org.springframework.http.ProblemDetail;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.web.access.AccessDeniedHandler;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 import dev.xiyo.bunnyholes.boardhole.shared.constants.ErrorCode;
 import dev.xiyo.bunnyholes.boardhole.shared.util.MessageUtils;

@@ -16,7 +16,7 @@ class EntityTestBaseSmokeTest extends EntityTestBase {
         User user = EntityTestBase.createTestUser();
 
         // when
-        User saved = entityManager.persistAndFlush(user);
+        User saved = persistAndFlush(user);
 
         // then
         assertThat(saved.getId()).isNotNull();

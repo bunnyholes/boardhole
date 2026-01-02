@@ -74,7 +74,7 @@ class UserEntityTest extends EntityTestBase {
             assertThatThrownBy(() -> {
                 User user = User.builder().username("").password(UserEntityTest.passwordEncoder.encode(EntityTestBase.TEST_PASSWORD)).name(
                         EntityTestBase.TEST_NAME).email(EntityTestBase.TEST_EMAIL).roles(Set.of(Role.USER)).build();
-                entityManager.persistAndFlush(user);
+                persistAndFlush(user);
             }).isInstanceOf(ConstraintViolationException.class);
         }
 
@@ -88,7 +88,7 @@ class UserEntityTest extends EntityTestBase {
             assertThatThrownBy(() -> {
                 User user = User.builder().username(EntityTestBase.createUniqueUsername()).password("").name(EntityTestBase.TEST_NAME).email(
                         EntityTestBase.TEST_EMAIL).roles(Set.of(Role.USER)).build();
-                entityManager.persistAndFlush(user);
+                persistAndFlush(user);
             }).isInstanceOf(ConstraintViolationException.class);
         }
 
@@ -102,7 +102,7 @@ class UserEntityTest extends EntityTestBase {
             assertThatThrownBy(() -> {
                 User user = User.builder().username(EntityTestBase.createUniqueUsername()).password(UserEntityTest.passwordEncoder.encode(
                         EntityTestBase.TEST_PASSWORD)).name("").email(EntityTestBase.TEST_EMAIL).roles(Set.of(Role.USER)).build();
-                entityManager.persistAndFlush(user);
+                persistAndFlush(user);
             }).isInstanceOf(ConstraintViolationException.class);
         }
 
@@ -116,7 +116,7 @@ class UserEntityTest extends EntityTestBase {
             assertThatThrownBy(() -> {
                 User user = User.builder().username(EntityTestBase.createUniqueUsername()).password(UserEntityTest.passwordEncoder.encode(
                         EntityTestBase.TEST_PASSWORD)).name(EntityTestBase.TEST_NAME).email("").roles(Set.of(Role.USER)).build();
-                entityManager.persistAndFlush(user);
+                persistAndFlush(user);
             }).isInstanceOf(ConstraintViolationException.class);
         }
     }
@@ -137,7 +137,7 @@ class UserEntityTest extends EntityTestBase {
             assertThatThrownBy(() -> {
                 User user = User.builder().username(longUsername).password(UserEntityTest.passwordEncoder.encode(EntityTestBase.TEST_PASSWORD)).name(
                         EntityTestBase.TEST_NAME).email(EntityTestBase.TEST_EMAIL).roles(Set.of(Role.USER)).build();
-                entityManager.persistAndFlush(user);
+                persistAndFlush(user);
             }).isInstanceOf(ConstraintViolationException.class);
         }
 
@@ -152,7 +152,7 @@ class UserEntityTest extends EntityTestBase {
             assertThatThrownBy(() -> {
                 User user = User.builder().username(EntityTestBase.createUniqueUsername()).password(UserEntityTest.passwordEncoder.encode(
                         EntityTestBase.TEST_PASSWORD)).name(longName).email(EntityTestBase.TEST_EMAIL).roles(Set.of(Role.USER)).build();
-                entityManager.persistAndFlush(user);
+                persistAndFlush(user);
             }).isInstanceOf(ConstraintViolationException.class);
         }
 
@@ -167,7 +167,7 @@ class UserEntityTest extends EntityTestBase {
             assertThatThrownBy(() -> {
                 User user = User.builder().username(EntityTestBase.createUniqueUsername()).password(UserEntityTest.passwordEncoder.encode(
                         EntityTestBase.TEST_PASSWORD)).name(EntityTestBase.TEST_NAME).email(longEmail).roles(Set.of(Role.USER)).build();
-                entityManager.persistAndFlush(user);
+                persistAndFlush(user);
             }).isInstanceOf(ConstraintViolationException.class);
         }
     }
@@ -184,7 +184,7 @@ class UserEntityTest extends EntityTestBase {
             User user = EntityTestBase.createTestUser();
 
             // when
-            entityManager.persistAndFlush(user);
+            persistAndFlush(user);
 
             // then - BaseEntity 상속으로 JPA Auditing이 자동으로 설정됨
             assertThat(user.getCreatedAt()).isNotNull();
@@ -223,7 +223,7 @@ class UserEntityTest extends EntityTestBase {
             // when & then
             assertThatThrownBy(() -> {
                 user.changeName("");
-                entityManager.persistAndFlush(user);
+                persistAndFlush(user);
             }).isInstanceOf(ConstraintViolationException.class);
         }
 
@@ -290,7 +290,7 @@ class UserEntityTest extends EntityTestBase {
                     .build();
 
             // when
-            entityManager.persistAndFlush(user);
+            persistAndFlush(user);
             entityManager.clear();
             User foundUser = entityManager.find(User.class, user.getId());
 
@@ -321,8 +321,8 @@ class UserEntityTest extends EntityTestBase {
                     .build();
 
             // when
-            entityManager.persistAndFlush(user1);
-            entityManager.persistAndFlush(user2);
+            persistAndFlush(user1);
+            persistAndFlush(user2);
 
             // then
             assertThat(user1).isNotEqualTo(user2);
@@ -348,7 +348,7 @@ class UserEntityTest extends EntityTestBase {
                     .build();
 
             // when
-            entityManager.persistAndFlush(user);
+            persistAndFlush(user);
             entityManager.clear();
             User foundUser = entityManager.find(User.class, user.getId());
 

@@ -4,9 +4,10 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -28,8 +29,8 @@ public abstract class EntityTestBase {
     protected static final String TEST_BOARD_CONTENT = "Test Board Content";
     // 테스트 데이터 상수
     private static final String TEST_USERNAME = "testuser";
-    @Autowired
-    protected TestEntityManager entityManager;
+    @PersistenceContext
+    protected EntityManager entityManager;
 
     protected static String createUniqueEmail() {
         return UUID.randomUUID().toString().substring(0, 8) + "@example.com";
@@ -63,7 +64,13 @@ public abstract class EntityTestBase {
 
     protected User createAndPersistUser() {
         User user = createTestUser();
-        return entityManager.persistAndFlush(user);
+        return persistAndFlush(user);
+    }
+
+    protected <T> T persistAndFlush(T entity) {
+        entityManager.persist(entity);
+        entityManager.flush();
+        return entity;
     }
 
 }

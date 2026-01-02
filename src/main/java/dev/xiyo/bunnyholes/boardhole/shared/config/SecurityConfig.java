@@ -2,7 +2,7 @@ package dev.xiyo.bunnyholes.boardhole.shared.config;
 
 import lombok.RequiredArgsConstructor;
 
-import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
+import org.springframework.boot.security.autoconfigure.web.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -25,7 +25,7 @@ import org.springframework.security.web.context.HttpSessionSecurityContextReposi
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.savedrequest.NullRequestCache;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 import dev.xiyo.bunnyholes.boardhole.auth.infrastructure.security.CustomAuthenticationSuccessHandler;
 import dev.xiyo.bunnyholes.boardhole.shared.constants.ApiPaths;
