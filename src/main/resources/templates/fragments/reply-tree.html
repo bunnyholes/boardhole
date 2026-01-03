@@ -33,7 +33,7 @@
                     <div sec:authorize="isAuthenticated()"
                          th:if="${#authentication.name == reply.authorName}"
                          class="flex items-center gap-2">
-                        <a th:href="@{/boards/{boardId}(boardId=${boardId}, editReply=${reply.id})}"
+                        <a th:href="@{/boards/{boardId}(boardId=${boardId}, editReply=${reply.id})} + '#reply-' + ${reply.id}"
                            class="text-xs text-base-content/50 hover:text-primary">
                             수정
                         </a>
@@ -66,7 +66,7 @@
                 </div>
 
                 <div th:if="${reply.depth < 4}" class="mt-2">
-                    <a th:href="@{/boards/{boardId}(boardId=${boardId}, replyTo=${reply.id})}"
+                    <a th:href="@{/boards/{boardId}(boardId=${boardId}, replyTo=${reply.id})} + '#reply-' + ${reply.id}"
                        sec:authorize="isAuthenticated()"
                        class="text-sm text-primary hover:underline">
                         답글
