@@ -47,23 +47,25 @@
                     </div>
                 </div>
 
-                <p class="mt-2 text-base-content/80 whitespace-pre-wrap" th:text="${reply.content}">댓글 내용</p>
+                <textarea th:if="${param.editReply == null or !param.editReply[0].equals(reply.id.toString())}"
+                          readonly
+                          rows="2"
+                          class="mt-2 w-full bg-transparent border-none resize-none text-base-content/80 focus:outline-none cursor-default"
+                          th:text="${reply.content}">댓글 내용</textarea>
 
-                <div th:id="'edit-form-' + ${reply.id}" class="mt-2"
-                     th:classappend="${param.editReply == null or !param.editReply[0].equals(reply.id.toString())} ? 'hidden'">
-                    <form th:action="@{/replies/{id}(id=${reply.id})}" method="post">
-                        <textarea name="content" rows="2"
-                                  class="textarea textarea-bordered textarea-sm w-full"
-                                  th:text="${reply.content}"></textarea>
-                        <div class="flex justify-end gap-2 mt-2">
-                            <a th:href="@{/boards/{boardId}(boardId=${boardId})}"
-                               class="btn btn-ghost btn-sm">
-                                취소
-                            </a>
-                            <button type="submit" class="btn btn-primary btn-sm">저장</button>
-                        </div>
-                    </form>
-                </div>
+                <form th:if="${param.editReply != null and param.editReply[0].equals(reply.id.toString())}"
+                      th:action="@{/replies/{id}(id=${reply.id})}" method="post" class="mt-2">
+                    <textarea name="content" rows="2"
+                              class="textarea textarea-bordered textarea-sm w-full"
+                              th:text="${reply.content}"></textarea>
+                    <div class="flex justify-end gap-2 mt-2">
+                        <a th:href="@{/boards/{boardId}(boardId=${boardId})} + '#reply-' + ${reply.id}"
+                           class="btn btn-ghost btn-sm">
+                            취소
+                        </a>
+                        <button type="submit" class="btn btn-primary btn-sm">저장</button>
+                    </div>
+                </form>
 
                 <div th:if="${reply.depth < 4}" class="mt-2">
                     <a th:href="@{/boards/{boardId}(boardId=${boardId}, replyTo=${reply.id})} + '#reply-' + ${reply.id}"
